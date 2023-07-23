@@ -14,6 +14,12 @@
     direnv neofetch
   ];
 
+  # Fonts
+  fonts = {
+    fontDir.enable = true;
+    fonts = with pkgs; [ cascadia-code ];
+  };
+
   programs.zsh.enable = true;
 
   # Homebrew casks
