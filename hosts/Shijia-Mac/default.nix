@@ -2,11 +2,18 @@
   # Enable nix daemon
   nix.useDaemon = true;
 
+  # Garbage collection
+  nix.gc = {
+    automatic = true;
+    interval.Hour = 24 * 7;
+  };
+
   # Users
   users.users.codgi = {
     name = "codgi";
     description = "Shijia Zhang";
     home = "/Users/codgi";
+    
   };
 
   # System packages
@@ -30,7 +37,10 @@
       upgrade = true;
     };
 
-    casks = [ ];
+    casks = [ 
+      "qv2ray" "visual-studio-code" "microsoft-edge"
+      "iina" "minecraft" "bilibili"
+    ];
   };
 
   # Home manager
@@ -39,10 +49,11 @@
     useUserPackages = true;
     users.codgi = { config, pkgs, ... }: {
       home.stateVersion = "23.05";
-      home.packages = with pkgs; [ ];
+      home.packages = with pkgs; [ xray ];
       
       programs.zsh = {
         enable = true;
+        enableCompletion = true;
         oh-my-zsh = {
           enable = true;
           plugins = [ "git" ];
