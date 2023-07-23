@@ -33,11 +33,13 @@
     useUserPackages = true;
     users.codgi = { config, pkgs, ... }: {
       home.stateVersion = "23.05";
-
+      home.packages = with pkgs; [ ];
+      
       programs.zsh = {
+        enable = true;
         oh-my-zsh = {
           enable = true;
-          plugins = [ "git" "thefuck" ];
+          plugins = [ "git" ];
           theme = "half-life";
         };
       };
