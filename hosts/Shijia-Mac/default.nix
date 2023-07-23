@@ -13,12 +13,13 @@
     name = "codgi";
     description = "Shijia Zhang";
     home = "/Users/codgi";
+    openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM/Mohin9ceHn6zpaRYWi3LeATeXI7ydiMrP3RsglZ2r codgi-ssh" ];
     
   };
 
   # System packages
   environment.systemPackages = with pkgs; [
-    direnv neofetch
+    direnv neofetch jdk
   ];
 
   # Fonts
@@ -49,7 +50,7 @@
     useUserPackages = true;
     users.codgi = { config, pkgs, ... }: {
       home.stateVersion = "23.05";
-      home.packages = with pkgs; [ xray ];
+      home.packages = with pkgs; [ xray v2ray-geoip v2ray-domain-list-community ];
       
       programs.zsh = {
         enable = true;
