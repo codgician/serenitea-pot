@@ -40,7 +40,7 @@
 
     casks = [ 
       "qv2ray" "visual-studio-code" "microsoft-edge"
-      "iina" "minecraft" "bilibili"
+      "iina" "minecraft" "bilibili" "logi-options-plus"
     ];
   };
 
