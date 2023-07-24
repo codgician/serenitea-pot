@@ -74,11 +74,27 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1690022785,
-        "narHash": "sha256-WV3Rg6WcP3UErddn/+Kw3BTsc8kB9F4Y5sv7I/N5q4o=",
+        "lastModified": 1690148897,
+        "narHash": "sha256-l/j/AX1d2K79EWslwgWR2+htkzCbtjKZsS5NbWXnhz4=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "0ee595490f5b1d181cccc17928aa250faf4b91c1",
+        "rev": "ac1acba43b2f9db073943ff5ed883ce7e8a40a2c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-23.05",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-darwin": {
+      "locked": {
+        "lastModified": 1690140933,
+        "narHash": "sha256-61B/GFZR/NqfdiNcF0uLQyStBsGskAKlkhCZSjug2yw=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "7b138d80b4cc04cd9d4df6944dd914234fcc090a",
         "type": "github"
       },
       "original": {
@@ -94,7 +110,8 @@
         "home-manager": "home-manager",
         "impermanence": "impermanence",
         "nixos-hardware": "nixos-hardware",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "nixpkgs-darwin": "nixpkgs-darwin"
       }
     }
   },

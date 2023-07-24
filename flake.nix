@@ -2,7 +2,8 @@
   description = "codgician's nix fleet";
 
   inputs = {
-      nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-23.05-darwin";
+      nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
+      nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-23.05-darwin";
       home-manager.url = "github:nix-community/home-manager/release-23.05";
       home-manager.inputs.nixpkgs.follows = "nixpkgs";
      
@@ -13,25 +14,46 @@
       darwin.inputs.nixpkgs.follows = "nixpkgs"; 
   };
   
-  # add the inputs declared above to the argument attribute set
   outputs = inputs @ {
     self, 
-    nixpkgs, 
+    nixpkgs,
+    nixpkgs-darwin,
     home-manager,
     impermanence,
     darwin,
     ...
-  }: {
-    # we want `nix-darwin` and not gnu hello, so the packages stuff can go
-    
-    darwinConfigurations."Shijia-Mac" = darwin.lib.darwinSystem {
-      # you can have multiple darwinConfigurations per flake, one per hostname
+  }: 
+  let 
+    lib = nixpkgs.lib;
+    processConfigurations = lib.mapAttrs (n: v: v n);
 
-      system = "aarch64-darwin";
-      modules = [
-         home-manager.darwinModules.home-manager
-         ./hosts/Shijia-Mac/default.nix
-      ];
-    }; 
+    # Common configurations for macOS systems
+    darwinSystem = system: extraModules: hostName:
+      let
+        pkgs = import nixpkgs-darwin {
+          inherit system;
+          config.allowUnfree = true;
+        };
+      in
+      darwin.lib.darwinSystem {
+        inherit system;
+        specialArgs = { inherit lib pkgs inputs self darwin; };
+        modules = [
+          home-manager.darwinModules.home-manager
+          {
+            nix.useDaemon = true;
+            networking.hostName = hostName;
+            home-manager.useGlobalPkgs = true;
+            home-manager.useUserPackages = true;
+            home-manager.extraSpecialArgs = { inherit inputs pkgs; };
+          }
+        ] ++ extraModules;
+      };
+  in
+  {
+    # macOS machines
+    darwinConfigurations = processConfigurations {
+      "Shijia-Mac" = darwinSystem "aarch64-darwin" [ ./hosts/Shijia-Mac/default.nix ];
+    };
   };
 }
