@@ -1,9 +1,17 @@
 { config, pkgs, ... }: {
 
-  # Garbage collection
-  nix.gc = {
-    automatic = true;
-    interval.Hour = 24 * 7;
+  # Nix settings
+  nix = {
+    settings = {
+      auto-optimise-store = true;
+      sandbox = true;
+    };
+
+    # Garbage collection
+    gc = {
+      automatic = true;
+      interval.Hour = 24 * 7;
+    };
   };
 
   # Users
@@ -25,7 +33,7 @@
     fonts = with pkgs; [ cascadia-code ];
   };
 
-  # Enable zsh
+  # zsh
   programs.zsh.enable = true;
 
   # Homebrew: not added to PATH by design, 
@@ -82,6 +90,16 @@
   home-manager.users.codgi = { config, pkgs, ... }: {
     home.stateVersion = "23.05";
     home.packages = with pkgs; [ xray v2ray-geoip v2ray-domain-list-community ];
+
+    programs.git = {
+      enable = true;
+      lfs.enable = true;
+      package = pkgs.gitFull;
+
+      userName = "codgician";
+      userEmail = "15964984+codgician@users.noreply.github.com";
+      extraConfig.credential.helper = "osxkeychain";
+    };
     
     programs.zsh = {
       enable = true;
