@@ -5,6 +5,3 @@
 result*
 internal
 .tmp
-
-# Ignore vscode stuff
-/.vscode/
