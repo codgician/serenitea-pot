@@ -42,6 +42,7 @@
           home-manager.darwinModules.home-manager
           {
             nix.useDaemon = true;
+            nix.settings.experimental-features = [ "nix-command" "flakes" ];
             networking.hostName = hostName;
             home-manager.useGlobalPkgs = true;
             home-manager.useUserPackages = true;
