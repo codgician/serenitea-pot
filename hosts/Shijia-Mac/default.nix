@@ -83,15 +83,16 @@
 
     # Homebrew casks
     casks = [ 
-      "qv2ray" "visual-studio-code" "microsoft-edge"
+      "visual-studio-code" "microsoft-edge"
       "iina" "minecraft" "bilibili" "logi-options-plus"
+      "playcover-community"
     ];
   };
 
   # Home manager
   home-manager.users.codgi = { config, pkgs, ... }: {
     home.stateVersion = "23.05";
-    home.packages = with pkgs; [ xray v2ray-geoip v2ray-domain-list-community ];
+    home.packages = with pkgs; [ ];
 
     programs.git = {
       enable = true;
