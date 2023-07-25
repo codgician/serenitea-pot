@@ -39,8 +39,7 @@
   # Enable Touch ID for sudo
   security.pam.enableSudoTouchIdAuth = true;
 
-  # Homebrew: not added to PATH by design, 
-  # as everything is designed to be managed by nix
+  # Homebrew
   homebrew = {
     enable = true;
     onActivation = {
@@ -112,6 +111,9 @@
         plugins = [ "git" ];
         theme = "half-life";
       };
+      initExtra = ''
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+      '';
     };
   };
 }
