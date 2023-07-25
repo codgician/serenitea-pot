@@ -85,7 +85,7 @@
     casks = [ 
       "visual-studio-code" "microsoft-edge"
       "iina" "minecraft" "bilibili" "logi-options-plus"
-      "playcover-community"
+      "playcover-community" "motrix"
     ];
   };
 
@@ -93,6 +93,13 @@
   home-manager.users.codgi = { config, pkgs, ... }: {
     home.stateVersion = "23.05";
     home.packages = with pkgs; [ ];
+
+    programs.ssh = {
+      enable = true;
+      extraOptionOverrides = {
+        "PasswordAuthentication" = "no";
+      };
+    };
 
     programs.git = {
       enable = true;
