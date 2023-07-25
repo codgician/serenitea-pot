@@ -36,6 +36,9 @@
   # zsh
   programs.zsh.enable = true;
 
+  # Enable Touch ID for sudo
+  security.pam.enableSudoTouchIdAuth = true;
+
   # Homebrew: not added to PATH by design, 
   # as everything is designed to be managed by nix
   homebrew = {
