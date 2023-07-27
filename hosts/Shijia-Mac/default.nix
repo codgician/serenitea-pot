@@ -24,7 +24,9 @@
 
   # System packages
   environment.systemPackages = with pkgs; [
-    direnv neofetch jdk
+    direnv
+    neofetch
+    jdk
   ];
 
   # Fonts
@@ -89,10 +91,17 @@
     };
 
     # Homebrew casks
-    casks = [ 
-      "visual-studio-code" "microsoft-edge" "minecraft"
-      "logi-options-plus" "playcover-community" "parallels"
-      "iina" "bilibili" "motrix" "zoom"
+    casks = [
+      "visual-studio-code"
+      "microsoft-edge"
+      "minecraft"
+      "logi-options-plus"
+      "playcover-community"
+      "parallels"
+      "iina"
+      "bilibili"
+      "motrix"
+      "zoom"
     ];
   };
 
@@ -114,7 +123,7 @@
       userEmail = "15964984+codgician@users.noreply.github.com";
       extraConfig.credential.helper = "osxkeychain";
     };
-    
+
     programs.zsh = {
       enable = true;
       enableCompletion = true;
