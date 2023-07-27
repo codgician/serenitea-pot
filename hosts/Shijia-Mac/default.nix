@@ -39,6 +39,11 @@
   # Enable Touch ID for sudo
   security.pam.enableSudoTouchIdAuth = true;
 
+  # Disable ssh password authentication
+  environment.etc."ssh/sshd_config.d/110-no-password-authentication.conf" = {
+    text = "PasswordAuthentication no";
+  };
+
   # Homebrew
   homebrew = {
     enable = true;
@@ -60,6 +65,7 @@
       "Testflight" = 899247664;
       "Developer" = 640199958;
       "Apple Configurator" = 1037126344;
+      "Shazam" = 897118787;
 
       "Microsoft Word" = 462054704;
       "Microsoft Excel" = 462058435;
@@ -70,6 +76,7 @@
       "Microsoft Remote Desktop" = 1295203466;
 
       "Telegram" = 747648890;
+      "Twitter" = 1482454543;
       "WeChat" = 836500024;
       "QQ" = 451108668;
       "VooV" = 1497685373;
@@ -83,9 +90,9 @@
 
     # Homebrew casks
     casks = [ 
-      "visual-studio-code" "microsoft-edge"
-      "iina" "minecraft" "bilibili" "logi-options-plus"
-      "playcover-community" "motrix"
+      "visual-studio-code" "microsoft-edge" "minecraft"
+      "logi-options-plus" "playcover-community" "parallels"
+      "iina" "bilibili" "motrix" "zoom"
     ];
   };
 
@@ -96,9 +103,6 @@
 
     programs.ssh = {
       enable = true;
-      extraOptionOverrides = {
-        "PasswordAuthentication" = "no";
-      };
     };
 
     programs.git = {
