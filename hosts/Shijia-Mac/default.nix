@@ -108,7 +108,7 @@
   # Home manager
   home-manager.users.codgi = { config, pkgs, ... }: {
     home.stateVersion = "23.05";
-    home.packages = with pkgs; [ ];
+    home.packages = with pkgs; [ httplz rnix-lsp ];
 
     programs.ssh = {
       enable = true;
