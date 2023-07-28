@@ -98,6 +98,7 @@
 
     # Homebrew casks
     casks = [
+      "appcleaner"
       "visual-studio-code"
       "microsoft-edge"
       "minecraft"
