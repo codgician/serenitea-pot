@@ -10,7 +10,10 @@
     # Garbage collection
     gc = {
       automatic = true;
-      interval.Hour = 24 * 7;
+      interval = {
+        Hour = 24 * 7;
+        Minute = 0;
+      };
     };
   };
 
@@ -36,7 +39,10 @@
   };
 
   # zsh
-  programs.zsh.enable = true;
+  programs.zsh = {
+    enable = true;
+    promptInit = "";
+  };
 
   # Enable Touch ID for sudo
   security.pam.enableSudoTouchIdAuth = true;
@@ -108,12 +114,17 @@
   # Home manager
   home-manager.users.codgi = { config, pkgs, ... }: {
     home.stateVersion = "23.05";
-    home.packages = with pkgs; [ httplz rnix-lsp ];
+    home.packages = with pkgs; [ httplz powershell rnix-lsp ];
+    home.sessionVariables = {
+      POWERSHELL_UPDATECHECK = "Off";  # Disable PowerShell update check
+    };
 
+    # ssh
     programs.ssh = {
       enable = true;
     };
 
+    # git
     programs.git = {
       enable = true;
       lfs.enable = true;
@@ -124,15 +135,41 @@
       extraConfig.credential.helper = "osxkeychain";
     };
 
+    # Oh my posh!
+    programs.oh-my-posh = {
+      enable = true;
+      enableZshIntegration = false;
+      useTheme = "half-life";
+    };
+
+    # PowerShell profile
+    xdg.configFile."powershell/Microsoft.PowerShell_profile.ps1".text = ''
+      Set-PSReadLineOption -PredictionSource HistoryAndPlugin 
+      Set-PSReadLineKeyHandler -Chord Tab -Function MenuComplete 
+      Set-PSReadLineKeyHandler -Key UpArrow -ScriptBlock { 
+          [Microsoft.PowerShell.PSConsoleReadLine]::HistorySearchBackward() 
+          [Microsoft.PowerShell.PSConsoleReadLine]::EndOfLine() 
+      } 
+      Set-PSReadLineKeyHandler -Key DownArrow -ScriptBlock { 
+          [Microsoft.PowerShell.PSConsoleReadLine]::HistorySearchForward() 
+          [Microsoft.PowerShell.PSConsoleReadLine]::EndOfLine() 
+      }
+
+      ${pkgs.oh-my-posh}/bin/oh-my-posh init pwsh `
+        --config "${pkgs.oh-my-posh}/share/oh-my-posh/themes/half-life.omp.json" | Invoke-Expression
+    '';
+
+    # zsh
     programs.zsh = {
       enable = true;
-      enableCompletion = true;
       oh-my-zsh = {
         enable = true;
-        plugins = [ "git" ];
+        plugins = [ "git" "macos" "ssh-agent" ];
         theme = "half-life";
       };
       initExtra = ''
+        zstyle :omz:plugins:ssh-agent quiet yes
+        zstyle :omz:plugins:ssh-agent ssh-add-args --apple-load-keychain
         eval "$(/opt/homebrew/bin/brew shellenv)"
       '';
     };
