@@ -101,7 +101,6 @@
       "appcleaner"
       "visual-studio-code"
       "microsoft-edge"
-      "minecraft"
       "logi-options-plus"
       "playcover-community"
       "parallels"
@@ -109,21 +108,26 @@
       "bilibili"
       "motrix"
       "zoom"
+      "discord"
+      "prismlauncher"
     ];
   };
 
   # Home manager
   home-manager.users.codgi = { config, pkgs, ... }: {
     home.stateVersion = "23.05";
-    home.packages = with pkgs; [ httplz powershell rnix-lsp ];
+    home.packages = with pkgs; [ httplz powershell rnix-lsp jdk8 ];
     home.sessionVariables = {
       POWERSHELL_UPDATECHECK = "Off";  # Disable PowerShell update check
     };
 
-    # ssh
-    programs.ssh = {
-      enable = true;
+    # symlinks to binaries
+    home.file = {
+      ".local/bin/jdk8".source = pkgs.jdk8;
     };
+
+    # ssh
+    programs.ssh.enable = true;
 
     # git
     programs.git = {
