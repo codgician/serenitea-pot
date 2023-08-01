@@ -127,7 +127,13 @@
     };
 
     # ssh
-    programs.ssh.enable = true;
+    programs.ssh = {
+      enable = true;
+      extraOptionOverrides = {
+        "UseKeychain" = "yes";
+        "AddKeysToAgent" = "yes";
+      };
+    };
 
     # git
     programs.git = {
