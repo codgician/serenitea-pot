@@ -133,6 +133,12 @@
         "UseKeychain" = "yes";
         "AddKeysToAgent" = "yes";
       };
+      matchBlocks = {
+        "pilot" ={
+          hostname = "pilot.lan";
+          user = "codgi";
+        };
+      };
     };
 
     # git

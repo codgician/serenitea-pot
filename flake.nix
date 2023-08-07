@@ -12,6 +12,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    agenix = {
+      url = "github:ryantm/agenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     home-manager = {
       url = "github:nix-community/home-manager/release-23.05";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -19,11 +24,6 @@
 
     disko = {
       url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -48,7 +48,7 @@
     , nixpkgs
     , nixpkgs-darwin
     , home-manager
-    , sops-nix
+    , agenix
     , impermanence
     , vscode-server
     , darwin
@@ -72,7 +72,7 @@
           specialArgs = { inherit lib pkgs inputs self darwin; };
           modules = [
             home-manager.darwinModules.home-manager
-            sops-nix.darwinModules.sops
+            agenix.darwinModules.default
 
             ({ config, ... }: {
               services.nix-daemon.enable = true;
@@ -103,7 +103,7 @@
             modules = [
               impermanence.nixosModules.impermanence
               home-manager.nixosModules.home-manager
-              sops-nix.nixosModules.sops
+              agenix.nixosModules.default
               vscode-server.nixosModules.default
 
               ({ config, ... }: {
