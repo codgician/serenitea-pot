@@ -118,7 +118,7 @@
     home.stateVersion = "23.05";
     home.packages = with pkgs; [ httplz powershell rnix-lsp jdk8 ];
     home.sessionVariables = {
-      POWERSHELL_UPDATECHECK = "Off";  # Disable PowerShell update check
+      POWERSHELL_UPDATECHECK = "Off"; # Disable PowerShell update check
     };
 
     # symlinks to binaries

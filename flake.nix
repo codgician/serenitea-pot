@@ -4,18 +4,43 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
     nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-23.05-darwin";
-    home-manager.url = "github:nix-community/home-manager/release-23.05";
-    home-manager.inputs.nixpkgs.follows = "nixpkgs";
-
-    impermanence.url = "github:nix-community/impermanence";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+    impermanence.url = "github:nix-community/impermanence";
 
-    darwin.url = "github:lnl7/nix-darwin";
-    darwin.inputs.nixpkgs.follows = "nixpkgs";
+    darwin = {
+      url = "github:lnl7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
-    flake-compat.url = "github:edolstra/flake-compat";
-    flake-compat.flake = false;
+    home-manager = {
+      url = "github:nix-community/home-manager/release-23.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    flake-compat = {
+      url = "github:edolstra/flake-compat";
+      flake = false;
+    };
+
     flake-utils.url = "github:numtide/flake-utils";
+
+    vscode-server = {
+      url = "github:nix-community/nixos-vscode-server";
+      inputs = {
+        flake-utils.follows = "flake-utils";
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
   };
 
   outputs =
@@ -23,14 +48,16 @@
     , nixpkgs
     , nixpkgs-darwin
     , home-manager
-    , flake-utils
+    , sops-nix
     , impermanence
+    , vscode-server
     , darwin
+    , flake-utils
     , ...
     }:
     let
       lib = nixpkgs.lib;
-      processConfigurations = lib.mapAttrs (n: v: v n);
+      processConfigurations = lib.mapAttrs (name: value: value name);
 
       # Common configurations for macOS systems
       darwinSystem = system: extraModules: hostName:
@@ -45,21 +72,62 @@
           specialArgs = { inherit lib pkgs inputs self darwin; };
           modules = [
             home-manager.darwinModules.home-manager
-            {
+            sops-nix.darwinModules.sops
+
+            ({ config, ... }: {
               services.nix-daemon.enable = true;
               nix.settings.experimental-features = [ "nix-command" "flakes" ];
               networking.hostName = hostName;
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.extraSpecialArgs = { inherit inputs pkgs; };
-            }
+
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                extraSpecialArgs = { inherit inputs pkgs; };
+              };
+            })
           ] ++ extraModules;
         };
+
+      # Common configurations for NixOS systems
+      nixosSystem = system: extraModules: hostName:
+        let
+          pkgs = import nixpkgs {
+            inherit system;
+            config.allowUnfree = true;
+          };
+        in
+        nixpkgs.lib.nixosSystem
+          rec {
+            inherit system;
+            specialArgs = { inherit lib pkgs inputs self impermanence; };
+            modules = [
+              impermanence.nixosModules.impermanence
+              home-manager.nixosModules.home-manager
+              sops-nix.nixosModules.sops
+              vscode-server.nixosModules.default
+
+              ({ config, ... }: {
+                nix.settings.experimental-features = [ "nix-command" "flakes" ];
+                networking.hostName = hostName;
+
+                home-manager = {
+                  useGlobalPkgs = true;
+                  useUserPackages = true;
+                  extraSpecialArgs = { inherit inputs; };
+                };
+              })
+            ] ++ extraModules;
+          };
     in
     {
       # macOS machines
       darwinConfigurations = processConfigurations {
-        "Shijia-Mac" = darwinSystem "aarch64-darwin" [ ./hosts/Shijia-Mac/default.nix ];
+        "Shijia-Mac" = darwinSystem "aarch64-darwin" [ ./hosts/shijia-mac/default.nix ];
+      };
+
+      # NixOS machines
+      nixosConfigurations = processConfigurations {
+        "pilot" = nixosSystem "x86_64-linux" [ ./hosts/pilot/default.nix ];
       };
     } // flake-utils.lib.eachDefaultSystem (system:
     let
