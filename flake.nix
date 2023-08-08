@@ -77,7 +77,7 @@
       };
 
       # Include age secrets by name
-      secretsDir = "${ builtins.toString ../../secrets }";
+      secretsDir = "${ builtins.toString ./secrets }";
       ageSecrets = x: builtins.mapAttrs (name: obj: ({ file = "${secretsDir}/${name}.age"; } // obj)) x;
 
       # Common configurations for macOS systems

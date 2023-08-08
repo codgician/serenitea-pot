@@ -1,6 +1,6 @@
 let
-  pubKeys = import ../pubKeys.nix;
+  pubKeys = import ../pubkeys.nix;
 in
 {
-  "codgiPassword.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi ];
+  "codgiPassword.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.pilot ];
 }

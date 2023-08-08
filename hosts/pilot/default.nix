@@ -51,7 +51,7 @@ in
   };
 
   # Define user accounts
-  # users.mutableUsers = false;
+  users.mutableUsers = false;
   users.users.root.hashedPassword = "!";
   users.users.codgi = {
     name = "codgi";
@@ -59,6 +59,7 @@ in
     extraGroups = [ "wheel" ];
     home = "/home/codgi";
     shell = pkgs.zsh;
+    passwordFile = config.age.secrets.codgiPassword.path;
     openssh.authorizedKeys.keys = pubKeys.users.codgi;
   };
 
