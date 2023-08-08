@@ -134,7 +134,7 @@
         "AddKeysToAgent" = "yes";
       };
       matchBlocks = {
-        "pilot" ={
+        "pilot" = {
           hostname = "pilot.lan";
           user = "codgi";
         };

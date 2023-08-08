@@ -1,10 +1,6 @@
-{ config, pkgs, impermanence, ... }: {
+{ config, pkgs, ... }: {
 
   imports = [ ./hardware.nix ];
-
-  # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
 
   networking.networkmanager.enable = true;
 
@@ -116,26 +112,19 @@
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "23.05"; # Did you read the comment?
 
-  # Persistent files
-  environment.persistence."/nix/persist/system" = {
-    directories = [
-      "/etc/nixos"
-      "/etc/NetworkManager"
-      "/var/log"
-      "/var/lib"
-    ];
-    files = [
-      "/etc/machine-id"
-      "/etc/ssh/ssh_host_rsa_key"
-      "/etc/ssh/ssh_host_rsa_key.pub"
-      "/etc/ssh/ssh_host_ed25519_key"
-      "/etc/ssh/ssh_host_ed25519_key.pub"
-    ];
-  };
+  # Home manager
+  home-manager.users.codgi = { config, pkgs, ... }: {
+    home.stateVersion = "23.05";
+    
+    # git
+    programs.git = {
+      enable = true;
+      lfs.enable = true;
+      package = pkgs.gitFull;
 
-  environment.persistence."/nix/persist/home" = {
-    directories = [
-      "/home/codgi"
-    ];
+      userName = "codgician";
+      userEmail = "15964984+codgician@users.noreply.github.com";
+      extraConfig.credential.helper = "osxkeychain";
+    };
   };
 }
