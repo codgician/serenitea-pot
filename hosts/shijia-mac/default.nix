@@ -1,3 +1,6 @@
+let
+  pubKeys = import ../../pubkeys.nix;
+in
 { config, pkgs, ... }: {
 
   # Nix settings
@@ -22,7 +25,7 @@
     name = "codgi";
     description = "Shijia Zhang";
     home = "/Users/codgi";
-    openssh.authorizedKeys.keys = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM/Mohin9ceHn6zpaRYWi3LeATeXI7ydiMrP3RsglZ2r codgi-ssh" ];
+    openssh.authorizedKeys.keys = pubKeys.users.codgi;
   };
 
   # System packages

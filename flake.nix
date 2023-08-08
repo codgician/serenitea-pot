@@ -63,6 +63,23 @@
       lib = nixpkgs.lib;
       processConfigurations = lib.mapAttrs (name: value: value name);
 
+      # Basic configs for each host
+      basicConfig = system: hostName: { config, ... }: {
+        nix.settings.experimental-features = [ "nix-command" "flakes" ];
+        networking.hostName = hostName;
+        environment.systemPackages = [ agenix.packages.${system}.default ];
+
+        home-manager = {
+          useGlobalPkgs = true;
+          useUserPackages = true;
+          extraSpecialArgs = { inherit inputs; };
+        };
+      };
+
+      # Include age secrets by name
+      secretsDir = "${ builtins.toString ../../secrets }";
+      ageSecrets = x: builtins.mapAttrs (name: obj: ({ file = "${secretsDir}/${name}.age"; } // obj)) x;
+
       # Common configurations for macOS systems
       darwinSystem = system: extraModules: hostName:
         let
@@ -78,16 +95,10 @@
             home-manager.darwinModules.home-manager
             agenix.darwinModules.default
 
+            (basicConfig system hostName)
+
             ({ config, ... }: {
               services.nix-daemon.enable = true;
-              nix.settings.experimental-features = [ "nix-command" "flakes" ];
-              networking.hostName = hostName;
-
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                extraSpecialArgs = { inherit inputs pkgs; };
-              };
             })
           ] ++ extraModules;
         };
@@ -100,28 +111,27 @@
             config.allowUnfree = true;
           };
         in
-        nixpkgs.lib.nixosSystem
-          rec {
-            inherit system;
-            specialArgs = { inherit lib pkgs inputs self impermanence; };
-            modules = [
-              impermanence.nixosModules.impermanence
-              home-manager.nixosModules.home-manager
-              agenix.nixosModules.default
-              vscode-server.nixosModules.default
+        nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = { inherit lib pkgs inputs self impermanence; };
+          modules = [
+            impermanence.nixosModules.impermanence
+            home-manager.nixosModules.home-manager
+            agenix.nixosModules.default
+            vscode-server.nixosModules.default
 
-              ({ config, ... }: {
-                nix.settings.experimental-features = [ "nix-command" "flakes" ];
-                networking.hostName = hostName;
+            (basicConfig system hostName)
 
-                home-manager = {
-                  useGlobalPkgs = true;
-                  useUserPackages = true;
-                  extraSpecialArgs = { inherit inputs; };
+            ({ config, ... }: {
+              age.secrets = ageSecrets {
+                "codgiPassword" = {
+                  mode = "700";
+                  owner = "codgi";
                 };
-              })
-            ] ++ extraModules;
-          };
+              };
+            })
+          ] ++ extraModules;
+        };
     in
     {
       # macOS machines
