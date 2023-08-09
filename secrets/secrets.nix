@@ -14,4 +14,5 @@ in
   "gitlabJws.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.pilot ];
   "gitlabOtp.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.pilot ];
   "gitlabSecret.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.pilot ];
+  "gitlabSmtp.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.pilot ];
 }

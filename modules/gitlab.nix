@@ -1,10 +1,17 @@
-{ config, lib, pkgs, ... }: {
+{ config, lib, pkgs, ... }: 
+let
+  domain = "bot.codgician.me";
+in
+{
   config = {
     services.gitlab = {
       enable = true;
+      packages.gitlab = pkgs.gitlab;
+
       statePath = "/mnt/gitlab/";
       https = true;
       port = 443;
+
       initialRootPasswordFile = config.age.secrets.gitlabInitRootPasswd.path;
       secrets = {
         dbFile = config.age.secrets.gitlabDb.path;
@@ -12,7 +19,16 @@
         otpFile = config.age.secrets.gitlabOtp.path;
         secretFile = config.age.secrets.gitlabSecret.path;
       };
-      packages.gitlab = pkgs.gitlab;
+      smtp = {
+        enable = true;
+        enableStartTLSAuto = true;
+        tls = true;
+        address = "smtp.office365.com";
+        port = 587;
+        username = "bot@codgician.me";
+        passwordFile = config.age.secrets.gitlabSmtp.path;
+        inherit domain;
+      };
     };
 
     # PostgreSQL configurations
@@ -29,13 +45,13 @@
         secretsDir = builtins.toString ../secrets;
         nameToObj = name: { "${name}" = { file = "${secretsDir}/${name}.age"; owner = config.services.gitlab.user; mode = "600"; }; };
       in
-      builtins.foldl' (x: y: x // y) { } (map (nameToObj) [ "gitlabInitRootPasswd" "gitlabDb" "gitlabJws" "gitlabOtp" "gitlabSecret" ]);
+      builtins.foldl' (x: y: x // y) { } (map (nameToObj) [ "gitlabInitRootPasswd" "gitlabDb" "gitlabJws" "gitlabOtp" "gitlabSecret" "gitlabSmtp" ]);
 
     # Ngnix configurations
     services.nginx = {
       enable = true;
       recommendedProxySettings = true;
-      virtualHosts."git.codgician.me" = {
+      virtualHosts."${domain}" = {
         locations."/".proxyPass = "http://unix:/run/gitlab/gitlab-workhorse.socket";
         forceSSL = true;
         http2 = true;
@@ -45,8 +61,8 @@
     };
 
     # SSL certificate
-    security.acme.certs."git.codgician.me" = {
-      domain = "git.codgician.me";
+    security.acme.certs."${domain}" = {
+      inherit domain;
       extraDomainNames = [
         "sz.codgician.me"
         "sz4.codgician.me"
