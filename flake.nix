@@ -77,8 +77,8 @@
       };
 
       # Include age secrets by name
-      secretsDir = "${ builtins.toString ./secrets }";
-      ageSecrets = x: builtins.mapAttrs (name: obj: ({ file = "${secretsDir}/${name}.age"; } // obj)) x;
+      secretsDir = builtins.toString ./secrets;
+      ageSecrets = builtins.mapAttrs (name: obj: ({ file = "${secretsDir}/${name}.age"; } // obj));
 
       # Common configurations for macOS systems
       darwinSystem = system: extraModules: hostName:
@@ -130,6 +130,9 @@
                 };
               };
             })
+
+            ./modules/acme.nix
+            ./modules/gitlab.nix
           ] ++ extraModules;
         };
     in
