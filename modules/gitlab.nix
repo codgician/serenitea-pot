@@ -1,6 +1,6 @@
 { config, lib, pkgs, ... }: 
 let
-  domain = "bot.codgician.me";
+  domain = "git.codgician.me";
 in
 {
   config = {
@@ -22,12 +22,12 @@ in
       smtp = {
         enable = true;
         enableStartTLSAuto = true;
-        tls = true;
+        authentication = "login";
         address = "smtp.office365.com";
         port = 587;
         username = "bot@codgician.me";
         passwordFile = config.age.secrets.gitlabSmtp.path;
-        inherit domain;
+        domain = "codgician.me";
       };
     };
 
