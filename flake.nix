@@ -140,7 +140,7 @@
     {
       # macOS machines
       darwinConfigurations = processConfigurations {
-        "Shijia-Mac" = darwinSystem "aarch64-darwin" [ ./hosts/shijia-mac/default.nix ];
+        "Shijia-Mac" = darwinSystem "aarch64-darwin" [ ./hosts/mac/default.nix ];
       };
 
       # NixOS machines
