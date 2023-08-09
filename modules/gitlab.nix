@@ -12,6 +12,7 @@
         otpFile = config.age.secrets.gitlabOtp.path;
         secretFile = config.age.secrets.gitlabSecret.path;
       };
+      packages.gitlab = pkgs.gitlab;
     };
 
     # PostgreSQL configurations
@@ -26,7 +27,7 @@
     age.secrets =
       let
         secretsDir = builtins.toString ../secrets;
-        nameToObj = name: { "${name}" = { file = "${secretsDir}/${name}.age"; owner = config.services.gitlab.user; mode = "700"; }; };
+        nameToObj = name: { "${name}" = { file = "${secretsDir}/${name}.age"; owner = config.services.gitlab.user; mode = "600"; }; };
       in
       builtins.foldl' (x: y: x // y) { } (map (nameToObj) [ "gitlabInitRootPasswd" "gitlabDb" "gitlabJws" "gitlabOtp" "gitlabSecret" ]);
 
@@ -42,7 +43,7 @@
         acmeRoot = null;
       };
     };
-    
+
     # SSL certificate
     security.acme.certs."git.codgician.me" = {
       domain = "git.codgician.me";

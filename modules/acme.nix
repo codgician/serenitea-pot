@@ -15,7 +15,7 @@
     age.secrets =
       let
         secretsDir = builtins.toString ../secrets;
-        nameToObj = name: { "${name}" = { file = "${secretsDir}/${name}.age"; owner = "root"; }; };
+        nameToObj = name: { "${name}" = { file = "${secretsDir}/${name}.age"; owner = "root"; mode = "600"; }; };
       in
       builtins.foldl' (x: y: x // y) { } (map (nameToObj) [ "cloudflareCredential" ]);
   };

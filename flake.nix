@@ -125,7 +125,7 @@
             ({ config, ... }: {
               age.secrets = ageSecrets {
                 "codgiPassword" = {
-                  mode = "700";
+                  mode = "600";
                   owner = "codgi";
                 };
               };
@@ -133,6 +133,7 @@
 
             ./modules/acme.nix
             ./modules/gitlab.nix
+            ./modules/samba.nix
           ] ++ extraModules;
         };
     in
