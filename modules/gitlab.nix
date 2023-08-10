@@ -4,7 +4,7 @@ let
 in
 {
   config = {
-    services.gitlab = {
+    services.gitlab = rec {
       enable = true;
       packages.gitlab = pkgs.gitlab;
 
@@ -22,6 +22,7 @@ in
       smtp = {
         enable = true;
         enableStartTLSAuto = true;
+        tls = false;
         authentication = "login";
         address = "smtp.office365.com";
         port = 587;
@@ -29,6 +30,7 @@ in
         passwordFile = config.age.secrets.gitlabSmtp.path;
         domain = "codgician.me";
       };
+      extraConfig.gitlab.email_from = smtp.username;
     };
 
     # PostgreSQL configurations

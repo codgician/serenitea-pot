@@ -73,8 +73,8 @@ in
     neofetch
     wget
     xterm
-    git
     direnv
+    htop
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
