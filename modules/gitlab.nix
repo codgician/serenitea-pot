@@ -7,11 +7,12 @@ in
     services.gitlab = rec {
       enable = true;
       packages.gitlab = pkgs.gitlab;
-
       statePath = "/mnt/gitlab/";
+      host = domain;
       https = true;
       port = 443;
 
+      # Secrets
       initialRootPasswordFile = config.age.secrets.gitlabInitRootPasswd.path;
       secrets = {
         dbFile = config.age.secrets.gitlabDb.path;
@@ -19,6 +20,8 @@ in
         otpFile = config.age.secrets.gitlabOtp.path;
         secretFile = config.age.secrets.gitlabSecret.path;
       };
+
+      # Mail settings
       smtp = {
         enable = true;
         enableStartTLSAuto = true;
@@ -30,7 +33,28 @@ in
         passwordFile = config.age.secrets.gitlabSmtp.path;
         domain = "codgician.me";
       };
-      extraConfig.gitlab.email_from = smtp.username;
+      extraConfig.gitlab = {
+        email_from = smtp.username;
+        email_reply_to = smtp.username;
+      };
+
+      # OmniAuth
+      extraConfig.omniauth = {
+        enabled = true;
+        allow_single_sign_on = [ "github" ];
+        block_auto_created_users = true;
+        providers = [
+          {
+            name = "github";
+            label = "GitHub";
+            app_id = "3bc605d269d8117af816";
+            app_secret = { _secret = config.age.secrets.gitlabOmniAuthGitHub.path; };
+            args = {
+              scope = "user:email";
+            };
+          }
+        ];
+      };
     };
 
     # PostgreSQL configurations
@@ -47,7 +71,15 @@ in
         secretsDir = builtins.toString ../secrets;
         nameToObj = name: { "${name}" = { file = "${secretsDir}/${name}.age"; owner = config.services.gitlab.user; mode = "600"; }; };
       in
-      builtins.foldl' (x: y: x // y) { } (map (nameToObj) [ "gitlabInitRootPasswd" "gitlabDb" "gitlabJws" "gitlabOtp" "gitlabSecret" "gitlabSmtp" ]);
+      builtins.foldl' (x: y: x // y) { } (map (nameToObj) [ 
+        "gitlabInitRootPasswd" 
+        "gitlabDb" 
+        "gitlabJws" 
+        "gitlabOtp"
+        "gitlabSecret" 
+        "gitlabSmtp"
+        "gitlabOmniAuthGitHub"
+      ]);
 
     # Ngnix configurations
     services.nginx = {

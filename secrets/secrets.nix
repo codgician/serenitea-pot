@@ -15,4 +15,7 @@ in
   "gitlabOtp.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.pilot ];
   "gitlabSecret.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.pilot ];
   "gitlabSmtp.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.pilot ];
+
+  # OmniAuth provider secrets
+  "gitlabOmniAuthGitHub.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.pilot ];
 }
