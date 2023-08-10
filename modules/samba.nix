@@ -51,8 +51,8 @@ in
         getCommand = user:
           let passwordFile = config.users.users."${user}".passwordFile;
           in ''(cat ${passwordFile}; cat ${passwordFile};) | ${sambaPkg}/bin/smbpasswd -s -a "${user}"'';
-        commands = [ 
-          ''echo -e "refreshing samba password for: ${sambaUsersString}"'' 
+        commands = [
+          ''echo -e "refreshing samba password for: ${sambaUsersString}"''
         ] ++ builtins.map getCommand sambaUsers;
         script = builtins.concatStringsSep "; " commands;
       in
