@@ -4,7 +4,12 @@
     enable = true;
     oh-my-zsh = {
       enable = true;
-      plugins = [ "git" "ssh-agent" ] ++ (if pkgs.stdenvNoCC.isDarwin then [ "macos" ] else [ ]);
+      plugins = [ 
+        "git" 
+        "ssh-agent" 
+      ] ++ lib.optionals pkgs.stdenvNoCC.isDarwin [ 
+        "macos" 
+      ];
       theme = "half-life";
     };
 
