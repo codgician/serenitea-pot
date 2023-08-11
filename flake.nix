@@ -65,7 +65,14 @@
 
       # Basic configs for each host
       basicConfig = system: hostName: { config, ... }: {
-        nix.settings.experimental-features = [ "nix-command" "flakes" ];
+        nix = {
+          settings = {
+            auto-optimise-store = true;
+            sandbox = true;
+          };
+          extraOptions = "experimental-features = nix-command flakes";
+        };
+
         networking.hostName = hostName;
         environment.systemPackages = [ agenix.packages.${system}.default ];
 
@@ -123,6 +130,9 @@
             (basicConfig system hostName)
 
             ({ config, ... }: {
+              # Set flake for auto upgrade
+              system.autoUpgrade.flake = "github:codgician/nix-fleet";
+
               age.secrets = ageSecrets {
                 "codgiPassword" = {
                   mode = "600";

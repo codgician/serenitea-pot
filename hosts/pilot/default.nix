@@ -6,9 +6,11 @@ in
   imports = [
     ./hardware.nix
 
-    ../../modules/acme.nix
-    ../../modules/gitlab.nix
-    ../../modules/samba.nix
+    # Service modules
+    ../../services/acme.nix
+    ../../services/gitlab.nix
+    ../../services/samba.nix
+    ../../services/vscode-server.nix
   ];
 
   networking.networkmanager.enable = true;
@@ -31,29 +33,16 @@ in
     };
   };
 
-  # Nix
-  nix = {
-    gc = {
-      automatic = true;
-      dates = "weekly";
-    };
-    settings = {
-      auto-optimise-store = true;
-      trusted-users = [ "root" "@wheel" "codgi" ];
-    };
-    extraOptions = "experimental-features = nix-command flakes";
+  # Nix garbage collection
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
   };
-
-  nixpkgs.config.allowUnfree = true;
 
   # Zsh
   programs.zsh = {
     enable = true;
     enableCompletion = true;
-    ohMyZsh = {
-      enable = true;
-      theme = "half-life";
-    };
   };
 
   # Define user accounts
@@ -61,16 +50,30 @@ in
   users.users.root.hashedPassword = "!";
   users.users.codgi = {
     name = "codgi";
-    isNormalUser = true;
-    extraGroups = [ "wheel" ];
+    description = "Shijia Zhang";
     home = "/home/codgi";
     shell = pkgs.zsh;
+    isNormalUser = true;
+    extraGroups = [ "wheel" ];
     passwordFile = config.age.secrets.codgiPassword.path;
     openssh.authorizedKeys.keys = pubKeys.users.codgi;
   };
 
+  # Home manager
+  home-manager.users.codgi = { config, ... }: {
+    imports = [
+      ../../users/codgi/git.nix
+      ../../users/codgi/zsh.nix
+    ];
+
+    home.stateVersion = "23.05";
+  };
+
   # Security
   security.sudo.wheelNeedsPassword = false;
+  nix.settings.trusted-users = [ "root" "@wheel" "codgi" ];
+
+  nixpkgs.config.allowUnfree = true;
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -91,22 +94,11 @@ in
     enableSSHSupport = true;
   };
 
-  # List services that you want to enable:
-
   # Enable the OpenSSH daemon.
   services.openssh.enable = true;
 
   # Getty
   services.getty.autologinUser = "codgi";
-
-  # Visual Studio Code Server
-  services.vscode-server = {
-    enable = true;
-    extraRuntimeDependencies = with pkgs; [
-      direnv
-      rnix-lsp
-    ];
-  };
 
   # Open ports in the firewall.
   # networking.firewall.allowedTCPPorts = [ ... ];
@@ -121,20 +113,4 @@ in
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "23.05"; # Did you read the comment?
-
-  # Home manager
-  home-manager.users.codgi = { config, pkgs, ... }: {
-    home.stateVersion = "23.05";
-
-    # git
-    programs.git = {
-      enable = true;
-      lfs.enable = true;
-      package = pkgs.gitFull;
-
-      userName = "codgician";
-      userEmail = "15964984+codgician@users.noreply.github.com";
-      extraConfig.credential.helper = "osxkeychain";
-    };
-  };
 }
