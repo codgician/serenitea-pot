@@ -130,10 +130,6 @@
                 };
               };
             })
-
-            ./modules/acme.nix
-            ./modules/gitlab.nix
-            ./modules/samba.nix
           ] ++ extraModules;
         };
     in

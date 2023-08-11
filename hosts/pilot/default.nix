@@ -3,7 +3,13 @@ let
 in
 { config, pkgs, ... }: {
 
-  imports = [ ./hardware.nix ];
+  imports = [
+    ./hardware.nix
+
+    ../../modules/acme.nix
+    ../../modules/gitlab.nix
+    ../../modules/samba.nix
+  ];
 
   networking.networkmanager.enable = true;
 

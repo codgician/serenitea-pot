@@ -71,12 +71,12 @@ in
         secretsDir = builtins.toString ../secrets;
         nameToObj = name: { "${name}" = { file = "${secretsDir}/${name}.age"; owner = config.services.gitlab.user; mode = "600"; }; };
       in
-      builtins.foldl' (x: y: x // y) { } (map (nameToObj) [ 
-        "gitlabInitRootPasswd" 
-        "gitlabDb" 
-        "gitlabJws" 
+      builtins.foldl' (x: y: x // y) { } (map (nameToObj) [
+        "gitlabInitRootPasswd"
+        "gitlabDb"
+        "gitlabJws"
         "gitlabOtp"
-        "gitlabSecret" 
+        "gitlabSecret"
         "gitlabSmtp"
         "gitlabOmniAuthGitHub"
       ]);
