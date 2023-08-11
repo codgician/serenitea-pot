@@ -1,6 +1,9 @@
 { config, pkgs, ... }: {
 
   home.packages = with pkgs; [ powershell ];
+  home.sessionVariables = {
+    POWERSHELL_UPDATECHECK = "Off"; # Disable PowerShell update check
+  };
 
   # Oh my posh
   programs.oh-my-posh = {
