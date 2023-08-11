@@ -72,6 +72,7 @@ in
     imports = [
       ../../users/codgi/pwsh.nix
       ../../users/codgi/git.nix
+      ../../users/codgi/ssh.nix
       ../../users/codgi/zsh.nix
     ];
 
@@ -84,21 +85,6 @@ in
     # symlinks to binaries
     home.file = {
       ".local/bin/jdk8".source = pkgs.jdk8;
-    };
-
-    # ssh
-    programs.ssh = {
-      enable = true;
-      extraOptionOverrides = {
-        "UseKeychain" = "yes";
-        "AddKeysToAgent" = "yes";
-      };
-      matchBlocks = {
-        "pilot" = {
-          hostname = "pilot.lan";
-          user = "codgi";
-        };
-      };
     };
   };
 }
