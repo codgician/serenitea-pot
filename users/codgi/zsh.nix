@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }: {
+{ config, osConfig, lib, pkgs, ... }: {
 
   programs.zsh = {
     enable = true;
@@ -12,7 +12,7 @@
       ''
         zstyle :omz:plugins:ssh-agent quiet yes
         zstyle :omz:plugins:ssh-agent ssh-add-args --apple-load-keychain
-        eval "$(/opt/homebrew/bin/brew shellenv)"
+        ${if osConfig.homebrew.enable then ''eval "$(/opt/homebrew/bin/brew shellenv)"'' else ""}
       '';
   };
 }
