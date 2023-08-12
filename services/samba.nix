@@ -25,6 +25,17 @@ in
 
     # Shares
     shares = {
+      "media" = {
+        path = "/mnt/media";
+        browsable = "yes";
+        writeable = "yes";
+        "read only" = "no";
+        "guest ok" = "yes";
+        "create mask" = "0644";
+        "directory mask" = "0755";
+        "force user" = "codgi";
+      };
+      
       "timac" = {
         path = "/mnt/timac/";
         "valid users" = "codgi";
