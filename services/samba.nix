@@ -35,7 +35,7 @@ in
         "directory mask" = "0755";
         "force user" = "codgi";
       };
-      
+
       "timac" = {
         path = "/mnt/timac/";
         "valid users" = "codgi";

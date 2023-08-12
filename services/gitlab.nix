@@ -82,16 +82,12 @@ in
       ]);
 
     # Ngnix configurations
-    services.nginx = {
-      enable = true;
-      recommendedProxySettings = true;
-      virtualHosts."${domain}" = {
-        locations."/".proxyPass = "http://unix:/run/gitlab/gitlab-workhorse.socket";
-        forceSSL = true;
-        http2 = true;
-        enableACME = true;
-        acmeRoot = null;
-      };
+    services.nginx.virtualHosts."${domain}" = {
+      locations."/".proxyPass = "http://unix:/run/gitlab/gitlab-workhorse.socket";
+      forceSSL = true;
+      http2 = true;
+      enableACME = true;
+      acmeRoot = null;
     };
 
     # SSL certificate

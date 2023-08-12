@@ -9,6 +9,8 @@ in
     # Service modules
     ../../services/acme.nix
     ../../services/gitlab.nix
+    ../../services/jellyfin.nix
+    ../../services/nginx.nix
     ../../services/samba.nix
     ../../services/vscode-server.nix
   ];
