@@ -9,8 +9,16 @@
       UseKeychain yes
     '';
     matchBlocks = {
+      "openwrt" = {
+        hostname = "openwrt.lan";
+        user = "root";
+      };
       "pilot" = {
         hostname = "pilot.lan";
+        user = "codgi";
+      };
+      "media" = {
+        hostname = "media.lan";
         user = "codgi";
       };
     };

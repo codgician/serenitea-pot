@@ -156,11 +156,12 @@
     } // flake-utils.lib.eachDefaultSystem (system:
     let
       pkgs = nixpkgs.legacyPackages.${system};
+      agenixCli = agenix.packages.${system}.default;
     in
     {
       # Development shell
       devShell = pkgs.mkShell {
-        buildInputs = with pkgs; [ rnix-lsp ];
+        buildInputs = with pkgs; [ rnix-lsp agenixCli ];
       };
 
       # Formatter
