@@ -11,7 +11,11 @@ in
 
   # Ngnix configurations
   services.nginx.virtualHosts."${domain}" = {
-    locations."/".proxyPass = "http://localhost:8096";
+    locations."/" = {
+      proxyPass = "http://localhost:8096";
+      proxyWebsockets = true;
+    };
+
     forceSSL = true;
     http2 = true;
     enableACME = true;

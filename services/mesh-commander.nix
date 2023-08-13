@@ -1,7 +1,9 @@
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 let
   domain = "amt.codgician.me";
-  port = 3000;
+  user = "meshCommander";
+  group = "meshCommander";
+  port = 3001;
 in
 {
   # Systemd service for mesh commander
@@ -13,17 +15,36 @@ in
 
     serviceConfig = {
       Type = "simple";
-      ExecStart = "${pkgs.nodejs}/bin/node ${pkgs.nodePackages.meshcommander}/bin/meshcommander --port ${builtins.toString port}";
+      ExecStart = "${pkgs.nodejs}/bin/node --tls-min-v1.1 ${pkgs.nodePackages.meshcommander}/bin/meshcommander --port ${builtins.toString port}";
       ExecStop = "${pkgs.killall}/bin/killall meshcommander";
       Restart = "always";
+      User = user;
+      Group = group;
+    };
+  };
+
+  # User and group
+  users = {
+    users = lib.mkIf (user == "meshCommander") {
+      meshCommander = {
+        inherit group;
+        isSystemUser = true;
+      };
+    };
+    groups = lib.mkIf (group == "meshCommander") {
+      meshCommander = { };
     };
   };
 
   # Ngnix configurations
   services.nginx.virtualHosts."${domain}" = {
-    locations."/".proxyPass = "http://localhost:${builtins.toString port}";
+    locations."/" = {
+      proxyPass = "http://127.0.0.1:${builtins.toString port}";
+      proxyWebsockets = true;
+      recommendedProxySettings = false;
+    };
+
     forceSSL = true;
-    http2 = true;
     enableACME = true;
     acmeRoot = null;
   };

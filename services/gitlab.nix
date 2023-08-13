@@ -11,6 +11,7 @@ in
       host = domain;
       https = true;
       port = 443;
+      user = "gitlab";
 
       # Secrets
       initialRootPasswordFile = config.age.secrets.gitlabInitRootPasswd.path;
@@ -83,7 +84,11 @@ in
 
     # Ngnix configurations
     services.nginx.virtualHosts."${domain}" = {
-      locations."/".proxyPass = "http://unix:/run/gitlab/gitlab-workhorse.socket";
+      locations."/" = {
+        proxyPass = "http://unix:/run/gitlab/gitlab-workhorse.socket";
+        proxyWebsockets = true;
+      };
+
       forceSSL = true;
       http2 = true;
       enableACME = true;
