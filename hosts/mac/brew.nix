@@ -7,7 +7,7 @@
     "iMovie" = 408981434;
     "Garageband" = 682658836;
 
-    "Swift Playgrounds" = 1496833156;
+    "Playgrounds" = 1496833156;
     "Testflight" = 899247664;
     "Developer" = 640199958;
     "Apple Configurator" = 1037126344;
@@ -25,13 +25,14 @@
     "Twitter" = 1482454543;
     "WeChat" = 836500024;
     "QQ" = 451108668;
-    "VooV" = 1497685373;
+    "VoocodgicianV" = 1497685373;
 
     "WireGuard" = 1451685025;
     "Infuse" = 1136220934;
     "LocalSend" = 1661733229;
 
     "IT之家" = 570610859;
+    "Store Redirect" = 1601434613;
   };
 
   # Homebrew casks
