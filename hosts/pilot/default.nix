@@ -10,6 +10,7 @@ in
     ../../services/acme.nix
     ../../services/gitlab.nix
     ../../services/jellyfin.nix
+    ../../services/mesh-commander.nix
     ../../services/nginx.nix
     ../../services/samba.nix
     ../../services/vscode-server.nix
@@ -69,6 +70,7 @@ in
     ];
 
     home.stateVersion = "23.05";
+    home.packages = with pkgs; [ httplz rnix-lsp iperf3 ];
   };
 
   # Security
