@@ -25,7 +25,7 @@
     "Twitter" = 1482454543;
     "WeChat" = 836500024;
     "QQ" = 451108668;
-    "VoocodgicianV" = 1497685373;
+    "VooV" = 1497685373;
 
     "WireGuard" = 1451685025;
     "Infuse" = 1136220934;
@@ -49,5 +49,6 @@
     "zoom"
     "discord"
     "prismlauncher"
+    "neteasemusic"
   ];
 }
