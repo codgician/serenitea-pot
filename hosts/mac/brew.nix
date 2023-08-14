@@ -20,12 +20,14 @@
     "Microsoft OneNote" = 784801555;
     "Microsoft To Do" = 1274495053;
     "Microsoft Remote Desktop" = 1295203466;
+    "OneDrive" = 823766827;
 
     "Telegram" = 747648890;
     "Twitter" = 1482454543;
     "WeChat" = 836500024;
     "QQ" = 451108668;
     "VooV" = 1497685373;
+    "Lark" = 6449830127;
 
     "WireGuard" = 1451685025;
     "Infuse" = 1136220934;
@@ -33,6 +35,8 @@
 
     "IT之家" = 570610859;
     "Store Redirect" = 1601434613;
+    "ServerCat" = 1501532023;
+    "NetEaseMusic" = 944848654;
   };
 
   # Homebrew casks
@@ -49,6 +53,6 @@
     "zoom"
     "discord"
     "prismlauncher"
-    "neteasemusic"
+    "microsoft-teams"
   ];
 }
