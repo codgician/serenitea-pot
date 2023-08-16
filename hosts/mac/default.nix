@@ -77,7 +77,15 @@ in
     ];
 
     home.stateVersion = "23.05";
-    home.packages = with pkgs; [ httplz rnix-lsp jdk8 iperf3 android-tools ];
+    home.packages = with pkgs; [
+      httplz
+      rnix-lsp
+      jdk8
+      iperf3
+      android-tools
+      aria2
+      ghc
+    ];
 
     # symlinks to binaries
     home.file = {

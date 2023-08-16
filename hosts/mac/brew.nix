@@ -32,6 +32,7 @@
     "WireGuard" = 1451685025;
     "Infuse" = 1136220934;
     "LocalSend" = 1661733229;
+    "Hex Fiend" = 1342896380;
 
     "IT之家" = 570610859;
     "Store Redirect" = 1601434613;
