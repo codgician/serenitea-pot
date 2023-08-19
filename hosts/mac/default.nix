@@ -85,6 +85,7 @@ in
       android-tools
       aria2
       ghc
+      pandoc
     ];
 
     # symlinks to binaries
