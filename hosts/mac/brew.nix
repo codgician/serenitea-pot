@@ -41,7 +41,7 @@
   };
 
   # Homebrew casks
-  casks = [
+  casks = builtins.map (name: { inherit name; greedy = true; }) [
     "appcleaner"
     "visual-studio-code"
     "microsoft-edge"
