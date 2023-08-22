@@ -7,6 +7,7 @@
     '' + lib.optionalString pkgs.stdenvNoCC.isDarwin ''
       IgnoreUnknown UseKeychain
       UseKeychain yes
+      IdentityFile ~/.ssh/id_ed25519
     '';
     matchBlocks = {
       "openwrt" = {
