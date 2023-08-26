@@ -9,10 +9,6 @@ concurrency: evergreen
 
 permissions:
   contents: write
-  pull-requests: write
-
-env:
-  AIRPORT_DEBUG: 1
  
 jobs:
   evergreen:
@@ -30,8 +26,12 @@ jobs:
         run: nix flake update
       - name: Push changes
         run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git add flake.lock
-          git commit -m "nix flake update"
-          git push
+          if [[ `git status flake.lock --porcelain` ]]; then
+            git config user.name github-actions
+            git config user.email github-actions@github.com
+            git add flake.lock
+            git commit -m "nix flake update"
+            git push
+          else
+            echo "Flake.lock is not changed..."
+          fi
