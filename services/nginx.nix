@@ -1,7 +1,14 @@
 { config, ... }: {
 
+  # Nginx global configurations
   services.nginx = {
     enable = true;
     recommendedProxySettings = true;
+  };
+
+  # Enable promethus nginx exporter
+  services.prometheus.exporters = {
+    nginx.enable = true;
+    nginxlog.enable = true;
   };
 }
