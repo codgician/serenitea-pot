@@ -12,6 +12,7 @@ in
     ../../services/jellyfin.nix
     ../../services/mesh-commander.nix
     ../../services/nginx.nix
+    ../../services/pixiecore.nix
     ../../services/samba.nix
     ../../services/vscode-server.nix
   ];

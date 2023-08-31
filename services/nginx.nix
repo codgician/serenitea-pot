@@ -4,6 +4,7 @@
   services.nginx = {
     enable = true;
     recommendedProxySettings = true;
+    statusPage = true;
   };
 
   # Enable promethus nginx exporter
