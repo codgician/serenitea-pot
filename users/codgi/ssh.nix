@@ -22,6 +22,10 @@
         hostname = "media.lan";
         user = "codgi";
       };
+      "macrun" = {
+        hostname = "macrun.lan";
+        user = "runner";
+      };
     };
   };
 }

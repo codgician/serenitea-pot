@@ -9,6 +9,7 @@ in
     # Service modules
     ../../services/acme.nix
     ../../services/gitlab.nix
+    ../../services/home-assistant.nix
     ../../services/jellyfin.nix
     ../../services/mesh-commander.nix
     ../../services/nginx.nix
