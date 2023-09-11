@@ -1,6 +1,6 @@
 { config, ... }:
 let
-  domain = "home.codgician.me";
+  domain = "hass.codgician.me";
   port = 8123;
 in
 {
@@ -17,9 +17,9 @@ in
       "homekit_controller"
       "wake_on_lan"
       "xbox"
-      "xbox_live"
       "xiaomi"
       "xiaomi_aqara"
+      "xiaomi_ble"
       "xiaomi_miio"
       "xiaomi_tv"
       "yeelight"
