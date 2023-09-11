@@ -86,6 +86,8 @@ in
       aria2
       ghc
       pandoc
+      acpica-tools
+      terraform
     ];
 
     # symlinks to binaries
