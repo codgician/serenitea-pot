@@ -12,8 +12,12 @@
       theme = "half-life";
     };
 
-    initExtra = lib.optionalString osConfig.homebrew.enable ''
-      eval "$(/opt/homebrew/bin/brew shellenv)"
-    '';
+    initExtra = ''
+      zstyle :omz:plugins:ssh-agent quiet yes
+    '' + lib.optionalString pkgs.stdenvNoCC.isDarwin (
+      lib.optionalString osConfig.homebrew.enable ''
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+      ''
+    );
   };
 }
