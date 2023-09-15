@@ -8,6 +8,7 @@ in
 
     # Service modules
     ../../services/acme.nix
+    ../../services/conduit.nix
     ../../services/gitlab.nix
     ../../services/home-assistant.nix
     ../../services/jellyfin.nix

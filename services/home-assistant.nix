@@ -6,6 +6,7 @@ in
 {
   services.home-assistant = {
     enable = true;
+    configDir = "/mnt/data/hass";
     configWritable = false;
     openFirewall = true;
     extraComponents = [
