@@ -9,7 +9,7 @@ in
     settings.global = {
       server_name = "matrix.codgician.me";
       inherit port;
-      trusted_servers = [ "matrix.org" "libera.chat" "nixos.org" ];
+      trusted_servers = [ "matrix.org" "libera.chat" "nixos.org" "gitter.im" "vector.im" ];
       database_backend = "rocksdb";
       allow_registration = true;
       allow_federation = true;
