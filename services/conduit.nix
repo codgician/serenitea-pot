@@ -33,9 +33,9 @@ in
     {
       locations."/".extraConfig = "return 404;";
       locations."/_matrix/" = {
-        proxyPass = "http://[::1]:${builtins.toString port}$request_uri";
+        proxyPass = "http://[::1]:${builtins.toString port}";
         proxyWebsockets = true;
-        recommendedProxySettings = false;
+        recommendedProxySettings = true;
         extraConfig = ''
           proxy_buffering off;
         '';
