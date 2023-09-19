@@ -55,5 +55,6 @@
     "discord"
     "prismlauncher"
     "microsoft-teams"
+    "ghidra"
   ];
 }

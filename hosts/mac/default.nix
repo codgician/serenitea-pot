@@ -80,7 +80,7 @@ in
     home.packages = with pkgs; [
       httplz
       rnix-lsp
-      jdk8
+      jdk
       iperf3
       android-tools
       aria2
@@ -88,6 +88,7 @@ in
       pandoc
       acpica-tools
       terraform
+      crate2nix
     ];
 
     # symlinks to binaries
