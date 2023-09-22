@@ -25,8 +25,6 @@ in
   environment.systemPackages = with pkgs; [
     neofetch
     jdk
-    go
-    rustc
   ];
 
   # Fonts
@@ -81,7 +79,6 @@ in
     home.packages = with pkgs; [
       httplz
       rnix-lsp
-      jdk
       iperf3
       android-tools
       aria2
@@ -90,6 +87,9 @@ in
       acpica-tools
       terraform
       crate2nix
+      go
+      gopls
+      go-outline
     ];
 
     # symlinks to binaries
