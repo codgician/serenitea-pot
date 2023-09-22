@@ -23,9 +23,10 @@ in
 
   # System packages
   environment.systemPackages = with pkgs; [
-    direnv
     neofetch
     jdk
+    go
+    rustc
   ];
 
   # Fonts

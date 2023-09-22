@@ -1,6 +1,8 @@
 {
   # GUI applications from Mac AppStore
   masApps = {
+    "Xcode" = 497799835;
+
     "Pages" = 409201541;
     "Numbers" = 409203825;
     "Keynote" = 409183694;
@@ -56,5 +58,6 @@
     "prismlauncher"
     "microsoft-teams"
     "ghidra"
+    "displaylink"
   ];
 }

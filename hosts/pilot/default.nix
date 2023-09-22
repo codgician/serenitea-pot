@@ -89,7 +89,6 @@ in
     neofetch
     wget
     xterm
-    direnv
     htop
   ];
 
