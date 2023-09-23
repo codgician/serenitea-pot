@@ -51,6 +51,7 @@
     inputs @ { self
     , nixpkgs
     , nixpkgs-darwin
+    , nixos-hardware
     , home-manager
     , agenix
     , impermanence
@@ -152,6 +153,10 @@
       # NixOS machines
       nixosConfigurations = processConfigurations {
         "pilot" = nixosSystem "x86_64-linux" [ ./hosts/pilot/default.nix ];
+        "Shijia-X1" = nixosSystem "x86_64-linux" [ 
+          nixos-hardware.nixosModules.lenovo-thinkpad-x1-yoga
+          ./hosts/x1/default.nix
+        ];
       };
     } // flake-utils.lib.eachDefaultSystem (system:
     let
