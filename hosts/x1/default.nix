@@ -172,7 +172,26 @@ in
     ];
 
     home.stateVersion = "23.05";
-    home.packages = with pkgs; [ httplz rnix-lsp iperf3 ];
+    home.packages = with pkgs; [
+      httplz
+      rnix-lsp
+      iperf3
+      firefox
+      vscode
+      neofetch
+      firefox
+      kate
+      thunderbird
+      vscode
+      libreoffice-qt
+      telegram-desktop
+      qq
+      remmina
+      breeze-gtk
+      microsoft-edge
+      cider
+      prismlauncher
+    ];
   };
 
   # List packages installed in system profile. To search, run:
