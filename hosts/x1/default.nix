@@ -233,16 +233,6 @@ in
     };
   };
 
-  # Zsh
-  programs.zsh = {
-    enable = true;
-    enableCompletion = true;
-    ohMyZsh = {
-      enable = true;
-      theme = "half-life";
-    };
-  };
-
   # Dconf
   programs.dconf.enable = true;
 

@@ -153,7 +153,7 @@
       # NixOS machines
       nixosConfigurations = processConfigurations {
         "pilot" = nixosSystem "x86_64-linux" [ ./hosts/pilot/default.nix ];
-        "Shijia-X1" = nixosSystem "x86_64-linux" [ 
+        "Shijia-X1" = nixosSystem "x86_64-linux" [
           nixos-hardware.nixosModules.lenovo-thinkpad-x1-yoga
           ./hosts/x1/default.nix
         ];
