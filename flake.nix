@@ -148,6 +148,7 @@
       # macOS machines
       darwinConfigurations = processConfigurations {
         "Shijia-Mac" = darwinSystem "aarch64-darwin" [ ./hosts/mac/default.nix ];
+        "MacRun" = darwinSystem "x86_64-darwin" [ ./hosts/runners/macrun.nix ];
       };
 
       # NixOS machines
