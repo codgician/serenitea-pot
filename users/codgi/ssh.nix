@@ -26,6 +26,10 @@
         hostname = "macrun.lan";
         user = "runner";
       };
+      "nanopi" = {
+        hostname = "nanopi.cdu";
+        user = "root";
+      }
     };
   };
 }

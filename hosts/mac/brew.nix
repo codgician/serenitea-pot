@@ -59,5 +59,6 @@
     "microsoft-teams"
     "ghidra"
     "displaylink"
+    "firefox"
   ];
 }
