@@ -29,7 +29,7 @@
       "nanopi" = {
         hostname = "nanopi.cdu";
         user = "root";
-      }
+      };
     };
   };
 }

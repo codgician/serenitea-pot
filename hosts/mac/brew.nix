@@ -56,7 +56,6 @@
     "zoom"
     "discord"
     "prismlauncher"
-    "microsoft-teams"
     "ghidra"
     "displaylink"
     "firefox"
