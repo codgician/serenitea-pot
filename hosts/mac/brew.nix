@@ -59,5 +59,6 @@
     "ghidra"
     "displaylink"
     "firefox"
+    "balenaetcher"
   ];
 }
