@@ -32,18 +32,23 @@ in
     ];
     group = config.services.nginx.user;
 
-    # Create .pfx for Jellyfin
+    # Create .pfx for Jellyfin and load new certificate
     postRun = ''
       cat full.pem | ${pkgs.openssl}/bin/openssl pkcs12 -export -passout pass: -out cert.pfx
       chmod --reference=full.pem cert.pfx
       chown --reference=full.pem cert.pfx
+      systemctl restart jellyfin
     '';
   };
 
   # Load certificate for Jellyfin
   systemd.services.jellyfin = {
     requires = [ "acme-finished-${domain}.target" ];
-    serviceConfig.LoadCredential = [ "cert.pfx:/var/lib/acme/${domain}/cert.pfx" ];
+    serviceConfig.LoadCredential =
+      let
+        certDir = config.security.acme.certs."${domain}".directory;
+      in
+      [ "cert.pfx:${certDir}/cert.pfx" ];
   };
 
   # Persist jellyfin data directories

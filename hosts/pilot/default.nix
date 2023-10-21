@@ -9,6 +9,7 @@ in
     # Service modules
     ../../services/acme.nix
     ../../services/conduit.nix
+    ../../services/fastapi-dls.nix
     ../../services/gitlab.nix
     ../../services/home-assistant.nix
     ../../services/jellyfin.nix
@@ -74,7 +75,7 @@ in
   };
 
   # Home manager
-  home-manager.users.codgi = { config, ... }: {
+  home-manager.users.codgi = { config, ... }: rec {
     imports = [
       ../../users/codgi/git.nix
       ../../users/codgi/zsh.nix

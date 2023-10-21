@@ -17,6 +17,13 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nur.url = "github:nix-community/NUR";
+    nur-xddxdd = {
+      url = "github:xddxdd/nur-packages";
+      inputs.flake-utils.follows = "flake-utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     agenix = {
       url = "github:ryantm/agenix";
       inputs = {
@@ -53,6 +60,8 @@
     , nixpkgs-darwin
     , nixos-hardware
     , home-manager
+    , nur
+    , nur-xddxdd
     , agenix
     , impermanence
     , vscode-server
@@ -117,12 +126,28 @@
           pkgs = import nixpkgs {
             inherit system;
             config.allowUnfree = true;
+
+            overlays = [
+              (final: prev: {
+                nur = import nur {
+                  nurpkgs = prev;
+                  pkgs = prev;
+                  repoOverrides = { xddxdd = import inputs.nur-xddxdd { pkgs = prev; }; };
+                };
+              })
+            ];
           };
         in
         nixpkgs.lib.nixosSystem {
           inherit system;
           specialArgs = { inherit lib pkgs inputs self impermanence; };
           modules = [
+            nur.nixosModules.nur
+            ({ config, ... }: {
+              nix.settings.substituters = [ config.nur.repos.xddxdd._meta.url ];
+              nix.settings.trusted-public-keys = [ config.nur.repos.xddxdd._meta.publicKey ];
+            })
+
             impermanence.nixosModules.impermanence
             home-manager.nixosModules.home-manager
             agenix.nixosModules.default

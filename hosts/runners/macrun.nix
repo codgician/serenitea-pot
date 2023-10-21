@@ -31,8 +31,8 @@
   services.gitlab-runner = {
     enable = true;
     concurrent = 1;
-    extraPackages = with pkgs; [];
+    extraPackages = with pkgs; [ ];
     prometheusListenAddress = "localhost:8080";
-    services = {};
+    services = { };
   };
 }

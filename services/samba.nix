@@ -38,6 +38,7 @@ in
 
       "iso" = {
         path = "/mnt/nas/iso";
+        public = "yes";
         browsable = "yes";
         writeable = "no";
         "read only" = "yes";
