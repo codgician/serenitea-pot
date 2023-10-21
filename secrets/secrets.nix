@@ -8,6 +8,7 @@ in
 {
   # User password
   "codgiPassword.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi ] ++ hostKeys);
+  "bmcPassword.age".publicKeys = builtins.concatLists ( [ pubKeys.users.codgi ] ++ hostKeys);
 
   # Cloudflare token
   "cloudflareCredential.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi pubKeys.systems.pilot ]);

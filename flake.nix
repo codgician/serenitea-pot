@@ -139,6 +139,10 @@
                   mode = "600";
                   owner = "codgi";
                 };
+                "bmcPassword" = {
+                  mode = "600";
+                  owner = "bmc";
+                };
               };
             })
           ] ++ extraModules;

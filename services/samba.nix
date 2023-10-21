@@ -1,6 +1,6 @@
 { config, pkgs, ... }:
 let
-  sambaUsers = [ "codgi" ];
+  sambaUsers = [ "codgi" "bmc" ];
 in
 {
   # Samba configurations
@@ -18,15 +18,15 @@ in
       server string = ${config.networking.hostName}
       netbios name = ${config.networking.hostName}
 
-      server signing = mandatory
-      server min protocol = SMB3
-      server smb encrypt = required
+      #server signing = mandatory
+      server min protocol = NT1
+      #server smb encrypt = required
     '';
 
     # Shares
     shares = {
       "media" = {
-        path = "/mnt/media";
+        path = "/mnt/nas/media";
         browsable = "yes";
         writeable = "yes";
         "read only" = "no";
@@ -34,6 +34,16 @@ in
         "create mask" = "0644";
         "directory mask" = "0755";
         "force user" = "codgi";
+      };
+
+      "iso" = {
+        path = "/mnt/nas/iso";
+        browsable = "yes";
+        writeable = "no";
+        "read only" = "yes";
+        "guest ok" = "yes";
+        "create mask" = "0644";
+        "directory mask" = "0755";
       };
 
       "timac" = {

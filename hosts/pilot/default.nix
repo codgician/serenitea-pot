@@ -65,6 +65,14 @@ in
     openssh.authorizedKeys.keys = pubKeys.users.codgi;
   };
 
+  users.users.bmc = {
+    name = "bmc";
+    description = "BMC";
+    createHome = false;
+    isNormalUser = true;
+    passwordFile = config.age.secrets.bmcPassword.path;
+  };
+
   # Home manager
   home-manager.users.codgi = { config, ... }: {
     imports = [
