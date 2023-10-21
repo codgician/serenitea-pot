@@ -87,6 +87,7 @@ in
       locations."/" = {
         proxyPass = "http://unix:/run/gitlab/gitlab-workhorse.socket";
         proxyWebsockets = true;
+        recommendedProxySettings = true;
       };
 
       forceSSL = true;

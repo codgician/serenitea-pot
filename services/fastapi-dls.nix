@@ -32,7 +32,7 @@ in
       if [ ! -f "${appDir}/cert/instance.private.pem" ]; then 
         ${pkgs.openssl}/bin/openssl genrsa -out ${appDir}/cert/instance.private.pem 2048
       fi
-      if [ ! -f "${appDir}/cert/instance.public.pem" ]; then
+      if [ ! -f "${appDir}/cert/instance.private.pem" ]; then
         ${pkgs.openssl}/bin/openssl rsa -in ${appDir}/cert/instance.private.pem -outform PEM -pubout -out ${appDir}/cert/instance.public.pem
       fi
 
@@ -57,7 +57,7 @@ in
             name = "fastapi-dls-env";
             text = ''
               DLS_URL=${domain}
-              DLS_PORT=${builtins.toString port}
+              DLS_PORT=443
               LEASE_EXPIRE_DAYS=${builtins.toString leaseDays}
               DATABASE=sqlite:///${dataDir}/db.sqlite
             '';
@@ -65,7 +65,7 @@ in
         in
         ''
           ${pkgs.nur.repos.xddxdd.fastapi-dls}/bin/fastapi-dls \
-            --host ${domain} --port ${builtins.toString port} \
+            --host 127.0.0.1 --port ${builtins.toString port} \
             --app-dir ${appDir} \
             --ssl-keyfile ${credsDir}/key.pem --ssl-certfile ${credsDir}/cert.pem \
             --env-file ${envFile} \
@@ -105,7 +105,7 @@ in
   # Ngnix configurations
   services.nginx.virtualHosts."${domain}" = {
     locations."/" = {
-      proxyPass = "http://127.0.0.1:${builtins.toString port}";
+      proxyPass = "https://127.0.0.1:${builtins.toString port}";
       proxyWebsockets = true;
       recommendedProxySettings = true;
       extraConfig = ''
