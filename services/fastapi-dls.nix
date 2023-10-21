@@ -3,10 +3,43 @@ let
   user = "fastapi-dls";
   group = "fastapi-dls";
   domain = "nvdls.codgician.me";
+  leaseDays = 90;
   port = 14514;
-  appDir = "${pkgs.nur.repos.xddxdd.fastapi-dls}/opt/app";
+  dataDir = "/nix/persist/fastapi-dls";
+  appDir = "/var/lib/fastapi-dls-app";
 in
 {
+  # Create working directory if not exist
+  system.activationScripts.makeFastApiDlsAppDir =
+    let
+      sourceDir = "${pkgs.nur.repos.xddxdd.fastapi-dls}/opt/app";
+    in
+    lib.stringAfter [ "var" ] ''
+      # Link python scripts
+      mkdir -p ${appDir}
+      if [ ! -L "${appDir}/main.py" ]; then 
+        ln -s ${sourceDir}/main.py ${appDir}/main.py
+      fi
+      if [ ! -L "${appDir}/orm.py" ]; then 
+        ln -s ${sourceDir}/orm.py ${appDir}/orm.py
+      fi
+      if [ ! -L "${appDir}/util.py" ]; then
+        ln -s ${sourceDir}/util.py ${appDir}/util.py
+      fi
+
+      # Create JWT token
+      mkdir -p ${appDir}/cert
+      if [ ! -f "${appDir}/cert/instance.private.pem" ]; then 
+        ${pkgs.openssl}/bin/openssl genrsa -out ${appDir}/cert/instance.private.pem 2048
+      fi
+      if [ ! -f "${appDir}/cert/instance.public.pem" ]; then
+        ${pkgs.openssl}/bin/openssl rsa -in ${appDir}/cert/instance.private.pem -outform PEM -pubout -out ${appDir}/cert/instance.public.pem
+      fi
+
+      # Fix up permission      
+      chown -R ${user}:${group} ${appDir}
+    '';
+
   # Systemd service for fastapi-dls
   systemd.services.fastapi-dls = {
     enable = true;
@@ -17,26 +50,42 @@ in
 
     serviceConfig = {
       Type = "simple";
-      ExecStart = let
-        credsDir = "/run/credentials/fastapi-dls.service";
-      in ''
-        ${pkgs.nur.repos.xddxdd.fastapi-dls}/bin/fastapi-dls \
-          --host ${domain} --port ${builtins.toString port} \
-          --app-dir ${appDir} \
-          --ssl-keyfile ${credsDir}/key.pem --ssl-certfile ${credsDir}/cert.pem \
-          --proxy-headers
-      '';
-      LoadCredential = let  
-        certDir = config.security.acme.certs."${domain}".directory;
-      in [
-        "cert.pem:${certDir}/cert.pem"
-        "key.pem:${certDir}/key.pem"
-      ];
+      ExecStart =
+        let
+          credsDir = "/run/credentials/fastapi-dls.service";
+          envFile = pkgs.writeTextFile {
+            name = "fastapi-dls-env";
+            text = ''
+              DLS_URL=${domain}
+              DLS_PORT=${builtins.toString port}
+              LEASE_EXPIRE_DAYS=${builtins.toString leaseDays}
+              DATABASE=sqlite:///${dataDir}/db.sqlite
+            '';
+          };
+        in
+        ''
+          ${pkgs.nur.repos.xddxdd.fastapi-dls}/bin/fastapi-dls \
+            --host ${domain} --port ${builtins.toString port} \
+            --app-dir ${appDir} \
+            --ssl-keyfile ${credsDir}/key.pem --ssl-certfile ${credsDir}/cert.pem \
+            --env-file ${envFile} \
+            --proxy-headers
+        '';
+      LoadCredential =
+        let
+          certDir = config.security.acme.certs."${domain}".directory;
+        in
+        [
+          "cert.pem:${certDir}/cert.pem"
+          "key.pem:${certDir}/key.pem"
+        ];
       WorkingDirectory = appDir;
       Restart = "always";
       User = user;
       Group = group;
       KillSignal = "SIGQUIT";
+      NotifyAccess = "all";
+      AmbientCapabilities = "CAP_NET_BIND_SERVICE";
     };
   };
 
