@@ -60,5 +60,6 @@
     "displaylink"
     "firefox"
     "balenaetcher"
+    "altserver"
   ];
 }
