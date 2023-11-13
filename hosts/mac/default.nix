@@ -25,6 +25,7 @@ in
   environment.systemPackages = with pkgs; [
     neofetch
     jdk
+    openssl
   ];
 
   # Fonts
@@ -90,6 +91,7 @@ in
       go
       gopls
       go-outline
+      smartmontools
     ];
 
     # symlinks to binaries
