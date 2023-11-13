@@ -16,7 +16,9 @@ in
     in
     lib.stringAfter [ "var" ] ''
       # Link python scripts
-      mkdir -p ${appDir}
+      if [ ! -d "${appDir}" ]; then
+        mkdir -p ${appDir}/cert
+      fi
       rm -rf ${appDir}/main.py
       ln -s ${sourceDir}/main.py ${appDir}/main.py
       rm -rf ${appDir}/orm.py     
@@ -25,7 +27,9 @@ in
       ln -s ${sourceDir}/util.py ${appDir}/util.py
 
       # Create JWT token
-      mkdir -p ${dataDir}/cert
+      if [ ! -d "${dataDir}/cert" ]; then
+        mkdir -p ${dataDir}/cert
+      fi
       if [ ! -f "${dataDir}/cert/instance.private.pem" ]; then 
         ${pkgs.openssl}/bin/openssl genrsa -out ${dataDir}/cert/instance.private.pem 2048
       fi
@@ -35,7 +39,9 @@ in
       rm -rf ${appDir}/cert
       ln -s ${dataDir}/cert ${appDir}/cert
 
-      # Fix up permission      
+      # Fix up permission
+      chmod -R 770 ${appDir}
+      chmod -R 770 ${dataDir}      
       chown -R ${user}:${group} ${appDir}
       chown -R ${user}:${group} ${dataDir}
     '';
