@@ -5,7 +5,7 @@ let
   domain = "nvdls.codgician.me";
   leaseDays = 90;
   port = 14514;
-  dataDir = "/nix/persist/fastapi-dls";
+  dataDir = "/mnt/data/fastapi-dls";
   appDir = "/var/lib/fastapi-dls-app";
 in
 {
@@ -17,27 +17,27 @@ in
     lib.stringAfter [ "var" ] ''
       # Link python scripts
       mkdir -p ${appDir}
-      if [ ! -L "${appDir}/main.py" ]; then 
-        ln -s ${sourceDir}/main.py ${appDir}/main.py
-      fi
-      if [ ! -L "${appDir}/orm.py" ]; then 
-        ln -s ${sourceDir}/orm.py ${appDir}/orm.py
-      fi
-      if [ ! -L "${appDir}/util.py" ]; then
-        ln -s ${sourceDir}/util.py ${appDir}/util.py
-      fi
+      rm -rf ${appDir}/main.py
+      ln -s ${sourceDir}/main.py ${appDir}/main.py
+      rm -rf ${appDir}/orm.py     
+      ln -s ${sourceDir}/orm.py ${appDir}/orm.py
+      rm -rf ${appDir}/util.py
+      ln -s ${sourceDir}/util.py ${appDir}/util.py
 
       # Create JWT token
-      mkdir -p ${appDir}/cert
-      if [ ! -f "${appDir}/cert/instance.private.pem" ]; then 
-        ${pkgs.openssl}/bin/openssl genrsa -out ${appDir}/cert/instance.private.pem 2048
+      mkdir -p ${dataDir}/cert
+      if [ ! -f "${dataDir}/cert/instance.private.pem" ]; then 
+        ${pkgs.openssl}/bin/openssl genrsa -out ${dataDir}/cert/instance.private.pem 2048
       fi
-      if [ ! -f "${appDir}/cert/instance.private.pem" ]; then
-        ${pkgs.openssl}/bin/openssl rsa -in ${appDir}/cert/instance.private.pem -outform PEM -pubout -out ${appDir}/cert/instance.public.pem
+      if [ ! -f "${dataDir}/cert/instance.public.pem" ]; then
+        ${pkgs.openssl}/bin/openssl rsa -in ${dataDir}/cert/instance.private.pem -outform PEM -pubout -out ${dataDir}/cert/instance.public.pem
       fi
+      rm -rf ${appDir}/cert
+      ln -s ${dataDir}/cert ${appDir}/cert
 
       # Fix up permission      
       chown -R ${user}:${group} ${appDir}
+      chown -R ${user}:${group} ${dataDir}
     '';
 
   # Systemd service for fastapi-dls
