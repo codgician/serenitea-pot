@@ -40,11 +40,11 @@ in
         path = "/mnt/nas/iso";
         public = "yes";
         browsable = "yes";
-        writeable = "no";
-        "read only" = "yes";
+        writeable = "yes";
         "guest ok" = "yes";
         "create mask" = "0644";
         "directory mask" = "0755";
+        "force user" = "codgi";
       };
 
       "timac" = {
