@@ -1,7 +1,7 @@
 let
   pubKeys = import ../pubkeys.nix;
   hostKeys = [
-    pubKeys.systems.pilot
+    pubKeys.systems.mona
     pubKeys.systems.x1
   ];
 in
@@ -11,16 +11,16 @@ in
   "bmcPassword.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi ] ++ hostKeys);
 
   # Cloudflare token
-  "cloudflareCredential.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi pubKeys.systems.pilot ]);
+  "cloudflareCredential.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi pubKeys.systems.mona ]);
 
   # GitLab secrets
-  "gitlabInitRootPasswd.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi pubKeys.systems.pilot ]);
-  "gitlabDb.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi pubKeys.systems.pilot ]);
-  "gitlabJws.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi pubKeys.systems.pilot ]);
-  "gitlabOtp.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi pubKeys.systems.pilot ]);
-  "gitlabSecret.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi pubKeys.systems.pilot ]);
-  "gitlabSmtp.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi pubKeys.systems.pilot ]);
+  "gitlabInitRootPasswd.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi pubKeys.systems.mona ]);
+  "gitlabDb.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi pubKeys.systems.mona ]);
+  "gitlabJws.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi pubKeys.systems.mona ]);
+  "gitlabOtp.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi pubKeys.systems.mona ]);
+  "gitlabSecret.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi pubKeys.systems.mona ]);
+  "gitlabSmtp.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi pubKeys.systems.mona ]);
 
   # OmniAuth provider secrets
-  "gitlabOmniAuthGitHub.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi pubKeys.systems.pilot ]);
+  "gitlabOmniAuthGitHub.age".publicKeys = builtins.concatLists ([ pubKeys.users.codgi pubKeys.systems.mona ]);
 }

@@ -14,8 +14,8 @@
         hostname = "openwrt.lan";
         user = "root";
       };
-      "pilot" = {
-        hostname = "pilot.lan";
+      "mona" = {
+        hostname = "mona.lan";
         user = "codgi";
       };
       "media" = {
