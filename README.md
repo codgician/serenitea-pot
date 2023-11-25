@@ -1,5 +1,7 @@
 # :snowflake: Nix Fleet
 
+![Man hours](https://manhours.aiursoft.cn/r/github.com/codgician/nix-fleet.svg)
+
 My fleet of Nix-managed devices.
 
 ## Quick start
