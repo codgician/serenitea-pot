@@ -71,7 +71,7 @@ in
         sambaPkg = config.services.samba.package;
         sambaUsersString = builtins.concatStringsSep "," sambaUsers;
         getCommand = user:
-          let passwordFile = config.users.users."${user}".passwordFile;
+          let passwordFile = config.age.secrets."${user}Password".path;
           in ''(cat ${passwordFile}; cat ${passwordFile};) | ${sambaPkg}/bin/smbpasswd -s -a "${user}"'';
         commands = [
           ''echo -e "refreshing samba password for: ${sambaUsersString}"''

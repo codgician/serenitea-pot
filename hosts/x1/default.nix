@@ -160,7 +160,7 @@ in
     shell = pkgs.zsh;
     isNormalUser = true;
     extraGroups = [ "wheel" ];
-    passwordFile = config.age.secrets.codgiPassword.path;
+    hashedPasswordFile = config.age.secrets.codgiHashedPassword.path;
     openssh.authorizedKeys.keys = pubKeys.users.codgi;
   };
 

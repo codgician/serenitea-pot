@@ -61,7 +61,7 @@ in
     shell = pkgs.zsh;
     isNormalUser = true;
     extraGroups = [ "wheel" ];
-    passwordFile = config.age.secrets.codgiPassword.path;
+    hashedPasswordFile = config.age.secrets.codgiHashedPassword.path;
     openssh.authorizedKeys.keys = pubKeys.users.codgi;
   };
 
@@ -70,7 +70,7 @@ in
     description = "BMC";
     createHome = false;
     isNormalUser = true;
-    passwordFile = config.age.secrets.bmcPassword.path;
+    hashedPasswordFile = config.age.secrets.bmcHashedPassword.path;
   };
 
   # Home manager
