@@ -1,12 +1,16 @@
 { config, lib, pkgs, ... }:
 let
   domain = "fin.codgician.me";
+  dataDir = "/mnt/data/jellyfin";
+  user = "jellyfin";
+  group = "jellyfin";
 in
 {
   services.jellyfin = {
     enable = true;
     openFirewall = true;
-    user = "jellyfin";
+    inherit user;
+    inherit group;
   };
 
   # Ngnix configurations
@@ -49,12 +53,5 @@ in
         certDir = config.security.acme.certs."${domain}".directory;
       in
       [ "cert.pfx:${certDir}/cert.pfx" ];
-  };
-
-  # Persist jellyfin data directories
-  environment.persistence."/nix/persist/" = {
-    directories = [
-      "/var/lib/jellyfin"
-    ];
   };
 }
