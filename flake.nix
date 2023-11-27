@@ -80,9 +80,8 @@
           settings = {
             auto-optimise-store = true;
             sandbox = true;
-            systemFeatures = [ "recursive-nix" ];
           };
-          extraOptions = "experimental-features = nix-command flakes recursive-nix";
+          extraOptions = "experimental-features = nix-command flakes";
         };
 
         networking.hostName = hostName;

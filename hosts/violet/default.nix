@@ -79,6 +79,12 @@ in
     home.packages = with pkgs; [ httplz rnix-lsp iperf3 ];
   };
 
+  # Security
+  security.sudo.wheelNeedsPassword = false;
+  nix.settings.trusted-users = [ "root" "@wheel" "codgi" ];
+
+  nixpkgs.config.allowUnfree = true;
+
   environment.systemPackages = with pkgs; [
     vim
     wget
