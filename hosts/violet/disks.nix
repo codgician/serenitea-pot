@@ -5,7 +5,7 @@
         fsType = "tmpfs";
         mountpoint = "/";
         mountOptions = [
-          "size=1G"
+          "size=4G"
           "mode=755"
         ];
       };

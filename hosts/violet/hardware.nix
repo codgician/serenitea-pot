@@ -15,14 +15,21 @@
 
   networking.useDHCP = lib.mkDefault true;
 
+  # Enable OpenGL
+  hardware.opengl = {
+    enable = true;
+    driSupport = true;
+  };
+
+  # Load nvidia driver for Xorg and Wayland
+  services.xserver.videoDrivers = [ "nvidia" ];
+
   hardware.nvidia = {
     modesetting.enable = true;
-    powerManagement = {
-      enable = true;
-      finegrained = true;
-    };
+    powerManagement.enable = true;
     package = config.boot.kernelPackages.nvidiaPackages.beta;
-    open = false;
+    open = true;
+    nvidiaSettings = true;
   };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
