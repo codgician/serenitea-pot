@@ -9,6 +9,16 @@
           "mode=755"
         ];
       };
+      media9p = {
+        device = "media9p";
+        fsType = "9p";
+        mountpoint = "/mnt/media";
+        mountOptions = [ 
+          "trans=virtio" 
+          "version=9p2000.L" 
+          "cache=loose" 
+        ];
+      };
     };
     disk = {
       sda = {

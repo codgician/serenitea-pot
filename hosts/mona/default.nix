@@ -12,7 +12,6 @@
     ../../services/fastapi-dls.nix
     ../../services/gitlab.nix
     ../../services/home-assistant.nix
-    ../../services/jellyfin.nix
     ../../services/mesh-commander.nix
     ../../services/nginx.nix
     ../../services/samba.nix
@@ -90,7 +89,7 @@
 
   # Security
   security.sudo.wheelNeedsPassword = false;
-  nix.settings.trusted-users = [ "root" "@wheel" "codgi" ];
+  nix.settings.trusted-users = [ "root" "@wheel" ];
 
   nixpkgs.config.allowUnfree = true;
 

@@ -7,6 +7,9 @@
     ../../users/codgi/default.nix
 
     # Services
+    ../../services/acme.nix
+    ../../services/jellyfin.nix
+    ../../services/nginx.nix
     ../../services/vscode-server.nix
   ];
 
