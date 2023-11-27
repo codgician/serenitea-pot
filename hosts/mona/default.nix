@@ -4,7 +4,7 @@
     ./hardware.nix
 
     # User
-    (import ../../users/codgi/default.nix { hmStateVersion = "23.05"; })
+    ../../users/codgi/default.nix
 
     # Service modules
     ../../services/acme.nix
@@ -18,6 +18,17 @@
     ../../services/samba.nix
     ../../services/vscode-server.nix
   ];
+
+  # Home manager
+  home-manager.users.codgi = { config, ... }: rec {
+    imports = [
+      ../../users/codgi/git.nix
+      ../../users/codgi/zsh.nix
+    ];
+
+    home.stateVersion = "23.05";
+    home.packages = with pkgs; [ httplz rnix-lsp iperf3 ];
+  };
 
   # Use systemd-networkd
   networking.useNetworkd = true;
@@ -75,17 +86,6 @@
       mode = "600";
       owner = "bmc";
     };
-  };
-
-  # Home manager
-  home-manager.users.codgi = { config, ... }: rec {
-    imports = [
-      ../../users/codgi/git.nix
-      ../../users/codgi/zsh.nix
-    ];
-
-    home.stateVersion = "23.05";
-    home.packages = with pkgs; [ httplz rnix-lsp iperf3 ];
   };
 
   # Security

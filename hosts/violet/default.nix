@@ -4,11 +4,22 @@
     ./hardware.nix
 
     # User
-    (import ../../users/codgi/default.nix { hmStateVersion = "23.11"; })
+    ../../users/codgi/default.nix
 
     # Services
     ../../services/vscode-server.nix
   ];
+
+  # Home manager
+  home-manager.users.codgi = { config, ... }: rec {
+    imports = [
+      ../../users/codgi/git.nix
+      ../../users/codgi/zsh.nix
+    ];
+
+    home.stateVersion = "23.11";
+    home.packages = with pkgs; [ httplz rnix-lsp iperf3 ];
+  };
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -23,7 +34,7 @@
   i18n.defaultLocale = "en_US.UTF-8";
   console = {
     font = "Lat2-Terminus16";
-    useXkbConfig = true; # use xkbOptions in tty.
+    useXkbConfig = true;
   };
 
   # Configure keymap in X11
@@ -115,4 +126,3 @@
     ];
   };
 }
-

@@ -1,5 +1,4 @@
-{ hmStateVersion, hmModules ? [ ] }:
-{ config, pkgs, ... }:
+{ config, pkgs, lib, ... }:
 let
   pubKeys = import ../../pubkeys.nix;
   secretsDir = builtins.toString ../../secrets;
@@ -7,16 +6,21 @@ let
 in
 {
   # User profile settings
-  users.users.codgi = {
-    name = "codgi";
-    description = "Shijia Zhang";
-    home = "/home/codgi";
-    shell = pkgs.zsh;
-    isNormalUser = true;
-    extraGroups = [ "wheel" ];
-    hashedPasswordFile = config.age.secrets.codgiHashedPassword.path;
-    openssh.authorizedKeys.keys = pubKeys.users.codgi;
-  };
+  users.users.codgi = lib.mkMerge [
+    {
+      name = "codgi";
+      description = "Shijia Zhang";
+      home = if pkgs.stdenvNoCC.isLinux then "/home/codgi" else "/Users/codgi";
+      shell = pkgs.zsh;
+      openssh.authorizedKeys.keys = pubKeys.users.codgi;
+    }
+
+    (lib.mkIf pkgs.stdenvNoCC.isLinux {
+      isNormalUser = true;
+      extraGroups = [ "wheel" ];
+      hashedPasswordFile = config.age.secrets.codgiHashedPassword.path;
+    })
+  ];
 
   # Trust me
   nix.settings.trusted-users = [ "codgi" ];
@@ -31,16 +35,5 @@ in
       mode = "600";
       owner = "codgi";
     };
-  };
-
-  # Home manager profile
-  home-manager.users.codgi = { config, ... }: rec {
-    imports = [
-      ../../users/codgi/git.nix
-      ../../users/codgi/zsh.nix
-    ] ++ hmModules;
-
-    home.stateVersion = hmStateVersion;
-    home.packages = with pkgs; [ httplz rnix-lsp iperf3 ];
   };
 }

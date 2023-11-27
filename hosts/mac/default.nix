@@ -1,7 +1,42 @@
-let
-  pubKeys = import ../../pubkeys.nix;
-in
-{ config, pkgs, ... }: {
+{ config, pkgs, lib, ... }: {
+
+  imports = [
+    # Users
+    ../../users/codgi/default.nix
+  ];
+
+  # Home manager
+  home-manager.users.codgi = { config, pkgs, ... }: {
+    imports = [
+      ../../users/codgi/pwsh.nix
+      ../../users/codgi/git.nix
+      ../../users/codgi/ssh.nix
+      ../../users/codgi/zsh.nix
+    ];
+
+    home.stateVersion = "23.05";
+    home.packages = with pkgs; [
+      httplz
+      rnix-lsp
+      iperf3
+      android-tools
+      aria2
+      ghc
+      pandoc
+      acpica-tools
+      terraform
+      crate2nix
+      go
+      gopls
+      go-outline
+      smartmontools
+    ];
+
+    # symlinks to binaries
+    home.file = {
+      ".local/bin/jdk8".source = pkgs.jdk8;
+    };
+  };
 
   # Nix garbage collection
   nix.gc = {
@@ -10,15 +45,6 @@ in
       Hour = 24 * 7;
       Minute = 0;
     };
-  };
-
-  # Users
-  users.users.codgi = {
-    name = "codgi";
-    description = "Shijia Zhang";
-    home = "/Users/codgi";
-    shell = pkgs.zsh;
-    openssh.authorizedKeys.keys = pubKeys.users.codgi;
   };
 
   # System packages
@@ -66,37 +92,4 @@ in
       inherit masApps;
       inherit casks;
     };
-
-  # Home manager
-  home-manager.users.codgi = { config, pkgs, ... }: {
-    imports = [
-      ../../users/codgi/pwsh.nix
-      ../../users/codgi/git.nix
-      ../../users/codgi/ssh.nix
-      ../../users/codgi/zsh.nix
-    ];
-
-    home.stateVersion = "23.05";
-    home.packages = with pkgs; [
-      httplz
-      rnix-lsp
-      iperf3
-      android-tools
-      aria2
-      ghc
-      pandoc
-      acpica-tools
-      terraform
-      crate2nix
-      go
-      gopls
-      go-outline
-      smartmontools
-    ];
-
-    # symlinks to binaries
-    home.file = {
-      ".local/bin/jdk8".source = pkgs.jdk8;
-    };
-  };
 }
