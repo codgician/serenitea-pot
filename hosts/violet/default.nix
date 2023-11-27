@@ -100,9 +100,14 @@ in
 
   nixpkgs.config.allowUnfree = true;
 
+  # List packages installed in system profile. To search, run:
+  # $ nix search wget
   environment.systemPackages = with pkgs; [
     vim
+    neofetch
     wget
+    xterm
+    htop
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -135,6 +140,7 @@ in
       "/var/log"
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
+      "/home"
     ];
     files = [
       "/etc/machine-id"
