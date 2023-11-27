@@ -111,10 +111,11 @@
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "23.11"; # Did you read the comment?
 
-  # Persist host keys
+  # Persist files
   environment.persistence."/nix/persist" = {
     hideMounts = true;
     directories = [
+      "/etc/secureboot"
       "/var/log"
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
@@ -127,5 +128,11 @@
       "/etc/ssh/ssh_host_rsa_key"
       "/etc/ssh/ssh_host_rsa_key.pub"
     ];
+  };
+
+  # Persist jellyfin
+  environment.persistence."/nix/persist/data" = {
+    hideMounts = true;
+    directories = [ "/var/lib/jellyfin" ];
   };
 }

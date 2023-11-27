@@ -33,6 +33,15 @@
       };
     };
 
+    lanzaboote = {
+      url = "github:nix-community/lanzaboote";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-compat.follows = "flake-compat";
+        flake-utils.follows = "flake-utils";
+      };
+    };
+
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -68,6 +77,7 @@
     , darwin
     , flake-utils
     , disko
+    , lanzaboote
     , ...
     }:
     let
@@ -118,7 +128,7 @@
         };
 
       # Common configurations for NixOS systems
-      nixosSystem = system: extraModules: hostName:
+      nixosSystem = system: extraModules: secureBoot: hostName:
         let
           pkgs = import nixpkgs {
             inherit system;
@@ -157,6 +167,19 @@
               # Set flake for auto upgrade
               system.autoUpgrade.flake = "github:codgician/nix-fleet";
             })
+
+            # Secure boot
+            lanzaboote.nixosModules.lanzaboote
+            ({ pkgs, lib, ... }: lib.mkIf secureBoot {
+              environment.systemPackages = [ pkgs.sbctl ];
+              # Lanzaboote currently replaces the systemd-boot module.
+              boot.loader.systemd-boot.enable = lib.mkForce false;
+              boot.lanzaboote = {
+                enable = secureBoot;
+                pkiBundle = "/etc/secureboot";
+              };
+            })
+            
           ] ++ extraModules;
         };
     in
@@ -169,8 +192,8 @@
 
       # NixOS machines
       nixosConfigurations = processConfigurations {
-        "mona" = nixosSystem "x86_64-linux" [ ./hosts/mona/default.nix ];
-        "violet" = nixosSystem "x86_64-linux" [ ./hosts/violet/default.nix ];
+        "mona" = nixosSystem "x86_64-linux" [ ./hosts/mona/default.nix ] false;
+        "violet" = nixosSystem "x86_64-linux" [ ./hosts/violet/default.nix ] true;
       };
     } // flake-utils.lib.eachDefaultSystem (system:
     let
