@@ -171,10 +171,6 @@
       nixosConfigurations = processConfigurations {
         "mona" = nixosSystem "x86_64-linux" [ ./hosts/mona/default.nix ];
         "violet" = nixosSystem "x86_64-linux" [ ./hosts/violet/default.nix ];
-        "Shijia-X1" = nixosSystem "x86_64-linux" [
-          nixos-hardware.nixosModules.lenovo-thinkpad-x1-yoga
-          ./hosts/x1/default.nix
-        ];
       };
     } // flake-utils.lib.eachDefaultSystem (system:
     let
