@@ -1,12 +1,10 @@
-let
-  pubKeys = import ../../pubkeys.nix;
-  secretsDir = builtins.toString ./../../secrets;
-  ageSecrets = builtins.mapAttrs (name: obj: ({ file = "${secretsDir}/${name}.age"; } // obj));
-in
 { config, pkgs, ... }: {
 
   imports = [
     ./hardware.nix
+
+    # User
+    (import ../../users/codgi/default.nix { hmStateVersion = "23.05"; })
 
     # Service modules
     ../../services/acme.nix
@@ -20,26 +18,6 @@ in
     ../../services/samba.nix
     ../../services/vscode-server.nix
   ];
-
-  # Secret permissions
-  age.secrets = ageSecrets {
-    "codgiPassword" = {
-      mode = "600";
-      owner = "codgi";
-    };
-    "codgiHashedPassword" = {
-      mode = "600";
-      owner = "codgi";
-    };
-    "bmcPassword" = {
-      mode = "600";
-      owner = "bmc";
-    };
-    "bmcHashedPassword" = {
-      mode = "600";
-      owner = "bmc";
-    };
-  };
 
   # Use systemd-networkd
   networking.useNetworkd = true;
@@ -77,23 +55,26 @@ in
   # Define user accounts
   users.mutableUsers = false;
   users.users.root.hashedPassword = "!";
-  users.users.codgi = {
-    name = "codgi";
-    description = "Shijia Zhang";
-    home = "/home/codgi";
-    shell = pkgs.zsh;
-    isNormalUser = true;
-    extraGroups = [ "wheel" ];
-    hashedPasswordFile = config.age.secrets.codgiHashedPassword.path;
-    openssh.authorizedKeys.keys = pubKeys.users.codgi;
-  };
 
+  # BMC account for samba
   users.users.bmc = {
     name = "bmc";
     description = "BMC";
     createHome = false;
     isNormalUser = true;
     hashedPasswordFile = config.age.secrets.bmcHashedPassword.path;
+  };
+
+  # Secret permissions
+  age.secrets = ageSecrets {
+    "bmcPassword" = {
+      mode = "600";
+      owner = "bmc";
+    };
+    "bmcHashedPassword" = {
+      mode = "600";
+      owner = "bmc";
+    };
   };
 
   # Home manager

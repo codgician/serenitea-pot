@@ -18,8 +18,8 @@
         hostname = "mona.lan";
         user = "codgi";
       };
-      "media" = {
-        hostname = "media.lan";
+      "violet" = {
+        hostname = "violet.lan";
         user = "codgi";
       };
       "macrun" = {

@@ -10,10 +10,14 @@
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
+  boot.kernelParams = [ "console=ttyS0,115200" ];
 
   swapDevices = [ ];
 
   networking.useDHCP = lib.mkDefault true;
+
+  # Enable QEMU guest agent
+  services.qemuGuest.enable = true;
 
   # Enable OpenGL
   hardware.opengl = {
@@ -28,7 +32,7 @@
     modesetting.enable = true;
     powerManagement.enable = true;
     package = config.boot.kernelPackages.nvidiaPackages.beta;
-    open = true;
+    open = false;
     nvidiaSettings = true;
   };
 

@@ -1,27 +1,14 @@
-let
-  pubKeys = import ../../pubkeys.nix;
-  secretsDir = builtins.toString ../../secrets;
-  ageSecrets = builtins.mapAttrs (name: obj: ({ file = "${secretsDir}/${name}.age"; } // obj));
-in
 { config, pkgs, agenix, ... }:
 {
   imports = [
     ./hardware.nix
 
+    # User
+    (import ../../users/codgi/default.nix { hmStateVersion = "23.11"; })
+
+    # Services
     ../../services/vscode-server.nix
   ];
-
-  # Secret permissions
-  age.secrets = ageSecrets {
-    "codgiPassword" = {
-      mode = "600";
-      owner = "codgi";
-    };
-    "codgiHashedPassword" = {
-      mode = "600";
-      owner = "codgi";
-    };
-  };
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -69,34 +56,11 @@ in
     enableCompletion = true;
   };
 
-  # Define user accounts
+  # Security
   users.mutableUsers = false;
   users.users.root.hashedPassword = "!";
-  users.users.codgi = {
-    name = "codgi";
-    description = "Shijia Zhang";
-    home = "/home/codgi";
-    shell = pkgs.zsh;
-    isNormalUser = true;
-    extraGroups = [ "wheel" ];
-    hashedPasswordFile = config.age.secrets.codgiHashedPassword.path;
-    openssh.authorizedKeys.keys = pubKeys.users.codgi;
-  };
-
-  # Home manager
-  home-manager.users.codgi = { config, ... }: rec {
-    imports = [
-      ../../users/codgi/git.nix
-      ../../users/codgi/zsh.nix
-    ];
-
-    home.stateVersion = "23.11";
-    home.packages = with pkgs; [ httplz rnix-lsp iperf3 ];
-  };
-
-  # Security
   security.sudo.wheelNeedsPassword = false;
-  nix.settings.trusted-users = [ "root" "@wheel" "codgi" ];
+  nix.settings.trusted-users = [ "root" "@wheel" ];
 
   nixpkgs.config.allowUnfree = true;
 
