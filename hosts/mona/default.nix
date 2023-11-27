@@ -1,9 +1,15 @@
-{ config, pkgs, ... }: {
-
+{ config, pkgs, ... }: 
+let
+  pubKeys = import ../../pubkeys.nix;
+  secretsDir = builtins.toString ../../secrets;
+  ageSecrets = builtins.mapAttrs (name: obj: ({ file = "${secretsDir}/${name}.age"; } // obj));
+in
+{
   imports = [
     ./hardware.nix
 
     # User
+    ../../users/bmc/default.nix
     ../../users/codgi/default.nix
 
     # Service modules
@@ -65,27 +71,6 @@
   # Define user accounts
   users.mutableUsers = false;
   users.users.root.hashedPassword = "!";
-
-  # BMC account for samba
-  users.users.bmc = {
-    name = "bmc";
-    description = "BMC";
-    createHome = false;
-    isNormalUser = true;
-    hashedPasswordFile = config.age.secrets.bmcHashedPassword.path;
-  };
-
-  # Secret permissions
-  age.secrets = ageSecrets {
-    "bmcPassword" = {
-      mode = "600";
-      owner = "bmc";
-    };
-    "bmcHashedPassword" = {
-      mode = "600";
-      owner = "bmc";
-    };
-  };
 
   # Security
   security.sudo.wheelNeedsPassword = false;

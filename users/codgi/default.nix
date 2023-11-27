@@ -5,7 +5,6 @@ let
   ageSecrets = builtins.mapAttrs (name: obj: ({ file = "${secretsDir}/${name}.age"; } // obj));
 in
 {
-  # User profile settings
   users.users.codgi = lib.mkMerge [
     {
       name = "codgi";
