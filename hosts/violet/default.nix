@@ -1,12 +1,27 @@
 let
   pubKeys = import ../../pubkeys.nix;
+  secretsDir = builtins.toString ../../secrets;
+  ageSecrets = builtins.mapAttrs (name: obj: ({ file = "${secretsDir}/${name}.age"; } // obj));
 in
-{ config, pkgs, ... }:
-
+{ config, pkgs, agenix, ... }:
 {
   imports = [
     ./hardware.nix
+
+    ../../services/vscode-server.nix
   ];
+
+  # Secret permissions
+  age.secrets = ageSecrets {
+    "codgiPassword" = {
+      mode = "600";
+      owner = "codgi";
+    };
+    "codgiHashedPassword" = {
+      mode = "600";
+      owner = "codgi";
+    };
+  };
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;

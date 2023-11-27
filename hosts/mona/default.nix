@@ -1,5 +1,7 @@
 let
   pubKeys = import ../../pubkeys.nix;
+  secretsDir = builtins.toString ./../../secrets;
+  ageSecrets = builtins.mapAttrs (name: obj: ({ file = "${secretsDir}/${name}.age"; } // obj));
 in
 { config, pkgs, ... }: {
 
@@ -18,6 +20,26 @@ in
     ../../services/samba.nix
     ../../services/vscode-server.nix
   ];
+
+  # Secret permissions
+  age.secrets = ageSecrets {
+    "codgiPassword" = {
+      mode = "600";
+      owner = "codgi";
+    };
+    "codgiHashedPassword" = {
+      mode = "600";
+      owner = "codgi";
+    };
+    "bmcPassword" = {
+      mode = "600";
+      owner = "bmc";
+    };
+    "bmcHashedPassword" = {
+      mode = "600";
+      owner = "bmc";
+    };
+  };
 
   # Use systemd-networkd
   networking.useNetworkd = true;

@@ -94,10 +94,6 @@
         };
       };
 
-      # Include age secrets by name
-      secretsDir = builtins.toString ./secrets;
-      ageSecrets = builtins.mapAttrs (name: obj: ({ file = "${secretsDir}/${name}.age"; } // obj));
-
       # Common configurations for macOS systems
       darwinSystem = system: extraModules: hostName:
         let
@@ -160,25 +156,6 @@
             ({ config, ... }: {
               # Set flake for auto upgrade
               system.autoUpgrade.flake = "github:codgician/nix-fleet";
-
-              age.secrets = ageSecrets {
-                "codgiPassword" = {
-                  mode = "600";
-                  owner = "codgi";
-                };
-                "codgiHashedPassword" = {
-                  mode = "600";
-                  owner = "codgi";
-                };
-                "bmcPassword" = {
-                  mode = "600";
-                  owner = "bmc";
-                };
-                "bmcHashedPassword" = {
-                  mode = "600";
-                  owner = "bmc";
-                };
-              };
             })
           ] ++ extraModules;
         };
