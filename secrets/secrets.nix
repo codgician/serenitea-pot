@@ -2,6 +2,7 @@ let
   pubKeys = import ../pubkeys.nix;
   hostKeys = [
     pubKeys.systems.mona
+    pubKeys.systems.violet
     pubKeys.systems.x1
   ];
 in

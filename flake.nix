@@ -67,6 +67,7 @@
     , vscode-server
     , darwin
     , flake-utils
+    , disko
     , ...
     }:
     let
@@ -79,8 +80,9 @@
           settings = {
             auto-optimise-store = true;
             sandbox = true;
+            systemFeatures = [ "recursive-nix" ];
           };
-          extraOptions = "experimental-features = nix-command flakes";
+          extraOptions = "experimental-features = nix-command flakes recursive-nix";
         };
 
         networking.hostName = hostName;
@@ -150,6 +152,7 @@
 
             impermanence.nixosModules.impermanence
             home-manager.nixosModules.home-manager
+            disko.nixosModules.disko
             agenix.nixosModules.default
             vscode-server.nixosModules.default
 
@@ -191,6 +194,7 @@
       # NixOS machines
       nixosConfigurations = processConfigurations {
         "mona" = nixosSystem "x86_64-linux" [ ./hosts/mona/default.nix ];
+        "violet" = nixosSystem "x86_64-linux" [ ./hosts/violet/default.nix ];
         "Shijia-X1" = nixosSystem "x86_64-linux" [
           nixos-hardware.nixosModules.lenovo-thinkpad-x1-yoga
           ./hosts/x1/default.nix
