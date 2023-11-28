@@ -1,7 +1,6 @@
 { config, lib, pkgs, ... }:
 let
   domain = "fin.codgician.me";
-  dataDir = "/mnt/data/jellyfin";
   user = "jellyfin";
   group = "jellyfin";
 in
@@ -19,6 +18,9 @@ in
       proxyPass = "http://localhost:8096";
       proxyWebsockets = true;
     };
+
+    # Don't include me in search results
+    locations."/robots.txt".return = "200 'User-agent:*\\nDisallow:*'";
 
     forceSSL = true;
     http2 = true;
@@ -54,4 +56,7 @@ in
       in
       [ "cert.pfx:${certDir}/cert.pfx" ];
   };
+
+  # Persist data
+  environment.persistence."/nix/persist".directories = [ "/var/lib/jellyfin" ];
 }

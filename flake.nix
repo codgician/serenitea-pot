@@ -7,6 +7,14 @@
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     impermanence.url = "github:nix-community/impermanence";
 
+    flake-compat = {
+      url = "github:edolstra/flake-compat";
+      flake = false;
+    };
+
+    flake-parts.url = "github:hercules-ci/flake-parts";
+    flake-utils.url = "github:numtide/flake-utils";
+
     darwin = {
       url = "github:lnl7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -14,13 +22,6 @@
 
     home-manager = {
       url = "github:nix-community/home-manager/release-23.11";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    nur.url = "github:nix-community/NUR";
-    nur-xddxdd = {
-      url = "github:xddxdd/nur-packages";
-      inputs.flake-utils.follows = "flake-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -33,11 +34,19 @@
       };
     };
 
+    nur.url = "github:nix-community/NUR";
+    nur-xddxdd = {
+      url = "github:xddxdd/nur-packages";
+      inputs.flake-utils.follows = "flake-utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     lanzaboote = {
       url = "github:nix-community/lanzaboote";
       inputs = {
         nixpkgs.follows = "nixpkgs";
         flake-compat.follows = "flake-compat";
+        flake-parts.follows = "flake-parts";
         flake-utils.follows = "flake-utils";
       };
     };
@@ -47,18 +56,19 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    flake-compat = {
-      url = "github:edolstra/flake-compat";
-      flake = false;
-    };
-
-    flake-utils.url = "github:numtide/flake-utils";
-
     vscode-server = {
       url = "github:nix-community/nixos-vscode-server";
       inputs = {
         flake-utils.follows = "flake-utils";
         nixpkgs.follows = "nixpkgs";
+      };
+    };
+
+    nixified-ai = {
+      url = "github:nixified-ai/flake";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-parts.follows = "flake-parts";
       };
     };
   };
@@ -78,6 +88,7 @@
     , flake-utils
     , disko
     , lanzaboote
+    , nixified-ai
     , ...
     }:
     let
@@ -160,7 +171,8 @@
             disko.nixosModules.disko
             agenix.nixosModules.default
             vscode-server.nixosModules.default
-
+            nixified-ai.nixosModules.invokeai
+            
             (basicConfig system hostName)
 
             ({ config, ... }: {

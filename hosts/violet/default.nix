@@ -8,6 +8,7 @@
 
     # Services
     ../../services/acme.nix
+    # ../../services/invoke-ai.nix
     ../../services/jellyfin.nix
     ../../services/nginx.nix
     ../../services/podman.nix
@@ -129,11 +130,5 @@
       "/etc/ssh/ssh_host_rsa_key"
       "/etc/ssh/ssh_host_rsa_key.pub"
     ];
-  };
-
-  # Persist jellyfin
-  environment.persistence."/nix/persist/data" = {
-    hideMounts = true;
-    directories = [ "/var/lib/jellyfin" ];
   };
 }
