@@ -10,6 +10,7 @@
     ../../services/acme.nix
     ../../services/jellyfin.nix
     ../../services/nginx.nix
+    ../../services/podman.nix
     ../../services/vscode-server.nix
   ];
 
