@@ -8,7 +8,6 @@
 
     # Services
     ../../services/acme.nix
-    # ../../services/invoke-ai.nix
     ../../services/jellyfin.nix
     ../../services/nginx.nix
     ../../services/podman.nix

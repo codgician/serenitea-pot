@@ -63,14 +63,6 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
-
-    nixified-ai = {
-      url = "github:nixified-ai/flake";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        flake-parts.follows = "flake-parts";
-      };
-    };
   };
 
   outputs =
@@ -88,7 +80,6 @@
     , flake-utils
     , disko
     , lanzaboote
-    , nixified-ai
     , ...
     }:
     let
@@ -160,18 +151,24 @@
           inherit system;
           specialArgs = { inherit lib pkgs inputs self impermanence; };
           modules = [
-            nur.nixosModules.nur
+            # Third-party binary caches
             ({ config, ... }: {
-              nix.settings.substituters = [ config.nur.repos.xddxdd._meta.url ];
-              nix.settings.trusted-public-keys = [ config.nur.repos.xddxdd._meta.publicKey ];
+              nix.settings.substituters = [ 
+                config.nur.repos.xddxdd._meta.url 
+                "https://nix-community.cachix.org"
+              ];
+              nix.settings.trusted-public-keys = [ 
+                config.nur.repos.xddxdd._meta.publicKey 
+                "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+              ];
             })
 
+            nur.nixosModules.nur
             impermanence.nixosModules.impermanence
             home-manager.nixosModules.home-manager
             disko.nixosModules.disko
             agenix.nixosModules.default
             vscode-server.nixosModules.default
-            nixified-ai.nixosModules.invokeai
             
             (basicConfig system hostName)
 
