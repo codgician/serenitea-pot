@@ -32,7 +32,7 @@ in
     ];
 
     home.stateVersion = "23.05";
-    home.packages = with pkgs; [ httplz rnix-lsp iperf3 ];
+    home.packages = with pkgs; [ httplz rnix-lsp iperf3 screen ];
   };
 
   # Use systemd-networkd
