@@ -1,4 +1,4 @@
-{ config, pkgs, ... }: 
+{ config, pkgs, ... }:
 let
   pubKeys = import ../../pubkeys.nix;
   secretsDir = builtins.toString ../../secrets;
@@ -31,7 +31,7 @@ in
       ../../users/codgi/zsh.nix
     ];
 
-    home.stateVersion = "23.05";
+    home.stateVersion = "23.11";
     home.packages = with pkgs; [ httplz rnix-lsp iperf3 screen ];
   };
 
@@ -114,5 +114,5 @@ in
   # this value at the release version of the first install of this system.
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "23.05"; # Did you read the comment?
+  system.stateVersion = "23.11"; # Did you read the comment?
 }

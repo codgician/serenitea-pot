@@ -14,7 +14,7 @@
       ../../users/codgi/zsh.nix
     ];
 
-    home.stateVersion = "23.05";
+    home.stateVersion = "23.11";
     home.packages = with pkgs; [
       httplz
       rnix-lsp
@@ -30,6 +30,7 @@
       gopls
       go-outline
       smartmontools
+      pciutils
     ];
 
     # symlinks to binaries

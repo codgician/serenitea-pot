@@ -13,10 +13,10 @@
         device = "media9p";
         fsType = "9p";
         mountpoint = "/mnt/media";
-        mountOptions = [ 
-          "trans=virtio" 
-          "version=9p2000.L" 
-          "cache=loose" 
+        mountOptions = [
+          "trans=virtio"
+          "version=9p2000.L"
+          "cache=loose"
         ];
       };
     };

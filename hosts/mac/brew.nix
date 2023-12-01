@@ -21,7 +21,6 @@
     "Microsoft Outlook" = 985367838;
     "Microsoft OneNote" = 784801555;
     "Microsoft To Do" = 1274495053;
-    "Microsoft Remote Desktop" = 1295203466;
     "OneDrive" = 823766827;
 
     "Telegram" = 747648890;
@@ -32,14 +31,16 @@
     "Lark" = 6449830127;
 
     "WireGuard" = 1451685025;
-    "Infuse" = 1136220934;
     "LocalSend" = 1661733229;
     "Hex Fiend" = 1342896380;
+    "CADReader" = 1484905765;
 
     "IT之家" = 570610859;
     "Store Redirect" = 1601434613;
-    "ServerCat" = 1501532023;
     "NetEaseMusic" = 944848654;
+
+    "iStat Menus" = 1319778037;
+    "VidHub" = 1659622164;
   };
 
   # Homebrew casks

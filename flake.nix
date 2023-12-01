@@ -153,12 +153,12 @@
           modules = [
             # Third-party binary caches
             ({ config, ... }: {
-              nix.settings.substituters = [ 
-                config.nur.repos.xddxdd._meta.url 
+              nix.settings.substituters = [
+                config.nur.repos.xddxdd._meta.url
                 "https://nix-community.cachix.org"
               ];
-              nix.settings.trusted-public-keys = [ 
-                config.nur.repos.xddxdd._meta.publicKey 
+              nix.settings.trusted-public-keys = [
+                config.nur.repos.xddxdd._meta.publicKey
                 "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
               ];
             })
@@ -169,7 +169,7 @@
             disko.nixosModules.disko
             agenix.nixosModules.default
             vscode-server.nixosModules.default
-            
+
             (basicConfig system hostName)
 
             ({ config, ... }: {
@@ -188,7 +188,7 @@
                 pkiBundle = "/etc/secureboot";
               };
             })
-            
+
           ] ++ extraModules;
         };
     in
