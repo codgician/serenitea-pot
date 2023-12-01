@@ -30,6 +30,7 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking.useNetworkd = true;
+  services.resolved.enable = true;
 
   # Set your time zone.
   time.timeZone = "Asia/Shanghai";
@@ -118,6 +119,7 @@
     directories = [
       "/etc/secureboot"
       "/var/log"
+      "/var/lib/acme"
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
       "/home"
