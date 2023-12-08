@@ -60,7 +60,7 @@ in
 
     # PostgreSQL configurations
     services.postgresql = {
-      dataDir = "/mnt/postgres/";
+      dataDir = "/mnt/postgres";
       settings = {
         full_page_writes = false; # Not needed for ZFS
       };

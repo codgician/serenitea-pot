@@ -21,6 +21,7 @@ in
     ../../services/mesh-commander.nix
     ../../services/nginx.nix
     ../../services/samba.nix
+    ../../services/upgrade-pg-cluster.nix
     ../../services/vscode-server.nix
   ];
 
