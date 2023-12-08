@@ -3,7 +3,7 @@ let
   user = "fastapi-dls";
   group = "fastapi-dls";
   domain = "nvdls.codgician.me";
-  leaseDays = 90;
+  leaseDays = 1825;
   port = 14514;
   dataDir = "/mnt/data/fastapi-dls";
   appDir = "/var/lib/fastapi-dls-app";
