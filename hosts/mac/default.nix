@@ -35,7 +35,7 @@
 
     # symlinks to binaries
     home.file = {
-      ".local/bin/jdk8".source = pkgs.jdk8;
+      ".local/bin/jdk8".source = pkgs.zulu8;
     };
   };
 
@@ -51,7 +51,7 @@
   # System packages
   environment.systemPackages = with pkgs; [
     neofetch
-    jdk
+    zulu
     openssl
   ];
 
