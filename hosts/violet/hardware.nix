@@ -23,10 +23,14 @@
   hardware.opengl = {
     enable = true;
     driSupport = true;
+    driSupport32Bit = true;
   };
 
   # Load nvidia driver for Xorg and Wayland
   services.xserver.videoDrivers = [ "nvidia" ];
+
+  # CUDA support for nixpkgs
+  nixpkgs.config.cudaSupport = true;
 
   hardware.nvidia = {
     modesetting.enable = true;
