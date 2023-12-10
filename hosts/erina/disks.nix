@@ -63,7 +63,7 @@
           settings.allowDiscards = true;
           content = {
             type = "filesystem";
-            format = "ext4";
+            format = "xfs";
             mountpoint = "/nix";
           };
         };
