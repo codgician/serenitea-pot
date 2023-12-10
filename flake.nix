@@ -201,6 +201,7 @@
 
       # NixOS machines
       nixosConfigurations = processConfigurations {
+        "erina" = nixosSystem "x86_64-linux" [ ./hosts/erina/default.nix ] true;
         "mona" = nixosSystem "x86_64-linux" [ ./hosts/mona/default.nix ] false;
         "violet" = nixosSystem "x86_64-linux" [ ./hosts/violet/default.nix ] true;
       };
