@@ -38,14 +38,16 @@
     "IT之家" = 570610859;
     "Store Redirect" = 1601434613;
     "NetEaseMusic" = 944848654;
-
     "iStat Menus" = 1319778037;
     "VidHub" = 1659622164;
+    "Home Assistant" = 1099568401;
+    "Whisper" = 1668083311;
   };
 
   # Homebrew casks
   casks = builtins.map (name: { inherit name; greedy = true; }) [
     "appcleaner"
+    "calibre"
     "visual-studio-code"
     "microsoft-edge"
     "logi-options-plus"
