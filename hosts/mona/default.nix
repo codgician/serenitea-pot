@@ -14,6 +14,7 @@ in
 
     # Service modules
     ../../services/acme.nix
+    ../../services/calibre-web.nix
     ../../services/conduit.nix
     ../../services/fastapi-dls.nix
     ../../services/gitlab.nix
