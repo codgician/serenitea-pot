@@ -31,6 +31,7 @@
       go-outline
       smartmontools
       pciutils
+      ffmpeg-full
     ];
 
     # symlinks to binaries
