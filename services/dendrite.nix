@@ -49,13 +49,15 @@ in
         server_name = domain;
         private_key = "$CREDENTIALS_DIRECTORY/private_key";
         trusted_third_party_id_servers = [
+          "matrix.codgician.me"
           "matrix.org"
           "libera.chat"
           "nixos.org"
           "gitter.im"
           "vector.im"
         ];
-        metrics.enabled = true;
+        
+        # metrics.enabled = true;
       };
 
       logging = [
@@ -85,10 +87,6 @@ in
           # Support Threads
           # see: https://github.com/matrix-org/dendrite/blob/main/docs/FAQ.md#does-dendrite-support-threads
           "msc2836"
-
-          # Sliding sync
-          # see: https://github.com/matrix-org/sliding-sync
-          "msc3575"
         ];
       };
 
@@ -139,6 +137,11 @@ in
     ];
   };
 
+  # Allow R/W to media path
+  systemd.services.dendrite.serviceConfig.ReadWritePaths = [
+    config.services.dendrite.settings.media_api.base_path
+  ];
+
   # Matrix sliding-sync
   services.matrix-synapse.sliding-sync = {
     enable = true;
@@ -169,32 +172,41 @@ in
         };
       };
     in
-    builtins.foldl' (x: y: x // y) { } (map (nameToObj) [ "matrixGlobalPrivateKey" "matrixEnv" ]);  
+    builtins.foldl' (x: y: x // y) { } (map (nameToObj) [ "matrixGlobalPrivateKey" "matrixEnv" ]);
 
   # Ngnix configurations
   services.nginx.virtualHosts."${domain}" = {
     locations."/".root = element-web-codgician-me;
+
     locations."/_matrix/" = {
       proxyPass = "http://[::1]:${builtins.toString config.services.dendrite.httpPort}";
       proxyWebsockets = true;
       recommendedProxySettings = true;
       extraConfig = ''
+        client_max_body_size 128M;
         proxy_buffering off;
       '';
     };
 
+    # Sliding sync
+    locations."~ ^/(client/|_matrix/client/unstable/org.matrix.msc3575/sync)" = {
+      proxyPass = "http://${config.services.matrix-synapse.sliding-sync.settings.SYNCV3_BINDADDR}";
+    };
+
+    # Remote admin access
+    locations."/_synapse".proxyPass = "http://[::1]:${toString config.services.dendrite.httpPort}";
+
+    # Announce server & client metadata
     locations."= /.well-known/matrix/server".extraConfig = ''
       add_header Content-Type application/json;
       return 200 '${builtins.toJSON server}';
     '';
-
     locations."= /.well-known/matrix/client".extraConfig = ''
       add_header Content-Type application/json;
       add_header Access-Control-Allow-Origin *;
       return 200 '${builtins.toJSON client}';
     '';
 
-    locations."/_synapse".proxyPass = "http://[::1]:${toString config.services.dendrite.httpPort}";
     forceSSL = true;
     enableACME = true;
     acmeRoot = null;
