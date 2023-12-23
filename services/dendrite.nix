@@ -67,8 +67,8 @@ in
         recaptcha_api_js_url = "https://www.recaptcha.net/recaptcha/api.js";
 
         turn_uris = [ 
-          "turn:sz.codgician.me?transport=udp"
-          "turn:sz.codgician.me?transport=tcp"
+          "turn:turn.codgician.me?transport=udp"
+          "turn:turn.codgician.me?transport=tcp"
         ];
         turn_shared_secret = "$TURN_SHARED_SECRET";
       };
