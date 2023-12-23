@@ -1,10 +1,12 @@
-# Referenced https://github.com/Mic92/dotfiles/blob/main/nixos/eve/modules/dendrite.nix
+# Referenced: https://github.com/Mic92/dotfiles/blob/main/nixos/eve/modules/dendrite.nix
+# Yaml sample: https://github.com/matrix-org/dendrite/blob/main/dendrite-sample.yaml
 # Huge thanks to @Mic92
 
 { config, pkgs, ... }:
 let
   domain = "matrix.codgician.me";
   dbName = "dendrite";
+  dataPath = "/mnt/data/dendrite";
   database = {
     connection_string = "postgres:///${dbName}?host=/run/postgresql";
     max_open_conns = 80;
@@ -73,7 +75,7 @@ in
 
       media_api = {
         inherit database;
-        base_path = "/mnt/data/dendrite/media_store";
+        base_path = "${dataPath}/media_store";
         dynamic_thumbnails = true;
       };
 
@@ -98,11 +100,14 @@ in
         recaptcha_siteverify_api = "https://www.google.com/recaptcha/api/siteverify";
         recaptcha_api_js_url = "https://www.recaptcha.net/recaptcha/api.js";
 
-        turn_uris = [ 
-          "turn:turn.codgician.me?transport=udp"
-          "turn:turn.codgician.me?transport=tcp"
-        ];
-        turn_shared_secret = "$TURN_SHARED_SECRET";
+        turn = {
+          turn_user_lifetime = "5m";
+          turn_uris = [ 
+            "turn:turn.codgician.me?transport=udp"
+            "turn:turn.codgician.me?transport=tcp"
+          ];
+          turn_shared_secret = "$TURN_SHARED_SECRET";
+        };
       };
 
       relay_api = {
@@ -120,6 +125,11 @@ in
       sync_api = {
         inherit database;
         real_ip_header = "X-Real-IP";
+        search = {
+          enabled = true;
+          index_path = "${dataPath}/searchindex";
+          language = "cjk";
+        };
       };
 
       user_api = {
@@ -154,9 +164,7 @@ in
   };
 
   # Allow R/W to media path
-  systemd.services.dendrite.serviceConfig.ReadWritePaths = [
-    config.services.dendrite.settings.media_api.base_path
-  ];
+  systemd.services.dendrite.serviceConfig.ReadWritePaths = [ dataPath ];
 
   # Matrix sliding-sync
   services.matrix-synapse.sliding-sync = {
