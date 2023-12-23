@@ -26,4 +26,8 @@ in
 
   # OmniAuth provider secrets
   "gitlabOmniAuthGitHub.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.mona ];
+
+  # Matrix secrets
+  "matrixGlobalPrivateKey.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.mona ];
+  "matrixEnv.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.mona ];
 }

@@ -15,10 +15,9 @@ in
     # Service modules
     ../../services/acme.nix
     ../../services/calibre-web.nix
-    ../../services/conduit.nix
+    ../../services/dendrite.nix
     ../../services/fastapi-dls.nix
     ../../services/gitlab.nix
-    ../../services/home-assistant.nix
     ../../services/mesh-commander.nix
     ../../services/nginx.nix
     ../../services/samba.nix
