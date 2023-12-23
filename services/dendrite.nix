@@ -1,4 +1,7 @@
-{ config, ... }:
+# Referenced https://github.com/Mic92/dotfiles/blob/main/nixos/eve/modules/dendrite.nix
+# Huge thanks to @Mic92
+
+{ config, pkgs, ... }:
 let
   domain = "matrix.codgician.me";
   dbName = "dendrite";
@@ -8,8 +11,35 @@ let
     max_idle_conns = 5;
     conn_max_lifetime = -1;
   };
+
+  # Server & client metadata
+  server = {
+    "m.server" = "${domain}:443";
+  };
+  client = {
+    "m.homeserver" = { 
+      "base_url" = "https://${domain}";
+      "server_name" = "${domain}";
+    };
+    "org.matrix.msc3575.proxy"."url" = "https://${domain}";
+    "m.identity_server"."base_url" = "https://vector.im";
+  };
+
+  # Web client
+  element-web-codgician-me =
+    pkgs.runCommand "element-web-codgician-me"
+      {
+        nativeBuildInputs = [ pkgs.buildPackages.jq ];
+      } ''
+      cp -r ${pkgs.element-web} $out
+      chmod -R u+w $out
+      jq '."default_server_config" = ${builtins.toJSON client}' \
+        > $out/config.json < ${pkgs.element-web}/config.json
+      ln -s $out/config.json $out/config.${domain}.json
+    '';
 in
 {
+  # Dendrite
   services.dendrite = {
     enable = true;
     openRegistration = false;
@@ -55,6 +85,10 @@ in
           # Support Threads
           # see: https://github.com/matrix-org/dendrite/blob/main/docs/FAQ.md#does-dendrite-support-threads
           "msc2836"
+
+          # Sliding sync
+          # see: https://github.com/matrix-org/sliding-sync
+          "msc3575"
         ];
       };
 
@@ -105,6 +139,13 @@ in
     ];
   };
 
+  # Matrix sliding-sync
+  services.matrix-synapse.sliding-sync = {
+    enable = true;
+    settings.SYNCV3_SERVER = "https://${domain}";
+    environmentFile = config.age.secrets.matrixEnv.path;
+  };
+
   # Configure PostgresSQL
   services.postgresql = {
     ensureDatabases = [ dbName ];
@@ -132,7 +173,7 @@ in
 
   # Ngnix configurations
   services.nginx.virtualHosts."${domain}" = {
-    locations."/".extraConfig = "return 404;";
+    locations."/".root = element-web-codgician-me;
     locations."/_matrix/" = {
       proxyPass = "http://[::1]:${builtins.toString config.services.dendrite.httpPort}";
       proxyWebsockets = true;
@@ -141,6 +182,18 @@ in
         proxy_buffering off;
       '';
     };
+
+    locations."= /.well-known/matrix/server".extraConfig = ''
+      add_header Content-Type application/json;
+      return 200 '${builtins.toJSON server}';
+    '';
+
+    locations."= /.well-known/matrix/client".extraConfig = ''
+      add_header Content-Type application/json;
+      add_header Access-Control-Allow-Origin *;
+      return 200 '${builtins.toJSON client}';
+    '';
+
     locations."/_synapse".proxyPass = "http://[::1]:${toString config.services.dendrite.httpPort}";
     forceSSL = true;
     enableACME = true;
