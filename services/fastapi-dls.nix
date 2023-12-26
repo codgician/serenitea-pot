@@ -26,6 +26,9 @@ in
       rm -rf ${appDir}/util.py
       ln -s ${sourceDir}/util.py ${appDir}/util.py
 
+      # Clean python cache
+      rm -rf ${appDir}/__pycache__
+
       # Create JWT token
       if [ ! -d "${dataDir}/cert" ]; then
         mkdir -p ${dataDir}/cert
