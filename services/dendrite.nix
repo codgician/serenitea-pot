@@ -19,7 +19,7 @@ let
     "m.server" = "${domain}:443";
   };
   client = {
-    "m.homeserver" = { 
+    "m.homeserver" = {
       "base_url" = "https://${domain}";
       "server_name" = "${domain}";
     };
@@ -102,7 +102,7 @@ in
 
         turn = {
           turn_user_lifetime = "5m";
-          turn_uris = [ 
+          turn_uris = [
             "turn:turn.codgician.me?transport=udp"
             "turn:turn.codgician.me?transport=tcp"
           ];

@@ -63,6 +63,14 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+
+    terranix = {
+      url = "github:terranix/terranix";
+      inputs = {
+        flake-utils.follows = "flake-utils";
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
   };
 
   outputs =
@@ -80,6 +88,7 @@
     , flake-utils
     , disko
     , lanzaboote
+    , terranix
     , ...
     }:
     let
@@ -207,16 +216,32 @@
       };
     } // flake-utils.lib.eachDefaultSystem (system:
     let
-      pkgs = nixpkgs.legacyPackages.${system};
+      props = { inherit system; config.allowUnfree = true; };
+      nixpkgs' = import nixpkgs props;
+      nixpkgs-darwin' = import nixpkgs-darwin props;
+      pkgs = if nixpkgs'.stdenvNoCC.isDarwin then nixpkgs-darwin' else nixpkgs';
       agenixCli = agenix.packages.${system}.default;
     in
     {
-      # Development shell
+      # Development shell: `nix develop`
       devShell = pkgs.mkShell {
-        buildInputs = with pkgs; [ rnix-lsp agenixCli ];
+        buildInputs = with pkgs; [
+          rnix-lsp
+          agenixCli
+          (terraform.withPlugins (p: [ p.azurerm p.cloudflare ]))
+        ];
       };
 
-      # Formatter
+      # Formatter: `nix fmt`
       formatter = pkgs.nixpkgs-fmt;
+
+      # Packages: `nix build .#pkgName`
+      packages = {
+        # Terraform profiles
+        terraformProfiles = terranix.lib.terranixConfiguration {
+          inherit system;
+          modules = [ ./terraform/config.nix ];
+        };
+      };
     });
 }
