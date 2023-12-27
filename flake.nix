@@ -98,10 +98,7 @@
       # Basic configs for each host
       basicConfig = system: hostName: { config, ... }: {
         nix = {
-          settings = {
-            auto-optimise-store = true;
-            sandbox = true;
-          };
+          settings.auto-optimise-store = true;
           extraOptions = "experimental-features = nix-command flakes";
         };
 
@@ -133,6 +130,7 @@
             (basicConfig system hostName)
 
             ({ config, ... }: {
+              nix.settings.sandbox = false;
               services.nix-daemon.enable = true;
             })
           ] ++ extraModules;
@@ -162,14 +160,17 @@
           modules = [
             # Third-party binary caches
             ({ config, ... }: {
-              nix.settings.substituters = [
-                config.nur.repos.xddxdd._meta.url
-                "https://nix-community.cachix.org"
-              ];
-              nix.settings.trusted-public-keys = [
-                config.nur.repos.xddxdd._meta.publicKey
-                "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-              ];
+              nix.settings = {
+                sandbox = true;
+                substituters = [
+                  config.nur.repos.xddxdd._meta.url
+                  "https://nix-community.cachix.org"
+                ];
+                trusted-public-keys = [
+                  config.nur.repos.xddxdd._meta.publicKey
+                  "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+                ];
+              };
             })
 
             nur.nixosModules.nur
