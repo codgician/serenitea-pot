@@ -71,6 +71,15 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+
+    nixos-wsl = {
+      url = "github:nix-community/NixOS-WSL";
+      inputs = {
+        flake-compat.follows = "flake-compat";
+        flake-utils.follows = "flake-utils";
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
   };
 
   outputs =
@@ -89,6 +98,7 @@
     , disko
     , lanzaboote
     , terranix
+    , nixos-wsl
     , ...
     }:
     let
@@ -137,7 +147,7 @@
         };
 
       # Common configurations for NixOS systems
-      nixosSystem = system: extraModules: secureBoot: hostName:
+      nixosSystem = system: extraModules: hostName:
         let
           pkgs = import nixpkgs {
             inherit system;
@@ -179,6 +189,7 @@
             disko.nixosModules.disko
             agenix.nixosModules.default
             vscode-server.nixosModules.default
+            lanzaboote.nixosModules.lanzaboote
 
             (basicConfig system hostName)
 
@@ -186,21 +197,24 @@
               # Set flake for auto upgrade
               system.autoUpgrade.flake = "github:codgician/nix-fleet";
             })
-
-            # Secure boot
-            lanzaboote.nixosModules.lanzaboote
-            ({ pkgs, lib, ... }: lib.mkIf secureBoot {
-              environment.systemPackages = [ pkgs.sbctl ];
-              # Lanzaboote currently replaces the systemd-boot module.
-              boot.loader.systemd-boot.enable = lib.mkForce false;
-              boot.lanzaboote = {
-                enable = secureBoot;
-                pkiBundle = "/etc/secureboot";
-              };
-            })
-
           ] ++ extraModules;
         };
+
+      # Secure boot config snippet
+      secureBootModule = { pkgs, lib, ... }: {
+        environment.systemPackages = [ pkgs.sbctl ];
+        # Lanzaboote currently replaces the systemd-boot module.
+        boot.loader.systemd-boot.enable = lib.mkForce false;
+        boot.lanzaboote = {
+          enable = true;
+          pkiBundle = "/etc/secureboot";
+        };
+      };
+
+      # WSL config snippet
+      wslModule = { config, ... }: {
+        wsl.enable = true;
+      };
     in
     {
       # macOS machines
@@ -211,9 +225,10 @@
 
       # NixOS machines
       nixosConfigurations = processConfigurations {
-        "erina" = nixosSystem "x86_64-linux" [ ./hosts/erina/default.nix ] true;
-        "mona" = nixosSystem "x86_64-linux" [ ./hosts/mona/default.nix ] false;
-        "violet" = nixosSystem "x86_64-linux" [ ./hosts/violet/default.nix ] true;
+        "erina" = nixosSystem "x86_64-linux" [ secureBootModule ./hosts/erina/default.nix ];
+        "mona" = nixosSystem "x86_64-linux" [ ./hosts/mona/default.nix ];
+        "violet" = nixosSystem "x86_64-linux" [ secureBootModule ./hosts/violet/default.nix ];
+        "wsl" = nixosSystem "x86_64-linux" [ wslModule ./hosts/wsl/default.nix ];
       };
     } // flake-utils.lib.eachDefaultSystem (system:
     let

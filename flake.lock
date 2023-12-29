@@ -315,6 +315,32 @@
         "type": "github"
       }
     },
+    "nixos-wsl": {
+      "inputs": {
+        "flake-compat": [
+          "flake-compat"
+        ],
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1703646364,
+        "narHash": "sha256-uCj41nq4hnw5aItXJg4DUNpqLSCNRM3xHZbGo8dwoXs=",
+        "owner": "nix-community",
+        "repo": "NixOS-WSL",
+        "rev": "d72abaf29c40d8f6f9f527815c6dd24f76a50bd4",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "NixOS-WSL",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1703467016,
@@ -490,6 +516,7 @@
         "impermanence": "impermanence",
         "lanzaboote": "lanzaboote",
         "nixos-hardware": "nixos-hardware",
+        "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs",
         "nixpkgs-darwin": "nixpkgs-darwin",
         "nur": "nur",
