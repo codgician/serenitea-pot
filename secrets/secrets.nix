@@ -3,6 +3,7 @@ let
   servers = [
     pubKeys.systems.mona
     pubKeys.systems.violet
+    pubKeys.systems.wsl
   ];
   all = servers ++ [ pubKeys.users.codgi ];
 in
