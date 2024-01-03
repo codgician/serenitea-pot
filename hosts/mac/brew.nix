@@ -64,5 +64,6 @@
     "firefox"
     "balenaetcher"
     "altserver"
+    "element"
   ];
 }
