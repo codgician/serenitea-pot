@@ -1,8 +1,6 @@
-{ config, pkgs, agenix, ... }:
+{ config, pkgs, agenix, nixos-wsl, ... }:
 {
   imports = [
-    ./hardware.nix
-
     # User
     ../../users/codgi/default.nix
 

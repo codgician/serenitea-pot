@@ -189,7 +189,6 @@
             disko.nixosModules.disko
             agenix.nixosModules.default
             vscode-server.nixosModules.default
-            lanzaboote.nixosModules.lanzaboote
 
             (basicConfig system hostName)
 
@@ -201,20 +200,28 @@
         };
 
       # Secure boot config snippet
-      secureBootModule = { pkgs, lib, ... }: {
-        environment.systemPackages = [ pkgs.sbctl ];
-        # Lanzaboote currently replaces the systemd-boot module.
-        boot.loader.systemd-boot.enable = lib.mkForce false;
-        boot.lanzaboote = {
-          enable = true;
-          pkiBundle = "/etc/secureboot";
-        };
-      };
+      secureBootModules = [
+        lanzaboote.nixosModules.lanzaboote
+        ({ pkgs, lib, ... }: {
+          environment.systemPackages = [ pkgs.sbctl ];
+          # Lanzaboote currently replaces the systemd-boot module.
+          boot.loader.systemd-boot.enable = lib.mkForce false;
+          boot.lanzaboote = {
+            enable = true;
+            pkiBundle = "/etc/secureboot";
+          };
+        })
+      ];
 
       # WSL config snippet
-      wslModule = { config, ... }: {
-        wsl.enable = true;
-      };
+      wslModules = [
+        nixos-wsl.nixosModules.wsl
+        ({ config, ... }: {
+          wsl.enable = true;
+          networking.useNetworkd = lib.mkForce false;
+          services.resolved.enable = lib.mkForce false;
+        })
+      ];
     in
     {
       # macOS machines
@@ -225,10 +232,10 @@
 
       # NixOS machines
       nixosConfigurations = processConfigurations {
-        "erina" = nixosSystem "x86_64-linux" [ secureBootModule ./hosts/erina/default.nix ];
+        "erina" = nixosSystem "x86_64-linux" (secureBootModules ++ [ ./hosts/erina/default.nix ]);
         "mona" = nixosSystem "x86_64-linux" [ ./hosts/mona/default.nix ];
-        "violet" = nixosSystem "x86_64-linux" [ secureBootModule ./hosts/violet/default.nix ];
-        "wsl" = nixosSystem "x86_64-linux" [ wslModule ./hosts/wsl/default.nix ];
+        "violet" = nixosSystem "x86_64-linux" (secureBootModules ++ [./hosts/violet/default.nix ]);
+        "wsl" = nixosSystem "x86_64-linux" (wslModules ++ [ ./hosts/wsl/default.nix ]);
       };
     } // flake-utils.lib.eachDefaultSystem (system:
     let
