@@ -65,5 +65,6 @@
     "balenaetcher"
     "altserver"
     "element"
+    "wireshark"
   ];
 }

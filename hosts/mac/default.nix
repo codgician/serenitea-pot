@@ -32,6 +32,7 @@
       smartmontools
       pciutils
       ffmpeg-full
+      httping
     ];
 
     # symlinks to binaries
