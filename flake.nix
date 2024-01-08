@@ -17,12 +17,17 @@
 
     darwin = {
       url = "github:lnl7/nix-darwin";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs-darwin";
     };
 
     home-manager = {
       url = "github:nix-community/home-manager/release-23.11";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    home-manager-darwin = {
+      url = "github:nix-community/home-manager/release-23.11";
+      inputs.nixpkgs.follows = "nixpkgs-darwin";
     };
 
     agenix = {
@@ -88,6 +93,7 @@
     , nixpkgs-darwin
     , nixos-hardware
     , home-manager
+    , home-manager-darwin
     , nur
     , nur-xddxdd
     , agenix
@@ -134,13 +140,13 @@
           inherit system;
           specialArgs = { inherit lib pkgs inputs self darwin; };
           modules = [
-            home-manager.darwinModules.home-manager
+            home-manager-darwin.darwinModules.home-manager
             agenix.darwinModules.default
 
             (basicConfig system hostName)
 
             ({ config, ... }: {
-              nix.settings.sandbox = false;
+              nix.settings.sandbox = true;
               services.nix-daemon.enable = true;
             })
           ] ++ extraModules;
@@ -234,15 +240,15 @@
       nixosConfigurations = processConfigurations {
         "erina" = nixosSystem "x86_64-linux" (secureBootModules ++ [ ./hosts/erina/default.nix ]);
         "mona" = nixosSystem "x86_64-linux" [ ./hosts/mona/default.nix ];
-        "violet" = nixosSystem "x86_64-linux" (secureBootModules ++ [./hosts/violet/default.nix ]);
+        "violet" = nixosSystem "x86_64-linux" (secureBootModules ++ [ ./hosts/violet/default.nix ]);
         "wsl" = nixosSystem "x86_64-linux" (wslModules ++ [ ./hosts/wsl/default.nix ]);
       };
     } // flake-utils.lib.eachDefaultSystem (system:
     let
-      props = { inherit system; config.allowUnfree = true; };
-      nixpkgs' = import nixpkgs props;
-      nixpkgs-darwin' = import nixpkgs-darwin props;
-      pkgs = if nixpkgs'.stdenvNoCC.isDarwin then nixpkgs-darwin' else nixpkgs';
+      pkgs = import (if nixpkgs.legacyPackages.${system}.stdenvNoCC.isDarwin then nixpkgs-darwin else nixpkgs) {
+        inherit system;
+        config.allowUnfree = true;
+      };
       agenixCli = agenix.packages.${system}.default;
     in
     {
