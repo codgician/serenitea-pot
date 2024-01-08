@@ -1,21 +1,28 @@
-let
-  pubKeys = import ../pubkeys.nix;
-  servers = [
-    pubKeys.systems.mona
-    pubKeys.systems.violet
-    pubKeys.systems.wsl
-  ];
-  all = servers ++ [ pubKeys.users.codgi ];
-in
-{
+rec {
+  # Public keys
+  pubKeys = rec {
+    systems = {
+      mona = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICNKqYpI7+zPOT72qvydVAdzsBNb0KiLbKFXHL9Ll0/Y" ];
+      violet = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICTdhkIHxijiGSGZtu0whn6DsU1uut+iiIfpEINxRzSW" ];
+      wsl = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGY2tv025GT+GplUgx1oeuxv9o1EAke1HMSssRX19EF0" ];
+    };
+
+    users = {
+      codgi = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM/Mohin9ceHn6zpaRYWi3LeATeXI7ydiMrP3RsglZ2r" ];
+    };
+
+    servers = [ systems.mona systems.violet ];
+    all = builtins.concatLists (builtins.concatMap builtins.attrValues [ systems users ]);
+  };
+
   # User password
-  "codgiPassword.age".publicKeys = builtins.concatLists all;
-  "codgiHashedPassword.age".publicKeys = builtins.concatLists all;
-  "bmcPassword.age".publicKeys = builtins.concatLists all;
-  "bmcHashedPassword.age".publicKeys = builtins.concatLists all;
+  "codgiPassword.age".publicKeys = builtins.concatLists pubKeys.all;
+  "codgiHashedPassword.age".publicKeys = builtins.concatLists pubKeys.all;
+  "bmcPassword.age".publicKeys = builtins.concatLists pubKeys.all;
+  "bmcHashedPassword.age".publicKeys = builtins.concatLists pubKeys.all;
 
   # Cloudflare token
-  "cloudflareCredential.age".publicKeys = builtins.concatLists all;
+  "cloudflareCredential.age".publicKeys = builtins.concatLists pubKeys.all;
 
   # GitLab secrets
   "gitlabInitRootPasswd.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.mona ];

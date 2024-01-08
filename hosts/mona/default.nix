@@ -1,6 +1,5 @@
 { config, pkgs, ... }:
 let
-  pubKeys = import ../../pubkeys.nix;
   secretsDir = builtins.toString ../../secrets;
   ageSecrets = builtins.mapAttrs (name: obj: ({ file = "${secretsDir}/${name}.age"; } // obj));
 in
