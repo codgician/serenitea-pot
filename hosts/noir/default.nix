@@ -6,6 +6,9 @@
 
     # User
     ../../users/codgi/default.nix
+
+    # Service
+    ../../services/vscode-server.nix
   ];
 
   # Home manager
@@ -18,7 +21,57 @@
     ];
 
     home.stateVersion = "23.11";
+    home.packages = with pkgs; [ httplz rnix-lsp iperf3 screen ];
   };
+
+  # Set your time zone.
+  time.timeZone = "Asia/Shanghai";
+
+  # Select internationalisation properties.
+  i18n.defaultLocale = "en_US.UTF-8";
+
+  # Auto upgrade
+  system.autoUpgrade = {
+    enable = true;
+    dates = "daily";
+    operation = "switch";
+    allowReboot = true;
+    rebootWindow = {
+      lower = "03:00";
+      upper = "05:00";
+    };
+  };
+
+  # Nix garbage collection
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+  };
+
+  # Desktop environment
+  services.xserver = {
+    enable = true;
+    desktopManager.plasma5 = {
+      mobile = {
+        enable = true;
+      };
+      useQtScaling = true;
+    };
+    displayManager = {
+      defaultSession = "plasma-mobile";
+      sddm.enable = true;
+    };
+  };
+
+  # List packages installed in system profile. To search, run:
+  # $ nix search wget
+  environment.systemPackages = with pkgs; [
+    vim
+    neofetch
+    wget
+    xterm
+    htop
+  ];
 
   # Zsh
   programs.zsh = {
@@ -26,9 +79,18 @@
     enableCompletion = true;
   };
 
-  # 
-  # Opinionated defaults
-  #
+  # Enable the OpenSSH daemon
+  services.openssh = {
+    enable = true;
+    openFirewall = true;
+  };
+
+  # TPM
+  security.tpm2 = {
+    enable = true;
+    pkcs11.enable = true;
+    tctiEnvironment.enable = true;
+  };
 
   # Use Network Manager
   networking.wireless.enable = false;
@@ -49,11 +111,6 @@
   # It's recommended to keep enabled on these constrained devices
   zramSwap.enable = true;
 
-  services.openssh = {
-    enable = true;
-    openFirewall = true;
-  };
-
   #
   # User configuration
   #
@@ -64,6 +121,7 @@
     "networkmanager"
     "video"
     "wheel"
+    "tss"
   ];
 
   # This value determines the NixOS release from which the default

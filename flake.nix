@@ -293,8 +293,8 @@
             (import "${inputs.mobile-nixos}/lib/configuration.nix" { device = "lenovo-krane"; }) 
             ./hosts/noir/default.nix 
           ];
-          nixpkgs = inputs.nixpkgs-unstable;
-          home-manager = inputs.home-manager-unstable;
+          nixpkgs = inputs.nixpkgs;
+          home-manager = inputs.home-manager;
           inheritPkgs = false;
         };
       };
