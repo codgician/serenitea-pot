@@ -289,7 +289,10 @@
         # aarch64 machines
         "noir" = nixosSystem {
           system = "aarch64-linux";
-          extraModules = [ ./hosts/noir/default.nix ];
+          extraModules = [ 
+            (import "${inputs.mobile-nixos}/lib/configuration.nix" { device = "lenovo-krane"; }) 
+            ./hosts/noir/default.nix 
+          ];
           nixpkgs = inputs.nixpkgs-unstable;
           home-manager = inputs.home-manager-unstable;
           inheritPkgs = false;

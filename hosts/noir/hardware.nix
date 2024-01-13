@@ -1,8 +1,6 @@
 { config, lib, pkgs, inputs, ... }:
 
 {
-  imports = [ (import "${inputs.mobile-nixos}/lib/configuration.nix" { device = "lenovo-krane"; }) ];
-
   fileSystems = {
     "/" = {
       device = "/dev/disk/by-uuid/06366069-9e8d-4f11-b01c-01444c9034c4";

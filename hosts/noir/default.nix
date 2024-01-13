@@ -20,6 +20,12 @@
     home.stateVersion = "23.11";
   };
 
+  # Zsh
+  programs.zsh = {
+    enable = true;
+    enableCompletion = true;
+  };
+
   # 
   # Opinionated defaults
   #
