@@ -1,41 +1,28 @@
-rec {
-  # Public keys
-  pubKeys = rec {
-    systems = {
-      mona = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICNKqYpI7+zPOT72qvydVAdzsBNb0KiLbKFXHL9Ll0/Y" ];
-      violet = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICTdhkIHxijiGSGZtu0whn6DsU1uut+iiIfpEINxRzSW" ];
-      wsl = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGY2tv025GT+GplUgx1oeuxv9o1EAke1HMSssRX19EF0" ];
-    };
-
-    users = {
-      codgi = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM/Mohin9ceHn6zpaRYWi3LeATeXI7ydiMrP3RsglZ2r" ];
-    };
-
-    servers = [ systems.mona systems.violet ];
-    all = builtins.concatLists (builtins.concatMap builtins.attrValues [ systems users ]);
-  };
-
+let
+  pubKeys = import ./pubKeys.nix;
+in
+{
   # User password
-  "codgiPassword.age".publicKeys = builtins.concatLists pubKeys.all;
-  "codgiHashedPassword.age".publicKeys = builtins.concatLists pubKeys.all;
-  "bmcPassword.age".publicKeys = builtins.concatLists pubKeys.all;
-  "bmcHashedPassword.age".publicKeys = builtins.concatLists pubKeys.all;
+  "codgiPassword.age".publicKeys = pubKeys.allHosts;
+  "codgiHashedPassword.age".publicKeys = pubKeys.allHosts;
+  "bmcPassword.age".publicKeys = pubKeys.someHosts [ "mona" ];
+  "bmcHashedPassword.age".publicKeys = pubKeys.someHosts [ "mona" ];
 
   # Cloudflare token
-  "cloudflareCredential.age".publicKeys = builtins.concatLists pubKeys.all;
+  "cloudflareCredential.age".publicKeys = pubKeys.allServers;
 
   # GitLab secrets
-  "gitlabInitRootPasswd.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.mona ];
-  "gitlabDb.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.mona ];
-  "gitlabJws.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.mona ];
-  "gitlabOtp.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.mona ];
-  "gitlabSecret.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.mona ];
-  "gitlabSmtp.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.mona ];
+  "gitlabInitRootPasswd.age".publicKeys = pubKeys.someHosts [ "mona" ];
+  "gitlabDb.age".publicKeys = pubKeys.someHosts [ "mona" ];
+  "gitlabJws.age".publicKeys = pubKeys.someHosts [ "mona" ];
+  "gitlabOtp.age".publicKeys = pubKeys.someHosts [ "mona" ];
+  "gitlabSecret.age".publicKeys = pubKeys.someHosts [ "mona" ];
+  "gitlabSmtp.age".publicKeys = pubKeys.someHosts [ "mona" ];
 
   # OmniAuth provider secrets
-  "gitlabOmniAuthGitHub.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.mona ];
+  "gitlabOmniAuthGitHub.age".publicKeys = pubKeys.someHosts [ "mona" ];
 
   # Matrix secrets
-  "matrixGlobalPrivateKey.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.mona ];
-  "matrixEnv.age".publicKeys = builtins.concatLists [ pubKeys.users.codgi pubKeys.systems.mona ];
+  "matrixGlobalPrivateKey.age".publicKeys = pubKeys.someHosts [ "mona" ];
+  "matrixEnv.age".publicKeys = pubKeys.someHosts [ "mona" ];
 }
