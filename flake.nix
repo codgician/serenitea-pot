@@ -144,7 +144,7 @@
         in
         darwin.lib.darwinSystem {
           inherit system;
-          specialArgs = { inherit lib pkgs inputs self darwin; };
+          specialArgs = { inherit lib pkgs inputs self system; };
           modules = [
             home-manager-darwin.darwinModules.home-manager
             agenix.darwinModules.default
@@ -178,7 +178,7 @@
         in
         nixpkgs.lib.nixosSystem {
           inherit system;
-          specialArgs = { inherit lib pkgs inputs self impermanence; };
+          specialArgs = { inherit lib pkgs inputs self system; };
           modules = [
             # Third-party binary caches
             ({ config, ... }: {

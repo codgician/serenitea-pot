@@ -1,4 +1,3 @@
-# Public keys
 rec {
   # Keys
   hosts = {

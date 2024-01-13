@@ -2,7 +2,7 @@
 
 {
   imports = [
-    ../hardware.nix
+    ./hardware.nix
 
     # User
     ../../users/codgi/default.nix
