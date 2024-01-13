@@ -13,7 +13,7 @@
     # Service
     ../../services/vscode-server.nix
   ];
-  
+
   services.xserver.displayManager.autoLogin.user = "codgi";
 
   # Home manager

@@ -16,7 +16,8 @@
 
   # Make panel landscape
   mobile.hardware.screen = lib.mkForce {
-    width = 1920; height = 1200;
+    width = 1920;
+    height = 1200;
   };
 
   nix.settings.max-jobs = lib.mkDefault 4;
