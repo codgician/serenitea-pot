@@ -36,6 +36,11 @@
       inputs.nixpkgs.follows = "nixpkgs-darwin";
     };
 
+    home-manager-unstable = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     agenix = {
       url = "github:ryantm/agenix";
       inputs = {
@@ -95,13 +100,9 @@
 
   outputs =
     inputs @ { self
-    , nixpkgs
-    , nixpkgs-darwin
     , nixos-hardware
     , mobile-nixos
     , darwin
-    , home-manager
-    , home-manager-darwin
     , nur
     , nur-xddxdd
     , agenix
@@ -115,7 +116,7 @@
     , ...
     }:
     let
-      lib = nixpkgs.lib;
+      lib = inputs.nixpkgs.lib;
       mkConfig = lib.mapAttrs (name: value: value name);
 
       # Basic configs for each host
@@ -136,7 +137,12 @@
       };
 
       # Common configurations for macOS systems
-      darwinSystem = { extraModules ? [ ], system, nixpkgs ? inputs.nixpkgs-darwin }: hostName:
+      darwinSystem =
+        { extraModules ? [ ]
+        , system
+        , nixpkgs ? inputs.nixpkgs-darwin
+        , home-manager ? inputs.home-manager-darwin
+        }: hostName:
         let
           pkgs = import nixpkgs {
             inherit system;
@@ -145,9 +151,9 @@
         in
         darwin.lib.darwinSystem {
           inherit system;
-          specialArgs = { inherit lib pkgs inputs self system; };
+          specialArgs = { inherit lib pkgs inputs self system nixpkgs home-manager; };
           modules = [
-            home-manager-darwin.darwinModules.home-manager
+            home-manager.darwinModules.home-manager
             agenix.darwinModules.default
 
             (basicConfig system hostName)
@@ -160,7 +166,12 @@
         };
 
       # Common configurations for NixOS systems
-      nixosSystem = { extraModules ? [ ], system, nixpkgs ? inputs.nixpkgs }: hostName:
+      nixosSystem =
+        { extraModules ? [ ]
+        , system
+        , nixpkgs ? inputs.nixpkgs
+        , home-manager ? inputs.home-manager
+        }: hostName:
         let
           pkgs = import nixpkgs {
             inherit system;
@@ -179,7 +190,7 @@
         in
         nixpkgs.lib.nixosSystem {
           inherit system;
-          specialArgs = { inherit lib pkgs inputs self system; };
+          specialArgs = { inherit lib pkgs inputs self system nixpkgs home-manager; };
           modules = [
             # Third-party binary caches
             ({ config, ... }: {
@@ -278,11 +289,16 @@
           system = "aarch64-linux";
           extraModules = [ ./hosts/noir/default.nix ];
           nixpkgs = inputs.nixpkgs-unstable;
+          home-manager = inputs.home-manager-unstable;
         };
       };
     } // flake-utils.lib.eachDefaultSystem (system:
     let
-      pkgs = import (if nixpkgs.legacyPackages.${system}.stdenvNoCC.isDarwin then nixpkgs-darwin else nixpkgs) {
+      nixpkgs =
+        if inputs.nixpkgs.legacyPackages.${system}.stdenvNoCC.isDarwin
+        then inputs.nixpkgs-darwin
+        else inputs.nixpkgs;
+      pkgs = import nixpkgs {
         inherit system;
         config.allowUnfree = true;
       };
