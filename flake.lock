@@ -368,7 +368,6 @@
       },
       "original": {
         "owner": "NixOS",
-        "ref": "master",
         "repo": "nixos-hardware",
         "type": "github"
       }
@@ -483,11 +482,11 @@
     },
     "nur": {
       "locked": {
-        "lastModified": 1705139019,
-        "narHash": "sha256-1fZlZRUU7I9zIv3MTbPRmClLuoylWnf4X6F/1sMNPrs=",
+        "lastModified": 1705157818,
+        "narHash": "sha256-tmnVt75I03QxWjAITgIEPAqVBk6Mi0AqHuf/f+GhC/Q=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "6b80120ef1e2758e2b2b6650cb3c54925e46e207",
+        "rev": "189f1eb56201c5c252d5c762b6eba690fdc6f0c7",
         "type": "github"
       },
       "original": {

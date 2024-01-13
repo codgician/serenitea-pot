@@ -5,7 +5,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
     nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-23.11-darwin";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+    nixos-hardware.url = "github:NixOS/nixos-hardware";
     impermanence.url = "github:nix-community/impermanence";
 
     flake-compat = {
@@ -142,6 +142,7 @@
         , system
         , nixpkgs ? inputs.nixpkgs-darwin
         , home-manager ? inputs.home-manager-darwin
+        , inheritPkgs ? true
         }: hostName:
         let
           pkgs = import nixpkgs {
@@ -151,7 +152,7 @@
         in
         darwin.lib.darwinSystem {
           inherit system;
-          specialArgs = { inherit lib pkgs inputs self system nixpkgs home-manager; };
+          specialArgs = { inherit lib inputs self system nixpkgs home-manager; } // lib.mkIf inheritPkgs { inherit pkgs; };
           modules = [
             home-manager.darwinModules.home-manager
             agenix.darwinModules.default
@@ -171,6 +172,7 @@
         , system
         , nixpkgs ? inputs.nixpkgs
         , home-manager ? inputs.home-manager
+        , inheritPkgs ? true
         }: hostName:
         let
           pkgs = import nixpkgs {
@@ -190,7 +192,7 @@
         in
         nixpkgs.lib.nixosSystem {
           inherit system;
-          specialArgs = { inherit lib pkgs inputs self system nixpkgs home-manager; };
+          specialArgs = { inherit lib inputs self system nixpkgs home-manager; } // lib.mkIf inheritPkgs { inherit pkgs; };
           modules = [
             # Third-party binary caches
             ({ config, ... }: {
@@ -290,6 +292,7 @@
           extraModules = [ ./hosts/noir/default.nix ];
           nixpkgs = inputs.nixpkgs-unstable;
           home-manager = inputs.home-manager-unstable;
+          inheritPkgs = false;
         };
       };
     } // flake-utils.lib.eachDefaultSystem (system:
