@@ -15,6 +15,11 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     flake-utils.url = "github:numtide/flake-utils";
 
+    mobile-nixos = {
+      url = "github:nixos/mobile-nixos/development";
+      flake = false;
+    };
+
     darwin = {
       url = "github:lnl7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs-darwin";
@@ -92,6 +97,8 @@
     , nixpkgs
     , nixpkgs-darwin
     , nixos-hardware
+    , mobile-nixos
+    , darwin
     , home-manager
     , home-manager-darwin
     , nur
@@ -99,7 +106,6 @@
     , agenix
     , impermanence
     , vscode-server
-    , darwin
     , flake-utils
     , disko
     , lanzaboote
@@ -238,10 +244,14 @@
 
       # NixOS machines
       nixosConfigurations = processConfigurations {
+        # x86_64 machines
         "erina" = nixosSystem "x86_64-linux" (secureBootModules ++ [ ./hosts/erina/default.nix ]);
         "mona" = nixosSystem "x86_64-linux" [ ./hosts/mona/default.nix ];
         "violet" = nixosSystem "x86_64-linux" (secureBootModules ++ [ ./hosts/violet/default.nix ]);
         "wsl" = nixosSystem "x86_64-linux" (wslModules ++ [ ./hosts/wsl/default.nix ]);
+
+        # aarch64 machines
+        "noir" = nixosSystem "aarch64-linux" [ ./hosts/noir/default.nix ];
       };
     } // flake-utils.lib.eachDefaultSystem (system:
     let
