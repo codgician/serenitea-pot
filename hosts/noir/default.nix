@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 
 {
   imports = [
@@ -7,9 +7,14 @@
     # User
     ../../users/codgi/default.nix
 
+    # Desktop environment
+    (import "${inputs.mobile-nixos}/examples/plasma-mobile/plasma-mobile.nix")
+
     # Service
     ../../services/vscode-server.nix
   ];
+  
+  services.xserver.displayManager.autoLogin.user = "codgi";
 
   # Home manager
   home-manager.users.codgi = { config, pkgs, ... }: {
@@ -46,21 +51,6 @@
   nix.gc = {
     automatic = true;
     dates = "weekly";
-  };
-
-  # Desktop environment
-  services.xserver = {
-    enable = true;
-    desktopManager.plasma5 = {
-      mobile = {
-        enable = true;
-      };
-      useQtScaling = true;
-    };
-    displayManager = {
-      defaultSession = "plasma-mobile";
-      sddm.enable = true;
-    };
   };
 
   # List packages installed in system profile. To search, run:
