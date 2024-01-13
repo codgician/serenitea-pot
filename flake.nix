@@ -4,6 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
     nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-23.11-darwin";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     impermanence.url = "github:nix-community/impermanence";
 
@@ -115,7 +116,7 @@
     }:
     let
       lib = nixpkgs.lib;
-      processConfigurations = lib.mapAttrs (name: value: value name);
+      mkConfig = lib.mapAttrs (name: value: value name);
 
       # Basic configs for each host
       basicConfig = system: hostName: { config, ... }: {
@@ -135,9 +136,9 @@
       };
 
       # Common configurations for macOS systems
-      darwinSystem = system: extraModules: hostName:
+      darwinSystem = { extraModules ? [ ], system, nixpkgs ? inputs.nixpkgs-darwin }: hostName:
         let
-          pkgs = import nixpkgs-darwin {
+          pkgs = import nixpkgs {
             inherit system;
             config.allowUnfree = true;
           };
@@ -159,7 +160,7 @@
         };
 
       # Common configurations for NixOS systems
-      nixosSystem = system: extraModules: hostName:
+      nixosSystem = { extraModules ? [ ], system, nixpkgs ? inputs.nixpkgs }: hostName:
         let
           pkgs = import nixpkgs {
             inherit system;
@@ -237,21 +238,47 @@
     in
     {
       # macOS machines
-      darwinConfigurations = processConfigurations {
-        "Shijia-Mac" = darwinSystem "aarch64-darwin" [ ./hosts/mac/default.nix ];
-        "MacRun" = darwinSystem "x86_64-darwin" [ ./hosts/runners/macrun.nix ];
+      darwinConfigurations = mkConfig {
+        "Shijia-Mac" = darwinSystem {
+          system = "aarch64-darwin";
+          extraModules = [ ./hosts/mac/default.nix ];
+        };
+
+        "MacRun" = darwinSystem {
+          system = "x86_64-darwin";
+          extraModules = [ ./hosts/runners/macrun.nix ];
+        };
       };
 
       # NixOS machines
-      nixosConfigurations = processConfigurations {
+      nixosConfigurations = mkConfig {
         # x86_64 machines
-        "erina" = nixosSystem "x86_64-linux" (secureBootModules ++ [ ./hosts/erina/default.nix ]);
-        "mona" = nixosSystem "x86_64-linux" [ ./hosts/mona/default.nix ];
-        "violet" = nixosSystem "x86_64-linux" (secureBootModules ++ [ ./hosts/violet/default.nix ]);
-        "wsl" = nixosSystem "x86_64-linux" (wslModules ++ [ ./hosts/wsl/default.nix ]);
+        "erina" = nixosSystem {
+          system = "x86_64-linux";
+          extraModules = secureBootModules ++ [ ./hosts/erina/default.nix ];
+        };
+
+        "mona" = nixosSystem {
+          system = "x86_64-linux";
+          extraModules = [ ./hosts/mona/default.nix ];
+        };
+
+        "violet" = nixosSystem {
+          system = "x86_64-linux";
+          extraModules = secureBootModules ++ [ ./hosts/violet/default.nix ];
+        };
+
+        "wsl" = nixosSystem {
+          system = "x86_64-linux";
+          extraModules = wslModules ++ [ ./hosts/wsl/default.nix ];
+        };
 
         # aarch64 machines
-        "noir" = nixosSystem "aarch64-linux" [ ./hosts/noir/default.nix ];
+        "noir" = nixosSystem {
+          system = "aarch64-linux";
+          extraModules = [ ./hosts/noir/default.nix ];
+          nixpkgs = inputs.nixpkgs-unstable;
+        };
       };
     } // flake-utils.lib.eachDefaultSystem (system:
     let
