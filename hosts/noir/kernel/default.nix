@@ -1,9 +1,8 @@
-{ mobile-nixos, fetchurl, fetchpatch, ... }:
 let
   version = "6.6.11";
   majorVersion = builtins.head (builtins.splitVersion version);
 in
-mobile-nixos.kernel-builder {
+{ mobile-nixos, fetchurl, fetchpatch, ... }: mobile-nixos.kernel-builder {
   inherit version;
   configfile = ./config.aarch64;
 

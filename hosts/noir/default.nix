@@ -1,5 +1,7 @@
 { config, lib, pkgs, inputs, ... }:
-
+let
+  myKernel = pkgs.callPackage ./kernel { };
+in
 {
   imports = [
     ./hardware.nix
@@ -15,7 +17,7 @@
   ];
 
   # Customized kernel
-  mobile.boot.stage-1.kernel.package = lib.mkForce (pkgs.callPackage ./kernel { });
+  mobile.boot.stage-1.kernel.package = lib.mkForce myKernel;
 
   # Auto login
   services.xserver.displayManager.autoLogin.user = "codgi";
