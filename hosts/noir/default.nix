@@ -1,10 +1,11 @@
-{ config, lib, pkgs, inputs, ... }:
+{ config, lib, pkgs, ... }:
 let
   myKernel = pkgs.callPackage ./kernel { };
 in
 {
   imports = [
     ./hardware.nix
+    ./kernel.nix
 
     # User
     ../../users/codgi/default.nix
@@ -15,9 +16,6 @@ in
     # Service
     ../../services/vscode-server.nix
   ];
-
-  # Customized kernel
-  mobile.boot.stage-1.kernel.package = lib.mkForce myKernel;
 
   # Auto login
   services.xserver.displayManager.autoLogin.user = "codgi";
@@ -92,11 +90,27 @@ in
   networking.wireless.enable = false;
   networking.networkmanager.enable = true;
 
+  # Firmware
+  hardware.firmware = [ config.mobile.device.firmware ];
+  hardware.enableRedistributableFirmware = true;
+
+  # Enable OpenGL
+  hardware.opengl = {
+    enable = true;
+    extraPackages = [
+      pkgs.vaapiVdpau
+      pkgs.libvdpau-va-gl
+    ];
+  };
+
   # Use PulseAudio
   hardware.pulseaudio.enable = true;
 
   # Enable Bluetooth
-  hardware.bluetooth.enable = true;
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
 
   # Bluetooth audio
   hardware.pulseaudio.package = pkgs.pulseaudioFull;

@@ -7,7 +7,7 @@ in
   configfile = ./config.aarch64;
 
   src = fetchurl {
-    url = "https://cdn.kernel.org/pub/linux/kernel/v${majorVersion}.x/linux-${version}.tar.xz";
+    url = "mirror://kernel/linux/kernel/v${majorVersion}.x/linux-${version}.tar.xz";
     sha256 = "0lhyczcj1fhh52fjf06ikp5yh7kxc1qymsw44rv6v25vc6kfbqmg";
   };
 
