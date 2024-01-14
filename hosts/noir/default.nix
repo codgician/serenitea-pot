@@ -14,6 +14,10 @@
     ../../services/vscode-server.nix
   ];
 
+  # Customized kernel
+  mobile.boot.stage-1.kernel.package = lib.mkForce (pkgs.callPackage ./kernel { });
+
+  # Auto login
   services.xserver.displayManager.autoLogin.user = "codgi";
 
   # Home manager
