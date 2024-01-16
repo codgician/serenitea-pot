@@ -298,6 +298,9 @@
           inheritPkgs = false;
         };
       };
+
+      # User profiles
+      userProfiles.default = import ./users;
     } // flake-utils.lib.eachDefaultSystem (system:
     let
       nixpkgs =
@@ -329,6 +332,18 @@
         terraformProfiles = terranix.lib.terranixConfiguration {
           inherit system;
           modules = [ ./terraform/config.nix ];
+        };
+      };
+
+      # Apps: `nix run .#appName`
+      apps = {
+        repl = inputs.flake-utils.lib.mkApp {
+          drv = pkgs.writeShellScriptBin "repl" ''
+            confnix=$(mktemp)
+            echo "builtins.getFlake (toString $(git rev-parse --show-toplevel))" >$confnix
+            trap "rm $confnix" EXIT
+            nix repl $confnix
+          '';
         };
       };
     });
