@@ -192,7 +192,7 @@
         in
         nixpkgs.lib.nixosSystem {
           inherit system;
-          specialArgs = { inherit lib inputs self system nixpkgs home-manager; } // lib.mkIf inheritPkgs { inherit pkgs; };
+          specialArgs = { inherit lib inputs self system nixpkgs home-manager; } // lib.optionalAttrs inheritPkgs { inherit pkgs; };
           modules = [
             # Third-party binary caches
             ({ config, ... }: {

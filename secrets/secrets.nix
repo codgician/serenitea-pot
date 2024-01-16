@@ -3,7 +3,7 @@ let
 in
 {
   # User password
-  "codgiPassword.age".publicKeys = pubKeys.allHosts;
+  "codgiPassword.age".publicKeys = pubKeys.someHosts [ "mona" ];
   "codgiHashedPassword.age".publicKeys = pubKeys.allHosts;
   "bmcPassword.age".publicKeys = pubKeys.someHosts [ "mona" ];
   "bmcHashedPassword.age".publicKeys = pubKeys.someHosts [ "mona" ];
@@ -18,8 +18,6 @@ in
   "gitlabOtp.age".publicKeys = pubKeys.someHosts [ "mona" ];
   "gitlabSecret.age".publicKeys = pubKeys.someHosts [ "mona" ];
   "gitlabSmtp.age".publicKeys = pubKeys.someHosts [ "mona" ];
-
-  # OmniAuth provider secrets
   "gitlabOmniAuthGitHub.age".publicKeys = pubKeys.someHosts [ "mona" ];
 
   # Matrix secrets
