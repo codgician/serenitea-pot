@@ -1,12 +1,21 @@
 { config, pkgs, agenix, nixos-wsl, ... }:
 {
   imports = [
-    # User
-    ../../users/codgi/default.nix
-
     # Services
-    ../../services/vscode-server.nix
+    ../../profiles/nixos/vscode-server.nix
   ];
+
+  # My settings
+  codgician = {
+    system = {
+      agenix.enable = true;
+      wsl.enable = true;
+    };
+    users.codgi = {
+      enable = true;
+      extraGroups = [ "wheel" ];
+    };
+  };
 
   # WSL default user
   wsl.defaultUser = "codgi";
@@ -14,8 +23,8 @@
   # Home manager
   home-manager.users.codgi = { config, ... }: rec {
     imports = [
-      ../../users/codgi/git.nix
-      ../../users/codgi/zsh.nix
+      ../../profiles/hm/git.nix
+      ../../profiles/hm/zsh.nix
     ];
 
     home.stateVersion = "23.11";

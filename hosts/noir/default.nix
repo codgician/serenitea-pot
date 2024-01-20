@@ -1,21 +1,30 @@
-{ config, lib, pkgs, ... }:
-let
-  myKernel = pkgs.callPackage ./kernel { };
-in
-{
+{ config, lib, pkgs, inputs, ... }: {
   imports = [
     ./hardware.nix
-    ./kernel.nix
-
-    # User
-    ../../users/codgi/default.nix
 
     # Desktop environment
     (import "${inputs.mobile-nixos}/examples/plasma-mobile/plasma-mobile.nix")
 
     # Service
-    ../../services/vscode-server.nix
+    ../../profiles/nixos/vscode-server.nix
   ];
+
+  # My settings
+  codgician = {
+    system.agenix.enable = true;
+
+    users.codgi = {
+      enable = true;
+      extraGroups = [
+        "dialout"
+        "feedbackd"
+        "networkmanager"
+        "video"
+        "wheel"
+        "tss"
+      ];
+    };
+  };
 
   # Auto login
   services.xserver.displayManager.autoLogin.user = "codgi";
@@ -23,10 +32,10 @@ in
   # Home manager
   home-manager.users.codgi = { config, pkgs, ... }: {
     imports = [
-      ../../users/codgi/pwsh.nix
-      ../../users/codgi/git.nix
-      ../../users/codgi/ssh.nix
-      ../../users/codgi/zsh.nix
+      ../../profiles/hm/pwsh.nix
+      ../../profiles/hm/git.nix
+      ../../profiles/hm/ssh.nix
+      ../../profiles/hm/zsh.nix
     ];
 
     home.stateVersion = "23.11";
@@ -125,14 +134,6 @@ in
   # User configuration
   #
   users.mutableUsers = false;
-  users.users."codgi".extraGroups = [
-    "dialout"
-    "feedbackd"
-    "networkmanager"
-    "video"
-    "wheel"
-    "tss"
-  ];
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

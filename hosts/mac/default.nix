@@ -1,17 +1,20 @@
 { config, pkgs, lib, ... }: {
-
-  imports = [
-    # Users
-    ../../users/codgi/default.nix
-  ];
+  # My settings
+  codgician = {
+    system.agenix.enable = true;
+    users.codgi = {
+      enable = true;
+      extraGroups = [ "wheel" ];
+    };
+  };
 
   # Home manager
   home-manager.users.codgi = { config, pkgs, ... }: {
     imports = [
-      ../../users/codgi/pwsh.nix
-      ../../users/codgi/git.nix
-      ../../users/codgi/ssh.nix
-      ../../users/codgi/zsh.nix
+      ../../profiles/hm/pwsh.nix
+      ../../profiles/hm/git.nix
+      ../../profiles/hm/ssh.nix
+      ../../profiles/hm/zsh.nix
     ];
 
     home.stateVersion = "23.11";

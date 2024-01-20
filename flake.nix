@@ -119,6 +119,9 @@
       lib = inputs.nixpkgs.lib;
       mkConfig = lib.mapAttrs (name: value: value name);
 
+      darwinModules = import ./modules/darwin;
+      nixosModules = import ./modules/nixos;
+
       # Basic configs for each host
       basicConfig = system: hostName: { config, ... }: {
         nix = {
@@ -127,7 +130,6 @@
         };
 
         networking.hostName = hostName;
-        environment.systemPackages = [ agenix.packages.${system}.default ];
 
         home-manager = {
           useGlobalPkgs = true;
@@ -152,16 +154,13 @@
         in
         darwin.lib.darwinSystem {
           inherit system;
-          specialArgs = {
-            inherit lib inputs self system nixpkgs home-manager;
-          } // lib.optionalAttrs inheritPkgs {
-            inherit pkgs;
-          };
+          specialArgs = { inherit lib inputs self system nixpkgs home-manager; } // lib.optionalAttrs inheritPkgs { inherit pkgs; };
           modules = [
+            darwinModules
+            (basicConfig system hostName)
+
             home-manager.darwinModules.home-manager
             agenix.darwinModules.default
-
-            (basicConfig system hostName)
 
             ({ config, ... }: {
               nix.settings.sandbox = true;
@@ -196,11 +195,7 @@
         in
         nixpkgs.lib.nixosSystem {
           inherit system;
-          specialArgs = {
-            inherit lib inputs self system nixpkgs home-manager;
-          } // lib.optionalAttrs inheritPkgs {
-            inherit pkgs;
-          };
+          specialArgs = { inherit lib inputs self system nixpkgs home-manager; } // lib.optionalAttrs inheritPkgs { inherit pkgs; };
           modules = [
             # Third-party binary caches
             ({ config, ... }: {
@@ -217,14 +212,17 @@
               };
             })
 
+            nixosModules
+            (basicConfig system hostName)
+
             nur.nixosModules.nur
             impermanence.nixosModules.impermanence
             home-manager.nixosModules.home-manager
             disko.nixosModules.disko
             agenix.nixosModules.default
+            lanzaboote.nixosModules.lanzaboote
+            nixos-wsl.nixosModules.wsl
             vscode-server.nixosModules.default
-
-            (basicConfig system hostName)
 
             ({ config, ... }: {
               # Set flake for auto upgrade
@@ -232,32 +230,10 @@
             })
           ] ++ extraModules;
         };
-
-      # Secure boot config snippet
-      secureBootModules = [
-        lanzaboote.nixosModules.lanzaboote
-        ({ pkgs, lib, ... }: {
-          environment.systemPackages = [ pkgs.sbctl ];
-          # Lanzaboote currently replaces the systemd-boot module.
-          boot.loader.systemd-boot.enable = lib.mkForce false;
-          boot.lanzaboote = {
-            enable = true;
-            pkiBundle = "/etc/secureboot";
-          };
-        })
-      ];
-
-      # WSL config snippet
-      wslModules = [
-        nixos-wsl.nixosModules.wsl
-        ({ config, ... }: {
-          wsl.enable = true;
-          networking.useNetworkd = lib.mkForce false;
-          services.resolved.enable = lib.mkForce false;
-        })
-      ];
     in
     {
+      inherit darwinModules nixosModules;
+
       # macOS machines
       darwinConfigurations = mkConfig {
         "Shijia-Mac" = darwinSystem {
@@ -274,11 +250,6 @@
       # NixOS machines
       nixosConfigurations = mkConfig {
         # x86_64 machines
-        "erina" = nixosSystem {
-          system = "x86_64-linux";
-          extraModules = secureBootModules ++ [ ./hosts/erina/default.nix ];
-        };
-
         "mona" = nixosSystem {
           system = "x86_64-linux";
           extraModules = [ ./hosts/mona/default.nix ];
@@ -286,12 +257,12 @@
 
         "violet" = nixosSystem {
           system = "x86_64-linux";
-          extraModules = secureBootModules ++ [ ./hosts/violet/default.nix ];
+          extraModules = [ ./hosts/violet/default.nix ];
         };
 
         "wsl" = nixosSystem {
           system = "x86_64-linux";
-          extraModules = wslModules ++ [ ./hosts/wsl/default.nix ];
+          extraModules = [ ./hosts/wsl/default.nix ];
         };
 
         # aarch64 machines
@@ -307,8 +278,6 @@
         };
       };
 
-      # User profiles
-      userProfiles.default = import ./users;
     } // flake-utils.lib.eachDefaultSystem (system:
     let
       nixpkgs =

@@ -3,22 +3,33 @@
   imports = [
     ./hardware.nix
 
-    # User
-    ../../users/codgi/default.nix
-
     # Services
-    ../../services/acme.nix
-    ../../services/jellyfin.nix
-    ../../services/nginx.nix
-    ../../services/podman.nix
-    ../../services/vscode-server.nix
+    ../../profiles/nixos/acme.nix
+    ../../profiles/nixos/jellyfin.nix
+    ../../profiles/nixos/nginx.nix
+    ../../profiles/nixos/podman.nix
+    ../../profiles/nixos/vscode-server.nix
   ];
+
+  # My settings
+  codgician = {
+    system = {
+      agenix.enable = true;
+      impermanence.enable = true;
+      secure-boot.enable = true;
+    };
+
+    users.codgi = {
+      enable = true;
+      extraGroups = [ "wheel" ];
+    };
+  };
 
   # Home manager
   home-manager.users.codgi = { config, ... }: rec {
     imports = [
-      ../../users/codgi/git.nix
-      ../../users/codgi/zsh.nix
+      ../../profiles/hm/git.nix
+      ../../profiles/hm/zsh.nix
     ];
 
     home.stateVersion = "23.11";
@@ -112,24 +123,4 @@
   # Before changing this value read the documentation for this option
   # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
   system.stateVersion = "23.11"; # Did you read the comment?
-
-  # Persist files
-  environment.persistence."/nix/persist" = {
-    hideMounts = true;
-    directories = [
-      "/etc/secureboot"
-      "/var/log"
-      "/var/lib/acme"
-      "/var/lib/nixos"
-      "/var/lib/systemd/coredump"
-      "/home"
-    ];
-    files = [
-      "/etc/machine-id"
-      "/etc/ssh/ssh_host_ed25519_key"
-      "/etc/ssh/ssh_host_ed25519_key.pub"
-      "/etc/ssh/ssh_host_rsa_key"
-      "/etc/ssh/ssh_host_rsa_key.pub"
-    ];
-  };
 }

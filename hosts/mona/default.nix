@@ -7,28 +7,38 @@ in
   imports = [
     ./hardware.nix
 
-    # User
-    ../../users/bmc/default.nix
-    ../../users/codgi/default.nix
-
     # Service modules
-    ../../services/acme.nix
-    ../../services/calibre-web.nix
-    ../../services/dendrite.nix
-    ../../services/fastapi-dls.nix
-    ../../services/gitlab.nix
-    ../../services/mesh-commander.nix
-    ../../services/nginx.nix
-    ../../services/samba.nix
-    ../../services/upgrade-pg-cluster.nix
-    ../../services/vscode-server.nix
+    ../../profiles/nixos/acme.nix
+    ../../profiles/nixos/calibre-web.nix
+    ../../profiles/nixos/dendrite.nix
+    ../../profiles/nixos/fastapi-dls.nix
+    ../../profiles/nixos/gitlab.nix
+    ../../profiles/nixos/mesh-commander.nix
+    ../../profiles/nixos/nginx.nix
+    ../../profiles/nixos/samba.nix
+    ../../profiles/nixos/upgrade-pg-cluster.nix
+    ../../profiles/nixos/vscode-server.nix
   ];
+
+  # My settings
+  codgician = {
+    system.agenix.enable = true;
+    users.codgi = {
+      enable = true;
+      extraGroups = [ "wheel" ];
+      extraSecrets = [ "codgiPassword" ];
+    };
+    users.bmc = {
+      enable = true;
+      extraSecrets = [ "bmcPassword" ];
+    };
+  };
 
   # Home manager
   home-manager.users.codgi = { config, ... }: rec {
     imports = [
-      ../../users/codgi/git.nix
-      ../../users/codgi/zsh.nix
+      ../../profiles/hm/git.nix
+      ../../profiles/hm/zsh.nix
     ];
 
     home.stateVersion = "23.11";
