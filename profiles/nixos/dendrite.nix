@@ -187,7 +187,7 @@ in
   # Protect secrets
   age.secrets =
     let
-      secretsDir = builtins.toString ../secrets;
+      secretsDir = builtins.toString ../../secrets;
       nameToObj = name: {
         "${name}" = {
           file = "${secretsDir}/${name}.age";

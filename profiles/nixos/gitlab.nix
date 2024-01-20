@@ -69,7 +69,7 @@ in
     # Protect secrets
     age.secrets =
       let
-        secretsDir = builtins.toString ../secrets;
+        secretsDir = builtins.toString ../../secrets;
         nameToObj = name: { "${name}" = { file = "${secretsDir}/${name}.age"; owner = config.services.gitlab.user; mode = "600"; }; };
       in
       builtins.foldl' (x: y: x // y) { } (map (nameToObj) [
