@@ -5,19 +5,23 @@ let
   pubKeys = import ../../secrets/pubKeys.nix;
 in
 {
-  users.users.codgi = {
-    inherit name;
-    description = "Shijia Zhang";
-    home = if pkgs.stdenvNoCC.isLinux then "/home/${name}" else "/Users/${name}";
-    shell = pkgs.zsh;
-    openssh.authorizedKeys.keys = pubKeys.users.${name};
-  };
+  users.users.codgi = lib.mkMerge [
+    # Generic configurations
+    {
+      inherit name;
+      description = "Shijia Zhang";
+      home = if pkgs.stdenvNoCC.isLinux then "/home/${name}" else "/Users/${name}";
+      shell = pkgs.zsh;
+      openssh.authorizedKeys.keys = pubKeys.users.${name};
+    }
+
+    # Linux-specific configurations
+    (lib.mkIf pkgs.stdenvNoCC.isLinux {
+      isNormalUser = true;
+      hashedPasswordFile = config.age.secrets."${name}HashedPassword".path;
+    })
+  ];
 
   # Trust me
   nix.settings.trusted-users = [ name ];
-} // lib.optionalAttrs pkgs.stdenvNoCC.isLinux {
-  users.users.codgi = {
-    isNormalUser = true;
-    hashedPasswordFile = config.age.secrets."${name}HashedPassword".path;
-  };
 }
