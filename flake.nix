@@ -119,9 +119,6 @@
       lib = inputs.nixpkgs.lib;
       mkConfig = lib.mapAttrs (name: value: value name);
 
-      darwinModules = import ./modules/darwin;
-      nixosModules = import ./modules/nixos;
-
       # Basic configs for each host
       basicConfig = system: hostName: { config, ... }: {
         nix = {
@@ -156,14 +153,14 @@
           inherit system;
           specialArgs = { inherit lib inputs self system nixpkgs home-manager; } // lib.optionalAttrs inheritPkgs { inherit pkgs; };
           modules = [
-            darwinModules
+            (import ./modules/darwin)
             (basicConfig system hostName)
 
             home-manager.darwinModules.home-manager
             agenix.darwinModules.default
 
             ({ config, ... }: {
-              nix.settings.sandbox = true;
+              nix.settings.sandbox = false;
               services.nix-daemon.enable = true;
             })
           ] ++ extraModules;
@@ -212,7 +209,7 @@
               };
             })
 
-            nixosModules
+            (import ./modules/nixos)
             (basicConfig system hostName)
 
             nur.nixosModules.nur
@@ -232,8 +229,6 @@
         };
     in
     {
-      inherit darwinModules nixosModules;
-
       # macOS machines
       darwinConfigurations = mkConfig {
         "Shijia-Mac" = darwinSystem {

@@ -2,10 +2,7 @@
   # My settings
   codgician = {
     system.agenix.enable = true;
-    users.codgi = {
-      enable = true;
-      extraGroups = [ "wheel" ];
-    };
+    users.codgi.enable = true;
   };
 
   # Home manager
