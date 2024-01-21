@@ -1,8 +1,8 @@
 { config, lib, pkgs, ... }:
 let
-  name = "bmc";
+  name = builtins.baseNameOf ./.;
   cfg = config.codgician.users.${name};
-  secretsDir = builtins.toString ../../secrets;
+  secretsDir = builtins.toString ../../../secrets;
 in
 {
   users.users.bmc = {
@@ -10,7 +10,7 @@ in
     description = "bmc samba user";
     createHome = false;
     isNormalUser = true;
-    hashedPasswordFile = config.age.secrets.bmcHashedPassword.path;
+    hashedPasswordFile = config.age.secrets."${name}HashedPassword".path;
     extraGroups = cfg.extraGroups;
   };
 }

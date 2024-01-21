@@ -1,8 +1,8 @@
 { config, lib, pkgs, ... }:
 let
-  name = "codgi";
+  name = builtins.baseNameOf ./.;
   cfg = config.codgician.users.${name};
-  pubKeys = import ../../secrets/pubKeys.nix;
+  pubKeys = import ../../../secrets/pubKeys.nix;
 in
 {
   users.users.codgi = lib.mkMerge [
