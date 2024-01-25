@@ -45,7 +45,7 @@
   };
 
   # Homebrew casks
-  casks = builtins.map (name: { inherit name; greedy = true; }) [
+  casks = [
     "appcleaner"
     "calibre"
     "visual-studio-code"

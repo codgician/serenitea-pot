@@ -3,7 +3,7 @@ let
   dirs = builtins.readDir ./.;
   concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
   cfg = config.codgician.users;
-  
+
   # Use list of sub-folder names as list of available users
   users = builtins.filter (name: dirs.${name} == "directory") (builtins.attrNames dirs);
 
@@ -32,12 +32,14 @@ let
   # Create assertions for each user
   mkUserAssertions = name: [
     # Each user must have hashed password file in secrets directory
-    (let hashedPasswordFileName = "${name}HashedPassword.age"; in {
-      assertion = !cfg.${name}.enable || builtins.pathExists ../../secrets/${hashedPasswordFileName};
-      message = ''
-        User '${name}' must have hashed password file (${hashedPasswordFileName}) in secrets directory.
-      '';
-    })
+    (
+      let hashedPasswordFileName = "${name}HashedPassword.age"; in {
+        assertion = !cfg.${name}.enable || builtins.pathExists ../../secrets/${hashedPasswordFileName};
+        message = ''
+          User '${name}' must have hashed password file (${hashedPasswordFileName}) in secrets directory.
+        '';
+      }
+    )
   ];
 
   # Make configurations for each user

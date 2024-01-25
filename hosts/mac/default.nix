@@ -1,7 +1,16 @@
 { config, pkgs, lib, ... }: {
+
   # My settings
   codgician = {
-    system.agenix.enable = true;
+    system = {
+      agenix.enable = true;
+      brew = {
+        enable = true;
+        casks = (import ./brew.nix).casks;
+        masApps = (import ./brew.nix).masApps;
+      };
+    };
+
     users.codgi.enable = true;
   };
 
@@ -76,23 +85,4 @@
   environment.etc."ssh/sshd_config.d/110-no-password-authentication.conf" = {
     text = "PasswordAuthentication no";
   };
-
-  # Homebrew
-  homebrew =
-    let
-      brew = import ./brew.nix;
-      masApps = brew.masApps;
-      casks = brew.casks;
-    in
-    {
-      enable = true;
-      onActivation = {
-        autoUpdate = true;
-        upgrade = true;
-        cleanup = "zap";
-      };
-
-      inherit masApps;
-      inherit casks;
-    };
 }
