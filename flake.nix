@@ -4,7 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
     nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-23.11-darwin";
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    nixpkgs-nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     impermanence.url = "github:nix-community/impermanence";
 
@@ -29,16 +29,6 @@
     home-manager = {
       url = "github:nix-community/home-manager/release-23.11";
       inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    home-manager-darwin = {
-      url = "github:nix-community/home-manager/release-23.11";
-      inputs.nixpkgs.follows = "nixpkgs-darwin";
-    };
-
-    home-manager-unstable = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
     agenix = {
@@ -100,6 +90,7 @@
 
   outputs =
     inputs @ { self
+    , home-manager
     , nixos-hardware
     , mobile-nixos
     , darwin
@@ -140,7 +131,6 @@
         { extraModules ? [ ]
         , system
         , nixpkgs ? inputs.nixpkgs-darwin
-        , home-manager ? inputs.home-manager-darwin
         , inheritPkgs ? true
         }: hostName:
         let
@@ -171,7 +161,6 @@
         { extraModules ? [ ]
         , system
         , nixpkgs ? inputs.nixpkgs
-        , home-manager ? inputs.home-manager
         , inheritPkgs ? true
         }: hostName:
         let
@@ -288,12 +277,14 @@
     in
     {
       # Development shell: `nix develop`
-      devShell = pkgs.mkShell {
-        buildInputs = with pkgs; [
-          rnix-lsp
-          agenixCli
-          (terraform.withPlugins (p: [ p.azurerm p.cloudflare ]))
-        ];
+      devShells = {
+        default = pkgs.mkShell {
+          buildInputs = with pkgs; [ rnix-lsp agenixCli ];
+        };
+
+        cloud = pkgs.mkShell {
+          buildInputs = with pkgs; [ (terraform.withPlugins (p: [ p.azurerm p.cloudflare ])) ];
+        };
       };
 
       # Formatter: `nix fmt`
