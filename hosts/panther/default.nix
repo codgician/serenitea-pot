@@ -44,4 +44,10 @@
 
   # System packages
   environment.systemPackages = with pkgs; [ neofetch openssl ];
+
+  # zsh
+  programs.zsh = {
+    enable = true;
+    promptInit = "";
+  };
 }
