@@ -233,12 +233,12 @@
       darwinConfigurations = mkConfig {
         "Shijia-Mac" = darwinSystem {
           system = "aarch64-darwin";
-          extraModules = [ ./hosts/mac/default.nix ];
+          extraModules = [ ./hosts/mac ];
         };
 
-        "MacRun" = darwinSystem {
+        "panther" = darwinSystem {
           system = "x86_64-darwin";
-          extraModules = [ ./hosts/runners/macrun.nix ];
+          extraModules = [ ./hosts/panther ];
         };
       };
 
@@ -247,17 +247,17 @@
         # x86_64 machines
         "mona" = nixosSystem {
           system = "x86_64-linux";
-          extraModules = [ ./hosts/mona/default.nix ];
+          extraModules = [ ./hosts/mona ];
         };
 
         "violet" = nixosSystem {
           system = "x86_64-linux";
-          extraModules = [ ./hosts/violet/default.nix ];
+          extraModules = [ ./hosts/violet ];
         };
 
         "wsl" = nixosSystem {
           system = "x86_64-linux";
-          extraModules = [ ./hosts/wsl/default.nix ];
+          extraModules = [ ./hosts/wsl ];
         };
 
         # aarch64 machines
