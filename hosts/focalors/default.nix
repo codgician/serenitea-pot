@@ -4,10 +4,14 @@
 
   # My settings
   codgician = {
+    services = {
+      nixos-vscode-server.enable = true;
+      plasma.enable = true;
+    };
+
     system = {
       agenix.enable = true;
       impermanence.enable = true;
-      #secure-boot.enable = true;
     };
 
     users.codgi = {
@@ -45,10 +49,7 @@
   };
 
   # Configure keymap in X11
-  services.xserver = {
-    enable = false;
-    layout = "us";
-  };
+  services.xserver.layout = "us";
 
   # Auto upgrade
   system.autoUpgrade = {

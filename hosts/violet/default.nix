@@ -8,11 +8,12 @@
     ../../profiles/nixos/jellyfin.nix
     ../../profiles/nixos/nginx.nix
     ../../profiles/nixos/podman.nix
-    ../../profiles/nixos/vscode-server.nix
   ];
 
   # My settings
   codgician = {
+    services.nixos-vscode-server.enable = true;
+
     system = {
       agenix.enable = true;
       impermanence.enable = true;

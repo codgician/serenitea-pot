@@ -4,13 +4,11 @@
 
     # Desktop environment
     (import "${inputs.mobile-nixos}/examples/plasma-mobile/plasma-mobile.nix")
-
-    # Service
-    ../../profiles/nixos/vscode-server.nix
   ];
 
   # My settings
   codgician = {
+    services.nixos-vscode-server.enable = true;
     system.agenix.enable = true;
 
     users.codgi = {

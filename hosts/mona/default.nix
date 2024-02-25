@@ -17,11 +17,11 @@ in
     ../../profiles/nixos/nginx.nix
     ../../profiles/nixos/samba.nix
     ../../profiles/nixos/upgrade-pg-cluster.nix
-    ../../profiles/nixos/vscode-server.nix
   ];
 
   # My settings
   codgician = {
+    services.nixos-vscode-server.enable = true;
     system.agenix.enable = true;
     users.codgi = {
       enable = true;

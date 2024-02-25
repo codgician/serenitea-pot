@@ -236,7 +236,7 @@
       # NixOS machines
       nixosConfigurations = mkConfig {
         # aarch64 machines
-        "focalors" =  nixosSystem {
+        "focalors" = nixosSystem {
           system = "aarch64-linux";
           extraModules = [ ./hosts/focalors ];
           nixpkgs = inputs.nixpkgs-nixos-unstable;
