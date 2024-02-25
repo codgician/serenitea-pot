@@ -15,13 +15,26 @@ in
   config = lib.mkIf cfg.enable {
     services.xserver = {
       enable = true;
-      displayManager.sddm.enable = true;
-      desktopManager.plasma5.enable = true;
+      displayManager.sddm = {
+        enable = true;
+        enableHidpi = true;
+        theme = "breeze";
+      };
+      desktopManager.plasma5 = {
+        enable = true;
+        useQtScaling = true;
+      };
     };
 
     services.xserver.displayManager.defaultSession = lib.mkIf cfg.enable "plasmawayland";
 
     # Enable dconf
     programs.dconf.enable = true;
+
+    # Auto unlock Kwallet
+    security.pam.services.kwallet = {
+      name = "kwallet";
+      enableKwallet = true;
+    };
   };
 }

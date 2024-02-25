@@ -35,6 +35,8 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  boot.plymouth.enable = true;
+
   networking.useNetworkd = true;
   services.resolved.enable = true;
 
@@ -74,6 +76,37 @@
     enable = true;
     enableCompletion = true;
   };
+
+  # Configure fonts
+  fonts = {
+    fontconfig.enable = true;
+    fontDir.enable = true;
+    enableGhostscriptFonts = true;
+    packages = with pkgs; [
+      noto-fonts
+      noto-fonts-cjk
+      noto-fonts-emoji
+      cascadia-code
+    ];
+  };
+
+  # Enable sound with pipewire.
+  sound.enable = true;
+  hardware.pulseaudio.enable = false;
+  services.pipewire = {
+    enable = true;
+    alsa.enable = true;
+    alsa.support32Bit = true;
+    pulse.enable = true;
+    # If you want to use JACK applications, uncomment this
+    #jack.enable = true;
+
+    # use the example session manager (no others are packaged yet so this is enabled by default,
+    # no need to redefine it in your config for now)
+    #media-session.enable = true;
+  };
+
+  programs.kdeconnect.enable = true;
 
   # Security
   users.mutableUsers = false;
