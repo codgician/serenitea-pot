@@ -53,5 +53,17 @@ in
       layout = "us";
       xkbVariant = "";
     };
+
+    # Install optional dependencies
+    services.fwupd.enable = true;
+    environment.systemPackages = with pkgs; [
+      breeze-gtk
+      pciutils 
+      usbutils
+      clinfo
+      glxinfo
+      vulkan-tools
+      wayland-utils
+    ];
   };
 }
