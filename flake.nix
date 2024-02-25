@@ -188,11 +188,11 @@
               nix.settings = {
                 sandbox = true;
                 substituters = [
-                  config.nur.repos.xddxdd._meta.url
+                  "https://xddxdd.cachix.org"
                   "https://nix-community.cachix.org"
                 ];
                 trusted-public-keys = [
-                  config.nur.repos.xddxdd._meta.publicKey
+                  "xddxdd.cachix.org-1:ay1HJyNDYmlSwj5NXQG065C8LfoqqKaTNCyzeixGjf8="
                   "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
                 ];
               };
@@ -239,6 +239,7 @@
         "focalors" =  nixosSystem {
           system = "aarch64-linux";
           extraModules = [ ./hosts/focalors ];
+          nixpkgs = inputs.nixpkgs-nixos-unstable;
         };
 
         # todo: fix noir
