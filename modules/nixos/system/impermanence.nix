@@ -12,6 +12,20 @@ in
         The path where all persistent files should be stored.
       '';
     };
+    extraDirectories = lib.mkOption {
+      type = lib.types.listOf lib.types.path;
+      default = [ ];
+      description = lib.mdDoc ''
+        List of extra directories to persist.
+      '';
+    };
+    extraFiles = lib.mkOption {
+      type = lib.types.listOf lib.types.path;
+      default = [ ];
+      description = lib.mdDoc ''
+        List of extra files to persist.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -20,10 +34,12 @@ in
       directories = [
         "/var/log"
         "/var/lib/acme"
+        "/var/lib/bluetooth"
         "/var/lib/nixos"
         "/var/lib/systemd/coredump"
+        "/etc/NetworkManager/system-connections"
         "/home"
-      ];
+      ] ++ cfg.extraDirectories;
 
       files = [
         "/etc/machine-id"
@@ -31,7 +47,7 @@ in
         "/etc/ssh/ssh_host_ed25519_key.pub"
         "/etc/ssh/ssh_host_rsa_key"
         "/etc/ssh/ssh_host_rsa_key.pub"
-      ];
+      ] ++ cfg.extraFiles;
     };
   };
 }
