@@ -10,9 +10,13 @@
       IdentityFile ~/.ssh/id_ed25519
     '';
     matchBlocks = {
-      "openwrt" = {
-        hostname = "openwrt.lan";
-        user = "root";
+      "focalors" = {
+        hostname = "focalors.lan";
+        user = "codgi";
+      };
+      "furina" = {
+        hostname = "furina.lan";
+        user = "codgi";
       };
       "mona" = {
         hostname = "mona.lan";
@@ -22,9 +26,13 @@
         hostname = "violet.lan";
         user = "codgi";
       };
-      "macrun" = {
-        hostname = "macrun.lan";
-        user = "runner";
+      "panther" = {
+        hostname = "panther.lan";
+        user = "codgi";
+      };
+      "openwrt" = {
+        hostname = "openwrt.lan";
+        user = "root";
       };
       "nanopi" = {
         hostname = "nanopi.cdu";
