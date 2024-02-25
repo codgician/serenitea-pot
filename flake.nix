@@ -220,11 +220,13 @@
     {
       # macOS machines
       darwinConfigurations = mkConfig {
-        "Shijia-Mac" = darwinSystem {
+        # aarch64 machines
+        "furina" = darwinSystem {
           system = "aarch64-darwin";
-          extraModules = [ ./hosts/mac ];
+          extraModules = [ ./hosts/furina ];
         };
 
+        # x86_64 machines
         "panther" = darwinSystem {
           system = "x86_64-darwin";
           extraModules = [ ./hosts/panther ];
@@ -233,6 +235,24 @@
 
       # NixOS machines
       nixosConfigurations = mkConfig {
+        # aarch64 machines
+        "focalors" =  nixosSystem {
+          system = "aarch64-linux";
+          extraModules = [ ./hosts/focalors ];
+        };
+
+        # todo: fix noir
+        # "noir" = nixosSystem {
+        #   system = "aarch64-linux";
+        #   extraModules = [
+        #     (import "${inputs.mobile-nixos}/lib/configuration.nix" { device = "lenovo-krane"; })
+        #     ./hosts/noir/default.nix
+        #   ];
+        #   nixpkgs = inputs.nixpkgs;
+        #   home-manager = inputs.home-manager;
+        #   inheritPkgs = false;
+        # };
+
         # x86_64 machines
         "mona" = nixosSystem {
           system = "x86_64-linux";
@@ -248,19 +268,6 @@
           system = "x86_64-linux";
           extraModules = [ ./hosts/wsl ];
         };
-
-        # aarch64 machines
-        # todo: fix noir
-        # "noir" = nixosSystem {
-        #   system = "aarch64-linux";
-        #   extraModules = [
-        #     (import "${inputs.mobile-nixos}/lib/configuration.nix" { device = "lenovo-krane"; })
-        #     ./hosts/noir/default.nix
-        #   ];
-        #   nixpkgs = inputs.nixpkgs;
-        #   home-manager = inputs.home-manager;
-        #   inheritPkgs = false;
-        # };
       };
 
     } // flake-utils.lib.eachDefaultSystem (system:
