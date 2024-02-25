@@ -6,7 +6,10 @@
   codgician = {
     services = {
       nixos-vscode-server.enable = true;
-      plasma.enable = true;
+      plasma = {
+        enable = true;
+        autoLoginUser = "codgi";
+      };
     };
 
     system = {
@@ -111,7 +114,6 @@
   # Security
   users.mutableUsers = false;
   users.users.root.hashedPassword = "!";
-  security.sudo.wheelNeedsPassword = false;
   nix.settings.trusted-users = [ "root" "@wheel" ];
 
   nixpkgs.config.allowUnfree = true;

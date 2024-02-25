@@ -10,6 +10,11 @@ in
       default = true;
       description = "Enable Wayland support for Plasma Desktop.";
     };
+    autoLoginUser = lib.mkOption {
+      type = lib.types.str;
+      default = "";
+      description = "Specify an auto-login user if you want to enable auto login.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -35,6 +40,12 @@ in
     security.pam.services.kwallet = {
       name = "kwallet";
       enableKwallet = true;
+    };
+
+    # Auto-login
+    services.xserver.displayManager.autoLogin = lib.mkIf (builtins.stringLength cfg.autoLoginUser > 0) {
+      enable = true;
+      user = cfg.autoLoginUser;
     };
   };
 }
