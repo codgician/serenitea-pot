@@ -7,7 +7,7 @@
     system = {
       agenix.enable = true;
       impermanence.enable = true;
-      secure-boot.enable = true;
+      #secure-boot.enable = true;
     };
 
     users.codgi = {
