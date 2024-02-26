@@ -64,6 +64,7 @@ in
       glxinfo
       vulkan-tools
       wayland-utils
+      libsForQt5.kio-admin
     ];
   };
 }
