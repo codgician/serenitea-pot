@@ -30,6 +30,10 @@ nix fmt
 
 ### Deployment
 
+This breif guide only covers NixOS hosts (excluding LXC containers).
+
+First boot into NixOS Live CD and clone this repository.
+
 #### Apply disk layout
 
 This is required for hosts having `disks.nix` file declaring disk partition layout. This is made possible with [disko](https://github.com/nix-community/disko).
@@ -40,17 +44,15 @@ Navigate to host folder containing `disk.nix` and run following command:
 sudo nix --experimental-features "nix-command flakes" run github:nix-community/disko -- --mode disko ./disks.nix
 ```
 
-#### Create nix persist folder
-
 After running disko, the newly created partitions should be already mounted at `/mnt`.
+
+#### Configure impermanence
 
 For hosts with [impermanence](https://github.com/nix-community/impermanence) enabled, run following command:
 
 ```bash
 sudo mkdir /mnt/nix/persist
 ```
-
-#### Generate ssh host keys and rekey credentials
 
 Run following command to generate new ssh key pair:
 
@@ -67,8 +69,17 @@ agenix -r
 
 #### Install NixOS
 
+Before installation, please note:
+
+- Agenix may not work well with `nixos-install`. Expect credentials not being present at first boot.
+- Lanzeboot requires generating keys with `sudo sbctl create-keys` before-hand. You may also temporarily disable Secure Boot and configure it after first boot.
+
 Run following command under repo root path:
 
 ```bash
 sudo nixos-install --flake .#hostname
 ```
+
+You can now reboot from Live CD and boot into your newly installed device.
+
+To make everything function as expected you may need to `sudo nixos-rebuild switch --flake .` under cloned flake in your newly installed system.

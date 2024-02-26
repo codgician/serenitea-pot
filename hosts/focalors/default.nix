@@ -15,6 +15,7 @@
     system = {
       agenix.enable = true;
       impermanence.enable = true;
+      secure-boot.enable = true;
     };
 
     users.codgi = {
@@ -149,7 +150,7 @@
     xterm
     htop
     firefox
-    vscode-fhs
+    vscode
   ];
 
   # Some programs need SUID wrappers, can be configured further or are
