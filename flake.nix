@@ -248,14 +248,13 @@
           extraModules = [ ./hosts/focalors ];
           nixpkgs = inputs.nixpkgs-nixos-unstable;
           home-manager = inputs.home-manager-unstable;
-          inheritPkgs = false;
         };
 
         "noir" = nixosSystem {
           system = "aarch64-linux";
           extraModules = [
             (import "${inputs.mobile-nixos}/lib/configuration.nix" { device = "lenovo-krane"; })
-            ./hosts/noir/default.nix
+            ./hosts/noir
           ];
           nixpkgs = inputs.nixpkgs-nixos-unstable;
           home-manager = inputs.home-manager-unstable;
