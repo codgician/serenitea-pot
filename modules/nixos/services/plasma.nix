@@ -58,7 +58,7 @@ in
     services.fwupd.enable = true;
     environment.systemPackages = with pkgs; [
       breeze-gtk
-      pciutils 
+      pciutils
       usbutils
       clinfo
       glxinfo

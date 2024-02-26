@@ -31,6 +31,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    home-manager-unstable = {
+      url = "github:nix-community/home-manager";
+      inputs.nixpkgs.follows = "nixpkgs-nixos-unstable";
+    };
+
     agenix = {
       url = "github:ryantm/agenix";
       inputs = {
@@ -90,7 +95,6 @@
 
   outputs =
     inputs @ { self
-    , home-manager
     , nixos-hardware
     , mobile-nixos
     , darwin
@@ -107,8 +111,7 @@
     , ...
     }:
     let
-      lib = inputs.nixpkgs.lib;
-      mkConfig = lib.mapAttrs (name: value: value name);
+      mkConfig = inputs.nixpkgs.lib.mapAttrs (name: value: value name);
 
       # Basic configs for each host
       basicConfig = system: hostName: { config, ... }: {
@@ -131,9 +134,11 @@
         { extraModules ? [ ]
         , system
         , nixpkgs ? inputs.nixpkgs-darwin
+        , home-manager ? inputs.home-manager
         , inheritPkgs ? true
         }: hostName:
         let
+          lib = nixpkgs.lib;
           pkgs = import nixpkgs {
             inherit system;
             config.allowUnfree = true;
@@ -161,9 +166,11 @@
         { extraModules ? [ ]
         , system
         , nixpkgs ? inputs.nixpkgs
+        , home-manager ? inputs.home-manager
         , inheritPkgs ? true
         }: hostName:
         let
+          lib = nixpkgs.lib;
           pkgs = import nixpkgs {
             inherit system;
             config.allowUnfree = true;
@@ -240,19 +247,20 @@
           system = "aarch64-linux";
           extraModules = [ ./hosts/focalors ];
           nixpkgs = inputs.nixpkgs-nixos-unstable;
+          home-manager = inputs.home-manager-unstable;
+          inheritPkgs = false;
         };
 
-        # todo: fix noir
-        # "noir" = nixosSystem {
-        #   system = "aarch64-linux";
-        #   extraModules = [
-        #     (import "${inputs.mobile-nixos}/lib/configuration.nix" { device = "lenovo-krane"; })
-        #     ./hosts/noir/default.nix
-        #   ];
-        #   nixpkgs = inputs.nixpkgs;
-        #   home-manager = inputs.home-manager;
-        #   inheritPkgs = false;
-        # };
+        "noir" = nixosSystem {
+          system = "aarch64-linux";
+          extraModules = [
+            (import "${inputs.mobile-nixos}/lib/configuration.nix" { device = "lenovo-krane"; })
+            ./hosts/noir/default.nix
+          ];
+          nixpkgs = inputs.nixpkgs-nixos-unstable;
+          home-manager = inputs.home-manager-unstable;
+          inheritPkgs = false;
+        };
 
         # x86_64 machines
         "mona" = nixosSystem {
