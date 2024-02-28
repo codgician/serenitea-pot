@@ -49,10 +49,7 @@ in
     };
 
     # Configure keymap in X11
-    services.xserver = {
-      layout = "us";
-      xkbVariant = "";
-    };
+    services.xserver.xkb.layout = "us";
 
     # Install optional dependencies
     services.fwupd.enable = true;
