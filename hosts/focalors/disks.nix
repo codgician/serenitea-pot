@@ -17,7 +17,7 @@
         content = {
           type = "gpt";
           partitions = {
-            ESP = {
+            esp = {
               end = "512M";
               type = "EF00";
               content = {
@@ -26,8 +26,7 @@
                 mountpoint = "/boot";
               };
             };
-            root = {
-              name = "nix";
+            nix = {
               end = "-0";
               content = {
                 type = "filesystem";
