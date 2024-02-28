@@ -1,7 +1,7 @@
 rec {
   # Keys
   hosts = {
-    focalors = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXJSgAqTIWbkmMVZ8MT7/90Sy9wKxIfu/N/RJm8XfYx" ];
+    focalors = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM9elJzxtHicXWL+okluqOjCJ/ZcMlAuPqH/WyTnjfeW" ];
     furina = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOS+hXPeUC7xFR74y5PCT0Ba0AXSC5vJJA5UURThXySJ" ];
     mona = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICNKqYpI7+zPOT72qvydVAdzsBNb0KiLbKFXHL9Ll0/Y" ];
     noir = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO41hU7TrSDOYm5BC1fXUz6CMwjjaywvkbZhAfH1hpsD" ];
