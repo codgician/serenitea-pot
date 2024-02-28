@@ -33,7 +33,10 @@ let
   mkUserAssertions = name: [
     # Each user must have hashed password file in secrets directory
     (
-      let hashedPasswordFileName = "${name}HashedPassword.age"; in {
+      let
+        hashedPasswordFileName = "${name}HashedPassword.age";
+      in
+      {
         assertion = !cfg.${name}.enable || builtins.pathExists ../../secrets/${hashedPasswordFileName};
         message = ''
           User '${name}' must have hashed password file (${hashedPasswordFileName}) in secrets directory.
