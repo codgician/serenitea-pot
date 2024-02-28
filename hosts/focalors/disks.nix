@@ -27,7 +27,7 @@
               };
             };
             root = {
-              name = "root";
+              name = "nix";
               end = "-0";
               content = {
                 type = "filesystem";
