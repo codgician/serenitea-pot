@@ -27,7 +27,7 @@
         content = {
           type = "gpt";
           partitions = {
-           esp = {
+            esp = {
               start = "1M";
               end = "512M";
               type = "EF00";

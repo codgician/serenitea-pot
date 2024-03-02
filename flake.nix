@@ -48,7 +48,7 @@
     nur.url = "github:nix-community/NUR";
     nur-xddxdd = {
       url = "github:xddxdd/nur-packages";
-      inputs.flake-utils.follows = "flake-utils";
+      inputs.flake-parts.follows = "flake-parts";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -135,7 +135,6 @@
         , system
         , nixpkgs ? inputs.nixpkgs-darwin
         , home-manager ? inputs.home-manager
-        , inheritPkgs ? true
         }: hostName:
         let
           lib = nixpkgs.lib;
@@ -146,7 +145,7 @@
         in
         darwin.lib.darwinSystem {
           inherit system;
-          specialArgs = { inherit lib inputs self system nixpkgs home-manager; } // lib.optionalAttrs inheritPkgs { inherit pkgs; };
+          specialArgs = { inherit lib pkgs inputs self system; };
           modules = [
             (import ./modules/darwin)
             (basicConfig system hostName)
