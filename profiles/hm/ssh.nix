@@ -18,8 +18,8 @@
         hostname = "furina.lan";
         user = "codgi";
       };
-      "mona" = {
-        hostname = "mona.lan";
+      "paimon" = {
+        hostname = "paimon.lan";
         user = "codgi";
       };
       "violet" = {

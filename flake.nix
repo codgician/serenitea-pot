@@ -261,9 +261,9 @@
         };
 
         # x86_64 machines
-        "mona" = nixosSystem {
+        "paimon" = nixosSystem {
           system = "x86_64-linux";
-          extraModules = [ ./hosts/mona ];
+          extraModules = [ ./hosts/paimon ];
         };
 
         "violet" = nixosSystem {
