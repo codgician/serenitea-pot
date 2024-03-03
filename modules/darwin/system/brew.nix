@@ -25,6 +25,16 @@ in
         Internally it uses `mas-cli`, check out https://github.com/mas-cli/mas to learn more.
       '';
     };
+
+    taps = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ "homebrew/cask" ];
+      example = [ "homebrew/cask" ];
+      description = ''
+        a list of taps to add to Homebrew.
+        The full list of available taps can be found at https://formulae.brew.sh/.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -37,8 +47,11 @@ in
         cleanup = "zap";
       };
 
+      taps = cfg.taps;
       casks = builtins.map (name: { inherit name; greedy = true; }) cfg.casks;
       masApps = cfg.masApps;
+
+      global.brewfile = true;
     };
   };
 }
