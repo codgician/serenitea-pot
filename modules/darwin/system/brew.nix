@@ -28,8 +28,8 @@ in
 
     taps = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ "homebrew/cask" ];
-      example = [ "homebrew/cask" ];
+      default = [ ];
+      example = [ "homebrew/cask-fonts" ];
       description = ''
         a list of taps to add to Homebrew.
         The full list of available taps can be found at https://formulae.brew.sh/.
