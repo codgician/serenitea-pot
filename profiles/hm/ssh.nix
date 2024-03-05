@@ -22,8 +22,8 @@
         hostname = "paimon.lan";
         user = "codgi";
       };
-      "violet" = {
-        hostname = "violet.lan";
+      "nahida" = {
+        hostname = "nahida.lan";
         user = "codgi";
       };
       "panther" = {

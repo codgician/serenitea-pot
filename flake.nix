@@ -266,9 +266,9 @@
           extraModules = [ ./hosts/paimon ];
         };
 
-        "violet" = nixosSystem {
+        "nahida" = nixosSystem {
           system = "x86_64-linux";
-          extraModules = [ ./hosts/violet ];
+          extraModules = [ ./hosts/nahida ];
         };
 
         "wsl" = nixosSystem {
