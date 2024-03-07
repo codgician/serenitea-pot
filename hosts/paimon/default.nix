@@ -30,6 +30,7 @@ in
     };
     users.bmc = {
       enable = true;
+      createHome = false;
       extraSecrets = [ "bmcPassword" ];
     };
   };

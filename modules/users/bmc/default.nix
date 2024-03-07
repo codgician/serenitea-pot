@@ -8,7 +8,6 @@ in
   users.users.bmc = {
     inherit name;
     description = "bmc samba user";
-    createHome = false;
     isNormalUser = true;
     hashedPasswordFile = config.age.secrets."${name}HashedPassword".path;
     extraGroups = cfg.extraGroups;

@@ -1,7 +1,6 @@
 { config, lib, pkgs, inputs, ... }:
 let
   cfg = config.codgician.system.agenix;
-  impermanenceCfg = config.codgician.system.impermanence;
 in
 {
   options.codgician.system.agenix = {

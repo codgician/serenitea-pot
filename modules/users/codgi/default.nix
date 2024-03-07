@@ -10,7 +10,6 @@ in
     {
       inherit name;
       description = "Shijia Zhang";
-      home = if pkgs.stdenvNoCC.isLinux then "/home/${name}" else "/Users/${name}";
       shell = pkgs.zsh;
       openssh.authorizedKeys.keys = pubKeys.users.${name};
     }
@@ -19,6 +18,7 @@ in
     (lib.mkIf pkgs.stdenvNoCC.isLinux {
       isNormalUser = true;
       hashedPasswordFile = config.age.secrets."${name}HashedPassword".path;
+      extraGroups = cfg.extraGroups;
     })
   ];
 
