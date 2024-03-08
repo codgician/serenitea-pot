@@ -71,7 +71,6 @@ agenix -r
 
 Before installation, please note:
 
-- Agenix may not work well with `nixos-install`. Expect credentials not being present at first boot.
 - Lanzeboot requires generating keys with `sudo sbctl create-keys` before-hand. You may also temporarily disable Secure Boot and configure it after first boot.
 
 Run following command under repo root path:
@@ -81,5 +80,3 @@ sudo nixos-install --flake .#hostname
 ```
 
 You can now reboot from Live CD and boot into your newly installed device.
-
-To make everything function as expected you may need to `sudo nixos-rebuild switch --flake .` under cloned flake in your newly installed system.

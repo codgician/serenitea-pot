@@ -1,9 +1,11 @@
 { config, lib, pkgs, ... }:
 let
   dirs = builtins.readDir ./.;
-  secretsDir = builtins.toString ../../secrets;
+  secretsDir = ../../secrets;
+  secretsFile = secretsDir + "/secrets.nix";
   concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
   cfg = config.codgician.users;
+  agenixCfg = config.codgician.system.agenix;
   impermanenceCfg = config.codgician.system.impermanence;
 
   # Use list of sub-folder names as list of available users
@@ -22,10 +24,10 @@ let
         '';
       };
       extraSecrets = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
+        type = lib.types.listOf lib.types.path;
         default = [ ];
         description = lib.mdDoc ''
-          Extra agenix secret names owned by user "${name}" (excluding hashed password).
+          Paths of additional secrets (agenix) owned by user "${name}" (excluding hashed password).
         '';
       };
     } // lib.optionalAttrs pkgs.stdenvNoCC.isLinux {
@@ -40,22 +42,22 @@ let
   };
 
   # Create assertions for each user
-  mkUserAssertions = name: [
-    # Each user must have hashed password file in secrets directory
-    (
-      let
-        hashedPasswordFileName = "${name}HashedPassword.age";
-        secretsFile = "${secretsDir}/secrets.nix";
-      in
+  mkUserAssertions = name:
+    let
+      hashedPasswordFileName = "${name}HashedPassword.age";
+      hashedPasswordFilePath = secretsDir + "/${hashedPasswordFileName}";
+    in
+    lib.mkIf cfg.${name}.enable [
+      # Each user must have hashed password file in secrets directory
       {
-        assertion = !cfg.${name}.enable ||
-          (builtins.pathExists ../../secrets/${hashedPasswordFileName} && builtins.hasAttr hashedPasswordFileName (import secretsFile));
-        message = ''
-          User '${name}' must have hashed password file (${hashedPasswordFileName}) in secrets directory.
-        '';
+        assertion = builtins.pathExists hashedPasswordFilePath;
+        message = ''User '${name}' must have hashed password file: '${hashedPasswordFilePath}'.'';
       }
-    )
-  ];
+      {
+        assertion = builtins.hasAttr hashedPasswordFileName (import secretsFile);
+        message = '''${hashedPasswordFileName}' must be defined in '${secretsFile}'.'';
+      }
+    ];
 
   # Make configurations for each user
   mkUserConfig = name: lib.mkIf cfg.${name}.enable (lib.mkMerge [
@@ -72,6 +74,20 @@ let
       ];
     })
 
+    (lib.mkIf agenixCfg.enable {
+      age.secrets =
+        let
+          mkSecretConfig = fileName: {
+            "${fileName}" = {
+              file = (secretsDir + "/${fileName}.age");
+              mode = "600";
+              owner = name;
+            };
+          };
+        in
+        concatAttrs (builtins.map mkSecretConfig (cfg.${name}.extraSecrets ++ [ "${name}HashedPassword" ]));
+    })
+
     {
       assertions = mkUserAssertions name;
       users.users.${name} = {
@@ -79,18 +95,6 @@ let
         home = cfg.${name}.home;
         extraGroups = lib.mkIf pkgs.stdenvNoCC.isLinux cfg.${name}.extraGroups;
       };
-
-      age.secrets =
-        let
-          mkSecretConfig = fileName: {
-            "${fileName}" = {
-              file = "${secretsDir}/${fileName}.age";
-              mode = "600";
-              owner = name;
-            };
-          };
-        in
-        concatAttrs (builtins.map mkSecretConfig (cfg.${name}.extraSecrets ++ [ "${name}HashedPassword" ]));
     }
   ]);
 in
