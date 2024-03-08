@@ -2,7 +2,6 @@
 let
   name = builtins.baseNameOf ./.;
   cfg = config.codgician.users.${name};
-  secretsDir = builtins.toString ../../../secrets;
 in
 {
   users.users.bmc = {

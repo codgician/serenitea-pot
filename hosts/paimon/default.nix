@@ -1,8 +1,4 @@
 { config, pkgs, ... }:
-let
-  secretsDir = builtins.toString ../../secrets;
-  ageSecrets = builtins.mapAttrs (name: obj: ({ file = "${secretsDir}/${name}.age"; } // obj));
-in
 {
   imports = [
     ./hardware.nix

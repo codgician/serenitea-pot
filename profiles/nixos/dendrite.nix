@@ -187,10 +187,10 @@ in
   # Protect secrets
   age.secrets =
     let
-      secretsDir = builtins.toString ../../secrets;
+      secretsDir = ../../secrets;
       nameToObj = name: {
         "${name}" = {
-          file = "${secretsDir}/${name}.age";
+          file = (secretsDir + "/${name}.age");
           owner = "root";
           mode = "600";
         };
