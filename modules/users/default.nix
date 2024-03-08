@@ -5,7 +5,7 @@ let
   secretsFile = secretsDir + "/secrets.nix";
   concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
   cfg = config.codgician.users;
-  agenixCfg = config.codgician.system.agenix;
+  systemCfg = config.codgician.system;
 
   # Use list of sub-folder names as list of available users
   users = builtins.filter (name: dirs.${name} == "directory") (builtins.attrNames dirs);
@@ -65,47 +65,47 @@ let
     (import ./${name} { inherit config lib pkgs; })
 
     # Impermanence: persist home directory if enabled
-    (lib.optionalAttrs pkgs.stdenvNoCC.isLinux (
-      let
-        impermanenceCfg = config.codgician.system.impermanence;
-      in
-      lib.mkIf impermanenceCfg.enable {
-        environment.persistence.${impermanenceCfg.path}.directories = [
-          {
-            directory = cfg.${name}.home;
-            user = name;
-            group = "users";
-            mode = "u=rwx,g=rx,o=";
-          }
-        ];
-      }
-    ))
+    {
+      environment = lib.optionalAttrs (systemCfg?impermanence) {
+        persistence.${systemCfg.impermanence.path}.directories =
+          lib.mkIf systemCfg.impermanence.enable [
+            {
+              directory = cfg.${name}.home;
+              user = name;
+              group = "users";
+              mode = "u=rwx,g=rx,o=";
+            }
+          ];
+      };
+    }
 
     # Agenix: manage secrets if enabled
-    (lib.mkIf agenixCfg.enable {
-      age.secrets =
-        let
-          mkSecretConfig = fileName: {
-            "${fileName}" = {
-              file = (secretsDir + "/${fileName}.age");
-              mode = "600";
-              owner = name;
+    {
+      age.secrets = lib.optionalAttrs (systemCfg?agenix && systemCfg.agenix.enable)
+        (
+          let
+            mkSecretConfig = fileName: {
+              "${fileName}" = {
+                file = (secretsDir + "/${fileName}.age");
+                mode = "600";
+                owner = name;
+              };
             };
-          };
-        in
-        concatAttrs (builtins.map mkSecretConfig (cfg.${name}.extraSecrets ++ [ "${name}HashedPassword" ]));
-    })
+          in
+          concatAttrs (builtins.map mkSecretConfig (cfg.${name}.extraSecrets ++ [ "${name}HashedPassword" ]))
+        );
+    }
 
     # Common options
-    ({
+    {
       assertions = mkUserAssertions name;
       users.users.${name} = {
         createHome = cfg.${name}.createHome;
         home = cfg.${name}.home;
+      } // lib.optionalAttrs (cfg.${name}?extraGroups) {
+        extraGroups = cfg.${name}.extraGroups;
       };
-    } // lib.optionalAttrs pkgs.stdenvNoCC.isLinux {
-      users.users.${name}.extraGroups = cfg.${name}.extraGroups;
-    })
+    }
   ]);
 in
 {
