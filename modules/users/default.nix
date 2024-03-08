@@ -65,18 +65,21 @@ let
     (import ./${name} { inherit config lib pkgs; })
 
     # Impermanence: persist home directory if enabled
-    (lib.optionalAttrs pkgs.stdenvNoCC.isLinux (let 
-      impermanenceCfg = config.codgician.system.impermanence;
-    in {
-      environment.persistence.${impermanenceCfg.path}.directories = lib.mkIf impermanenceCfg.enable [
-        {
-          directory = cfg.${name}.home;
-          user = name;
-          group = "users";
-          mode = "u=rwx,g=rx,o=";
-        }
-      ];
-    }))
+    (lib.optionalAttrs pkgs.stdenvNoCC.isLinux (
+      let
+        impermanenceCfg = config.codgician.system.impermanence;
+      in
+      lib.mkIf impermanenceCfg.enable {
+        environment.persistence.${impermanenceCfg.path}.directories = [
+          {
+            directory = cfg.${name}.home;
+            user = name;
+            group = "users";
+            mode = "u=rwx,g=rx,o=";
+          }
+        ];
+      }
+    ))
 
     # Agenix: manage secrets if enabled
     (lib.mkIf agenixCfg.enable {
