@@ -68,7 +68,7 @@ let
     {
       environment = lib.optionalAttrs (systemCfg?impermanence) {
         persistence.${systemCfg.impermanence.path}.directories =
-          lib.mkIf systemCfg.impermanence.enable [
+          lib.mkIf (systemCfg.impermanence.enable && cfg.${name}.createHome) [
             {
               directory = cfg.${name}.home;
               user = name;
