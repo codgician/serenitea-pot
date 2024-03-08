@@ -6,7 +6,6 @@ let
   concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
   cfg = config.codgician.users;
   agenixCfg = config.codgician.system.agenix;
-  impermanenceCfg = config.codgician.system.impermanence;
 
   # Use list of sub-folder names as list of available users
   users = builtins.filter (name: dirs.${name} == "directory") (builtins.attrNames dirs);
@@ -62,10 +61,14 @@ let
 
   # Make configurations for each user
   mkUserConfig = name: lib.mkIf cfg.${name}.enable (lib.mkMerge [
+    # Import user specific options
     (import ./${name} { inherit config lib pkgs; })
 
-    (lib.mkIf impermanenceCfg.enable {
-      environment.persistence.${impermanenceCfg.path}.directories = lib.mkIf pkgs.stdenvNoCC.isLinux [
+    # Impermanence: persist home directory if enabled
+    (lib.optionalAttrs pkgs.stdenvNoCC.isLinux (let 
+      impermanenceCfg = config.codgician.system.impermanence;
+    in {
+      environment.persistence.${impermanenceCfg.path}.directories = lib.mkIf impermanenceCfg.enable [
         {
           directory = cfg.${name}.home;
           user = name;
@@ -73,8 +76,9 @@ let
           mode = "u=rwx,g=rx,o=";
         }
       ];
-    })
+    }))
 
+    # Agenix: manage secrets if enabled
     (lib.mkIf agenixCfg.enable {
       age.secrets =
         let
@@ -89,14 +93,16 @@ let
         concatAttrs (builtins.map mkSecretConfig (cfg.${name}.extraSecrets ++ [ "${name}HashedPassword" ]));
     })
 
-    {
+    # Common options
+    ({
       assertions = mkUserAssertions name;
       users.users.${name} = {
         createHome = cfg.${name}.createHome;
         home = cfg.${name}.home;
-        extraGroups = lib.mkIf pkgs.stdenvNoCC.isLinux cfg.${name}.extraGroups;
       };
-    }
+    } // lib.optionalAttrs pkgs.stdenvNoCC.isLinux {
+      users.users.${name}.extraGroups = cfg.${name}.extraGroups;
+    })
   ]);
 in
 {
