@@ -25,13 +25,15 @@ in
         enableHidpi = true;
         theme = "breeze";
       };
-      desktopManager.plasma5 = {
+      desktopManager.plasma6 = {
         enable = true;
-        useQtScaling = true;
+        enableQt5Integration = true;
       };
     };
 
-    services.xserver.displayManager.defaultSession = lib.mkIf cfg.enable "plasmawayland";
+    i18n.inputMethod.fcitx5.plasma6Support = true;
+
+    services.xserver.displayManager.defaultSession = lib.mkIf cfg.enable "plasma";
 
     # Enable dconf
     programs.dconf.enable = true;
@@ -61,7 +63,7 @@ in
       glxinfo
       vulkan-tools
       wayland-utils
-      libsForQt5.kio-admin
+      kdePackages.kio-admin
     ];
   };
 }
