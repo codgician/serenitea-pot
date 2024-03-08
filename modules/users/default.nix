@@ -24,10 +24,11 @@ let
         '';
       };
       extraSecrets = lib.mkOption {
-        type = lib.types.listOf lib.types.path;
+        type = lib.types.listOf lib.types.str;
         default = [ ];
         description = lib.mdDoc ''
-          Paths of additional secrets (agenix) owned by user "${name}" (excluding hashed password).
+          File names (excluding extension) additional secrets (agenix) owned by user "${name}" excluding "${name}HashedPassword".
+          They should also be existing under `/secrets` directory.
         '';
       };
     } // lib.optionalAttrs pkgs.stdenvNoCC.isLinux {
