@@ -51,7 +51,7 @@
     "visual-studio-code"
     "microsoft-edge"
     "logi-options-plus"
-    "playcover-community"
+    "playcover-nightly"
     "parallels"
     "iina"
     "bilibili"

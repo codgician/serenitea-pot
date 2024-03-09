@@ -6,6 +6,7 @@
       agenix.enable = true;
       brew = {
         enable = true;
+        taps = [ "playcover/playcover" ];
         casks = (import ./brew.nix).casks;
         masApps = (import ./brew.nix).masApps;
       };
