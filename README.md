@@ -12,20 +12,26 @@ My fleet of Nix-managed devices.
 
 Start developing with your own flavor of shell:
 
-```
+```bash
 nix develop -c $SHELL
 ```
 
 Don't have nix flake support? Try this instead:
 
-```
+```bash
 nix-shell
 ```
 
 Format the nix code:
 
-```
+```bash
 nix fmt
+```
+
+To inspect evaluated values or do experiments, you may run REPL using:
+
+```bash
+nix run .#repl
 ```
 
 ### Deployment

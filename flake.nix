@@ -271,6 +271,11 @@
           extraModules = [ ./hosts/nahida ];
         };
 
+        "lumine" = nixosSystem {
+          system = "x86_64-linux";
+          extraModules = [ ./hosts/lumine ];
+        };
+        
         "wsl" = nixosSystem {
           system = "x86_64-linux";
           extraModules = [ ./hosts/wsl ];
@@ -290,16 +295,28 @@
       agenixCli = agenix.packages.${system}.default;
     in
     {
-      # Development shell: `nix develop`
-      devShells = {
-        default = pkgs.mkShell {
-          buildInputs = with pkgs; [ rnix-lsp agenixCli ];
-        };
+      # Development shell: `nix develop .#name`
+      devShells =
+        let commonPkgs = with pkgs; [ rnix-lsp agenixCli ];
+        in {
+          default = pkgs.mkShell {
+            buildInputs = commonPkgs;
+          };
 
-        cloud = pkgs.mkShell {
-          buildInputs = with pkgs; [ (terraform.withPlugins (p: [ p.azurerm p.cloudflare ])) ];
+          cloud = pkgs.mkShell {
+            buildInputs = with pkgs; [
+              azure-cli
+              azure-storage-azcopy
+              jq
+              (terraform.withPlugins (p: [
+                p.azurerm
+                p.cloudflare
+                p.proxmox
+                p.utils
+              ]))
+            ] ++ commonPkgs;
+          };
         };
-      };
 
       # Formatter: `nix fmt`
       formatter = pkgs.nixpkgs-fmt;
