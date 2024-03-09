@@ -172,7 +172,11 @@
           lib = nixpkgs.lib;
           pkgs = import nixpkgs {
             inherit system;
-            config.allowUnfree = true;
+            config = {
+              allowUnfree = true;
+              # todo: remove after onboarding 24.05
+              permittedInsecurePackages = lib.optionals (lib.version < "24.05") [ "nix-2.15.3" ];
+            };
 
             overlays = [
               (final: prev: {
@@ -288,9 +292,14 @@
         if inputs.nixpkgs.legacyPackages.${system}.stdenvNoCC.isDarwin
         then inputs.nixpkgs-darwin
         else inputs.nixpkgs;
+      lib = nixpkgs.lib;
       pkgs = import nixpkgs {
         inherit system;
-        config.allowUnfree = true;
+        config = {
+          allowUnfree = true;
+          # todo: remove after onboarding 24.05
+          permittedInsecurePackages = lib.optionals (lib.version < "24.05") [ "nix-2.15.3" ];
+        };
       };
       agenixCli = agenix.packages.${system}.default;
     in
