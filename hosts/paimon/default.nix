@@ -7,7 +7,6 @@
     ../../profiles/nixos/acme.nix
     ../../profiles/nixos/calibre-web.nix
     ../../profiles/nixos/dendrite.nix
-    ../../profiles/nixos/fastapi-dls.nix
     ../../profiles/nixos/gitlab.nix
     ../../profiles/nixos/mesh-commander.nix
     ../../profiles/nixos/nginx.nix
@@ -17,17 +16,40 @@
 
   # My settings
   codgician = {
-    services.nixos-vscode-server.enable = true;
-    system.agenix.enable = true;
-    users.codgi = {
-      enable = true;
-      extraGroups = [ "wheel" ];
-      extraSecrets = [ "codgiPassword" ];
+    services = {
+      fastapi-dls = rec {
+        enable = true;
+        host = "nvdls.codgician.me";
+        appDir = "/var/lib/fastapi-dls-app";
+        dataDir = "/mnt/data/fastapi-dls";
+        reverseProxy = {
+          enable = true;
+          https = true;
+          lanOnly = true;
+          domains = [
+            host
+            "sz.codgician.me"
+            "sz4.codgician.me"
+            "sz6.codgician.me"
+          ];
+        };
+      };
+      nixos-vscode-server.enable = true;
     };
-    users.bmc = {
-      enable = true;
-      createHome = false;
-      extraSecrets = [ "bmcPassword" ];
+
+    system.agenix.enable = true;
+
+    users = {
+      codgi = {
+        enable = true;
+        extraGroups = [ "wheel" ];
+        extraSecrets = [ "codgiPassword" ];
+      };
+      bmc = {
+        enable = true;
+        createHome = false;
+        extraSecrets = [ "bmcPassword" ];
+      };
     };
   };
 

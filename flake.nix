@@ -99,7 +99,6 @@
     , mobile-nixos
     , darwin
     , nur
-    , nur-xddxdd
     , agenix
     , impermanence
     , vscode-server
@@ -116,7 +115,10 @@
       # Basic configs for each host
       basicConfig = system: hostName: { config, ... }: {
         nix = {
-          settings.auto-optimise-store = true;
+          settings = {
+            sandbox = true;
+            auto-optimise-store = true;
+          };
           extraOptions = "experimental-features = nix-command flakes";
         };
 
@@ -145,7 +147,7 @@
         in
         darwin.lib.darwinSystem {
           inherit system;
-          specialArgs = { inherit lib pkgs inputs self system; };
+          specialArgs = { inherit inputs self system; };
           modules = [
             (import ./modules/darwin)
             (basicConfig system hostName)
@@ -166,43 +168,18 @@
         , system
         , nixpkgs ? inputs.nixpkgs
         , home-manager ? inputs.home-manager
-        , inheritPkgs ? true
         }: hostName:
         let
           lib = nixpkgs.lib;
           pkgs = import nixpkgs {
             inherit system;
             config.allowUnfree = true;
-            overlays = [
-              (final: prev: {
-                nur = import nur {
-                  nurpkgs = prev;
-                  pkgs = prev;
-                  repoOverrides = { xddxdd = import inputs.nur-xddxdd { pkgs = prev; }; };
-                };
-              })
-            ];
           };
         in
         nixpkgs.lib.nixosSystem {
           inherit system;
-          specialArgs = { inherit lib inputs self system; } // lib.optionalAttrs inheritPkgs { inherit pkgs; };
+          specialArgs = { inherit inputs self system; };
           modules = [
-            # Third-party binary caches
-            ({ config, ... }: {
-              nix.settings = {
-                sandbox = true;
-                substituters = [
-                  "https://xddxdd.cachix.org"
-                  "https://nix-community.cachix.org"
-                ];
-                trusted-public-keys = [
-                  "xddxdd.cachix.org-1:ay1HJyNDYmlSwj5NXQG065C8LfoqqKaTNCyzeixGjf8="
-                  "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-                ];
-              };
-            })
-
             (import ./modules/nixos)
             (basicConfig system hostName)
 
@@ -256,7 +233,6 @@
           ];
           nixpkgs = inputs.nixpkgs-nixos-unstable;
           home-manager = inputs.home-manager-unstable;
-          inheritPkgs = false;
         };
 
         # x86_64 machines

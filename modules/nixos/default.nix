@@ -4,5 +4,5 @@ let
 in
 {
   # Import modules under every directory
-  imports = builtins.map (x: import ./${x}) (dirNames ++ [ "../users" ]);
+  imports = builtins.map (x: import ./${x}) (dirNames ++ [ "../overlays" "../users" ]);
 }
