@@ -297,7 +297,7 @@
     {
       # Development shell: `nix develop .#name`
       devShells =
-        let commonPkgs = with pkgs; [ nixd agenixCli ];
+        let commonPkgs = with pkgs; [ agenixCli ];
         in {
           default = pkgs.mkShell {
             buildInputs = commonPkgs;
