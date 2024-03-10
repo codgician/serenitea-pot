@@ -6,7 +6,10 @@
       agenix.enable = true;
       brew = {
         enable = true;
-        casks = [ ];
+        casks = [ 
+          "bluebubbles"
+          "opencore-configurator" 
+        ];
         masApps = { };
       };
     };
