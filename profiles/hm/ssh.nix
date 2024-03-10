@@ -26,8 +26,8 @@
         hostname = "nahida.lan";
         user = "codgi";
       };
-      "panther" = {
-        hostname = "panther.lan";
+      "raiden-ei" = {
+        hostname = "raiden-ei.lan";
         user = "codgi";
       };
       "openwrt" = {

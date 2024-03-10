@@ -237,9 +237,9 @@
         };
 
         # x86_64 machines
-        "panther" = darwinSystem {
+        "raiden-ei" = darwinSystem {
           system = "x86_64-darwin";
-          extraModules = [ ./hosts/panther ];
+          extraModules = [ ./hosts/raiden-ei ];
         };
       };
 
