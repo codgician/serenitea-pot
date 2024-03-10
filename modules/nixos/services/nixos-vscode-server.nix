@@ -8,9 +8,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    services.vscode-server = {
-      enable = true;
-      extraRuntimeDependencies = with pkgs; [ direnv rnix-lsp ];
-    };
+    services.vscode-server.enable = true;
   };
 }

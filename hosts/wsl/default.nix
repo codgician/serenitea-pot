@@ -28,7 +28,7 @@
     ];
 
     home.stateVersion = "23.11";
-    home.packages = with pkgs; [ httplz rnix-lsp iperf3 ];
+    home.packages = with pkgs; [ httplz iperf3 ];
   };
 
   networking.useNetworkd = true;

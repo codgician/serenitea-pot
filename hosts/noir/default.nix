@@ -38,7 +38,7 @@
     ];
 
     home.stateVersion = "23.11";
-    home.packages = with pkgs; [ httplz rnix-lsp iperf3 screen ];
+    home.packages = with pkgs; [ httplz iperf3 screen ];
   };
 
   # Set your time zone.

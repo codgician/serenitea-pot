@@ -172,12 +172,7 @@
           lib = nixpkgs.lib;
           pkgs = import nixpkgs {
             inherit system;
-            config = {
-              allowUnfree = true;
-              # todo: remove after onboarding 24.05
-              permittedInsecurePackages = lib.optionals (lib.version < "24.05") [ "nix-2.15.3" ];
-            };
-
+            config.allowUnfree = true;
             overlays = [
               (final: prev: {
                 nur = import nur {
@@ -295,18 +290,14 @@
       lib = nixpkgs.lib;
       pkgs = import nixpkgs {
         inherit system;
-        config = {
-          allowUnfree = true;
-          # todo: remove after onboarding 24.05
-          permittedInsecurePackages = lib.optionals (lib.version < "24.05") [ "nix-2.15.3" ];
-        };
+        config.allowUnfree = true;
       };
       agenixCli = agenix.packages.${system}.default;
     in
     {
       # Development shell: `nix develop .#name`
       devShells =
-        let commonPkgs = with pkgs; [ rnix-lsp agenixCli ];
+        let commonPkgs = with pkgs; [ nixd agenixCli ];
         in {
           default = pkgs.mkShell {
             buildInputs = commonPkgs;

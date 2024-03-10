@@ -35,7 +35,6 @@
     home.stateVersion = "23.11";
     home.packages = with pkgs; [
       httplz
-      rnix-lsp
       iperf3
       aria2
       httping
