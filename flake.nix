@@ -156,7 +156,6 @@
             agenix.darwinModules.default
 
             ({ config, ... }: {
-              nix.settings.sandbox = false;
               services.nix-daemon.enable = true;
             })
           ] ++ extraModules;
