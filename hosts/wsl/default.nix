@@ -1,16 +1,16 @@
 { config, pkgs, agenix, nixos-wsl, ... }:
 {
-  imports = [
-    # Services
-    ../../profiles/nixos/vscode-server.nix
-  ];
-
   # My settings
   codgician = {
+    services = {
+      nixos-vscode-server.enable = true;
+    };
+
     system = {
       agenix.enable = true;
       wsl.enable = true;
     };
+    
     users.codgi = {
       enable = true;
       extraGroups = [ "wheel" ];
