@@ -27,4 +27,4 @@ We got:
                 └───/nix/store/3kd50mza2szav6x48wmiib93zl8kj7kf-nix-2.15.3.drv
 ```
 
-Now we understand the vulnerable package was introduced by `rnix-lsp-unstable`, a already deprecated package.
+Now we understand the vulnerable package was introduced by `rnix-lsp-unstable`, an already deprecated package.
