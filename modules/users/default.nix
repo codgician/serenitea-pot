@@ -68,7 +68,7 @@ let
     };
   };
 
-  # Create assertions for each user
+  # Define assertions for each user
   mkUserAssertions = name: lib.mkIf cfg.${name}.enable [
     {
       assertion = !(cfg.${name}?hashedPassword) || agenixEnabled || cfg.${name}.hashedPassword != null;
@@ -81,7 +81,7 @@ let
     }
   ];
 
-  # Make configurations for each user
+  # Define configurations for each user
   mkUserConfig = name: lib.mkIf cfg.${name}.enable (lib.mkMerge [
     # Import user specific options
     (import ./${name} { inherit config lib pkgs; })

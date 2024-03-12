@@ -69,72 +69,73 @@ in
     let
       virtualHost = builtins.elemAt cfg.reverseProxy.domains 0;
     in
-    lib.mkIf cfg.enable {
-      # Use fastapi-dls package from xddxdd's NUR
-      codgician.overlays.nur.xddxdd.enable = lib.mkForce true;
+    lib.mkIf cfg.enable
+      {
+        # Use fastapi-dls package from xddxdd's NUR
+        codgician.overlays.nur.xddxdd.enable = lib.mkForce true;
 
-      # Systemd service for fastapi-dls
-      systemd.services.fastapi-dls = {
-        enable = true;
-        restartIfChanged = true;
-        description = "fastapi-dls";
-        wantedBy = [ "multi-user.target" ];
-        requires = lib.optionals cfg.reverseProxy.https [ "acme-finished-${virtualHost}.target" ];
+        # Systemd service for fastapi-dls
+        systemd.services.fastapi-dls = {
+          enable = true;
+          restartIfChanged = true;
+          description = "fastapi-dls";
+          wantedBy = [ "multi-user.target" ];
+          requires = lib.optionals cfg.reverseProxy.https [ "acme-finished-${virtualHost}.target" ];
 
-        serviceConfig = {
-          Type = "simple";
-          ExecStart =
-            let
-              credsDir = "/run/credentials/fastapi-dls.service";
-              envFile = pkgs.writeTextFile {
-                name = "fastapi-dls-env";
-                text = ''
-                  DLS_URL=${cfg.host}
-                  DLS_PORT=${builtins.toString cfg.port}
-                  LEASE_EXPIRE_DAYS=${builtins.toString cfg.leaseDays}
-                  DATABASE=sqlite:///${cfg.dataDir}/db.sqlite
-                '';
-              };
-            in
-            ''
-              ${pkgs.nur.repos.xddxdd.fastapi-dls}/bin/fastapi-dls \
-                --host 127.0.0.1 --port ${builtins.toString cfg.port} \
-                --app-dir ${cfg.appDir} \
-                --ssl-keyfile ${credsDir}/key.pem --ssl-certfile ${credsDir}/cert.pem \
-                --env-file ${envFile} \
-                --proxy-headers
-            '';
-          LoadCredential =
-            let certDir = config.security.acme.certs."${virtualHost}".directory; in
-            [
-              "cert.pem:${certDir}/cert.pem"
-              "key.pem:${certDir}/key.pem"
-            ];
-          WorkingDirectory = cfg.appDir;
-          Restart = "always";
-          User = cfg.user;
-          Group = cfg.group;
-          KillSignal = "SIGQUIT";
-          NotifyAccess = "all";
-          AmbientCapabilities = "CAP_NET_BIND_SERVICE";
-        };
-      };
-
-      # # User and group
-      users = {
-        users = lib.mkIf (cfg.user == "fastapi-dls") {
-          fastapi-dls = {
-            group = cfg.group;
-            isSystemUser = true;
+          serviceConfig = {
+            Type = "simple";
+            ExecStart =
+              let
+                credsDir = "/run/credentials/fastapi-dls.service";
+                envFile = pkgs.writeTextFile {
+                  name = "fastapi-dls-env";
+                  text = ''
+                    DLS_URL=${cfg.host}
+                    DLS_PORT=${builtins.toString cfg.port}
+                    LEASE_EXPIRE_DAYS=${builtins.toString cfg.leaseDays}
+                    DATABASE=sqlite:///${cfg.dataDir}/db.sqlite
+                  '';
+                };
+              in
+              ''
+                ${pkgs.nur.repos.xddxdd.fastapi-dls}/bin/fastapi-dls \
+                  --host 127.0.0.1 --port ${builtins.toString cfg.port} \
+                  --app-dir ${cfg.appDir} \
+                  --ssl-keyfile ${credsDir}/key.pem --ssl-certfile ${credsDir}/cert.pem \
+                  --env-file ${envFile} \
+                  --proxy-headers
+              '';
+            LoadCredential =
+              let certDir = config.security.acme.certs."${virtualHost}".directory; in
+              [
+                "cert.pem:${certDir}/cert.pem"
+                "key.pem:${certDir}/key.pem"
+              ];
+            WorkingDirectory = cfg.appDir;
+            Restart = "always";
+            User = cfg.user;
+            Group = cfg.group;
+            KillSignal = "SIGQUIT";
+            NotifyAccess = "all";
+            AmbientCapabilities = "CAP_NET_BIND_SERVICE";
           };
         };
-        groups = lib.mkIf (cfg.group == "fastapi-dls") {
-          fastapi-dls = { };
-        };
-      };
 
+        # # User and group
+        users = {
+          users = lib.mkIf (cfg.user == "fastapi-dls") {
+            fastapi-dls = {
+              group = cfg.group;
+              isSystemUser = true;
+            };
+          };
+          groups = lib.mkIf (cfg.group == "fastapi-dls") {
+            fastapi-dls = { };
+          };
+        };
+      } // lib.mkIf cfg.reverseProxy.enable {
       # Nginx reverse proxy settings
-      services.nginx.virtualHosts."${virtualHost}" = lib.mkIf cfg.reverseProxy.enable {
+      services.nginx.virtualHosts."${virtualHost}" = {
         locations."/" = {
           proxyPass = "https://127.0.0.1:${builtins.toString cfg.port}";
           proxyWebsockets = true;
@@ -156,7 +157,7 @@ in
       };
 
       # SSL certificate
-      security.acme.certs."${virtualHost}" = {
+      security.acme.certs."${virtualHost}" = lib.mkIf cfg.reverseProxy.https {
         domain = virtualHost;
         extraDomainNames = builtins.tail cfg.reverseProxy.domains;
         group = config.services.nginx.user;
