@@ -14,7 +14,9 @@ let
   mkUserOptions = name: {
     "${name}" = {
       enable = lib.mkEnableOption ''Enable user "${name}".'';
+
       createHome = lib.mkEnableOption ''Whether or not to create home directory for user "${name}".'';
+
       home = lib.mkOption {
         type = lib.types.path;
         default = if pkgs.stdenvNoCC.isLinux then "/home/${name}" else "/Users/${name}";
@@ -22,6 +24,7 @@ let
           Path of home directory for user "${name}".
         '';
       };
+
       extraSecrets = lib.mkOption {
         type = lib.types.listOf lib.types.str;
         default = [ ];
@@ -30,6 +33,7 @@ let
           They should also be existing under `/secrets` directory.
         '';
       };
+
     } // lib.optionalAttrs pkgs.stdenvNoCC.isLinux {
       extraGroups = lib.mkOption {
         type = lib.types.listOf lib.types.str;
@@ -104,6 +108,8 @@ let
         home = cfg.${name}.home;
       } // lib.optionalAttrs (cfg.${name}?extraGroups) {
         extraGroups = cfg.${name}.extraGroups;
+      } // lib.optionalAttrs pkgs.stdenvNoCC.isLinux {
+        hashedPasswordFile = lib.mkIf (systemCfg?agenix && systemCfg.agenix.enable) config.age.secrets."${name}HashedPassword".path;
       };
     }
   ]);

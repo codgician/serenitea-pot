@@ -17,8 +17,6 @@ in
     # Linux-specific configurations
     (lib.mkIf pkgs.stdenvNoCC.isLinux {
       isNormalUser = true;
-      hashedPasswordFile = config.age.secrets."${name}HashedPassword".path;
-      extraGroups = cfg.extraGroups;
     })
   ];
 

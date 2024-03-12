@@ -8,7 +8,5 @@ in
     inherit name;
     description = "bmc samba user";
     isNormalUser = true;
-    hashedPasswordFile = config.age.secrets."${name}HashedPassword".path;
-    extraGroups = cfg.extraGroups;
   };
 }
