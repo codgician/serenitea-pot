@@ -249,7 +249,7 @@
           system = "x86_64-linux";
           extraModules = [ ./hosts/lumine ];
         };
-        
+
         "wsl" = nixosSystem {
           system = "x86_64-linux";
           extraModules = [ ./hosts/wsl ];

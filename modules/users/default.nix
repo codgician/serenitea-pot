@@ -3,9 +3,14 @@ let
   dirs = builtins.readDir ./.;
   secretsDir = ../../secrets;
   secretsFile = secretsDir + "/secrets.nix";
-  concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
+
   cfg = config.codgician.users;
   systemCfg = config.codgician.system;
+  types = lib.types;
+
+  agenixEnabled = (systemCfg?agenix && systemCfg.agenix.enable);
+  concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
+  getAgeSecretNameFromPath = path: lib.removeSuffix ".age" (builtins.baseNameOf path);
 
   # Use list of sub-folder names as list of available users
   users = builtins.filter (name: dirs.${name} == "directory") (builtins.attrNames dirs);
@@ -18,25 +23,43 @@ let
       createHome = lib.mkEnableOption ''Whether or not to create home directory for user "${name}".'';
 
       home = lib.mkOption {
-        type = lib.types.path;
+        type = types.path;
         default = if pkgs.stdenvNoCC.isLinux then "/home/${name}" else "/Users/${name}";
         description = lib.mdDoc ''
           Path of home directory for user "${name}".
         '';
       };
 
-      extraSecrets = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
+      extraAgeFiles = lib.mkOption {
+        type = types.listOf types.path;
         default = [ ];
         description = lib.mdDoc ''
-          File names (excluding extension) additional secrets (agenix) owned by user "${name}" excluding "${name}HashedPassword".
-          They should also be existing under `/secrets` directory.
+          Paths to `.age` secret files owned by user "${name}" excluding `hashedPasswordAgeFile`.
+          Only effective when agenix is enabled. 
         '';
       };
 
     } // lib.optionalAttrs pkgs.stdenvNoCC.isLinux {
+      hashedPassword = lib.mkOption {
+        type = with types; nullOr (passwdEntry str);
+        default = null;
+        description = lib.mdDoc ''
+          Hashed password for user "${name}". Only effective when agenix is **NOT** enabled.
+          To generate a hashed password, run `mkpasswd`.
+        '';
+      };
+
+      hashedPasswordAgeFile = lib.mkOption {
+        type = with types; nullOr path;
+        default = null;
+        description = lib.mdDoc ''
+          Path to hashed password file encrypted managed by agenix.
+          Should only be set when agenix is enabled.
+        '';
+      };
+
       extraGroups = lib.mkOption {
-        type = lib.types.listOf lib.types.str;
+        type = types.listOf types.str;
         default = [ ];
         description = lib.mdDoc ''
           Auxiliary groups for user "${name}".
@@ -46,22 +69,17 @@ let
   };
 
   # Create assertions for each user
-  mkUserAssertions = name:
-    let
-      hashedPasswordFileName = "${name}HashedPassword.age";
-      hashedPasswordFilePath = secretsDir + "/${hashedPasswordFileName}";
-    in
-    lib.mkIf cfg.${name}.enable [
-      # Each user must have hashed password file in secrets directory
-      {
-        assertion = builtins.pathExists hashedPasswordFilePath;
-        message = ''User '${name}' must have hashed password file: '${hashedPasswordFilePath}'.'';
-      }
-      {
-        assertion = builtins.hasAttr hashedPasswordFileName (import secretsFile);
-        message = '''${hashedPasswordFileName}' must be defined in '${secretsFile}'.'';
-      }
-    ];
+  mkUserAssertions = name: lib.mkIf cfg.${name}.enable [
+    {
+      assertion = agenixEnabled || (cfg.${name}?hashedPassword && cfg.${name}.hashedPassword != null);
+      message = ''User "${name}" must have `hashedPassword` specified because agenix module is not enabled.'';
+    }
+
+    {
+      assertion = !agenixEnabled || (cfg.${name}?hashedPasswordAgeFile && cfg.${name}.hashedPasswordAgeFile != null);
+      message = ''User "${name}" must have `hashedPasswordAgeFile` specified because agenix module is enabled.'';
+    }
+  ];
 
   # Make configurations for each user
   mkUserConfig = name: lib.mkIf cfg.${name}.enable (lib.mkMerge [
@@ -85,19 +103,18 @@ let
 
     # Agenix: manage secrets if enabled
     {
-      age.secrets = lib.optionalAttrs (systemCfg?agenix && systemCfg.agenix.enable)
-        (
-          let
-            mkSecretConfig = fileName: {
-              "${fileName}" = {
-                file = (secretsDir + "/${fileName}.age");
-                mode = "600";
-                owner = name;
-              };
+      age.secrets = lib.optionalAttrs agenixEnabled (
+        let
+          mkSecretConfig = path: {
+            "${getAgeSecretNameFromPath path}" = {
+              file = path;
+              mode = "600";
+              owner = name;
             };
-          in
-          concatAttrs (builtins.map mkSecretConfig (cfg.${name}.extraSecrets ++ [ "${name}HashedPassword" ]))
-        );
+          };
+        in
+        concatAttrs (builtins.map mkSecretConfig (cfg.${name}.extraAgeFiles ++ [ cfg.${name}.hashedPasswordAgeFile ]))
+      );
     }
 
     # Common options
@@ -109,7 +126,9 @@ let
       } // lib.optionalAttrs (cfg.${name}?extraGroups) {
         extraGroups = cfg.${name}.extraGroups;
       } // lib.optionalAttrs pkgs.stdenvNoCC.isLinux {
-        hashedPasswordFile = lib.mkIf (systemCfg?agenix && systemCfg.agenix.enable) config.age.secrets."${name}HashedPassword".path;
+        hashedPassword = lib.mkIf (!agenixEnabled) cfg.${name}.hashedPassword;
+        hashedPasswordFile = lib.mkIf (agenixEnabled)
+          config.age.secrets."${getAgeSecretNameFromPath cfg.${name}.hashedPasswordAgeFile}".path;
       };
     }
   ]);

@@ -24,7 +24,7 @@ in
       default = "fastapi-dls";
       description = lib.mdDoc "User under which fastapi-dls runs.";
     };
-    
+
     group = lib.mkOption {
       type = types.str;
       default = "fastapi-dls";
@@ -51,7 +51,7 @@ in
 
     reverseProxy = {
       enable = lib.mkEnableOption "Enable nginx reverse proxy profile for fastapi-dls.";
-      
+
       https = lib.mkEnableOption "Use https and auto-renew certificates.";
 
       domains = lib.mkOption {
@@ -65,104 +65,106 @@ in
     };
   };
 
-  config = let 
-    virtualHost = builtins.elemAt cfg.reverseProxy.domains 0;
-  in lib.mkIf cfg.enable {
-    # Use fastapi-dls package from xddxdd's NUR
-    codgician.overlays.nur.xddxdd.enable = lib.mkForce true;
+  config =
+    let
+      virtualHost = builtins.elemAt cfg.reverseProxy.domains 0;
+    in
+    lib.mkIf cfg.enable {
+      # Use fastapi-dls package from xddxdd's NUR
+      codgician.overlays.nur.xddxdd.enable = lib.mkForce true;
 
-    # Systemd service for fastapi-dls
-    systemd.services.fastapi-dls = {
-      enable = true;
-      restartIfChanged = true;
-      description = "fastapi-dls";
-      wantedBy = [ "multi-user.target" ];
-      requires = lib.optionals cfg.reverseProxy.https [ "acme-finished-${virtualHost}.target" ];
+      # Systemd service for fastapi-dls
+      systemd.services.fastapi-dls = {
+        enable = true;
+        restartIfChanged = true;
+        description = "fastapi-dls";
+        wantedBy = [ "multi-user.target" ];
+        requires = lib.optionals cfg.reverseProxy.https [ "acme-finished-${virtualHost}.target" ];
 
-      serviceConfig = {
-        Type = "simple";
-        ExecStart =
-          let
-            credsDir = "/run/credentials/fastapi-dls.service";
-            envFile = pkgs.writeTextFile {
-              name = "fastapi-dls-env";
-              text = ''
-                DLS_URL=${cfg.host}
-                DLS_PORT=${builtins.toString cfg.port}
-                LEASE_EXPIRE_DAYS=${builtins.toString cfg.leaseDays}
-                DATABASE=sqlite:///${cfg.dataDir}/db.sqlite
-              '';
-            };
-          in
-          ''
-            ${pkgs.nur.repos.xddxdd.fastapi-dls}/bin/fastapi-dls \
-              --host 127.0.0.1 --port ${builtins.toString cfg.port} \
-              --app-dir ${cfg.appDir} \
-              --ssl-keyfile ${credsDir}/key.pem --ssl-certfile ${credsDir}/cert.pem \
-              --env-file ${envFile} \
-              --proxy-headers
-          '';
-        LoadCredential =
-          let certDir = config.security.acme.certs."${virtualHost}".directory; in
-          [
-            "cert.pem:${certDir}/cert.pem"
-            "key.pem:${certDir}/key.pem"
-          ];
-        WorkingDirectory = cfg.appDir;
-        Restart = "always";
-        User = cfg.user;
-        Group = cfg.group;
-        KillSignal = "SIGQUIT";
-        NotifyAccess = "all";
-        AmbientCapabilities = "CAP_NET_BIND_SERVICE";
-      };
-    };
-
-    # # User and group
-    users = {
-      users = lib.mkIf (cfg.user == "fastapi-dls") {
-        fastapi-dls = {
-          group = cfg.group;
-          isSystemUser = true;
+        serviceConfig = {
+          Type = "simple";
+          ExecStart =
+            let
+              credsDir = "/run/credentials/fastapi-dls.service";
+              envFile = pkgs.writeTextFile {
+                name = "fastapi-dls-env";
+                text = ''
+                  DLS_URL=${cfg.host}
+                  DLS_PORT=${builtins.toString cfg.port}
+                  LEASE_EXPIRE_DAYS=${builtins.toString cfg.leaseDays}
+                  DATABASE=sqlite:///${cfg.dataDir}/db.sqlite
+                '';
+              };
+            in
+            ''
+              ${pkgs.nur.repos.xddxdd.fastapi-dls}/bin/fastapi-dls \
+                --host 127.0.0.1 --port ${builtins.toString cfg.port} \
+                --app-dir ${cfg.appDir} \
+                --ssl-keyfile ${credsDir}/key.pem --ssl-certfile ${credsDir}/cert.pem \
+                --env-file ${envFile} \
+                --proxy-headers
+            '';
+          LoadCredential =
+            let certDir = config.security.acme.certs."${virtualHost}".directory; in
+            [
+              "cert.pem:${certDir}/cert.pem"
+              "key.pem:${certDir}/key.pem"
+            ];
+          WorkingDirectory = cfg.appDir;
+          Restart = "always";
+          User = cfg.user;
+          Group = cfg.group;
+          KillSignal = "SIGQUIT";
+          NotifyAccess = "all";
+          AmbientCapabilities = "CAP_NET_BIND_SERVICE";
         };
       };
-      groups = lib.mkIf (cfg.group == "fastapi-dls") {
-        fastapi-dls = { };
+
+      # # User and group
+      users = {
+        users = lib.mkIf (cfg.user == "fastapi-dls") {
+          fastapi-dls = {
+            group = cfg.group;
+            isSystemUser = true;
+          };
+        };
+        groups = lib.mkIf (cfg.group == "fastapi-dls") {
+          fastapi-dls = { };
+        };
+      };
+
+      # Nginx reverse proxy settings
+      services.nginx.virtualHosts."${virtualHost}" = lib.mkIf cfg.reverseProxy.enable {
+        locations."/" = {
+          proxyPass = "https://127.0.0.1:${builtins.toString cfg.port}";
+          proxyWebsockets = true;
+          recommendedProxySettings = true;
+          extraConfig = ''
+            proxy_buffering off;
+          '' + (lib.optionals cfg.reverseProxy.lanOnly ''
+            deny all;
+            allow 10.0.0.0/8;
+            allow 172.16.0.0/12;
+            allow 192.168.0.0/16;
+            allow fc00::/7;
+          '');
+        };
+
+        forceSSL = cfg.reverseProxy.https;
+        enableACME = cfg.reverseProxy.https;
+        acmeRoot = null;
+      };
+
+      # SSL certificate
+      security.acme.certs."${virtualHost}" = {
+        domain = virtualHost;
+        extraDomainNames = builtins.tail cfg.reverseProxy.domains;
+        group = config.services.nginx.user;
+
+        # Load new certificate
+        postRun = ''
+          ${pkgs.systemd}/bin/systemctl restart fastapi-dls
+        '';
       };
     };
-
-    # Nginx reverse proxy settings
-    services.nginx.virtualHosts."${virtualHost}" = lib.mkIf cfg.reverseProxy.enable {
-      locations."/" = {
-        proxyPass = "https://127.0.0.1:${builtins.toString cfg.port}";
-        proxyWebsockets = true;
-        recommendedProxySettings = true;
-        extraConfig = ''
-          proxy_buffering off;
-        '' + (lib.optionals cfg.reverseProxy.lanOnly ''
-          deny all;
-          allow 10.0.0.0/8;
-          allow 172.16.0.0/12;
-          allow 192.168.0.0/16;
-          allow fc00::/7;
-        '');
-      };
-      
-      forceSSL = cfg.reverseProxy.https;
-      enableACME = cfg.reverseProxy.https;
-      acmeRoot = null;
-    };
-
-    # SSL certificate
-    security.acme.certs."${virtualHost}" = {
-      domain = virtualHost;
-      extraDomainNames = builtins.tail cfg.reverseProxy.domains;
-      group = config.services.nginx.user;
-
-      # Load new certificate
-      postRun = ''
-        ${pkgs.systemd}/bin/systemctl restart fastapi-dls
-      '';
-    };
-  };
 }

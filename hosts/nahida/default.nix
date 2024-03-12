@@ -20,10 +20,15 @@
       secure-boot.enable = true;
     };
 
-    users.codgi = {
-      enable = true;
-      extraGroups = [ "wheel" ];
-    };
+    users.codgi =
+      let
+        secretsDir = ../../secrets;
+      in
+      {
+        enable = true;
+        hashedPasswordAgeFile = secretsDir + "/codgiHashedPassword.age";
+        extraGroups = [ "wheel" ];
+      };
   };
 
   # Home manager

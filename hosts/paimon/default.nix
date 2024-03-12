@@ -39,18 +39,24 @@
 
     system.agenix.enable = true;
 
-    users = {
-      codgi = {
-        enable = true;
-        extraGroups = [ "wheel" ];
-        extraSecrets = [ "codgiPassword" ];
+    users =
+      let
+        secretsDir = ../../secrets;
+      in
+      {
+        codgi = {
+          enable = true;
+          hashedPasswordAgeFile = secretsDir + "/codgiHashedPassword.age";
+          extraAgeFiles = [ (secretsDir + "/codgiPassword.age") ];
+          extraGroups = [ "wheel" ];
+        };
+        bmc = {
+          enable = true;
+          createHome = false;
+          hashedPasswordAgeFile = secretsDir + "/bmcHashedPassword.age";
+          extraAgeFiles = [ (secretsDir + "/bmcPassword.age") ];
+        };
       };
-      bmc = {
-        enable = true;
-        createHome = false;
-        extraSecrets = [ "bmcPassword" ];
-      };
-    };
   };
 
   # Home manager
