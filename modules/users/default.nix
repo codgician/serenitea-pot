@@ -71,12 +71,12 @@ let
   # Create assertions for each user
   mkUserAssertions = name: lib.mkIf cfg.${name}.enable [
     {
-      assertion = agenixEnabled || (cfg.${name}?hashedPassword && cfg.${name}.hashedPassword != null);
+      assertion = !(cfg.${name}?hashedPassword) || agenixEnabled || cfg.${name}.hashedPassword != null;
       message = ''User "${name}" must have `hashedPassword` specified because agenix module is not enabled.'';
     }
 
     {
-      assertion = !agenixEnabled || (cfg.${name}?hashedPasswordAgeFile && cfg.${name}.hashedPasswordAgeFile != null);
+      assertion = !(cfg.${name}?hashedPasswordAgeFile) || !agenixEnabled || cfg.${name}.hashedPasswordAgeFile != null;
       message = ''User "${name}" must have `hashedPasswordAgeFile` specified because agenix module is enabled.'';
     }
   ];
@@ -113,7 +113,10 @@ let
             };
           };
         in
-        concatAttrs (builtins.map mkSecretConfig (cfg.${name}.extraAgeFiles ++ [ cfg.${name}.hashedPasswordAgeFile ]))
+        concatAttrs (builtins.map mkSecretConfig (
+          cfg.${name}.extraAgeFiles ++
+          (lib.optionals (cfg.${name}?hashedPasswordAgeFile) [ cfg.${name}.hashedPasswordAgeFile ])
+        ))
       );
     }
 

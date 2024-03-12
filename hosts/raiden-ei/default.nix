@@ -52,4 +52,6 @@
     enable = true;
     promptInit = "";
   };
+
+  nixpkgs.config.allowUnfree = true;
 }
