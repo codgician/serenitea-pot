@@ -224,11 +224,11 @@
           home-manager = inputs.home-manager-unstable;
         };
 
-        "noir" = nixosSystem {
+        "charlotte" = nixosSystem {
           system = "aarch64-linux";
           extraModules = [
             (import "${inputs.mobile-nixos}/lib/configuration.nix" { device = "lenovo-krane"; })
-            ./hosts/noir
+            ./hosts/charlotte
           ];
           nixpkgs = inputs.nixpkgs-nixos-unstable;
           home-manager = inputs.home-manager-unstable;
