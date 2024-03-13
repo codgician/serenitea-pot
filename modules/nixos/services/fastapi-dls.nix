@@ -9,7 +9,7 @@ in
 
     host = lib.mkOption {
       type = types.str;
-      example = "nvdls.example.com";
+      default = "nvdls.codgician.me";
       description = lib.mdDoc "Hostname for fastapi-dls, passed as `--host`.";
     };
 
@@ -56,7 +56,6 @@ in
 
       domains = lib.mkOption {
         type = types.listOf types.str;
-        example = [ "nvdls.example.com" ];
         default = [ cfg.host ];
         description = lib.mdDoc "List of domains. The first one will be treated as virtual host name.";
       };
@@ -67,10 +66,10 @@ in
 
   config =
     let
-      virtualHost = builtins.elemAt cfg.reverseProxy.domains 0;
+      virtualHost = builtins.head cfg.reverseProxy.domains;
     in
     lib.mkIf cfg.enable
-      {
+      ({
         # Use fastapi-dls package from xddxdd's NUR
         codgician.overlays.nur.xddxdd.enable = lib.mkForce true;
 
@@ -121,7 +120,7 @@ in
           };
         };
 
-        # # User and group
+        # User and group
         users = {
           users = lib.mkIf (cfg.user == "fastapi-dls") {
             fastapi-dls = {
@@ -133,39 +132,44 @@ in
             fastapi-dls = { };
           };
         };
+
+        # Assertions
+        assertions = [
+          {
+            assertion = !cfg.reverseProxy.enable || !cfg.reverseProxy.https || (config.codgician.acme?"${virtualHost}");
+            message = ''Domain "${virtualHost}" must have its certificate retrieval settings added to acme module.'';
+          }
+        ];
       } // lib.mkIf cfg.reverseProxy.enable {
-      # Nginx reverse proxy settings
-      services.nginx.virtualHosts."${virtualHost}" = {
-        locations."/" = {
-          proxyPass = "https://127.0.0.1:${builtins.toString cfg.port}";
-          proxyWebsockets = true;
-          recommendedProxySettings = true;
-          extraConfig = ''
-            proxy_buffering off;
-          '' + (lib.optionals cfg.reverseProxy.lanOnly ''
-            deny all;
-            allow 10.0.0.0/8;
-            allow 172.16.0.0/12;
-            allow 192.168.0.0/16;
-            allow fc00::/7;
-          '');
+        # Nginx reverse proxy settings
+        services.nginx.virtualHosts."${virtualHost}" = {
+          locations."/" = {
+            proxyPass = "https://127.0.0.1:${builtins.toString cfg.port}";
+            proxyWebsockets = true;
+            recommendedProxySettings = true;
+            extraConfig = ''
+              proxy_buffering off;
+            '' + (lib.optionals cfg.reverseProxy.lanOnly ''
+              deny all;
+              allow 10.0.0.0/8;
+              allow 172.16.0.0/12;
+              allow 192.168.0.0/16;
+              allow fc00::/7;
+            '');
+          };
+
+          forceSSL = cfg.reverseProxy.https;
+          enableACME = cfg.reverseProxy.https;
+          acmeRoot = null;
         };
 
-        forceSSL = cfg.reverseProxy.https;
-        enableACME = cfg.reverseProxy.https;
-        acmeRoot = null;
-      };
-
-      # SSL certificate
-      security.acme.certs."${virtualHost}" = lib.mkIf cfg.reverseProxy.https {
-        domain = virtualHost;
-        extraDomainNames = builtins.tail cfg.reverseProxy.domains;
-        group = config.services.nginx.user;
-
-        # Load new certificate
-        postRun = ''
-          ${pkgs.systemd}/bin/systemctl restart fastapi-dls
-        '';
-      };
-    };
+        # Enable SSL certificate for virtual host
+        codgician.acme = lib.mkIf cfg.reverseProxy.https {
+          "${virtualHost}" = {
+            enable = true;
+            extraDomainNames = builtins.tail cfg.reverseProxy.domains;
+            postRunScripts = [ "${pkgs.systemd}/bin/systemctl restart fastapi-dls" ];
+          };
+        };
+      });
 }

@@ -1,3 +1,5 @@
+# DEPRECATED: This file will be removed when all files are migrated to nix module
+
 { config, pkgs, ... }: {
 
   config = {
@@ -12,17 +14,17 @@
     };
 
     # Protect secrets
-    age.secrets =
-      let
-        secretsDir = ../../secrets;
-        nameToObj = name: {
-          "${name}" = {
-            file = (secretsDir + "/${name}.age");
-            owner = "root";
-            mode = "600";
-          };
-        };
-      in
-      builtins.foldl' (x: y: x // y) { } (map (nameToObj) [ "cloudflareCredential" ]);
+    # age.secrets =
+    #   let
+    #     secretsDir = ../../secrets;
+    #     nameToObj = name: {
+    #       "${name}" = {
+    #         file = (secretsDir + "/${name}.age");
+    #         owner = "root";
+    #         mode = "600";
+    #       };
+    #     };
+    #   in
+    #   builtins.foldl' (x: y: x // y) { } (map (nameToObj) [ "cloudflareCredential" ]);
   };
 }

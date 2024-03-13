@@ -1,6 +1,5 @@
 { config, lib, pkgs, ... }:
 let
-  dirs = builtins.readDir ./.;
   secretsDir = ../../secrets;
   secretsFile = secretsDir + "/secrets.nix";
 
@@ -13,6 +12,7 @@ let
   getAgeSecretNameFromPath = path: lib.removeSuffix ".age" (builtins.baseNameOf path);
 
   # Use list of sub-folder names as list of available users
+  dirs = builtins.readDir ./.;
   users = builtins.filter (name: dirs.${name} == "directory") (builtins.attrNames dirs);
 
   # Define module options for each user

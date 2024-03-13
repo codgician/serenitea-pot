@@ -1,26 +1,26 @@
 let
   pubKeys = import ./pubKeys.nix;
 in
-with pubKeys.hosts; {
+with pubKeys; with pubKeys.hosts; {
   # User password
-  "codgiPassword.age".publicKeys = pubKeys.someHosts [ paimon ];
-  "codgiHashedPassword.age".publicKeys = pubKeys.allHosts;
-  "bmcPassword.age".publicKeys = pubKeys.someHosts [ paimon ];
-  "bmcHashedPassword.age".publicKeys = pubKeys.someHosts [ paimon ];
+  "codgiPassword.age".publicKeys = someHosts [ paimon ];
+  "codgiHashedPassword.age".publicKeys = allHosts;
+  "bmcPassword.age".publicKeys = someHosts [ paimon ];
+  "bmcHashedPassword.age".publicKeys = someHosts [ paimon ];
 
   # Cloudflare token
-  "cloudflareCredential.age".publicKeys = pubKeys.allServers;
+  "cloudflareCredential.age".publicKeys = allServers;
 
   # GitLab secrets
-  "gitlabInitRootPasswd.age".publicKeys = pubKeys.someHosts [ paimon ];
-  "gitlabDb.age".publicKeys = pubKeys.someHosts [ paimon ];
-  "gitlabJws.age".publicKeys = pubKeys.someHosts [ paimon ];
-  "gitlabOtp.age".publicKeys = pubKeys.someHosts [ paimon ];
-  "gitlabSecret.age".publicKeys = pubKeys.someHosts [ paimon ];
-  "gitlabSmtp.age".publicKeys = pubKeys.someHosts [ paimon ];
-  "gitlabOmniAuthGitHub.age".publicKeys = pubKeys.someHosts [ paimon ];
+  "gitlabInitRootPasswd.age".publicKeys = someHosts [ paimon ];
+  "gitlabDb.age".publicKeys = someHosts [ paimon ];
+  "gitlabJws.age".publicKeys = someHosts [ paimon ];
+  "gitlabOtp.age".publicKeys = someHosts [ paimon ];
+  "gitlabSecret.age".publicKeys = someHosts [ paimon ];
+  "gitlabSmtp.age".publicKeys = someHosts [ paimon ];
+  "gitlabOmniAuthGitHub.age".publicKeys = someHosts [ paimon ];
 
   # Matrix secrets
-  "matrixGlobalPrivateKey.age".publicKeys = pubKeys.someHosts [ paimon ];
-  "matrixEnv.age".publicKeys = pubKeys.someHosts [ paimon ];
+  "matrixGlobalPrivateKey.age".publicKeys = someHosts [ paimon ];
+  "matrixEnv.age".publicKeys = someHosts [ paimon ];
 }

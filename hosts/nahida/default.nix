@@ -4,15 +4,19 @@
     ./hardware.nix
 
     # Services
-    ../../profiles/nixos/acme.nix
-    ../../profiles/nixos/jellyfin.nix
     ../../profiles/nixos/nginx.nix
     ../../profiles/nixos/podman.nix
   ];
 
   # My settings
   codgician = {
-    services.nixos-vscode-server.enable = true;
+    services = {
+      jellyfin = {
+        enable = true;
+        reverseProxy.domains = [ "fin.codgician.me" ];
+      };
+      nixos-vscode-server.enable = true;
+    };
 
     system = {
       agenix.enable = true;

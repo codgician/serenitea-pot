@@ -1,7 +1,6 @@
 { config, lib, pkgs, ... }:
 let
   name = builtins.baseNameOf ./.;
-  cfg = config.codgician.users.${name};
   pubKeys = import ../../../secrets/pubKeys.nix;
 in
 {
