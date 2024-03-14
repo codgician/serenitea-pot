@@ -34,12 +34,14 @@
     "LocalSend" = 1661733229;
     "Hex Fiend" = 1342896380;
     "CADReader" = 1484905765;
+    "sing-box" = 6451272673; 
 
     "IT之家" = 570610859;
     "Store Redirect" = 1601434613;
     "NetEaseMusic" = 944848654;
     "iStat Menus" = 1319778037;
     "VidHub" = 1659622164;
+    "APTV" = 1630403500;
     "Home Assistant" = 1099568401;
     "Whisper" = 1668083311;
   };
@@ -50,6 +52,7 @@
     "calibre"
     "visual-studio-code"
     "microsoft-edge"
+    "microsoft-teams"
     "logi-options-plus"
     "playcover-nightly"
     "parallels"
