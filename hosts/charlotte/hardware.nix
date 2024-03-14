@@ -11,7 +11,7 @@
   };
 
   boot.initrd.luks.devices = {
-    "LUKS-NOIR-ROOTFS" = {
+    "LUKS-CHARLOTTE-ROOTFS" = {
       device = "/dev/disk/by-uuid/ee50e9c7-b47d-4202-bed2-d7b275b40e40";
     };
   };
