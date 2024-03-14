@@ -3,6 +3,9 @@
     (import "${inputs.mobile-nixos}/lib/configuration.nix" { device = "lenovo-krane"; })
   ];
 
+  # Custom kernel
+  mobile.boot.stage-1.kernel.package = lib.mkForce (pkgs.callPackage ./kernel { });
+
   fileSystems = {
     "/" = {
       device = "/dev/disk/by-uuid/b2dccf20-c978-4335-8591-729cfc8d7da3";
