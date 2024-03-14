@@ -34,7 +34,7 @@
     "LocalSend" = 1661733229;
     "Hex Fiend" = 1342896380;
     "CADReader" = 1484905765;
-    "sing-box" = 6451272673; 
+    "sing-box" = 6451272673;
 
     "IT之家" = 570610859;
     "Store Redirect" = 1601434613;
