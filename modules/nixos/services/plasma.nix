@@ -18,12 +18,14 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    services.xserver = {
-      enable = true;
-      displayManager.sddm = {
+    services = {
+      xserver = {
         enable = true;
-        enableHidpi = true;
-        theme = "breeze";
+        displayManager.sddm = {
+          enable = true;
+          enableHidpi = true;
+          theme = "breeze";
+        };
       };
       desktopManager.plasma6 = {
         enable = true;
