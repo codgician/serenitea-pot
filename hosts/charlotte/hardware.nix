@@ -4,7 +4,26 @@
   ];
 
   # Custom kernel
-  mobile.boot.stage-1.kernel.package = lib.mkForce (pkgs.callPackage ./kernel { });
+  mobile.boot.stage-1.kernel = {
+    package = lib.mkForce (pkgs.callPackage ./kernel { });
+    additionalModules = [
+      "tpm"
+      "tpm_tis_core"
+      "tpm_tis_spi"
+      "tcg_tis_i2c_cr50"
+    ];
+  };
+  
+  mobile.kernel.structuredConfig = [
+    (helpers: with helpers; {
+      # Enable CR50 TPM support
+      TCG_TPM             = module;
+      TCG_TIS_CORE        = module;
+      TCG_TIS_SPI         = module;
+      TCG_TIS_SPI_CR50    = yes;
+      TCG_TIS_I2C_CR50    = module;
+    })
+  ];
 
   fileSystems = {
     "/" = {
@@ -24,6 +43,12 @@
     width = 1920;
     height = 1200;
   };
+
+  # Fix orientation
+  services.udev.extraHwdb = lib.mkBefore ''
+    sensor:modalias:platform:*
+      ACCEL_MOUNT_MATRIX=0, 1, 0; -1, 0, 0; 0, 0, -1
+  '';
 
   nix.settings.max-jobs = lib.mkDefault 4;
 }
