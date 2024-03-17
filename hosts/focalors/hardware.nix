@@ -5,7 +5,7 @@
 
   boot.initrd.availableKernelModules = [ "xhci_pci" "sr_mod" ];
   boot.initrd.kernelModules = [ ];
-  boot.kernelPackages = pkgs.linuxPackages_latest;
+  boot.kernelPackages = pkgs.linuxPackages_6_7;
   boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
 

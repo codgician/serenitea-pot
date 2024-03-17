@@ -319,16 +319,16 @@
     "mobile-nixos": {
       "flake": false,
       "locked": {
-        "lastModified": 1710655727,
-        "narHash": "sha256-TOJraNC9vW2gP/ov1RBD+J61pUEJm4q7481Iu6G4ieo=",
-        "owner": "nixos",
+        "lastModified": 1710700013,
+        "narHash": "sha256-00UKOcpmPQolDaDniiwRlfSUtslE9oRBkWrCoUcpWsI=",
+        "owner": "codgician",
         "repo": "mobile-nixos",
-        "rev": "8c59592e8d44c1b30be3fa4e6df7938fa9672be3",
+        "rev": "ce5164b5e3fd5c36536f29c555935d376897b7ac",
         "type": "github"
       },
       "original": {
-        "owner": "nixos",
-        "ref": "development",
+        "owner": "codgician",
+        "ref": "fix-depmod",
         "repo": "mobile-nixos",
         "type": "github"
       }

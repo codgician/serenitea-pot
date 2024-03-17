@@ -6,15 +6,26 @@
   # Custom kernel
   mobile.boot.stage-1.kernel = {
     package = lib.mkForce (pkgs.callPackage ./kernel { });
-    additionalModules = [
+    modules = [
+      "dm_mod"
+      "dm_crypt"
       "tpm_tis_core"
       "tpm_tis_spi"
-      "tcg_tis_i2c_cr50"
+      "tpm_tis_i2c_cr50"
     ];
   };
   
   mobile.kernel.structuredConfig = [
     (helpers: with helpers; {
+      # dm_mod
+      BLK_DEV_DM = module;
+      CRYPTO_CRYPTD = module;
+      CRYPTO_BLOWFISH = module;
+      CRYPTO_TWOFISH = module;
+      CRYPTO_SERPENT = module;
+      CRYPTO_LRW = module;
+      CRYPTO_USER_API_SKCIPHER = module;
+
       # Enable CR50 TPM support
       TCG_TIS_CORE        = module;
       TCG_TIS_SPI         = module;

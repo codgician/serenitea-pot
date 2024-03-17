@@ -17,7 +17,7 @@
     flake-utils.url = "github:numtide/flake-utils";
 
     mobile-nixos = {
-      url = "github:nixos/mobile-nixos/development";
+      url = "github:codgician/mobile-nixos/fix-depmod";
       flake = false;
     };
 
