@@ -14,7 +14,7 @@
       "tpm_tis_i2c_cr50"
     ];
   };
-  
+
   mobile.kernel.structuredConfig = [
     (helpers: with helpers; {
       # dm_mod
@@ -27,10 +27,10 @@
       CRYPTO_USER_API_SKCIPHER = module;
 
       # Enable CR50 TPM support
-      TCG_TIS_CORE        = module;
-      TCG_TIS_SPI         = module;
-      TCG_TIS_SPI_CR50    = yes;
-      TCG_TIS_I2C_CR50    = module;
+      TCG_TIS_CORE = module;
+      TCG_TIS_SPI = module;
+      TCG_TIS_SPI_CR50 = yes;
+      TCG_TIS_I2C_CR50 = module;
     })
   ];
 
