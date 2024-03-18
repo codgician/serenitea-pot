@@ -36,16 +36,18 @@ rec {
         default = [ "fin.codgician.me" ];
         description = lib.mdDoc "List of domains. The first one will be treated as virtual host name.";
       };
-
-      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
     };
   };
 
   config =
     let
-      virtualHost = builtins.head cfg.reverseProxy.domains;
+      virtualHost =
+        if cfg.reverseProxy.domains == [ ]
+        then null
+        else builtins.head cfg.reverseProxy.domains;
     in
-    lib.mkIf cfg.enable
+    lib.mkIf cfg.enable (lib.mkMerge [
+      # Service
       {
         services.jellyfin = {
           enable = true;
@@ -54,7 +56,15 @@ rec {
           group = cfg.group;
         };
 
-        # Ngnix configurations
+        # Persist data
+        environment = lib.optionalAttrs (systemCfg?impermanence) {
+          persistence.${systemCfg.impermanence.path}.directories =
+            lib.mkIf (cfg.dataDir == options.codgician.services.jellyfin.dataDir.default) [ cfg.dataDir ];
+        };
+      }
+
+      # Reverse proxy
+      {
         services.nginx.virtualHosts."${virtualHost}" = {
           locations."/" = {
             proxyPass = "http://localhost:8096";
@@ -77,19 +87,16 @@ rec {
             extraDomainNames = builtins.tail cfg.reverseProxy.domains;
           };
         };
+      }
 
-        # Persist data
-        environment = lib.optionalAttrs (systemCfg?impermanence) {
-          persistence.${systemCfg.impermanence.path}.directories =
-            lib.mkIf (cfg.dataDir == options.codgician.services.jellyfin.dataDir.default) [ cfg.dataDir ];
-        };
-
-        # Assertions
+      # Assertions
+      {
         assertions = [
           {
             assertion = !cfg.enable || !cfg.reverseProxy.enable || builtins.length cfg.reverseProxy.domains > 0;
             message = ''You have to provide at least one domain if `jellyfin.reverseProxy` is enabled.'';
           }
         ];
-      };
+      }
+    ]);
 }
