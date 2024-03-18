@@ -24,6 +24,15 @@ in
       '';
     };
 
+    announcePort = lib.mkOption {
+      type = types.port;
+      default = 4443;
+      description = lib.mdDoc ''
+        Port for fastapi-dls to announce. 
+        It may be different than `port` if the service runs behind a reverse proxy.
+      '';
+    };
+
     user = lib.mkOption {
       type = types.str;
       default = "fastapi-dls";
@@ -103,7 +112,7 @@ in
                 name = "fastapi-dls-env";
                 text = ''
                   DLS_URL=${cfg.host}
-                  DLS_PORT=${builtins.toString cfg.port}
+                  DLS_PORT=${builtins.toString cfg.announcePort}
                   LEASE_EXPIRE_DAYS=${builtins.toString cfg.leaseDays}
                   DATABASE=sqlite:///${cfg.dataDir}/db.sqlite
                 '';

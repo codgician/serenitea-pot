@@ -20,6 +20,7 @@
       fastapi-dls = rec {
         enable = true;
         host = "nvdls.codgician.me";
+        announcePort = 443;
         appDir = "/var/lib/fastapi-dls-app";
         dataDir = "/mnt/data/fastapi-dls";
         reverseProxy = {
