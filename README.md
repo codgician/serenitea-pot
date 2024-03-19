@@ -1,4 +1,4 @@
-# :snowflake: Nix Fleet
+# ❄️ Serenitea Pot
 
 [![validate](https://github.com/codgician/nix-fleet/actions/workflows/validate.yml/badge.svg)](https://github.com/codgician/nix-fleet/actions/workflows/validate.yml)
 [![evergreen](https://github.com/codgician/nix-fleet/actions/workflows/evergreen.yml/badge.svg)](https://github.com/codgician/nix-fleet/actions/workflows/evergreen.yml)
