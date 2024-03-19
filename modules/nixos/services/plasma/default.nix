@@ -2,7 +2,7 @@
 let
   cfg = config.codgician.services.plasma;
 in
-{
+lib.optionalAttrs (lib.version >= "24.05") {
   options.codgician.services.plasma = {
     enable = lib.mkEnableOption "Enable Plasma Desktop.";
     wayland = lib.mkOption {

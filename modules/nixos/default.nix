@@ -1,8 +1,10 @@
+{ lib, ... }:
 let
-  dirs = builtins.readDir ./.;
-  dirNames = builtins.filter (name: dirs.${name} == "directory") (builtins.attrNames dirs);
+  dirContent = builtins.readDir ./.;
+  dirNames = builtins.filter (name: dirContent.${name} == "directory") (builtins.attrNames dirContent);
+  allFiles = builtins.concatMap (x: (lib.filesystem.listFilesRecursive ./${x})) dirNames;
+  filesToImport = builtins.filter (x: (builtins.baseNameOf x) == "default.nix") allFiles;
 in
 {
-  # Import modules under every directory
-  imports = builtins.map (x: import ./${x}) (dirNames ++ [ "../overlays" "../users" ]);
+  imports = filesToImport ++ [ ../overlays ../users ];
 }
