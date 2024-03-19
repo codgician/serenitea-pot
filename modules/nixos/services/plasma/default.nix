@@ -35,8 +35,6 @@ lib.optionalAttrs (lib.version >= "24.05") {
 
     i18n.inputMethod.fcitx5.plasma6Support = true;
 
-    services.xserver.displayManager.defaultSession = lib.mkIf cfg.enable "plasma";
-
     # Enable dconf
     programs.dconf.enable = true;
 
@@ -65,7 +63,12 @@ lib.optionalAttrs (lib.version >= "24.05") {
       glxinfo
       vulkan-tools
       wayland-utils
+      aha
       kdePackages.kio-admin
     ];
+
+    # todo: remove
+    # hack to fix conflict
+     programs.gnupg.agent.pinentryPackage = lib.mkForce pkgs.pinentry-qt;
   };
 }
