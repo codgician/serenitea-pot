@@ -4,7 +4,7 @@ let
   systemCfg = config.codgician.system;
   types = lib.types;
 in
-rec {
+{
   options.codgician.services.jellyfin = {
     enable = lib.mkEnableOption "Enable Jellyfin.";
 
@@ -26,16 +26,9 @@ rec {
       description = lib.mdDoc "Data directory for jellyfin.";
     };
 
-    reverseProxy = {
-      enable = lib.mkEnableOption "Enable nginx reverse proxy profile for jellyfin.";
-
-      https = lib.mkEnableOption "Use https and auto-renew certificates.";
-
-      domains = lib.mkOption {
-        type = types.listOf types.str;
-        default = [ "fin.codgician.me" ];
-        description = lib.mdDoc "List of domains. The first one will be treated as virtual host name.";
-      };
+    reverseProxy = lib.mkOption {
+      type = types.submodule (import ../nginx/reverse-proxy-options.nix { inherit config lib; });
+      default = {};
     };
   };
 
@@ -43,8 +36,7 @@ rec {
     let
       virtualHost =
         if cfg.reverseProxy.domains == [ ]
-        then null
-        else builtins.head cfg.reverseProxy.domains;
+        then null else builtins.head cfg.reverseProxy.domains;
     in
     lib.mkIf cfg.enable (lib.mkMerge [
       # Service
@@ -63,37 +55,49 @@ rec {
         };
       }
 
-      # Reverse proxy
-      {
-        services.nginx.virtualHosts."${virtualHost}" = {
-          locations."/" = {
-            proxyPass = "http://localhost:8096";
-            proxyWebsockets = true;
+      (lib.mkIf cfg.reverseProxy.enable {
+        # Reverse proxy
+        codgician.services.nginx.enable = true;
+
+        services.nginx.virtualHosts = lib.optionalAttrs virtualHost != null
+        {
+          "${virtualHost}" = {
+            locations."/" = {
+              proxyPass = "http://localhost:8096";
+              proxyWebsockets = true;
+              extraConfig = lib.optionals cfg.reverseProxy.lanOnly ''
+                allow 10.0.0.0/8;
+                allow 172.16.0.0/12;
+                allow 192.168.0.0/16;
+                allow fc00::/7;
+                deny all;
+              '';
+            };
+
+            # Don't include me in search results
+            locations."/robots.txt".return = "200 'User-agent:*\\nDisallow:*'";
+
+            forceSSL = cfg.reverseProxy.https;
+            http2 = true;
+            enableACME = cfg.reverseProxy.https;
+            acmeRoot = null;
           };
-
-          # Don't include me in search results
-          locations."/robots.txt".return = "200 'User-agent:*\\nDisallow:*'";
-
-          forceSSL = cfg.reverseProxy.https;
-          http2 = true;
-          enableACME = cfg.reverseProxy.https;
-          acmeRoot = null;
         };
 
         # SSL certificate
-        codgician.acme = lib.mkIf cfg.reverseProxy.https {
+        codgician.acme = lib.optionalAttrs cfg.reverseProxy.https {
           "${virtualHost}" = {
             enable = true;
             extraDomainNames = builtins.tail cfg.reverseProxy.domains;
           };
         };
-      }
+      })
 
       # Assertions
       {
         assertions = [
           {
-            assertion = !cfg.enable || !cfg.reverseProxy.enable || builtins.length cfg.reverseProxy.domains > 0;
+            assertion = !cfg.enable || !cfg.reverseProxy.enable || virtualHost != null;
             message = ''You have to provide at least one domain if `jellyfin.reverseProxy` is enabled.'';
           }
         ];

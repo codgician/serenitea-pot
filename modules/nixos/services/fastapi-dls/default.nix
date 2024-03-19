@@ -73,20 +73,9 @@ in
       '';
     };
 
-    reverseProxy = {
-      enable = lib.mkEnableOption "Enable nginx reverse proxy profile for fastapi-dls.";
-
-      https = lib.mkEnableOption "Use https and auto-renew certificates.";
-
-      domains = lib.mkOption {
-        type = types.listOf types.str;
-        default = [ cfg.host ];
-        description = lib.mdDoc ''
-          List of domains.
-        '';
-      };
-
-      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
+    reverseProxy = lib.mkOption {
+      type = types.submodule (import ../nginx/reverse-proxy-options.nix { inherit config lib; });
+      default = {};
     };
   };
 
@@ -213,8 +202,11 @@ in
       ];
     }
 
+    
     (lib.mkIf cfg.reverseProxy.enable {
-      # Nginx reverse proxy settings
+      # Reverse proxy  
+      codgician.services.nginx.enable = true;
+      
       services.nginx.virtualHosts."${cfg.host}" = {
         locations."/" = {
           proxyPass = "https://127.0.0.1:${builtins.toString cfg.port}";
