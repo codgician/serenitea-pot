@@ -9,7 +9,6 @@
     ../../profiles/nixos/dendrite.nix
     ../../profiles/nixos/gitlab.nix
     ../../profiles/nixos/mesh-commander.nix
-    ../../profiles/nixos/nginx.nix
     ../../profiles/nixos/samba.nix
     ../../profiles/nixos/upgrade-pg-cluster.nix
   ];

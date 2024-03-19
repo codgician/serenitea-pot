@@ -4,7 +4,6 @@
     ./hardware.nix
 
     # Services
-    ../../profiles/nixos/nginx.nix
     ../../profiles/nixos/podman.nix
   ];
 
