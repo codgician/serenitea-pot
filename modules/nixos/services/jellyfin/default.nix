@@ -4,7 +4,7 @@ let
   systemCfg = config.codgician.system;
   types = lib.types;
 in
-{
+rec {
   options.codgician.services.jellyfin = {
     enable = lib.mkEnableOption "Enable Jellyfin.";
 
