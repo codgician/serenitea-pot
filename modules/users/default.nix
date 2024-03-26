@@ -39,10 +39,10 @@ let
         '';
       };
 
-    } // lib.optionalAttrs pkgs.stdenvNoCC.isLinux {
       hashedPassword = lib.mkOption {
         type = with types; nullOr (passwdEntry str);
         default = null;
+        visible = pkgs.stdenvNoCC.isLinux;
         description = lib.mdDoc ''
           Hashed password for user "${name}". Only effective when agenix is **NOT** enabled.
           To generate a hashed password, run `mkpasswd`.
@@ -52,6 +52,7 @@ let
       hashedPasswordAgeFile = lib.mkOption {
         type = with types; nullOr path;
         default = null;
+        visible = pkgs.stdenvNoCC.isLinux;
         description = lib.mdDoc ''
           Path to hashed password file encrypted managed by agenix.
           Should only be set when agenix is enabled.
@@ -63,10 +64,12 @@ let
         default = null;
         description = lib.mdDoc ''
           Path to plain password file encrypted managed by agenix.
-          Should only be set when agenix is enabled.
+          Should only be set when agenix is enabled. 
+          This option does not set login password.
         '';
       };
 
+    } // lib.optionalAttrs pkgs.stdenvNoCC.isLinux {
       extraGroups = lib.mkOption {
         type = types.listOf types.str;
         default = [ ];
@@ -80,12 +83,12 @@ let
   # Define assertions for each user
   mkUserAssertions = name: lib.mkIf cfg.${name}.enable [
     {
-      assertion = !(cfg.${name}?hashedPassword) || agenixEnabled || cfg.${name}.hashedPassword != null;
+      assertion = !pkgs.stdenvNoCC.isLinux || agenixEnabled || cfg.${name}.hashedPassword != null;
       message = ''User "${name}" must have `hashedPassword` specified because agenix module is not enabled.'';
     }
 
     {
-      assertion = !(cfg.${name}?hashedPasswordAgeFile) || !agenixEnabled || cfg.${name}.hashedPasswordAgeFile != null;
+      assertion = !pkgs.stdenvNoCC.isLinux || !agenixEnabled || cfg.${name}.hashedPasswordAgeFile != null;
       message = ''User "${name}" must have `hashedPasswordAgeFile` specified because agenix module is enabled.'';
     }
   ];
@@ -123,10 +126,8 @@ let
           };
         in
         concatAttrs (builtins.map mkSecretConfig (
-          cfg.${name}.extraAgeFiles ++ [
-            (lib.optionals (cfg.${name}?hashedPasswordAgeFile) cfg.${name}.hashedPasswordAgeFile)
-            (lib.optionals (cfg.${name}?passwordAgeFile) cfg.${name}.passwordAgeFile)
-          ]
+          cfg.${name}.extraAgeFiles ++
+          (builtins.filter (x: x != null) [ cfg.${name}.passwordAgeFile cfg.${name}.hashedPasswordAgeFile ])
         ))
       );
     }
