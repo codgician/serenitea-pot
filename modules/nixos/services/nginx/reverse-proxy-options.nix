@@ -1,4 +1,4 @@
-{ config, lib, ... }: 
+{ lib, ... }:
 let
   types = lib.types;
 in

@@ -4,11 +4,11 @@ let
   types = lib.types;
 in
 {
-  options.codgician.services.nginx = { 
+  options.codgician.services.nginx = {
     enable = lib.mkEnableOption ''
       Enable nginx service.
     '';
-  }; 
+  };
 
   config = lib.mkIf cfg.enable {
     services.nginx = {

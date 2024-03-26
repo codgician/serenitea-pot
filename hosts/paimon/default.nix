@@ -9,7 +9,6 @@
     ../../profiles/nixos/dendrite.nix
     ../../profiles/nixos/gitlab.nix
     ../../profiles/nixos/mesh-commander.nix
-    ../../profiles/nixos/samba.nix
     ../../profiles/nixos/upgrade-pg-cluster.nix
   ];
 
@@ -34,7 +33,47 @@
           ];
         };
       };
+
       nixos-vscode-server.enable = true;
+
+      samba = {
+        enable = true;
+        users = [ "codgi" "bmc" ];
+        shares = {
+          "media" = {
+            path = "/mnt/nas/media";
+            browsable = "yes";
+            writeable = "yes";
+            "read only" = "no";
+            "guest ok" = "yes";
+            "create mask" = "0644";
+            "directory mask" = "0755";
+            "force user" = "codgi";
+          };
+
+          "iso" = {
+            path = "/mnt/nas/iso";
+            public = "yes";
+            browsable = "yes";
+            writeable = "yes";
+            "guest ok" = "yes";
+            "create mask" = "0644";
+            "directory mask" = "0755";
+            "force user" = "codgi";
+          };
+
+          "timac" = {
+            path = "/mnt/timac/";
+            "valid users" = "codgi";
+            public = "no";
+            writeable = "yes";
+            "force user" = "codgi";
+            "fruit:aapl" = "yes";
+            "fruit:time machine" = "yes";
+            "vfs objects" = "catia fruit streams_xattr";
+          };
+        };
+      };
     };
 
     system.agenix.enable = true;
@@ -47,14 +86,14 @@
         codgi = {
           enable = true;
           hashedPasswordAgeFile = secretsDir + "/codgiHashedPassword.age";
-          extraAgeFiles = [ (secretsDir + "/codgiPassword.age") ];
+          passwordAgeFile = secretsDir + "/codgiPassword.age";
           extraGroups = [ "wheel" ];
         };
         bmc = {
           enable = true;
           createHome = false;
           hashedPasswordAgeFile = secretsDir + "/bmcHashedPassword.age";
-          extraAgeFiles = [ (secretsDir + "/bmcPassword.age") ];
+          passwordAgeFile = secretsDir + "/bmcPassword.age";
         };
       };
   };

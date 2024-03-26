@@ -69,6 +69,6 @@ lib.optionalAttrs (lib.version >= "24.05") {
 
     # todo: remove
     # hack to fix conflict
-     programs.gnupg.agent.pinentryPackage = lib.mkForce pkgs.pinentry-qt;
+    programs.gnupg.agent.pinentryPackage = lib.mkForce pkgs.pinentry-qt;
   };
 }

@@ -58,6 +58,15 @@ let
         '';
       };
 
+      passwordAgeFile = lib.mkOption {
+        type = with types; nullOr path;
+        default = null;
+        description = lib.mdDoc ''
+          Path to plain password file encrypted managed by agenix.
+          Should only be set when agenix is enabled.
+        '';
+      };
+
       extraGroups = lib.mkOption {
         type = types.listOf types.str;
         default = [ ];
@@ -114,8 +123,10 @@ let
           };
         in
         concatAttrs (builtins.map mkSecretConfig (
-          cfg.${name}.extraAgeFiles ++
-          (lib.optionals (cfg.${name}?hashedPasswordAgeFile) [ cfg.${name}.hashedPasswordAgeFile ])
+          cfg.${name}.extraAgeFiles ++ [
+            (lib.optionals (cfg.${name}?hashedPasswordAgeFile) cfg.${name}.hashedPasswordAgeFile)
+            (lib.optionals (cfg.${name}?passwordAgeFile) cfg.${name}.passwordAgeFile)
+          ]
         ))
       );
     }

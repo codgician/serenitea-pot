@@ -75,7 +75,7 @@ in
 
     reverseProxy = lib.mkOption {
       type = types.submodule (import ../nginx/reverse-proxy-options.nix { inherit config lib; });
-      default = {};
+      default = { };
     };
   };
 
@@ -202,11 +202,10 @@ in
       ];
     }
 
-    
     (lib.mkIf cfg.reverseProxy.enable {
       # Reverse proxy  
       codgician.services.nginx.enable = true;
-      
+
       services.nginx.virtualHosts."${cfg.host}" = {
         locations."/" = {
           proxyPass = "https://127.0.0.1:${builtins.toString cfg.port}";
