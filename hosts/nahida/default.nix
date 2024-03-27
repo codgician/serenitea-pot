@@ -1,14 +1,11 @@
 { config, pkgs, agenix, ... }:
 {
-  imports = [
-    ./hardware.nix
-
-    # Services
-    ../../profiles/nixos/podman.nix
-  ];
+  imports = [ ./hardware.nix ];
 
   # My settings
   codgician = {
+    containers.enable = true;
+
     services = {
       jellyfin = {
         enable = true;
@@ -124,6 +121,9 @@
   services.openssh.enable = true;
 
   networking.firewall.enable = false;
+
+  # Hack
+  systemd.services.nix-daemon.environment.TMPDIR = "/nix/tmp/nix-daemon";
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
