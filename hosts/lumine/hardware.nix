@@ -5,8 +5,6 @@
   ];
 
   boot.growPartition = true;
-  boot.kernelPackages = pkgs.linuxPackages_latest;
-  boot.kernelParams = [ "console=ttyS0,115200" ];
 
   swapDevices = [ ];
   zramSwap.enable = true;
@@ -23,6 +21,6 @@
     Restart = "on-failure";
   };
   services.cloud-init.network.enable = true;
-  networking.useDHCP = false;
   networking.useNetworkd = true;
+  services.resolved.enable = true;
 }
