@@ -252,7 +252,6 @@
           extraModules = [ ./hosts/wsl ];
         };
       };
-
     } // flake-utils.lib.eachDefaultSystem (system:
     let
       nixpkgs =
@@ -266,7 +265,7 @@
       };
       agenixCli = agenix.packages.${system}.default;
     in
-    {
+    rec {
       # Development shell: `nix develop .#name`
       devShells =
         let commonPkgs = with pkgs; [ agenixCli ];
@@ -280,6 +279,7 @@
               azure-cli
               azure-storage-azcopy
               jq
+              hcl2json
               (terraform.withPlugins (p: [
                 p.azurerm
                 p.cloudflare
@@ -295,15 +295,16 @@
 
       # Packages: `nix build .#pkgName`
       packages = {
-        # Terraform profiles
-        terraformProfiles = terranix.lib.terranixConfiguration {
+        # Terraform configurations
+        terraformConfiguration = terranix.lib.terranixConfiguration {
           inherit system;
-          modules = [ ./terraform/config.nix ];
+          modules = [ ./terraform ];
         };
       };
 
       # Apps: `nix run .#appName`
       apps = {
+        # nix repl for debugging
         repl = inputs.flake-utils.lib.mkApp {
           drv = pkgs.writeShellScriptBin "repl" ''
             confnix=$(mktemp)
@@ -312,6 +313,30 @@
             nix repl $confnix
           '';
         };
+
+        # terraform apply
+        terraform-apply =
+          let
+            terraformAgeFileName = "terraformEnv.age";
+          in
+          {
+            type = "app";
+            program = builtins.toString (pkgs.writers.writeBash "terraform-apply" ''
+              # Decrypt terraform secrets and set environment variables
+              dir=$(${pkgs.coreutils}/bin/pwd)
+              cd ${./secrets}
+              [ -f "./${terraformAgeFileName}" ] || (echo "${terraformAgeFileName} not found under ${./secrets}" && exit 1)
+              envs=$(${agenixCli}/bin/agenix -d terraformEnv.age)
+              export $(echo $envs | xargs)
+              cd $dir
+
+              # Apply terraform configurations
+              [ ! -e config.tf.json ] || rm -f config.tf.json
+              cp ${packages.terraformConfiguration} config.tf.json \
+                && ${pkgs.terraform}/bin/terraform init \
+                && ${pkgs.terraform}/bin/terraform apply
+            '');
+          };
       };
     });
 }

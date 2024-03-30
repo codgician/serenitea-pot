@@ -23,4 +23,7 @@ with pubKeys; with pubKeys.hosts; {
   # Matrix secrets
   "matrixGlobalPrivateKey.age".publicKeys = someHosts [ paimon ];
   "matrixEnv.age".publicKeys = someHosts [ paimon ];
+
+  # Terraform secrets
+  "terraformEnv.age".publicKeys = users.codgi;
 }

@@ -112,3 +112,6 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+# Ignore terraform output as it is managed by terranix
+config.tf.json
