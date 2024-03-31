@@ -17,7 +17,7 @@ rec {
 
   # Aliases
   someHosts = xs: (builtins.concatLists xs) ++ users.codgi;
-  allServers = builtins.concatLists (with hosts; with users; [ paimon nahida codgi ]);
+  allServers = builtins.concatLists (with hosts; with users; [ paimon nahida lumine codgi ]);
   allHosts = (builtins.concatLists (builtins.attrValues hosts)) ++ users.codgi;
   everyone = builtins.concatLists (builtins.concatMap builtins.attrValues [ hosts users ]);
 }

@@ -1,5 +1,5 @@
 let
-  pubKeys = import ./pubKeys.nix;
+  pubKeys = import ./pubkeys.nix;
 in
 with pubKeys; with pubKeys.hosts; {
   # User password

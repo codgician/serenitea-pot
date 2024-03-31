@@ -38,6 +38,10 @@
         hostname = "nanopi.cdu";
         user = "root";
       };
+      "lumine" = {
+        hostname = "lumine.codgician.me";
+        user = "codgi";
+      };
     };
   };
 }

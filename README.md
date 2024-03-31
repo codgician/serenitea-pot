@@ -69,7 +69,7 @@ sudo mkdir -p /mnt/nix/persist/etc/ssh/
 sudo ssh-keygen -t ed25519 -f /mnt/nix/persist/etc/ssh/ssh_host_ed25519_key -C ""
 ```
 
-Add generated public key to `/secrets/pubKeys.nix`, then navigate to `/secrets` and run following command to rekey all credentials:
+Add generated public key to `/secrets/pubkeys.nix`, then navigate to `/secrets` and run following command to rekey all credentials:
 
 ```bash
 agenix -r
