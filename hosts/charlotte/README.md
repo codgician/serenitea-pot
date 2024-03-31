@@ -1,6 +1,6 @@
 # 📸 Charlotte (WIP)
 
-[Lenovo ChromeBook Duet](https://www.lenovo.com/us/en/p/laptops/lenovo/lenovo-edu-chromebooks/lenovo-chromebook-duet-10/zziczctct1x), primarily intended as a Home Assistant kiosk.
+[Lenovo ChromeBook Duet](https://www.lenovo.com/us/en/p/laptops/lenovo/lenovo-edu-chromebooks/lenovo-chromebook-duet-10/zziczctct1x).
 
 Building stage-1 image for kernel upgrade:
 
@@ -17,6 +17,6 @@ nix eval .#nixosConfigurations.charlotte.config.mobile.outputs.depthcharge.kpart
 Applying kernel upgrade:
 
 ```bash
-sudo dd if=<built image path> of=/dev/mmcblk0p1
+sudo dd of=/dev/mmcblk0p1 if=<built image path>
 
 ```
