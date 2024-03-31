@@ -9,11 +9,11 @@
       nixos-vscode-server.enable = true;
       nginx = {
         enable = true;
-        reverseProxies."lumine.codgician.me" = {
+        reverseProxies."codgician.me" = {
           enable = true;
           https = true;
           domains = [
-            "lumine.codgician.me"
+            "codgician.me"
             "*.codgician.me"
           ];
           proxyPass = "http://localhost:80";
