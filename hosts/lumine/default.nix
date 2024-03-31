@@ -16,7 +16,7 @@
             "codgician.me"
             "*.codgician.me"
           ];
-          proxyPass = "http://localhost:80";
+          proxyPass = "https://sz.codgician.me:8443";
         };
       };
     };
