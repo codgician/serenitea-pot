@@ -8,6 +8,8 @@
 
 My fleet of Nix-managed devices.
 
+*Naming conventions and logos in this repository are mainly derived from Genshin Impact by miHoYo/HoYoverse.*
+
 ## Quick start
 
 ### Develop
