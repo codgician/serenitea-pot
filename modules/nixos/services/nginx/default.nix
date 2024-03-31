@@ -1,25 +1,114 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 let
   cfg = config.codgician.services.nginx;
   types = lib.types;
+  concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
+  reverseProxyNames = builtins.attrNames cfg.reverseProxies;
+
+  # Make virtual host configuration
+  mkVirtualHostConfig = host:
+    let
+      hostCfg = cfg.reverseProxies.${host};
+    in
+    {
+      "${host}" = {
+        serverName = builtins.head hostCfg.domains;
+        serverAliases = builtins.tail hostCfg.domains;
+
+        locations = {
+          "/" = {
+            inherit (hostCfg) proxyPass;
+            proxyWebsockets = true;
+            extraConfig = hostCfg.extraConfig + (lib.optionalString hostCfg.lanOnly ''
+              allow 10.0.0.0/8;
+              allow 172.16.0.0/12;
+              allow 192.168.0.0/16;
+              allow fc00::/7;
+              deny all;
+            '');
+          };
+
+          "/robots.txt".return = lib.mkIf (hostCfg.robots != "") "200 ${hostCfg.robots}";
+        };
+
+        forceSSL = hostCfg.https;
+        enableACME = hostCfg.https;
+        http2 = true;
+        http3 = true;
+        http3_hq = true;
+        acmeRoot = null;
+      };
+    };
+
+  # Make ACME configurations
+  mkAcmeConfig = host:
+    let
+      hostCfg = cfg.reverseProxies.${host};
+    in
+    lib.optionalAttrs hostCfg.https {
+      "${builtins.head hostCfg.domains}" = {
+        enable = true;
+        extraDomainNames = builtins.tail hostCfg.domains;
+      };
+    };
+
+  # Make reverse proxy assertions
+  mkAssertions = host:
+    let
+      hostCfg = cfg.reverseProxies.${host};
+    in
+    [
+      {
+        assertion = !hostCfg.enable || hostCfg.domains != [ ];
+        message = ''
+          You have to provide at least one domain for nginx reverse proxy virtual host "${hostCfg}".
+        '';
+      }
+    ];
 in
 {
   options.codgician.services.nginx = {
     enable = lib.mkEnableOption ''
       Enable nginx service.
     '';
+
+    reverseProxies = lib.mkOption {
+      type = types.attrsOf (types.submodule (import ./reverse-proxy-options.nix { inherit lib; }));
+      default = { };
+      example = lib.literalExpression ''
+        {
+          "myService" = {
+            enable = true;
+            https = true;
+            domains = [ "myservice.example.org" ];
+            lanOnly = false;
+          };
+        }
+      '';
+      description = lib.mdDcoc "Reverse proxy configurations.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
+    # Nginx configurations
     services.nginx = {
       enable = true;
+      package = pkgs.nginxQuic;
       recommendedProxySettings = true;
       statusPage = true;
+      virtualHosts = concatAttrs (builtins.map mkVirtualHostConfig reverseProxyNames);
     };
 
+    # Monitoring
     services.prometheus.exporters = {
       nginx.enable = true;
       nginxlog.enable = true;
     };
+
+    # ACME settings
+    codgician.acme = concatAttrs (builtins.map mkAcmeConfig reverseProxyNames);
+
+    # Assertions
+    assertions = builtins.concatLists (builtins.map mkAssertions reverseProxyNames);
   };
 }

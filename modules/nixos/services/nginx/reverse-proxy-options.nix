@@ -21,8 +21,39 @@ in
       '';
     };
 
+    proxyPass = lib.mkOption {
+      type = types.str;
+      example = "http://localhost:8080";
+      description = lib.mdDoc ''
+        Target URI of reverse proxy.
+      '';
+    };
+
     lanOnly = lib.mkEnableOption ''
       Only allow requests from LAN clients.
     '';
+
+    extraConfig = lib.mkOption {
+      type = types.lines;
+      default = "";
+      example = ''
+        proxy_buffering off;
+      '';
+      description = lib.mdDoc ''
+        Extra configs for reverse proxy virtual host.
+      '';
+    };
+
+    robots = lib.mkOption {
+      type = types.str;
+      example = ''
+        User-agent: *
+        Disallow: *
+      '';
+      default = "";
+      description = lib.mdDoc ''
+        Content of `/robots.txt`.
+      '';
+    };
   };
 }

@@ -14,27 +14,33 @@
 
   # My settings
   codgician = {
-    services = {
+    services = rec {
       fastapi-dls = rec {
         enable = true;
         host = "nvdls.codgician.me";
+        port = 4443;
         announcePort = 443;
         appDir = "/var/lib/fastapi-dls-app";
         dataDir = "/mnt/data/fastapi-dls";
-        reverseProxy = {
-          enable = true;
-          https = true;
-          lanOnly = true;
-          domains = [
-            host
-            "sz.codgician.me"
-            "sz4.codgician.me"
-            "sz6.codgician.me"
-          ];
-        };
       };
 
       nixos-vscode-server.enable = true;
+
+      nginx = {
+        enable = true;
+        reverseProxies = {
+          "nvdls.codgician.me" = {
+            enable = true;
+            proxyPass = "https://127.0.0.1:${builtins.toString fastapi-dls.port}";
+            https = true;
+            domains = [ "nvdls.codgician.me" ];
+            lanOnly = true;
+            extraConfig = ''
+              proxy_buffering off;
+            '';
+          };
+        };
+      };
 
       samba = {
         enable = true;

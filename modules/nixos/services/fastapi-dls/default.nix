@@ -72,11 +72,6 @@ in
         Expiration days for issued leases.
       '';
     };
-
-    reverseProxy = lib.mkOption {
-      type = types.submodule (import ../nginx/reverse-proxy-options.nix { inherit config lib; });
-      default = { };
-    };
   };
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
@@ -90,7 +85,7 @@ in
         restartIfChanged = true;
         description = "fastapi-dls";
         wantedBy = [ "multi-user.target" ];
-        requires = lib.optionals cfg.reverseProxy.https [ "acme-finished-${cfg.host}.target" ];
+        requires = [ "acme-finished-${cfg.host}.target" ];
 
         serviceConfig = {
           Type = "simple";
@@ -185,48 +180,12 @@ in
       };
 
       # Enable SSL certificate for virtual host
-      codgician.acme = lib.mkIf cfg.reverseProxy.https {
+      codgician.acme = {
         "${cfg.host}" = {
           enable = true;
-          extraDomainNames = lib.optionals (cfg.reverseProxy.enable) cfg.reverseProxy.domains;
           postRunScripts = [ "${pkgs.systemd}/bin/systemctl restart fastapi-dls" ];
         };
       };
-
-      # Assertions
-      assertions = [
-        {
-          assertion = !cfg.reverseProxy.enable || !cfg.reverseProxy.https || (config.codgician.acme?"${cfg.host}");
-          message = ''Domain "${cfg.host}" must have its certificate retrieval settings added to acme module.'';
-        }
-      ];
     }
-
-    (lib.mkIf cfg.reverseProxy.enable {
-      # Reverse proxy  
-      codgician.services.nginx.enable = true;
-
-      services.nginx.virtualHosts."${cfg.host}" = {
-        locations."/" = {
-          proxyPass = "https://127.0.0.1:${builtins.toString cfg.port}";
-          proxyWebsockets = true;
-          recommendedProxySettings = true;
-          extraConfig = ''
-            proxy_buffering off;
-          '' + (lib.optionals cfg.reverseProxy.lanOnly ''
-            allow 10.0.0.0/8;
-            allow 172.16.0.0/12;
-            allow 192.168.0.0/16;
-            allow fc00::/7;
-            deny all;
-          '');
-        };
-
-        forceSSL = cfg.reverseProxy.https;
-        enableACME = cfg.reverseProxy.https;
-        acmeRoot = null;
-      };
-    }
-    )
   ]);
 }

@@ -5,7 +5,21 @@
 
   # My settings
   codgician = {
-    services.nixos-vscode-server.enable = true;
+    services = {
+      nixos-vscode-server.enable = true;
+      nginx = {
+        enable = true;
+        reverseProxies."lumine.codgician.me" = {
+          enable = true;
+          https = true;
+          domains = [
+            "lumine.codgician.me"
+            "*.codgician.me"
+          ];
+          proxyPass = "http://localhost:80";
+        };
+      };
+    };
 
     system.agenix.enable = true;
 
