@@ -53,14 +53,14 @@
 
   fileSystems = {
     "/" = {
-      device = "/dev/disk/by-uuid/b2dccf20-c978-4335-8591-729cfc8d7da3";
+      device = "/dev/disk/by-uuid/edf11839-2440-4e3f-9ae1-13edb4946341";
       fsType = "ext4";
     };
   };
-
+  
   boot.initrd.luks.devices = {
     "LUKS-CHARLOTTE-ROOTFS" = {
-      device = "/dev/disk/by-uuid/ee50e9c7-b47d-4202-bed2-d7b275b40e40";
+      device = "/dev/disk/by-uuid/8fc43d94-f417-4607-85ac-3aa329916e8e";
     };
   };
 
