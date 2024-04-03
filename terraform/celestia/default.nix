@@ -1,5 +1,6 @@
 { config, lib, ... }: {
   imports = [
+    ./budget.nix
     ./lumine.nix
     ./network.nix
     ./providers.nix
