@@ -1,5 +1,14 @@
 { config, ... }: {
   resource = {
+
+    # Ensure encryption at host feature is enabled
+    # See https://github.com/hashicorp/terraform-provider-azurerm/issues/17185
+    azapi_update_resource.encryptionAtHost = {
+      type = "Microsoft.Features/featureProviders/subscriptionFeatureRegistrations@2021-07-01";
+      resource_id = "/subscriptions/${config.provider.azapi.subscription_id}/providers/Microsoft.Features/featureProviders/Microsoft.Compute/subscriptionFeatureRegistrations/encryptionathost";
+      body = builtins.toJSON { properties = {}; };
+    };
+
     # Virtual machine image
     azurerm_image.lumine-image = {
       name = "lumine-image";
@@ -26,6 +35,7 @@
       secure_boot_enabled = false;
       vtpm_enabled = false;
       source_image_id = config.resource.azurerm_image.lumine-image "id";
+      encryption_at_host_enabled = true;
 
       # These keys are not used for actual authentication
       admin_ssh_key = [{
