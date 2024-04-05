@@ -1,6 +1,7 @@
 { config, lib, pkgs, inputs, ... }: {
   imports = [
     ./hardware.nix
+    ./tpm.nix
 
     # Desktop environment
     (import "${inputs.mobile-nixos}/examples/plasma-mobile/plasma-mobile.nix")
