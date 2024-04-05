@@ -6,7 +6,7 @@
     azapi_update_resource.encryptionAtHost = {
       type = "Microsoft.Features/featureProviders/subscriptionFeatureRegistrations@2021-07-01";
       resource_id = "/subscriptions/${config.provider.azapi.subscription_id}/providers/Microsoft.Features/featureProviders/Microsoft.Compute/subscriptionFeatureRegistrations/encryptionathost";
-      body = builtins.toJSON { properties = {}; };
+      body = builtins.toJSON { properties = { }; };
     };
 
     # Virtual machine image
