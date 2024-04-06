@@ -36,6 +36,8 @@ lib.optionalAttrs (lib.version >= "24.05") {
       xserver = {
         enable = true;
         displayManager = {
+          defaultSession = "plasma";
+
           sddm = lib.mkIf (cfg.displayManager == "sddm") {
             enable = true;
             enableHidpi = true;

@@ -2,14 +2,20 @@
   imports = [
     ./hardware.nix
     ./tpm.nix
-
-    # Desktop environment
-    (import "${inputs.mobile-nixos}/examples/plasma-mobile/plasma-mobile.nix")
   ];
 
   # My settings
   codgician = {
-    services.nixos-vscode-server.enable = true;
+    services = {
+      nixos-vscode-server.enable = true;
+      plasma = {
+        enable = true;
+        mobile.enable = true;
+        autoLoginUser = "codgi";
+        displayManager = "lightdm";
+      };
+    };
+
     system.agenix.enable = true;
 
     users.codgi =
