@@ -30,8 +30,14 @@
       };
   };
 
-  # Auto login
-  services.xserver.displayManager.autoLogin.user = "codgi";
+  # Enable dconf
+  programs.dconf.enable = true;
+
+  # Auto unlock Kwallet
+  security.pam.services.kwallet = {
+    name = "kwallet";
+    enableKwallet = true;
+  };
 
   # Home manager
   home-manager.users.codgi = { config, pkgs, ... }: {
