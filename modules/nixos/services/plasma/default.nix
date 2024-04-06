@@ -98,11 +98,6 @@ lib.optionalAttrs (lib.version >= "24.05") {
       pkgs.maliit-keyboard
     ]));
 
-    # Enable services to ensure UI not broken
-    hardware.bluetooth.enable = true;
-    hardware.pulseaudio.enable = true;
-    networking.networkmanager.enable = true;
-
     # Required for autorotate
     hardware.sensor.iio.enable = lib.mkDefault true;
 
