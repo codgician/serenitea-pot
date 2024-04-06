@@ -10,6 +10,10 @@
       IdentityFile ~/.ssh/id_ed25519
     '';
     matchBlocks = {
+      "charlotte" = {
+        hostname = "charlotte.lan";
+        user = "codgi";
+      };
       "focalors" = {
         hostname = "focalors.lan";
         user = "codgi";

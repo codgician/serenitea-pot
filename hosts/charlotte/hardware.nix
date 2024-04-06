@@ -19,16 +19,25 @@
 
   fileSystems = {
     "/" = {
-      device = "/dev/disk/by-uuid/dd5bec0f-05ce-4f5f-bf0c-7f3767f07778";
+      device = "/dev/disk/by-uuid/a7c93308-529e-4c3d-b856-c021c86f87f0";
       fsType = "ext4";
     };
   };
 
   # boot.initrd.luks.devices = {
   #   "LUKS-CHARLOTTE-ROOTFS" = {
-  #     device = "/dev/disk/by-uuid/70f3f785-54fd-47fd-8551-0aa8742d5b40";
+  #     device = "/dev/disk/by-uuid/fcb89377-a96e-4a68-8c5f-8a25364432d4";
   #   };
   # };
 
   nix.settings.max-jobs = lib.mkDefault 4;
+
+  # Update kernel partition on activation
+  system.userActivationScripts.flashInitrd = {
+    text = ''
+      echo ${config.mobile.outputs.depthcharge.kpart}
+      #${pkgs.coreutils}/bin/dd if=${config.mobile.outputs.depthcharge.kpart} of=/dev/mmcblk0p1"
+    '';
+    deps = [];
+  };
 }
