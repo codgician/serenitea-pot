@@ -1,5 +1,5 @@
 let
-  version = "6.6.23";
+  version = "6.6.25";
   majorVersion = builtins.head (builtins.splitVersion version);
 in
 { mobile-nixos, fetchurl, fetchpatch, lib, ... }: mobile-nixos.kernel-builder {
@@ -12,7 +12,7 @@ in
     in
     fetchurl {
       url = "mirror://kernel/linux/kernel/v${majorVersion}.x/linux-${fileVersion}.tar.xz";
-      sha256 = "1fd824ia3ngy65c5qaaln7m66ca4p80bwlnvvk76pw4yrccx23r0";
+      sha256 = "0i0zvqlj02rm6wpbidji0rn9559vrpfc1b8gbfjk70lhhyz11llr";
     };
 
   patches = [

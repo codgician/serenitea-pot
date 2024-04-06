@@ -1,4 +1,9 @@
-{ config, pkgs, ... }: {
+{ config, pkgs, ... }: 
+let
+  luksName = "LUKS-CHARLOTTE-ROOTFS";
+  luksDev = "/dev/mmcblk0p6";
+in
+{
   mobile.boot.stage-1 = {
     kernel = {
       modular = true;
@@ -16,13 +21,20 @@
         class Tasks::UnlockRootPartition < SingletonTask
           def initialize()
             add_dependency(:Task, Tasks::UDev.instance)
-            add_dependency(:Devices, "/dev/mmcblk0p6")
+            add_dependency(:Devices, "${luksDev}")
             add_dependency(:Mount, "/run")
             add_dependency(:Target, :Environment)
+            add_dependency(:Task, Tasks::Splash.instance)
           end
           
           def run()
-            System.run("/bin/unlock-rootfs")
+            begin
+              Progress.exec_with_message("Unlocking rootfs with clevis...") do
+                System.run("/bin/unlock-rootfs")
+              end
+            rescue System::CommandError
+              Tasks::Luks.new("${luksDev}", "${luksName}", {})
+            end
           end
         end
       '')
@@ -41,7 +53,7 @@
       {
         object = pkgs.writeScript "unlock-rootfs" ''
           #!/bin/bash
-          clevis luks unlock -d /dev/mmcblk0p6 -n LUKS-CHARLOTTE-ROOTFS >> /clevis-unlock.log 2>&1
+          clevis luks unlock -d /dev/mmcblk0p6 -n ${luksName} >> /clevis-unlock.log 2>&1
         '';
         symlink = "/bin/unlock-rootfs";
       }
