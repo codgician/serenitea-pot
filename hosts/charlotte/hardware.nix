@@ -32,12 +32,10 @@
 
   nix.settings.max-jobs = lib.mkDefault 4;
 
-  # Update kernel partition on activation
-  system.userActivationScripts.flashInitrd = {
-    text = ''
-      echo ${config.mobile.outputs.depthcharge.kpart}
-      #${pkgs.coreutils}/bin/dd if=${config.mobile.outputs.depthcharge.kpart} of=/dev/mmcblk0p1"
-    '';
-    deps = [];
-  };
+  # Script for updating initramfs
+  environment.systemPackages = [
+    (pkgs.writeScriptBin "update-initramfs" ''
+      ${pkgs.coreutils}/bin/dd if=${config.mobile.outputs.depthcharge.kpart} of=/dev/mmcblk0p1
+    '')
+  ];
 }
