@@ -10,7 +10,6 @@
       nixos-vscode-server.enable = true;
       plasma = {
         enable = true;
-        mobile.enable = true;
         autoLoginUser = "codgi";
         displayManager = "lightdm";
       };
@@ -90,6 +89,8 @@
     wget
     xterm
     htop
+    maliit-framework
+    maliit-keyboard
   ];
 
   # Zsh

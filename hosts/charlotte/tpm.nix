@@ -1,4 +1,4 @@
-{ config, pkgs, ... }: 
+{ config, pkgs, ... }:
 let
   luksName = "LUKS-CHARLOTTE-ROOTFS";
   luksDev = "/dev/mmcblk0p6";

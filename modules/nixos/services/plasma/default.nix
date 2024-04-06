@@ -25,13 +25,9 @@ lib.optionalAttrs (lib.version >= "24.05") {
       example = "sddm";
       description = "Select display manager to use (`sddm` or `lightdm`).";
     };
-
-    mobile = {
-      enable = lib.mkEnableOption "Enable Plasma Mobile.";
-    };
   };
 
-  config = lib.mkIf (cfg.enable || cfg.mobile.enable) {
+  config = lib.mkIf cfg.enable {
     services = {
       xserver = {
         enable = true;
@@ -93,12 +89,7 @@ lib.optionalAttrs (lib.version >= "24.05") {
       wayland-utils
       aha
       kdePackages.kio-admin
-    ] ++ (lib.optionals (cfg.mobile.enable) (with kdePackages; [ 
-      plasma-mobile 
-      plasma-nano 
-      pkgs.maliit-framework
-      pkgs.maliit-keyboard
-    ]));
+    ];
 
     # Required for autorotate
     hardware.sensor.iio.enable = lib.mkDefault true;
