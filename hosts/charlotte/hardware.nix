@@ -6,9 +6,6 @@
   # Custom kernel
   mobile = {
     boot.stage-1 = {
-      networking.enable = true;
-      networking.IP = "192.168.0.245";
-      ssh.enable = true;
       enable = true;
       kernel.package = lib.mkForce (pkgs.callPackage ./kernel { });
     };
