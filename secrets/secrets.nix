@@ -7,6 +7,7 @@ with pubKeys; with pubKeys.hosts; {
   "codgiHashedPassword.age".publicKeys = allHosts;
   "bmcPassword.age".publicKeys = someHosts [ paimon ];
   "bmcHashedPassword.age".publicKeys = someHosts [ paimon ];
+  "kioskHashedPassword.age".publicKeys = someHosts [ charlotte ];
 
   # Cloudflare token
   "cloudflareCredential.age".publicKeys = allServers;

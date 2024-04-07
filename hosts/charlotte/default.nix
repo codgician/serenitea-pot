@@ -1,4 +1,8 @@
-{ config, lib, pkgs, inputs, ... }: {
+{ config, lib, pkgs, inputs, ... }: 
+let
+  secretsDir = ../../secrets;
+in
+{
   imports = [
     ./hardware.nix
     ./tpm.nix
@@ -10,18 +14,15 @@
       nixos-vscode-server.enable = true;
       plasma = {
         enable = true;
-        autoLoginUser = "codgi";
+        autoLoginUser = "kiosk";
         displayManager = "lightdm";
       };
     };
 
     system.agenix.enable = true;
 
-    users.codgi =
-      let
-        secretsDir = ../../secrets;
-      in
-      {
+    users = {
+      codgi = {
         enable = true;
         hashedPasswordAgeFile = secretsDir + "/codgiHashedPassword.age";
         extraGroups = [
@@ -33,6 +34,12 @@
           "tss"
         ];
       };
+
+      kiosk = {
+        enable = true;
+        hashedPasswordAgeFile = secretsDir + "/kioskHashedPassword.age";
+      };
+    };
   };
 
   # Enable dconf
@@ -89,6 +96,7 @@
     wget
     xterm
     htop
+    firefox
     maliit-framework
     maliit-keyboard
   ];

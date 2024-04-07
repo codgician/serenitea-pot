@@ -20,7 +20,13 @@ let
     "${name}" = {
       enable = lib.mkEnableOption ''Enable user "${name}".'';
 
-      createHome = lib.mkEnableOption ''Whether or not to create home directory for user "${name}".'';
+      createHome = lib.mkOption {
+        type = types.bool;
+        default = true;
+        description = ''
+          Whether or not to create home directory for user "${name}".
+        '';
+      };
 
       home = lib.mkOption {
         type = types.path;
@@ -143,7 +149,7 @@ let
       } // lib.optionalAttrs pkgs.stdenvNoCC.isLinux {
         hashedPassword = lib.mkIf (!agenixEnabled) cfg.${name}.hashedPassword;
         hashedPasswordFile = lib.mkIf (agenixEnabled)
-          config.age.secrets."${getAgeSecretNameFromPath cfg.${name}.hashedPasswordAgeFile}".path;
+        config.age.secrets."${getAgeSecretNameFromPath cfg.${name}.hashedPasswordAgeFile}".path;
       };
     }
   ]);
