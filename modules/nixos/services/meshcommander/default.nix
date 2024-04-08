@@ -28,7 +28,7 @@ in
 
   config = lib.mkIf cfg.enable {
     # Systemd service for mesh commander
-    systemd.services.meshCommander = {
+    systemd.services.meshcommander = {
       enable = true;
       restartIfChanged = true;
       description = "Mesh Commander Server for Intel AMT Management";
@@ -46,11 +46,11 @@ in
 
     # User and group
     users = {
-      users.meshCommander = lib.mkIf (cfg.user == "meshCommander") {
+      users.meshcommander = lib.mkIf (cfg.user == "meshcommander") {
         group = cfg.group;
         isSystemUser = true;
       };
-      groups.meshCommander = lib.mkIf (cfg.group == "meshCommander") { };
+      groups.meshcommander = lib.mkIf (cfg.group == "meshcommander") { };
     };
   };
 }
