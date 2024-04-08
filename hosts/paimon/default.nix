@@ -35,7 +35,7 @@
         reverseProxies = {
           "amt.codgician.me" = {
             enable = true;
-            proxyPass = "https://127.0.0.1:${builtins.toString meshcommander.port}";
+            proxyPass = "http://127.0.0.1:${builtins.toString meshcommander.port}";
             https = true;
             domains = [ "amt.codgician.me" ];
             extraConfig = ''
