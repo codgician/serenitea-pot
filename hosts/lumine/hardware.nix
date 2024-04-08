@@ -21,6 +21,4 @@
     Restart = "on-failure";
   };
   services.cloud-init.network.enable = true;
-  networking.useNetworkd = true;
-  services.resolved.enable = true;
 }

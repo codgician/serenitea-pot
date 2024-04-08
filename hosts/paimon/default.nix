@@ -129,8 +129,8 @@
     home.packages = with pkgs; [ httplz iperf3 screen ];
   };
 
-  # Use systemd-networkd
   networking.useNetworkd = true;
+  services.resolved.enable = true;
 
   # Set your time zone.
   time.timeZone = "Asia/Shanghai";
