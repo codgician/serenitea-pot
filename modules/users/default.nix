@@ -149,7 +149,7 @@ let
       } // lib.optionalAttrs pkgs.stdenvNoCC.isLinux {
         hashedPassword = lib.mkIf (!agenixEnabled) cfg.${name}.hashedPassword;
         hashedPasswordFile = lib.mkIf (agenixEnabled)
-        config.age.secrets."${getAgeSecretNameFromPath cfg.${name}.hashedPasswordAgeFile}".path;
+          config.age.secrets."${getAgeSecretNameFromPath cfg.${name}.hashedPasswordAgeFile}".path;
       };
     }
   ]);

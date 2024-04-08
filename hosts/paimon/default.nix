@@ -8,7 +8,6 @@
     ../../profiles/nixos/calibre-web.nix
     ../../profiles/nixos/dendrite.nix
     ../../profiles/nixos/gitlab.nix
-    ../../profiles/nixos/mesh-commander.nix
     ../../profiles/nixos/upgrade-pg-cluster.nix
   ];
 
@@ -24,11 +23,26 @@
         dataDir = "/mnt/data/fastapi-dls";
       };
 
+      meshcommander = {
+        enable = true;
+        port = 3001;
+      };
+
       nixos-vscode-server.enable = true;
 
       nginx = {
         enable = true;
         reverseProxies = {
+          "amt.codgician.me" = {
+            enable = true;
+            proxyPass = "https://127.0.0.1:${builtins.toString meshcommander.port}";
+            https = true;
+            domains = [ "amt.codgician.me" ];
+            extraConfig = ''
+              proxy_buffering off;
+            '';
+          };
+
           "nvdls.codgician.me" = {
             enable = true;
             proxyPass = "https://127.0.0.1:${builtins.toString fastapi-dls.port}";
