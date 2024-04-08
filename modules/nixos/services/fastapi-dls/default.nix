@@ -7,12 +7,20 @@ in
   options.codgician.services.fastapi-dls = {
     enable = lib.mkEnableOption "Enable fastapi-dls.";
 
-    host = lib.mkOption {
+    acmeDomain = lib.mkOption {
       type = types.str;
       default = "nvdls.codgician.me";
       description = lib.mdDoc ''
-        Hostname for fastapi-dls, passed as `--host`.
-        Must be a public domain (used for retrieving ACME certificate).
+        Acme domain for fastapi-dls, used to obtain SSL certificate.
+        Must be a public domain.
+      '';
+    };
+
+    host = lib.mkOption {
+      type = types.str;
+      default = "127.0.0.1";
+      description = lib.mdDoc ''
+        Host for fastapi-dls to listen on, passed as `--host`.
       '';
     };
 
@@ -85,7 +93,7 @@ in
         restartIfChanged = true;
         description = "fastapi-dls";
         wantedBy = [ "multi-user.target" ];
-        requires = [ "acme-finished-${cfg.host}.target" ];
+        requires = [ "acme-finished-${cfg.acmeDomain}.target" ];
 
         serviceConfig = {
           Type = "simple";
@@ -95,7 +103,7 @@ in
               envFile = pkgs.writeTextFile {
                 name = "fastapi-dls-env";
                 text = ''
-                  DLS_URL=${cfg.host}
+                  DLS_URL=${cfg.acmeDomain}
                   DLS_PORT=${builtins.toString cfg.announcePort}
                   LEASE_EXPIRE_DAYS=${builtins.toString cfg.leaseDays}
                   DATABASE=sqlite:///${cfg.dataDir}/db.sqlite
@@ -104,14 +112,14 @@ in
             in
             ''
               ${pkgs.nur.repos.xddxdd.fastapi-dls}/bin/fastapi-dls \
-                --host 127.0.0.1 --port ${builtins.toString cfg.port} \
+                --host ${cfg.host} --port ${builtins.toString cfg.port} \
                 --app-dir ${cfg.appDir} \
                 --ssl-keyfile ${credsDir}/key.pem --ssl-certfile ${credsDir}/cert.pem \
                 --env-file ${envFile} \
                 --proxy-headers
             '';
           LoadCredential =
-            let certDir = config.security.acme.certs."${cfg.host}".directory; in
+            let certDir = config.security.acme.certs."${cfg.acmeDomain}".directory; in
             [
               "cert.pem:${certDir}/cert.pem"
               "key.pem:${certDir}/key.pem"
@@ -181,9 +189,9 @@ in
 
       # Enable SSL certificate for virtual host
       codgician.acme = {
-        "${cfg.host}" = {
+        "${cfg.acmeDomain}" = {
           enable = true;
-          postRunScripts = [ "${pkgs.systemd}/bin/systemctl restart fastapi-dls" ];
+          reloadServices = [ "fastapi-dls" ];
         };
       };
     }

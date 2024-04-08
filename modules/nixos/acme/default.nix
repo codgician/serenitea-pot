@@ -23,6 +23,15 @@ let
         '';
       };
 
+      reloadServices = lib.mkOption {
+        type = types.listOf types.str;
+        example = [ "jellyfin" ];
+        default = [ ];
+        description = ''
+          A list of systemd services to call `systemctl try-reload-or-restart` on.
+        '';
+      };
+
       postRunScripts = lib.mkOption {
         type = types.listOf types.lines;
         example = [ "cp full.pem backup.pem" ];
@@ -54,6 +63,7 @@ let
       security.acme.certs.${name} = {
         domain = name;
         extraDomainNames = lib.lists.unique cfg.${name}.extraDomainNames;
+        reloadServices = cfg.${name}.reloadServices;
         postRun =
           let
             commands = builtins.map (x: "${pkgs.bash}/bin/bash -c '${x}'") cfg.${name}.postRunScripts;

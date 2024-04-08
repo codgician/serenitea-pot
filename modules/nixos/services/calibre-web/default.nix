@@ -8,10 +8,12 @@ in
   options.codgician.services.calibre-web = {
     enable = lib.mkEnableOption "Enable Calibre Web.";
 
-    localhostOnly = lib.mkOption {
-      type = types.bool;
-      default = true;
-      description = lib.mdDoc "Only bind to localhost.";
+    ip = lib.mkOption {
+      type = types.str;
+      default = "127.0.0.1";
+      description = lib.mdDoc ''
+        IP for Calibre Web to listen on.
+      '';
     };
 
     port = lib.mkOption {
@@ -36,13 +38,18 @@ in
       enable = true;
       listen = {
         port = cfg.port;
-        ip = if cfg.localhostOnly then "::1" else "::";
+        ip = cfg.ip;
       };
       options = {
         enableKepubify = true;
         enableBookConversion = true;
         calibreLibrary = cfg.calibreLibrary;
       };
+    };
+
+    # Persist data
+    environment = lib.optionalAttrs (systemCfg?impermanence) {
+      persistence.${systemCfg.impermanence.path}.directories = [ "/var/lib/calibre-web" ];
     };
   };
 }

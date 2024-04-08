@@ -15,13 +15,15 @@
     services = rec {
       calibre-web = {
         enable = true;
+        ip = "127.0.0.1";
         port = 3002;
         calibreLibrary = "/mnt/nas/media/books";
       };
 
       fastapi-dls = rec {
         enable = true;
-        host = "nvdls.codgician.me";
+        acmeDomain = "nvdls.codgician.me";
+        host = "127.0.0.1";
         port = 4443;
         announcePort = 443;
         appDir = "/var/lib/fastapi-dls-app";
@@ -40,7 +42,7 @@
         reverseProxies = {
           "amt.codgician.me" = {
             enable = true;
-            proxyPass = "http://127.0.0.1:${builtins.toString meshcommander.port}";
+            proxyPass = with meshcommander; "http://127.0.0.1:${builtins.toString port}";
             https = true;
             domains = [ "amt.codgician.me" ];
             extraConfig = ''
@@ -50,19 +52,27 @@
 
           "books.codgician.me" = {
             enable = true;
-            proxyPass = "http://127.0.0.1:${builtins.toString calibre-web.port}";
+            proxyPass = with calibre-web; "http://${ip}:${builtins.toString port}";
             https = true;
             domains = [ "books.codgician.me" ];
+            robots = ''
+              User-agent: *
+              Disallow: *
+            '';
           };
 
           "nvdls.codgician.me" = {
             enable = true;
-            proxyPass = "https://127.0.0.1:${builtins.toString fastapi-dls.port}";
+            proxyPass = with fastapi-dls; "https://${host}:${builtins.toString port}";
             https = true;
             domains = [ "nvdls.codgician.me" ];
             lanOnly = true;
             extraConfig = ''
               proxy_buffering off;
+            '';
+            robots = ''
+              User-agent: *
+              Disallow: *
             '';
           };
         };
@@ -108,7 +118,9 @@
       };
     };
 
-    system.agenix.enable = true;
+    system = {
+      agenix.enable = true;
+    };
 
     users =
       let

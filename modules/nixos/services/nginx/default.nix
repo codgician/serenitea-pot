@@ -28,7 +28,9 @@ let
             '');
           };
 
-          "/robots.txt".return = lib.mkIf (hostCfg.robots != "") "200 ${hostCfg.robots}";
+          "/robots.txt".return = lib.mkIf (hostCfg.robots != "") ''
+            200 "${lib.replaceStrings [ "\n" ] [ "\\n" ] hostCfg.robots}"
+          '';
         };
 
         forceSSL = hostCfg.https;
