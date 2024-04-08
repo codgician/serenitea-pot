@@ -5,7 +5,6 @@
 
     # Service modules
     ../../profiles/nixos/acme.nix
-    ../../profiles/nixos/calibre-web.nix
     ../../profiles/nixos/dendrite.nix
     ../../profiles/nixos/gitlab.nix
     ../../profiles/nixos/upgrade-pg-cluster.nix
@@ -14,6 +13,12 @@
   # My settings
   codgician = {
     services = rec {
+      calibre-web = {
+        enable = true;
+        port = 3002;
+        calibreLibrary = "/mnt/nas/media/books";
+      };
+
       fastapi-dls = rec {
         enable = true;
         host = "nvdls.codgician.me";
@@ -41,6 +46,13 @@
             extraConfig = ''
               proxy_buffering off;
             '';
+          };
+
+          "books.codgician.me" = {
+            enable = true;
+            proxyPass = "http://127.0.0.1:${builtins.toString calibre-web.port}";
+            https = true;
+            domains = [ "books.codgician.me" ];
           };
 
           "nvdls.codgician.me" = {

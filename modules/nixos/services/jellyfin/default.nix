@@ -33,21 +33,18 @@ rec {
         if cfg.reverseProxy.domains == [ ]
         then null else builtins.head cfg.reverseProxy.domains;
     in
-    lib.mkIf cfg.enable (lib.mkMerge [
-      # Service
-      {
-        services.jellyfin = {
-          enable = true;
-          openFirewall = true;
-          user = cfg.user;
-          group = cfg.group;
-        };
+    lib.mkIf cfg.enable {
+      services.jellyfin = {
+        enable = true;
+        openFirewall = true;
+        user = cfg.user;
+        group = cfg.group;
+      };
 
-        # Persist data
-        environment = lib.optionalAttrs (systemCfg?impermanence) {
-          persistence.${systemCfg.impermanence.path}.directories =
-            lib.mkIf (cfg.dataDir == options.codgician.services.jellyfin.dataDir.default) [ cfg.dataDir ];
-        };
-      }
-    ]);
+      # Persist data
+      environment = lib.optionalAttrs (systemCfg?impermanence) {
+        persistence.${systemCfg.impermanence.path}.directories =
+          lib.mkIf (cfg.dataDir == options.codgician.services.jellyfin.dataDir.default) [ cfg.dataDir ];
+      };
+    };
 }

@@ -13,6 +13,12 @@ in
       description = lib.mdDoc "TCP port for MeshCommander to listen.";
     };
 
+    localhostOnly = lib.mkOption {
+      type = types.bool;
+      default = true;
+      description = lib.mdDoc "Only bind to `127.0.0.1`.";
+    };
+
     user = lib.mkOption {
       type = types.str;
       default = "meshcommander";
@@ -36,7 +42,8 @@ in
 
       serviceConfig = {
         Type = "simple";
-        ExecStart = "${pkgs.nodejs}/bin/node --tls-min-v1.1 ${pkgs.nodePackages.meshcommander}/bin/meshcommander --port ${builtins.toString cfg.port}";
+        ExecStart = "${pkgs.nodejs}/bin/node --tls-min-v1.1 ${pkgs.nodePackages.meshcommander}/bin/meshcommander --port ${builtins.toString cfg.port}"
+          + (lib.optionalString (!cfg.localhostOnly) " --any");
         ExecStop = "${pkgs.killall}/bin/killall meshcommander";
         Restart = "always";
         User = cfg.user;
