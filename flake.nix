@@ -111,6 +111,7 @@
     }:
     let
       mkConfig = inputs.nixpkgs.lib.mapAttrs (name: value: value name);
+      mkLib = nixpkgs: nixpkgs.lib // (import ./lib { inherit nixpkgs; });
 
       # Basic configs for each host
       basicConfig = system: hostName: { config, ... }: {
@@ -139,7 +140,7 @@
         , home-manager ? inputs.home-manager
         }: hostName:
         let
-          lib = nixpkgs.lib;
+          lib = mkLib nixpkgs;
           pkgs = import nixpkgs {
             inherit system;
             config.allowUnfree = true;
@@ -147,7 +148,7 @@
         in
         darwin.lib.darwinSystem {
           inherit system;
-          specialArgs = { inherit inputs self system; };
+          specialArgs = { inherit inputs lib self system; };
           modules = [
             (import ./modules/darwin)
             (basicConfig system hostName)
@@ -169,7 +170,7 @@
         , home-manager ? inputs.home-manager
         }: hostName:
         let
-          lib = nixpkgs.lib;
+          lib = mkLib nixpkgs;
           pkgs = import nixpkgs {
             inherit system;
             config.allowUnfree = true;
@@ -177,7 +178,7 @@
         in
         nixpkgs.lib.nixosSystem {
           inherit system;
-          specialArgs = { inherit inputs self system; };
+          specialArgs = { inherit inputs lib self system; };
           modules = [
             (import ./modules/nixos)
             (basicConfig system hostName)
@@ -258,7 +259,7 @@
         if inputs.nixpkgs.legacyPackages.${system}.stdenvNoCC.isDarwin
         then inputs.nixpkgs-darwin
         else inputs.nixpkgs;
-      lib = nixpkgs.lib;
+      lib = mkLib nixpkgs;
       pkgs = import nixpkgs {
         inherit system;
         config.allowUnfree = true;

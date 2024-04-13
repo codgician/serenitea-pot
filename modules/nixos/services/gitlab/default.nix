@@ -2,7 +2,6 @@
 let
   cfg = config.codgician.services.gitlab;
   types = lib.types;
-  secretsDir = ../../../../secrets;
 in
 {
   options.codgician.services.gitlab = {
@@ -94,7 +93,7 @@ in
     age.secrets = builtins.foldl' (x: y: x // y) { } (map
       (name: {
         "${name}" = {
-          file = (secretsDir + "/${name}.age");
+          file = (lib.codgician.secretsDir + "/${name}.age");
           owner = cfg.user;
           mode = "600";
         };

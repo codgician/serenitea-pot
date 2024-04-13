@@ -3,7 +3,6 @@ let
   cfg = config.codgician.services.samba;
   userCfg = config.codgician.users;
   types = lib.types;
-  getAgeSecretNameFromPath = path: lib.removeSuffix ".age" (builtins.baseNameOf path);
 in
 {
   options.codgician.services.samba = {
@@ -62,7 +61,7 @@ in
           sambaPkg = config.services.samba.package;
           sambaUsersString = builtins.concatStringsSep "," cfg.users;
           mkCommand = user:
-            let passwordFile = config.age.secrets."${getAgeSecretNameFromPath userCfg.${user}.passwordAgeFile}".path;
+            let passwordFile = config.age.secrets."${lib.codgician.getAgeSecretNameFromPath userCfg.${user}.passwordAgeFile}".path;
             in ''(cat ${passwordFile}; cat ${passwordFile};) | ${sambaPkg}/bin/smbpasswd -s -a "${user}"'';
           commands = [
             ''echo -e "refreshing samba password for: ${sambaUsersString}"''

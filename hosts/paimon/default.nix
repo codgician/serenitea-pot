@@ -1,5 +1,4 @@
-{ config, pkgs, ... }:
-{
+{ config, lib, pkgs, ... }: {
   imports = [
     ./hardware.nix
 
@@ -138,24 +137,20 @@
       agenix.enable = true;
     };
 
-    users =
-      let
-        secretsDir = ../../secrets;
-      in
-      {
-        codgi = {
-          enable = true;
-          hashedPasswordAgeFile = secretsDir + "/codgiHashedPassword.age";
-          passwordAgeFile = secretsDir + "/codgiPassword.age";
-          extraGroups = [ "wheel" ];
-        };
-        bmc = {
-          enable = true;
-          createHome = false;
-          hashedPasswordAgeFile = secretsDir + "/bmcHashedPassword.age";
-          passwordAgeFile = secretsDir + "/bmcPassword.age";
-        };
+    users = with lib.codgician; {
+      codgi = {
+        enable = true;
+        hashedPasswordAgeFile = secretsDir + "/codgiHashedPassword.age";
+        passwordAgeFile = secretsDir + "/codgiPassword.age";
+        extraGroups = [ "wheel" ];
       };
+      bmc = {
+        enable = true;
+        createHome = false;
+        hashedPasswordAgeFile = secretsDir + "/bmcHashedPassword.age";
+        passwordAgeFile = secretsDir + "/bmcPassword.age";
+      };
+    };
   };
 
   # Home manager

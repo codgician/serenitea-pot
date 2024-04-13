@@ -2,7 +2,6 @@
 let
   cfg = config.codgician.services.nginx;
   types = lib.types;
-  concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
   reverseProxyNames = builtins.attrNames cfg.reverseProxies;
 
   # Make virtual host configuration
@@ -110,7 +109,7 @@ in
         ];
       };
 
-      virtualHosts = concatAttrs (builtins.map mkVirtualHostConfig reverseProxyNames);
+      virtualHosts = lib.codgician.concatAttrs (builtins.map mkVirtualHostConfig reverseProxyNames);
     };
 
     # Monitoring
@@ -120,7 +119,7 @@ in
     };
 
     # ACME settings
-    codgician.acme = concatAttrs (builtins.map mkAcmeConfig reverseProxyNames);
+    codgician.acme = lib.codgician.concatAttrs (builtins.map mkAcmeConfig reverseProxyNames);
 
     # Assertions
     assertions = builtins.concatLists (builtins.map mkAssertions reverseProxyNames);

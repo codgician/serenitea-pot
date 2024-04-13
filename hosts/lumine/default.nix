@@ -1,4 +1,4 @@
-{ config, pkgs, agenix, ... }: {
+{ config, lib, pkgs, agenix, ... }: {
   imports = [
     ./hardware.nix
   ];
@@ -23,15 +23,11 @@
 
     system.agenix.enable = true;
 
-    users.codgi =
-      let
-        secretsDir = ../../secrets;
-      in
-      {
-        enable = true;
-        hashedPasswordAgeFile = secretsDir + "/codgiHashedPassword.age";
-        extraGroups = [ "wheel" ];
-      };
+    users.codgi = with lib.codgician; {
+      enable = true;
+      hashedPasswordAgeFile = secretsDir + "/codgiHashedPassword.age";
+      extraGroups = [ "wheel" ];
+    };
   };
 
   # Home manager

@@ -2,7 +2,7 @@
 # Yaml sample: https://github.com/matrix-org/dendrite/blob/main/dendrite-sample.yaml
 # Huge thanks to @Mic92
 
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 let
   domain = "matrix.codgician.me";
   dbName = "dendrite";
@@ -185,18 +185,14 @@ in
   };
 
   # Protect secrets
-  age.secrets =
-    let
-      secretsDir = ../../secrets;
-      nameToObj = name: {
-        "${name}" = {
-          file = (secretsDir + "/${name}.age");
-          owner = "root";
-          mode = "600";
-        };
+  age.secrets = builtins.foldl' (x: y: x // y) { } (map
+    (name: {
+      "${name}" = {
+        file = (lib.codgician.secretsDir + "/${name}.age");
+        owner = "root";
+        mode = "600";
       };
-    in
-    builtins.foldl' (x: y: x // y) { } (map (nameToObj) [ "matrixGlobalPrivateKey" "matrixEnv" ]);
+    }) [ "matrixGlobalPrivateKey" "matrixEnv" ]);
 
   # Ngnix configurations
   services.nginx.virtualHosts."${domain}" = {

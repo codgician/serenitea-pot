@@ -1,15 +1,10 @@
 { config, lib, pkgs, ... }:
 let
-  secretsDir = ../../secrets;
-  secretsFile = secretsDir + "/secrets.nix";
-
+  secretsFile = lib.codgician.secretsDir + "/secrets.nix";
   cfg = config.codgician.users;
   systemCfg = config.codgician.system;
   types = lib.types;
-
   agenixEnabled = (systemCfg?agenix && systemCfg.agenix.enable);
-  concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
-  getAgeSecretNameFromPath = path: lib.removeSuffix ".age" (builtins.baseNameOf path);
 
   # Use list of sub-folder names as list of available users
   dirs = builtins.readDir ./.;
@@ -124,14 +119,14 @@ let
       age.secrets = lib.optionalAttrs agenixEnabled (
         let
           mkSecretConfig = path: {
-            "${getAgeSecretNameFromPath path}" = {
+            "${lib.codgician.getAgeSecretNameFromPath path}" = {
               file = path;
               mode = "600";
               owner = name;
             };
           };
         in
-        concatAttrs (builtins.map mkSecretConfig (
+        lib.codgician.concatAttrs (builtins.map mkSecretConfig (
           cfg.${name}.extraAgeFiles ++
           (builtins.filter (x: x != null) [ cfg.${name}.passwordAgeFile cfg.${name}.hashedPasswordAgeFile ])
         ))
@@ -149,12 +144,12 @@ let
       } // lib.optionalAttrs pkgs.stdenvNoCC.isLinux {
         hashedPassword = lib.mkIf (!agenixEnabled) cfg.${name}.hashedPassword;
         hashedPasswordFile = lib.mkIf (agenixEnabled)
-          config.age.secrets."${getAgeSecretNameFromPath cfg.${name}.hashedPasswordAgeFile}".path;
+          config.age.secrets."${lib.codgician.getAgeSecretNameFromPath cfg.${name}.hashedPasswordAgeFile}".path;
       };
     }
   ]);
 in
 {
-  options.codgician.users = concatAttrs (builtins.map mkUserOptions users);
+  options.codgician.users = lib.codgician.concatAttrs (builtins.map mkUserOptions users);
   config = lib.mkMerge (builtins.map mkUserConfig users);
 }

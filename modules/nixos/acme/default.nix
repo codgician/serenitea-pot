@@ -6,8 +6,6 @@ let
   systemCfg = config.codgician.system;
   types = lib.types;
   agenixEnabled = (systemCfg?agenix && systemCfg.agenix.enable);
-  concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
-  getAgeSecretNameFromPath = path: lib.removeSuffix ".age" (builtins.baseNameOf path);
 
   # Define module options for each certificate
   mkAcmeOptions = name: {
@@ -74,7 +72,7 @@ let
   ]);
 in
 rec {
-  options.codgician.acme = concatAttrs (builtins.map mkAcmeOptions domainNames);
+  options.codgician.acme = lib.codgician.concatAttrs (builtins.map mkAcmeOptions domainNames);
   config = lib.mkMerge ((builtins.map mkAcmeConfig domainNames) ++ [
     # Accept terms
     {
@@ -92,7 +90,7 @@ rec {
             builtins.filter (x: x != null) (
               builtins.map (name: cfg.${name}.ageSecretFilePath) domainNames));
           mkAgeSecretsConfig = path: {
-            "${getAgeSecretNameFromPath path}" = {
+            "${lib.codgician.getAgeSecretNameFromPath path}" = {
               file = path;
               mode = "600";
               owner = "root";

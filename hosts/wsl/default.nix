@@ -1,4 +1,4 @@
-{ config, pkgs, agenix, nixos-wsl, ... }:
+{ config, lib, pkgs, agenix, nixos-wsl, ... }:
 {
   # My settings
   codgician = {
@@ -11,15 +11,11 @@
       wsl.enable = true;
     };
 
-    users.codgi =
-      let
-        secretsDir = ../../secrets;
-      in
-      {
-        enable = true;
-        hashedPasswordAgeFile = secretsDir + "/codgiHashedPassword.age";
-        extraGroups = [ "wheel" ];
-      };
+    users.codgi = with lib.codgician; {
+      enable = true;
+      hashedPasswordAgeFile = secretsDir + "/codgiHashedPassword.age";
+      extraGroups = [ "wheel" ];
+    };
   };
 
   # WSL default user

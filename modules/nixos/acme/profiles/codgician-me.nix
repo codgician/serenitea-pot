@@ -7,8 +7,6 @@ in
     email = "codgician@outlook.com";
     credentialsFile = config.age.secrets.cloudflareCredential.path;
     dnsProvider = "cloudflare";
-    dnsResolver = "1dot1dot1dot1.cloudflare-dns.com:853";
-    keyType = "ec384";
     extraLegoFlags = [ "--dns-timeout" "240" ];
     group = config.services.nginx.user;
   };
@@ -20,9 +18,5 @@ in
       assertion = config.codgician.system.agenix.enable;
       message = "Agenix must be enabled to acticate codgician-me acme profile.";
     }
-    {
-      assertion = builtins.pathExists credPath;
-      message = "Credential '${credPath}' must exist.";
-    }
-  ];
+  ] ++ lib.codgician.mkAgenixAssertions [ credPath ];
 }

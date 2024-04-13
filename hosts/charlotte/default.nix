@@ -1,8 +1,4 @@
-{ config, lib, pkgs, inputs, ... }:
-let
-  secretsDir = ../../secrets;
-in
-{
+{ config, lib, pkgs, inputs, ... }: {
   imports = [
     ./hardware.nix
     ./tpm.nix
@@ -21,7 +17,7 @@ in
 
     system.agenix.enable = true;
 
-    users = {
+    users = with lib.codgician; {
       codgi = {
         enable = true;
         hashedPasswordAgeFile = secretsDir + "/codgiHashedPassword.age";
