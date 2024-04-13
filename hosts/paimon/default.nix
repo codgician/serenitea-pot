@@ -7,12 +7,13 @@
     ../../profiles/nixos/acme.nix
     ../../profiles/nixos/dendrite.nix
     ../../profiles/nixos/gitlab.nix
-    ../../profiles/nixos/upgrade-pg-cluster.nix
   ];
 
   # My settings
   codgician = {
     services = rec {
+      postgresql.enable = true;
+
       calibre-web = {
         enable = true;
         ip = "127.0.0.1";
