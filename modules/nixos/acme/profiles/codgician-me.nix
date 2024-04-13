@@ -1,6 +1,6 @@
 { domain, config, lib, pkgs, ... }:
 let
-  secretsDir = ../../../../secrets;
+  credPath = ../../../../secrets/cloudflareCredential.age;
 in
 {
   security.acme.certs."${domain}" = {
@@ -13,5 +13,16 @@ in
     group = config.services.nginx.user;
   };
 
-  codgician.acme."${domain}".ageSecretFilePath = secretsDir + "/cloudflareCredential.age";
+  codgician.acme."${domain}".ageSecretFilePath = credPath;
+
+  assertions = [
+    {
+      assertion = config.codgician.system.agenix.enable;
+      message = "Agenix must be enabled to acticate codgician-me acme profile.";
+    }
+    {
+      assertion = builtins.pathExists credPath;
+      message = "Credential '${credPath}' must exist.";
+    }
+  ];
 }
