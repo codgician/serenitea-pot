@@ -1,17 +1,49 @@
-{ config, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 let
-  domain = "git.codgician.me";
+  cfg = config.codgician.services.gitlab;
+  types = lib.types;
+  secretsDir = ../../../../secrets;
 in
 {
-  config = {
+  options.codgician.services.gitlab = {
+    enable = lib.mkEnableOption "Enable GitLab server.";
+
+    statePath = lib.mkOption {
+      type = types.str;
+      example = "/mnt/gitlab";
+      description = "Path to store GitLab state data.";
+    };
+
+    host = lib.mkOption {
+      type = types.str;
+      example = "gitlab.example.org";
+      description = "Host name of the GitLab server.";
+    };
+
+    user = lib.mkOption {
+      type = types.str;
+      default = "gitlab";
+      description = lib.mdDoc "User under which GitLab runs.";
+    };
+
+    group = lib.mkOption {
+      type = types.str;
+      default = "gitlab";
+      description = lib.mdDoc "Group under which GitLab runs.";
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
+    # Enable PostgreSQL
+    codgician.services.postgresql.enable = true;
+
+    # GitLab configs
     services.gitlab = rec {
       enable = true;
       packages.gitlab = pkgs.gitlab;
-      statePath = "/mnt/gitlab/";
-      host = domain;
+      inherit (cfg) statePath host user group;
       https = true;
       port = 443;
-      user = "gitlab";
 
       # Secrets
       initialRootPasswordFile = config.age.secrets.gitlabInitRootPasswd.path;
@@ -58,59 +90,22 @@ in
       };
     };
 
-    # PostgreSQL configurations
-    services.postgresql = {
-      dataDir = "/mnt/postgres";
-      settings = {
-        full_page_writes = false; # Not needed for ZFS
-      };
-    };
-
     # Protect secrets
-    age.secrets =
-      let
-        secretsDir = ../../secrets;
-        nameToObj = name: {
-          "${name}" = {
-            file = (secretsDir + "/${name}.age");
-            owner = config.services.gitlab.user;
-            mode = "600";
-          };
+    age.secrets = builtins.foldl' (x: y: x // y) { } (map
+      (name: {
+        "${name}" = {
+          file = (secretsDir + "/${name}.age");
+          owner = cfg.user;
+          mode = "600";
         };
-      in
-      builtins.foldl' (x: y: x // y) { } (map (nameToObj) [
-        "gitlabInitRootPasswd"
-        "gitlabDb"
-        "gitlabJws"
-        "gitlabOtp"
-        "gitlabSecret"
-        "gitlabSmtp"
-        "gitlabOmniAuthGitHub"
-      ]);
-
-    # Ngnix configurations
-    services.nginx.virtualHosts."${domain}" = {
-      locations."/" = {
-        proxyPass = "http://unix:/run/gitlab/gitlab-workhorse.socket";
-        proxyWebsockets = true;
-        recommendedProxySettings = true;
-      };
-
-      forceSSL = true;
-      http2 = true;
-      enableACME = true;
-      acmeRoot = null;
-    };
-
-    # SSL certificate
-    security.acme.certs."${domain}" = {
-      inherit domain;
-      extraDomainNames = [
-        "sz.codgician.me"
-        "sz4.codgician.me"
-        "sz6.codgician.me"
-      ];
-      group = config.services.nginx.user;
-    };
+      }) [
+      "gitlabInitRootPasswd"
+      "gitlabDb"
+      "gitlabJws"
+      "gitlabOtp"
+      "gitlabSecret"
+      "gitlabSmtp"
+      "gitlabOmniAuthGitHub"
+    ]);
   };
 }

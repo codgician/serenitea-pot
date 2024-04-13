@@ -6,13 +6,15 @@
     # Service modules
     ../../profiles/nixos/acme.nix
     ../../profiles/nixos/dendrite.nix
-    ../../profiles/nixos/gitlab.nix
   ];
 
   # My settings
   codgician = {
     services = rec {
-      postgresql.enable = true;
+      postgresql = {
+        dataDir = "/mnt/postgres";
+        zfsOptimizations = true;
+      };
 
       calibre-web = {
         enable = true;
@@ -29,6 +31,12 @@
         announcePort = 443;
         appDir = "/var/lib/fastapi-dls-app";
         dataDir = "/mnt/data/fastapi-dls";
+      };
+
+      gitlab = {
+        enable = true;
+        statePath = "/mnt/gitlab";
+        host = "git.codgician.me";
       };
 
       meshcommander = {
@@ -60,6 +68,13 @@
               User-agent: *
               Disallow: *
             '';
+          };
+
+          "${gitlab.host}" = {
+            enable = true;
+            proxyPass = "http://unix:/run/gitlab/gitlab-workhorse.socket";
+            https = true;
+            domains = [ gitlab.host ];
           };
 
           "nvdls.codgician.me" = {
