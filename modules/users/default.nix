@@ -115,23 +115,16 @@ let
     }
 
     # Agenix: manage secrets if enabled
-    {
-      age.secrets = lib.optionalAttrs agenixEnabled (
-        let
-          mkSecretConfig = path: {
-            "${lib.codgician.getAgeSecretNameFromPath path}" = {
-              file = path;
-              mode = "600";
-              owner = name;
-            };
-          };
-        in
-        lib.codgician.concatAttrs (builtins.map mkSecretConfig (
-          cfg.${name}.extraAgeFiles ++
-          (builtins.filter (x: x != null) [ cfg.${name}.passwordAgeFile cfg.${name}.hashedPasswordAgeFile ])
-        ))
-      );
-    }
+    (lib.mkIf agenixEnabled (
+      let
+        credFiles = cfg.${name}.extraAgeFiles
+          ++ (builtins.filter (x: x != null) [
+          cfg.${name}.passwordAgeFile
+          cfg.${name}.hashedPasswordAgeFile
+        ]);
+      in
+      lib.codgician.mkAgenixConfigs name credFiles
+    ))
 
     # Common options
     {

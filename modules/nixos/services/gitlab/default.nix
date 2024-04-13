@@ -32,79 +32,80 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    # Enable PostgreSQL
-    codgician.services.postgresql.enable = true;
+  config = lib.mkIf cfg.enable (lib.mkMerge [
+    {
+      # Enable PostgreSQL
+      codgician.services.postgresql.enable = true;
 
-    # GitLab configs
-    services.gitlab = rec {
-      enable = true;
-      packages.gitlab = pkgs.gitlab;
-      inherit (cfg) statePath host user group;
-      https = true;
-      port = 443;
-
-      # Secrets
-      initialRootPasswordFile = config.age.secrets.gitlabInitRootPasswd.path;
-      secrets = {
-        dbFile = config.age.secrets.gitlabDb.path;
-        jwsFile = config.age.secrets.gitlabJws.path;
-        otpFile = config.age.secrets.gitlabOtp.path;
-        secretFile = config.age.secrets.gitlabSecret.path;
-      };
-
-      # Mail settings
-      smtp = {
+      # GitLab configs
+      services.gitlab = rec {
         enable = true;
-        enableStartTLSAuto = true;
-        tls = false;
-        authentication = "login";
-        address = "smtp.office365.com";
-        port = 587;
-        username = "bot@codgician.me";
-        passwordFile = config.age.secrets.gitlabSmtp.path;
-        domain = "codgician.me";
-      };
-      extraConfig.gitlab = {
-        email_from = smtp.username;
-        email_reply_to = smtp.username;
-      };
+        packages.gitlab = pkgs.gitlab;
+        inherit (cfg) statePath host user group;
+        https = true;
+        port = 443;
 
-      # OmniAuth
-      extraConfig.omniauth = {
-        enabled = true;
-        allow_single_sign_on = [ "github" ];
-        block_auto_created_users = true;
-        providers = [
-          {
-            name = "github";
-            label = "GitHub";
-            app_id = "3bc605d269d8117af816";
-            app_secret = { _secret = config.age.secrets.gitlabOmniAuthGitHub.path; };
-            args = {
-              scope = "user:email";
-            };
-          }
-        ];
-      };
-    };
-
-    # Protect secrets
-    age.secrets = builtins.foldl' (x: y: x // y) { } (map
-      (name: {
-        "${name}" = {
-          file = (lib.codgician.secretsDir + "/${name}.age");
-          owner = cfg.user;
-          mode = "600";
+        # Secrets
+        initialRootPasswordFile = config.age.secrets.gitlabInitRootPasswd.path;
+        secrets = {
+          dbFile = config.age.secrets.gitlabDb.path;
+          jwsFile = config.age.secrets.gitlabJws.path;
+          otpFile = config.age.secrets.gitlabOtp.path;
+          secretFile = config.age.secrets.gitlabSecret.path;
         };
-      }) [
-      "gitlabInitRootPasswd"
-      "gitlabDb"
-      "gitlabJws"
-      "gitlabOtp"
-      "gitlabSecret"
-      "gitlabSmtp"
-      "gitlabOmniAuthGitHub"
-    ]);
-  };
+
+        # Mail settings
+        smtp = {
+          enable = true;
+          enableStartTLSAuto = true;
+          tls = false;
+          authentication = "login";
+          address = "smtp.office365.com";
+          port = 587;
+          username = "bot@codgician.me";
+          passwordFile = config.age.secrets.gitlabSmtp.path;
+          domain = "codgician.me";
+        };
+        extraConfig.gitlab = {
+          email_from = smtp.username;
+          email_reply_to = smtp.username;
+        };
+
+        # OmniAuth
+        extraConfig.omniauth = {
+          enabled = true;
+          allow_single_sign_on = [ "github" ];
+          block_auto_created_users = true;
+          providers = [
+            {
+              name = "github";
+              label = "GitHub";
+              app_id = "3bc605d269d8117af816";
+              app_secret = { _secret = config.age.secrets.gitlabOmniAuthGitHub.path; };
+              args = {
+                scope = "user:email";
+              };
+            }
+          ];
+        };
+      };
+    }
+
+    # Agenix secrets
+    (
+      let
+        credFileNames = [
+          "gitlabInitRootPasswd"
+          "gitlabDb"
+          "gitlabJws"
+          "gitlabOtp"
+          "gitlabSecret"
+          "gitlabSmtp"
+          "gitlabOmniAuthGitHub"
+        ];
+        credFiles = builtins.map (x: lib.codgician.secretsDir + "/${x}.age") credFileNames;
+      in
+      lib.codgician.mkAgenixConfigs cfg.user credFiles
+    )
+  ]);
 }

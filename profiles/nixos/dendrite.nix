@@ -185,7 +185,7 @@ in
   };
 
   # Protect secrets
-  age.secrets = builtins.foldl' (x: y: x // y) { } (map
+  age.secrets = lib.codgician.concatAttrs (map
     (name: {
       "${name}" = {
         file = (lib.codgician.secretsDir + "/${name}.age");
