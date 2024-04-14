@@ -235,12 +235,9 @@ in
         let
           # Metadata for matrix server and client
           clientConfig = {
-            "m.homeserver" = {
-              "base_url" = "https://${cfg.domain}";
-              "server_name" = "${cfg.domain}";
-            };
-            "org.matrix.msc3575.proxy"."url" = "https://${cfg.domain}";
-            "m.identity_server"."base_url" = "https://vector.im";
+            "m.homeserver".base_url = "https://${cfg.domain}";
+            "org.matrix.msc3575.proxy".url = "https://${cfg.domain}";
+            "m.identity_server".base_url = "https://vector.im";
           };
           serverConfig = {
             "m.server" = "${cfg.domain}:443";
@@ -285,17 +282,16 @@ in
                 return = ''200 '${builtins.toJSON serverConfig}' '';
                 extraConfig = ''
                   add_header Content-Type application/json;
-                  return 200 '${builtins.toJSON serverConfig}';
+                  add_header Access-Control-Allow-Origin *;
                 '';
               };
 
               "= /.well-known/matrix/client" = lib.mkIf (!cfg.reverseProxy.proxyAll) {
                 inherit (cfg.reverseProxy) lanOnly;
-                return = ''200 '${builtins.toJSON serverConfig}' '';
+                return = ''200 '${builtins.toJSON clientConfig}' '';
                 extraConfig = ''
                   add_header Content-Type application/json;
                   add_header Access-Control-Allow-Origin *;
-                  return 200 '${builtins.toJSON clientConfig}';
                 '';
               };
             };
