@@ -4,6 +4,23 @@ let
   types = lib.types;
   reverseProxyNames = builtins.attrNames cfg.reverseProxies;
 
+  # Make location configuration
+  mkLocationConfig = host: location:
+    let
+      locationCfg = cfg.reverseProxies.${host}.locations.${location};
+    in
+    {
+      inherit (locationCfg) proxyPass return;
+      proxyWebsockets = true;
+      extraConfig = locationCfg.extraConfig + (lib.optionalString locationCfg.lanOnly ''
+        allow 10.0.0.0/8;
+        allow 172.16.0.0/12;
+        allow 192.168.0.0/16;
+        allow fc00::/7;
+        deny all;
+      '');
+    };
+
   # Make virtual host configuration
   mkVirtualHostConfig = host:
     let
@@ -13,25 +30,10 @@ let
       "${host}" = {
         serverName = builtins.head hostCfg.domains;
         serverAliases = builtins.tail hostCfg.domains;
-
-        locations = {
-          "/" = {
-            inherit (hostCfg) proxyPass;
-            proxyWebsockets = true;
-            extraConfig = hostCfg.extraConfig + (lib.optionalString hostCfg.lanOnly ''
-              allow 10.0.0.0/8;
-              allow 172.16.0.0/12;
-              allow 192.168.0.0/16;
-              allow fc00::/7;
-              deny all;
-            '');
-          };
-
-          "/robots.txt".return = lib.mkIf (hostCfg.robots != "") ''
-            200 "${lib.replaceStrings [ "\n" ] [ "\\n" ] hostCfg.robots}"
-          '';
+        locations = (builtins.mapAttrs (k: _: mkLocationConfig host k) hostCfg.locations)
+          // lib.optionalAttrs (hostCfg.robots != null) {
+          "/robots.txt".return = ''200 "${lib.replaceStrings [ "\n" ] [ "\\n" ] hostCfg.robots}"'';
         };
-
         forceSSL = hostCfg.https;
         enableACME = hostCfg.https;
         http2 = true;
@@ -82,7 +84,7 @@ in
             enable = true;
             https = true;
             domains = [ "myservice.example.org" ];
-            lanOnly = false;
+            locations."/".proxyPass = "http://127.0.0.1:8000";
           };
         }
       '';

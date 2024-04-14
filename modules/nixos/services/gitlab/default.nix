@@ -33,11 +33,8 @@ in
   };
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
+    # GitLab
     {
-      # Enable PostgreSQL
-      codgician.services.postgresql.enable = true;
-
-      # GitLab configs
       services.gitlab = rec {
         enable = true;
         packages.gitlab = pkgs.gitlab;
@@ -89,6 +86,11 @@ in
           ];
         };
       };
+    }
+
+    # PostgreSQL 
+    {
+      codgician.services.postgresql.enable = true;
     }
 
     # Agenix secrets

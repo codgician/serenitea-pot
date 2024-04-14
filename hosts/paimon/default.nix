@@ -50,19 +50,25 @@
         reverseProxies = {
           "amt.codgician.me" = {
             enable = true;
-            proxyPass = with meshcommander; "http://127.0.0.1:${builtins.toString port}";
             https = true;
             domains = [ "amt.codgician.me" ];
-            extraConfig = ''
-              proxy_buffering off;
+            locations."/" = {
+              proxyPass = with meshcommander; "http://127.0.0.1:${builtins.toString port}";
+              extraConfig = ''
+                proxy_buffering off;
+              '';
+            };
+            robots = ''
+              User-agent: *
+              Disallow: *
             '';
           };
 
           "books.codgician.me" = {
             enable = true;
-            proxyPass = with calibre-web; "http://${ip}:${builtins.toString port}";
             https = true;
             domains = [ "books.codgician.me" ];
+            locations."/".proxyPass = with calibre-web; "http://${ip}:${builtins.toString port}";
             robots = ''
               User-agent: *
               Disallow: *
@@ -71,20 +77,22 @@
 
           "${gitlab.host}" = {
             enable = true;
-            proxyPass = "http://unix:/run/gitlab/gitlab-workhorse.socket";
             https = true;
             domains = [ gitlab.host ];
+            locations."/".proxyPass = "http://unix:/run/gitlab/gitlab-workhorse.socket";
           };
 
           "nvdls.codgician.me" = {
             enable = true;
-            proxyPass = with fastapi-dls; "https://${host}:${builtins.toString port}";
             https = true;
             domains = [ "nvdls.codgician.me" ];
-            lanOnly = true;
-            extraConfig = ''
-              proxy_buffering off;
-            '';
+            locations."/" = {
+              proxyPass = with fastapi-dls; "http://${host}:${builtins.toString port}";
+              lanOnly = true;
+              extraConfig = ''
+                proxy_buffering off;
+              '';
+            };
             robots = ''
               User-agent: *
               Disallow: *
