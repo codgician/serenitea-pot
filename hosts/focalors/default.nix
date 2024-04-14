@@ -27,10 +27,12 @@
 
   # Home manager
   home-manager.users.codgi = { config, ... }: rec {
-    imports = [
-      ../../profiles/hm/git.nix
-      ../../profiles/hm/zsh.nix
-    ];
+    codgician.codgi = {
+      git.enable = true;
+      pwsh.enable = true;
+      ssh.enable = true;
+      zsh.enable = true;
+    };
 
     home.stateVersion = "23.11";
     home.packages = with pkgs; [ httplz iperf3 screen ];

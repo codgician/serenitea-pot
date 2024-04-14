@@ -69,7 +69,7 @@ let
           This option does not set login password.
         '';
       };
-
+      
     } // lib.optionalAttrs pkgs.stdenvNoCC.isLinux {
       extraGroups = lib.mkOption {
         type = types.listOf types.str;
