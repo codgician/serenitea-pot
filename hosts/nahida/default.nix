@@ -16,7 +16,7 @@
           enable = true;
           https = true;
           domains = [ "fin.codgician.me" ];
-          proxyPass = "http://localhost:8096";
+          locations."/".proxyPass = "http://localhost:8096";
         };
       };
     };
