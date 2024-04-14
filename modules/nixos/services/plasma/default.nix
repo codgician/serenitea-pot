@@ -14,8 +14,8 @@ lib.optionalAttrs (lib.version >= "24.05") {
     };
 
     autoLoginUser = lib.mkOption {
-      type = types.str;
-      default = "";
+      type = types.nullOr types.str;
+      default = null;
       description = "Specify an auto-login user if you want to enable auto login.";
     };
 
@@ -29,25 +29,28 @@ lib.optionalAttrs (lib.version >= "24.05") {
 
   config = lib.mkIf cfg.enable {
     services = {
-      xserver = {
+      xserver.enable = true;
+      xserver.displayManager.lightdm = lib.mkIf (cfg.displayManager == "lightdm") {
         enable = true;
-        displayManager = {
-          defaultSession = "plasma";
+        # Workaround for autologin only working at first launch.
+        # A logout or session crashing will show the login screen otherwise.
+        extraSeatDefaults = ''
+          session-cleanup-script=${pkgs.procps}/bin/pkill -P1 -fx ${pkgs.lightdm}/sbin/lightdm
+        '';
+      };
 
-          sddm = lib.mkIf (cfg.displayManager == "sddm") {
-            enable = true;
-            enableHidpi = true;
-            theme = "breeze";
-          };
+      displayManager = {
+        defaultSession = "plasma";
 
-          lightdm = lib.mkIf (cfg.displayManager == "lightdm") {
-            enable = true;
-            # Workaround for autologin only working at first launch.
-            # A logout or session crashing will show the login screen otherwise.
-            extraSeatDefaults = ''
-              session-cleanup-script=${pkgs.procps}/bin/pkill -P1 -fx ${pkgs.lightdm}/sbin/lightdm
-            '';
-          };
+        sddm = lib.mkIf (cfg.displayManager == "sddm") {
+          enable = true;
+          enableHidpi = true;
+          theme = "breeze";
+        };
+
+        autoLogin = lib.mkIf (cfg.autoLoginUser != null) {
+          enable = true;
+          user = cfg.autoLoginUser;
         };
       };
 
@@ -68,12 +71,6 @@ lib.optionalAttrs (lib.version >= "24.05") {
       enableKwallet = true;
     };
 
-    # Auto-login
-    services.xserver.displayManager.autoLogin = lib.mkIf (builtins.stringLength cfg.autoLoginUser > 0) {
-      enable = true;
-      user = cfg.autoLoginUser;
-    };
-
     # Configure keymap in X11
     services.xserver.xkb.layout = "us";
 
@@ -89,6 +86,7 @@ lib.optionalAttrs (lib.version >= "24.05") {
       wayland-utils
       aha
       kdePackages.kio-admin
+      qt6.qtvirtualkeyboard
     ];
 
     # Required for autorotate
