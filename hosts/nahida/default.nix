@@ -7,18 +7,14 @@
     containers.enable = true;
 
     services = {
-      jellyfin.enable = true;
-      nixos-vscode-server.enable = true;
-
-      nginx = {
+      jellyfin = {
         enable = true;
-        reverseProxies."fin.codgician.me" = {
+        reverseProxy = {
           enable = true;
-          https = true;
           domains = [ "fin.codgician.me" ];
-          locations."/".proxyPass = "http://localhost:8096";
         };
       };
+      nixos-vscode-server.enable = true;
     };
 
     system = {

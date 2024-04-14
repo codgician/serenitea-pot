@@ -25,15 +25,35 @@ rec {
       default = "/var/lib/jellyfin";
       description = lib.mdDoc "Data directory for jellyfin.";
     };
+
+    # Reverse proxy profile for nginx
+    reverseProxy = {
+      enable = lib.mkEnableOption "Enable reverse proxy for Jellyfin.";
+
+      domains = lib.mkOption {
+        type = types.listOf types.str;
+        example = [ "example.com" "example.org" ];
+        default = [ ];
+        description = lib.mdDoc ''
+          List of domains for the reverse proxy.
+        '';
+      };
+
+      proxyPass = lib.mkOption {
+        type = types.str;
+        default = "http://127.0.0.1:8096";
+        description = lib.mdDoc ''
+          Source URI for the reverse proxy.
+        '';
+      };
+
+      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
+    };
   };
 
-  config =
-    let
-      virtualHost =
-        if cfg.reverseProxy.domains == [ ]
-        then null else builtins.head cfg.reverseProxy.domains;
-    in
-    lib.mkIf cfg.enable {
+  config = lib.mkMerge [
+    # Jellyfin configurations
+    (lib.mkIf cfg.enable {
       services.jellyfin = {
         enable = true;
         openFirewall = true;
@@ -46,5 +66,20 @@ rec {
         persistence.${systemCfg.impermanence.path}.directories =
           lib.mkIf (cfg.dataDir == options.codgician.services.jellyfin.dataDir.default) [ cfg.dataDir ];
       };
-    };
+    })
+
+    # Reverse proxy profile
+    (lib.mkIf cfg.reverseProxy.enable {
+      codgician.services.nginx = {
+        enable = true;
+        reverseProxies.jellyfin = {
+          inherit (cfg.reverseProxy) enable domains;
+          https = true;
+          locations."/" = {
+            inherit (cfg.reverseProxy) proxyPass lanOnly;
+          };
+        };
+      };
+    })
+  ];
 }

@@ -20,7 +20,7 @@ in
       type = types.str;
       default = "127.0.0.1";
       description = lib.mdDoc ''
-        Host for fastapi-dls to listen on, passed as `--host`.
+        Host for fastapi-dls to listen on, passed as `--host` (IPv4).
       '';
     };
 
@@ -80,10 +80,37 @@ in
         Expiration days for issued leases.
       '';
     };
+
+    # Reverse proxy profile for nginx
+    reverseProxy = {
+      enable = lib.mkEnableOption "Enable reverse proxy for fastapi-dls.";
+
+      domains = lib.mkOption {
+        type = types.listOf types.str;
+        example = [ "example.com" "example.org" ];
+        default = [ cfg.acmeDomain ];
+        defaultText = ''[ config.codgician.services.fastapi-dls.acmeDomain ]'';
+        description = lib.mdDoc ''
+          List of domains for the reverse proxy.
+        '';
+      };
+
+      proxyPass = lib.mkOption {
+        type = types.str;
+        default = "http://${cfg.host}:${toString cfg.port}";
+        defaultText = ''http://$\{config.codgician.services.fastapi-dls.host}:$\{toString config.codgician.services.fastapi-dls.port}'';
+        description = lib.mdDoc ''
+          Source URI for the reverse proxy.
+        '';
+      };
+
+      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
+    };
   };
 
-  config = lib.mkIf cfg.enable (lib.mkMerge [
-    {
+  config = lib.mkMerge [
+    # fastapi-dls configuration
+    (lib.mkIf cfg.enable {
       # Use fastapi-dls package from xddxdd's NUR
       codgician.overlays.nur.xddxdd.enable = lib.mkForce true;
 
@@ -194,6 +221,23 @@ in
           reloadServices = [ "fastapi-dls" ];
         };
       };
-    }
-  ]);
+    })
+
+    # Reverse proxy profile
+    (lib.mkIf cfg.reverseProxy.enable {
+      codgician.services.nginx = {
+        enable = true;
+        reverseProxies.fastapi-dls = {
+          inherit (cfg.reverseProxy) enable domains;
+          https = true;
+          locations."/" = {
+            inherit (cfg.reverseProxy) proxyPass lanOnly;
+            extraConfig = ''
+              proxy_buffering off;
+            '';
+          };
+        };
+      };
+    })
+  ];
 }

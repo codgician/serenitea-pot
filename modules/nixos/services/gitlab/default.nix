@@ -30,6 +30,31 @@ in
       default = "gitlab";
       description = lib.mdDoc "Group under which GitLab runs.";
     };
+
+    # Reverse proxy profile for nginx
+    reverseProxy = {
+      enable = lib.mkEnableOption "Enable reverse proxy for GitLab.";
+
+      domains = lib.mkOption {
+        type = types.listOf types.str;
+        example = [ "example.com" "example.org" ];
+        default = [ cfg.host ];
+        defaultText = ''[ config.codgician.services.gitlab.host ]'';
+        description = lib.mdDoc ''
+          List of domains for the reverse proxy.
+        '';
+      };
+
+      proxyPass = lib.mkOption {
+        type = types.str;
+        default = "http://unix:/run/gitlab/gitlab-workhorse.socket";
+        description = lib.mdDoc ''
+          Source URI for the reverse proxy.
+        '';
+      };
+
+      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
+    };
   };
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
@@ -109,5 +134,19 @@ in
       in
       lib.codgician.mkAgenixConfigs cfg.user credFiles
     )
+
+    # Reverse proxy profile
+    (lib.mkIf cfg.reverseProxy.enable {
+      codgician.services.nginx = {
+        enable = true;
+        reverseProxies.gitlab = {
+          inherit (cfg.reverseProxy) enable domains;
+          https = true;
+          locations."/" = {
+            inherit (cfg.reverseProxy) proxyPass lanOnly;
+          };
+        };
+      };
+    })
   ]);
 }
