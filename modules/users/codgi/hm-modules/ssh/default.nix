@@ -1,10 +1,10 @@
-{ config, lib, pkgs, ... }: 
+{ config, lib, pkgs, ... }:
 let
   cfg = config.codgician.codgi.ssh;
 in
 {
   options.codgician.codgi.ssh.enable = lib.mkEnableOption "Enable ssh user configurations.";
-  
+
   config = lib.mkIf cfg.enable {
     programs.ssh = {
       enable = true;

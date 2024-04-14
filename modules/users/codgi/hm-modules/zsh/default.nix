@@ -1,7 +1,7 @@
-{ config, osConfig, lib, pkgs, ... }: 
+{ config, osConfig, lib, pkgs, ... }:
 let
   cfg = config.codgician.codgi.zsh;
-in 
+in
 {
   options.codgician.codgi.zsh.enable = lib.mkEnableOption "Enable zsh user profiles.";
 
