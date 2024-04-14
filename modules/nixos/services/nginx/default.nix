@@ -10,7 +10,7 @@ let
       locationCfg = cfg.reverseProxies.${host}.locations.${location};
     in
     {
-      inherit (locationCfg) proxyPass return;
+      inherit (locationCfg) proxyPass return root;
       proxyWebsockets = true;
       extraConfig = locationCfg.extraConfig + (lib.optionalString locationCfg.lanOnly ''
         allow 10.0.0.0/8;

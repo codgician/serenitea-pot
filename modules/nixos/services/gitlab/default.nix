@@ -57,9 +57,9 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable (lib.mkMerge [
-    # GitLab
-    {
+  config = lib.mkMerge [
+    # GitLab configurations
+    (lib.mkIf cfg.enable {
       services.gitlab = rec {
         enable = true;
         packages.gitlab = pkgs.gitlab;
@@ -111,15 +111,13 @@ in
           ];
         };
       };
-    }
 
-    # PostgreSQL 
-    {
+      # PostgreSQL 
       codgician.services.postgresql.enable = true;
-    }
+    })
 
     # Agenix secrets
-    (
+    (lib.mkIf cfg.enable (
       let
         credFileNames = [
           "gitlabInitRootPasswd"
@@ -133,7 +131,7 @@ in
         credFiles = builtins.map (x: lib.codgician.secretsDir + "/${x}.age") credFileNames;
       in
       lib.codgician.mkAgenixConfigs cfg.user credFiles
-    )
+    ))
 
     # Reverse proxy profile
     (lib.mkIf cfg.reverseProxy.enable {
@@ -148,5 +146,5 @@ in
         };
       };
     })
-  ]);
+  ];
 }

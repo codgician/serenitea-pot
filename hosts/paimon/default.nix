@@ -1,11 +1,5 @@
 { config, lib, pkgs, ... }: {
-  imports = [
-    ./hardware.nix
-
-    # Service modules
-    ../../profiles/nixos/acme.nix
-    ../../profiles/nixos/dendrite.nix
-  ];
+  imports = [ ./hardware.nix ];
 
   # My settings
   codgician = {
@@ -23,6 +17,16 @@
         reverseProxy = {
           enable = true;
           domains = [ "books.codgician.me" ];
+        };
+      };
+
+      dendrite = {
+        enable = true;
+        dataPath = "/mnt/data/dendrite";
+        domain = "matrix.codgician.me";
+        reverseProxy = {
+          enable = true;
+          elementWeb = true;
         };
       };
 

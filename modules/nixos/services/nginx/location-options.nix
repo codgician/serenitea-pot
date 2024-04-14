@@ -22,6 +22,15 @@ in
       '';
     };
 
+    root = lib.mkOption {
+      type = types.nullOr types.path;
+      example = "/path/to/webroot";
+      default = null;
+      description = lib.mdDoc ''
+        The path of the web root directory.
+      '';
+    };
+
     lanOnly = lib.mkEnableOption ''
       Only allow requests from LAN clients.
     '';
