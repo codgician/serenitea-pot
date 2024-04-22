@@ -16,7 +16,7 @@
             "codgician.me"
             "*.codgician.me"
           ];
-          locations."/".proxyPass = "https://sz.codgician.me:8443";
+          locations."/".proxyPass = "https://sz.codgician.me:4443";
         };
       };
     };
