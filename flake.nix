@@ -248,9 +248,9 @@
           extraModules = [ ./hosts/lumine ];
         };
 
-        "wsl" = nixosSystem {
+        "wanderer" = nixosSystem {
           system = "x86_64-linux";
-          extraModules = [ ./hosts/wsl ];
+          extraModules = [ ./hosts/wanderer ];
         };
       };
     } // flake-utils.lib.eachDefaultSystem (system:
