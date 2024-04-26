@@ -68,7 +68,7 @@
     };
 
     vscode-server = {
-      url = "github:Ten0/nixos-vscode-server/support_new_vscode_versions";
+      url = "github:nix-community/nixos-vscode-server";
       inputs = {
         flake-utils.follows = "flake-utils";
         nixpkgs.follows = "nixpkgs";
