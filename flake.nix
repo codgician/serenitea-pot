@@ -241,6 +241,8 @@
         "nahida" = nixosSystem {
           system = "x86_64-linux";
           extraModules = [ ./hosts/nahida ];
+          nixpkgs = inputs.nixpkgs-nixos-unstable;
+          home-manager = inputs.home-manager-unstable;
         };
 
         "lumine" = nixosSystem {

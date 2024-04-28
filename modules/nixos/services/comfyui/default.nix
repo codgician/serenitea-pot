@@ -53,15 +53,14 @@ in
     (lib.mkIf cfg.enable {
       virtualisation.oci-containers.containers.comfyui = {
         autoStart = true;
-        image = "yanwk/comfyui-boot:latest";
+        image = "docker.io/yanwk/comfyui-boot:latest";
         ports = [ "${builtins.toString cfg.port}:8188" ];
         volumes = [ "${cfg.dataDir}:/home/runner" ];
+        extraOptions = [ "--gpus=all" ];
       };
 
-      virtualisation.podman = {
-        enable = true;
-        enableNvidia = true;
-      };
+      virtualisation.podman.enable = true;
+      virtualisation.containers.cdi.dynamic.nvidia.enable = true;
     })
 
     # Reverse proxy profile

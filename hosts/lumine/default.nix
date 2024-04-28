@@ -9,14 +9,23 @@
       nixos-vscode-server.enable = true;
       nginx = {
         enable = true;
-        reverseProxies."codgician.me" = {
-          enable = true;
-          https = true;
-          domains = [
-            "codgician.me"
-            "*.codgician.me"
-          ];
-          locations."/".proxyPass = "https://sz.codgician.me:4443";
+        reverseProxies = {
+          "comfy.codgician.me" = {
+            enable = true;
+            https = true;
+            domains = [ "comfy.codgician.me" ];
+            locations."/".return = "403";
+          };
+
+          "codgician.me" = {
+            enable = true;
+            https = true;
+            domains = [
+              "codgician.me"
+              "*.codgician.me"
+            ];
+            locations."/".proxyPass = "https://sz.codgician.me:4443";
+          };
         };
       };
     };
