@@ -42,7 +42,7 @@
   };
 
   # Enable use of nvidia card in containers
-  virtualisation.podman.enableNvidia = true;
+  hardware.nvidia-container-toolkit.enable = true;
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }
