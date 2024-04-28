@@ -1,11 +1,11 @@
 { config, lib, ... }:
 let
-  cfg = config.codgician.containers;
+  cfg = config.codgician.virtualization.podman;
   types = lib.types;
 in
 {
-  options.codgician.containers.enable = lib.mkEnableOption ''
-    Enable container infrastructure (podman).
+  options.codgician.virtualization.podman.enable = lib.mkEnableOption ''
+    Enable podman.
   '';
 
   config.virtualisation.podman = lib.mkIf cfg.enable {
