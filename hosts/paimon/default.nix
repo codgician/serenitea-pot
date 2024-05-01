@@ -34,7 +34,7 @@
         enable = true;
         acmeDomain = "nvdls.codgician.me";
         host = "127.0.0.1";
-        port = 4443;
+        port = 12443;
         announcePort = 443;
         appDir = "/var/lib/fastapi-dls-app";
         dataDir = "/mnt/data/fastapi-dls";

@@ -97,8 +97,8 @@ in
 
       proxyPass = lib.mkOption {
         type = types.str;
-        default = "http://${cfg.host}:${toString cfg.port}";
-        defaultText = ''http://$\{config.codgician.services.fastapi-dls.host}:$\{toString config.codgician.services.fastapi-dls.port}'';
+        default = "https://${cfg.host}:${toString cfg.port}";
+        defaultText = ''https://$\{config.codgician.services.fastapi-dls.host}:$\{toString config.codgician.services.fastapi-dls.port}'';
         description = lib.mdDoc ''
           Source URI for the reverse proxy.
         '';
