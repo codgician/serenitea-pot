@@ -27,7 +27,7 @@ let
       hostCfg = cfg.reverseProxies.${host};
     in
     {
-      "${host}" = {
+      "${host}" = rec {
         serverName = builtins.head hostCfg.domains;
         serverAliases = builtins.tail hostCfg.domains;
         locations = (builtins.mapAttrs (k: _: mkLocationConfig host k) hostCfg.locations)
@@ -35,7 +35,7 @@ let
           "/robots.txt".return = ''200 "${lib.replaceStrings [ "\n" ] [ "\\n" ] hostCfg.robots}"'';
         };
         forceSSL = hostCfg.https;
-        enableACME = hostCfg.https;
+        useACMEHost = lib.mkIf hostCfg.https serverName;
         http2 = true;
         http3 = true;
         http3_hq = true;
