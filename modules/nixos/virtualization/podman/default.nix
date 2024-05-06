@@ -22,6 +22,9 @@ in
       };
     };
 
+    # Set podman as oci-container backend
+    virtualisation.oci-containers.backend = "podman";
+
     # Persist data
     environment = lib.optionalAttrs (systemCfg?impermanence) {
       persistence.${systemCfg.impermanence.path}.directories = [
