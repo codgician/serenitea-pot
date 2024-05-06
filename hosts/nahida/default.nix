@@ -57,7 +57,12 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking.useNetworkd = true;
-  services.resolved.enable = true;
+  services.resolved = {
+    enable = true;
+    extraConfig = ''
+      Cache=no-negative
+    '';
+  };
 
   # Set your time zone.
   time.timeZone = "Asia/Shanghai";
