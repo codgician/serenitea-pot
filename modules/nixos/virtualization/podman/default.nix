@@ -11,6 +11,7 @@ in
   config.virtualisation.podman = lib.mkIf cfg.enable {
     enable = true;
     dockerCompat = true;
+    dockerSocket.enable = true;
     autoPrune = {
       enable = true;
       dates = "weekly";

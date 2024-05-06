@@ -33,7 +33,7 @@
     users.codgi = with lib.codgician; {
       enable = true;
       hashedPasswordAgeFile = secretsDir + "/codgiHashedPassword.age";
-      extraGroups = [ "wheel" ];
+      extraGroups = [ "wheel" "podman" ];
     };
 
     virtualization.podman.enable = true;
