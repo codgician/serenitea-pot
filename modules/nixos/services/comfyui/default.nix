@@ -53,7 +53,7 @@ in
     (lib.mkIf cfg.enable {
       virtualisation.oci-containers.containers.comfyui = {
         autoStart = true;
-        image = "docker.io/yanwk/comfyui-boot:latest";
+        image = "docker.io/yanwk/comfyui-boot:megapak";
         ports = [ "${builtins.toString cfg.port}:8188" ];
         volumes = [ "${cfg.dataDir}:/home/runner" ];
         extraOptions = [ "--gpus=all" ];
