@@ -11,6 +11,7 @@
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
   boot.kernelParams = [ "console=ttyS0,115200" ];
+  boot.growPartition = true;
 
   swapDevices = [ ];
   zramSwap.enable = true;

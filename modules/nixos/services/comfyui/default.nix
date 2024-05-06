@@ -55,8 +55,10 @@ in
         autoStart = true;
         image = "docker.io/yanwk/comfyui-boot:megapak";
         ports = [ "${builtins.toString cfg.port}:8188" ];
-        volumes = [ "${cfg.dataDir}:/home/runner" ];
-        extraOptions = [ "--gpus=all" ];
+        volumes = [ "${cfg.dataDir}:/root" ];
+        extraOptions = [ 
+          "--gpus=all" 
+        ];
       };
 
       virtualisation.podman.enable = true;
