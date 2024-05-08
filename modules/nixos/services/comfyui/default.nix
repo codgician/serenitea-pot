@@ -56,7 +56,7 @@ in
         image = "docker.io/yanwk/comfyui-boot:megapak";
         ports = [ "${builtins.toString cfg.port}:8188" ];
         volumes = [ "${cfg.dataDir}:/root" ];
-        extraOptions = [ "--gpus=all"  ];
+        extraOptions = [ "--device=nvidia.com/gpu=all" ];
       };
 
       virtualisation.podman.enable = true;
