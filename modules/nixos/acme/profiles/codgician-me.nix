@@ -7,8 +7,6 @@ in
     email = "codgician@outlook.com";
     credentialsFile = config.age.secrets.cloudflareCredential.path;
     dnsProvider = "cloudflare";
-    dnsPropagationCheck = false;
-    extraLegoFlags = [ "--dns-timeout" "300" ];
     group = config.services.nginx.user;
   };
 
