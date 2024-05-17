@@ -70,6 +70,6 @@
     "element"
     "wireshark"
     "moonlight"
-    "parsic"
+    "parsec"
   ];
 }
