@@ -69,5 +69,7 @@
     "altserver"
     "element"
     "wireshark"
+    "moonlight"
+    "parsic"
   ];
 }
