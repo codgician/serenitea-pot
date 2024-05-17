@@ -1,4 +1,4 @@
-{ lib, codgician, ... }: rec {
+{ lib, ... }: rec {
   secretsDir = ../secrets;
 
   getAgeSecretNameFromPath = path: lib.removeSuffix ".age" (builtins.baseNameOf path);
@@ -9,7 +9,7 @@
   });
 
   mkAgenixConfigs = owner: files: {
-    age.secrets = codgician.concatAttrs (builtins.map
+    age.secrets = lib.codgician.concatAttrs (builtins.map
       (file: {
         "${getAgeSecretNameFromPath file}" = {
           inherit file owner;

@@ -1,11 +1,11 @@
-{ nixpkgs, ... }:
-let
-  lib = nixpkgs.lib;
-  concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
-in
-rec {
-  codgician = concatAttrs [
-    (import ./misc.nix { inherit lib codgician; })
-    (import ./secrets.nix { inherit lib codgician; })
-  ];
+{ nixpkgs, ... }: rec {
+  codgician =
+    let
+      lib = nixpkgs.lib // { inherit codgician; };
+      concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
+    in
+    concatAttrs [
+      (import ./misc.nix { inherit lib codgician; })
+      (import ./secrets.nix { inherit lib codgician; })
+    ];
 }
