@@ -136,6 +136,7 @@
   services.resolved = {
     enable = true;
     extraConfig = ''
+      MulticastDNS=yes
       Cache=no-negative
     '';
   };
