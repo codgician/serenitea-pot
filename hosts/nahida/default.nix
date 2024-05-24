@@ -6,7 +6,7 @@
   codgician = {
     services = {
       comfyui = {
-        enable = true;
+        enable = false;
         dataDir = "/nix/persist/comfyui";
         reverseProxy = {
           enable = true;
