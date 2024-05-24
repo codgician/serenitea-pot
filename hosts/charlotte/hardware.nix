@@ -7,7 +7,7 @@
   mobile = {
     boot.stage-1 = {
       enable = true;
-      kernel.package = lib.mkForce (pkgs.callPackage ./kernel { });
+      kernel.package = lib.mkForce (pkgs.callPackage ./kernel { kernel = pkgs.linuxPackages.kernel; });
     };
 
     # Make panel landscape

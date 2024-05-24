@@ -1,19 +1,6 @@
-let
-  version = "6.6.28";
-  majorVersion = builtins.head (builtins.splitVersion version);
-in
-{ mobile-nixos, fetchurl, fetchpatch, lib, ... }: mobile-nixos.kernel-builder {
-  inherit version;
+{ mobile-nixos, fetchurl, fetchpatch, lib, kernel, ... }: mobile-nixos.kernel-builder {
+  inherit (kernel) src version;
   configfile = ./config.aarch64;
-
-  src =
-    let
-      fileVersion = if (lib.hasSuffix ".0" version) then (lib.removeSuffix ".0" version) else version;
-    in
-    fetchurl {
-      url = "mirror://kernel/linux/kernel/v${majorVersion}.x/linux-${fileVersion}.tar.xz";
-      sha256 = "151kdpp25fcl5qki138jxl90h9iyk5rk0kp2xamadnz72gnid1w1";
-    };
 
   patches = [
     # CHROMIUM: Revert "serial: 8250_mtk: Fix UART_EFR register address"
