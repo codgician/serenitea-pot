@@ -30,4 +30,7 @@ pkgs.writeScriptBin "upgrade-pg-cluster" ''
     --old-datadir "$OLDDATA" --new-datadir "$NEWDATA" \
     --old-bindir $OLDBIN --new-bindir $NEWBIN \
     "$@"
+
+  echo "If everything goes well, the newly migrated data is located in '$NEWDATA'."
+  echo "Please manually backup the old data and overwrite it with migrated data."
 ''

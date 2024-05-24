@@ -200,7 +200,7 @@ in
       systemd.services.dendrite.serviceConfig.ReadWritePaths = [ cfg.dataPath ];
 
       # Matrix sliding-sync
-      services.matrix.sliding-sync = {
+      services.matrix-sliding-sync = {
         enable = true;
         settings = {
           SYNCV3_SERVER = "https://${cfg.domain}";
