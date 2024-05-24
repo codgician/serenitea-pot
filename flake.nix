@@ -2,8 +2,8 @@
   description = "❄️ codgician's nix fleet";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
-    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-23.11-darwin";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
+    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-24.05-darwin";
     nixpkgs-nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     impermanence.url = "github:nix-community/impermanence";
@@ -27,7 +27,7 @@
     };
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-23.11";
+      url = "github:nix-community/home-manager/release-24.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -221,8 +221,6 @@
         "focalors" = nixosSystem {
           system = "aarch64-linux";
           extraModules = [ ./hosts/focalors ];
-          nixpkgs = inputs.nixpkgs-nixos-unstable;
-          home-manager = inputs.home-manager-unstable;
         };
 
         "charlotte" = nixosSystem {
@@ -241,8 +239,6 @@
         "nahida" = nixosSystem {
           system = "x86_64-linux";
           extraModules = [ ./hosts/nahida ];
-          nixpkgs = inputs.nixpkgs-nixos-unstable;
-          home-manager = inputs.home-manager-unstable;
         };
 
         "lumine" = nixosSystem {
