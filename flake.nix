@@ -273,7 +273,7 @@
 
           cloud = pkgs.mkShell {
             buildInputs = with pkgs; [
-              (lib.optionals isDarwin azure-cli)
+              (lib.optionals (!isDarwin) azure-cli)
               azure-storage-azcopy
               jq
               hcl2json
