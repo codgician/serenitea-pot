@@ -253,10 +253,8 @@
       };
     } // flake-utils.lib.eachDefaultSystem (system:
     let
-      nixpkgs =
-        if inputs.nixpkgs.legacyPackages.${system}.stdenvNoCC.isDarwin
-        then inputs.nixpkgs-darwin
-        else inputs.nixpkgs;
+      isDarwin = inputs.nixpkgs.legacyPackages.${system}.stdenvNoCC.isDarwin;
+      nixpkgs = if isDarwin then inputs.nixpkgs-darwin else inputs.nixpkgs;
       lib = mkLib nixpkgs;
       pkgs = import nixpkgs {
         inherit system;
@@ -275,7 +273,7 @@
 
           cloud = pkgs.mkShell {
             buildInputs = with pkgs; [
-              azure-cli
+              (lib.optionals isDarwin azure-cli)
               azure-storage-azcopy
               jq
               hcl2json

@@ -72,7 +72,7 @@
   # Configure keymap in X11
   services.xserver = {
     enable = false;
-    layout = "us";
+    xkb.layout = "us";
   };
 
   # Auto upgrade
