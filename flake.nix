@@ -112,6 +112,8 @@
     let
       mkConfig = inputs.nixpkgs.lib.mapAttrs (name: value: value name);
       mkLib = nixpkgs: nixpkgs.lib // (import ./lib { inherit nixpkgs; });
+      darwinModules.default = import ./modules/darwin;
+      nixosModules.default = import ./modules/nixos;
 
       # Basic configs for each host
       basicConfig = system: hostName: { config, ... }: {
@@ -150,7 +152,7 @@
           inherit system;
           specialArgs = { inherit inputs lib self system; };
           modules = [
-            (import ./modules/darwin)
+            darwinModules.default
             (basicConfig system hostName)
 
             home-manager.darwinModules.home-manager
@@ -180,7 +182,7 @@
           inherit system;
           specialArgs = { inherit inputs lib self system; };
           modules = [
-            (import ./modules/nixos)
+            nixosModules.default
             (basicConfig system hostName)
 
             nur.nixosModules.nur
@@ -263,6 +265,8 @@
       agenixCli = agenix.packages.${system}.default;
     in
     rec {
+      inherit darwinModules nixosModules;
+
       # Development shell: `nix develop .#name`
       devShells =
         let commonPkgs = with pkgs; [ agenixCli ];
