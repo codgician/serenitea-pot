@@ -87,4 +87,16 @@
   environment.etc."ssh/sshd_config.d/110-no-password-authentication.conf" = {
     text = "PasswordAuthentication no";
   };
+
+  # System settings
+  system.defaults = {
+    dock = {
+      largesize = 128;
+      magnification = true;
+    };
+
+    NSGlobalDomain.AppleTemperatureUnit = "Celsius";
+    
+    SoftwareUpdate.AutomaticallyInstallMacOSUpdates = true;
+  };
 }

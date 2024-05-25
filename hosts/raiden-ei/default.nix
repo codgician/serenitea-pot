@@ -54,4 +54,30 @@
   };
 
   nixpkgs.config.allowUnfree = true;
+
+  system.defaults = {
+    dock = {
+      launchanim = false;
+      magnification = false;
+      mineffect = "scale";
+    };
+
+    loginwindow = {
+      autoLoginUser = "codgi";
+      SleepDisabled = true;
+    };
+
+    NSGlobalDomain = {
+      AppleTemperatureUnit = "Celsius";
+      NSAutomaticWindowAnimationsEnabled = false;
+      NSScrollAnimationEnabled = false;
+    };
+
+    SoftwareUpdate.AutomaticallyInstallMacOSUpdates = true;
+
+    universalaccess = {
+      reduceMotion = false;
+      reduceTransparency = false;
+    };
+  };
 }
