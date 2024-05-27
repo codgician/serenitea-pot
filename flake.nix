@@ -112,6 +112,15 @@
     let
       mkConfig = inputs.nixpkgs.lib.mapAttrs (name: value: value name);
       mkLib = nixpkgs: nixpkgs.lib // (import ./lib { inherit nixpkgs; });
+      mkPkgs = nixpkgs: system: import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+        flake = {
+          setNixPath = true;
+          setFlakeRegistry = true;
+        };
+      };
+
       darwinModules.default = import ./modules/darwin;
       nixosModules.default = import ./modules/nixos;
 
@@ -143,10 +152,7 @@
         }: hostName:
         let
           lib = mkLib nixpkgs;
-          pkgs = import nixpkgs {
-            inherit system;
-            config.allowUnfree = true;
-          };
+          pkgs = mkPkgs nixpkgs system;
         in
         darwin.lib.darwinSystem {
           inherit system;
@@ -173,10 +179,7 @@
         }: hostName:
         let
           lib = mkLib nixpkgs;
-          pkgs = import nixpkgs {
-            inherit system;
-            config.allowUnfree = true;
-          };
+          pkgs = mkPkgs nixpkgs system;
         in
         nixpkgs.lib.nixosSystem {
           inherit system;
@@ -196,7 +199,7 @@
 
             ({ config, ... }: {
               # Set flake for auto upgrade
-              system.autoUpgrade.flake = "github:codgician/nix-fleet";
+              system.autoUpgrade.flake = "github:codgician/serenitea-pot";
             })
           ] ++ extraModules;
         };
@@ -258,10 +261,7 @@
       isDarwin = inputs.nixpkgs.legacyPackages.${system}.stdenvNoCC.isDarwin;
       nixpkgs = if isDarwin then inputs.nixpkgs-darwin else inputs.nixpkgs;
       lib = mkLib nixpkgs;
-      pkgs = import nixpkgs {
-        inherit system;
-        config.allowUnfree = true;
-      };
+      pkgs = mkPkgs nixpkgs system;
       agenixCli = agenix.packages.${system}.default;
     in
     rec {

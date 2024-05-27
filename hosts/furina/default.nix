@@ -96,7 +96,7 @@
     };
 
     NSGlobalDomain.AppleTemperatureUnit = "Celsius";
-    
+
     SoftwareUpdate.AutomaticallyInstallMacOSUpdates = true;
   };
 }
