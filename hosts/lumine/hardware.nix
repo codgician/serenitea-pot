@@ -1,7 +1,6 @@
 { config, lib, pkgs, modulesPath, ... }: {
   imports = [
     (modulesPath + "/virtualisation/azure-common.nix")
-    ./image.nix
   ];
 
   boot.growPartition = true;
@@ -21,4 +20,10 @@
     Restart = "on-failure";
   };
   services.cloud-init.network.enable = true;
+
+  # Generate Azure image
+  codgician.image.azure = {
+    enable = true;
+    diskSize = 32 * 1024;
+  };
 }
