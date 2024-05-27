@@ -115,10 +115,7 @@
       mkPkgs = nixpkgs: system: import nixpkgs {
         inherit system;
         config.allowUnfree = true;
-        flake = {
-          setNixPath = true;
-          setFlakeRegistry = true;
-        };
+        flake.source = nixpkgs.outPath;
       };
 
       darwinModules.default = import ./modules/darwin;
@@ -128,18 +125,17 @@
       basicConfig = system: hostName: { config, ... }: {
         nix = {
           settings = {
+            extra-nix-path = "nixpkgs=flake:nixpkgs";
             sandbox = true;
             auto-optimise-store = true;
           };
-          extraOptions = "experimental-features = nix-command flakes";
+          extraOptions = "experimental-features = nix-command flakes repl-flake";
         };
 
         networking.hostName = hostName;
-
         home-manager = {
           useGlobalPkgs = true;
           useUserPackages = true;
-          extraSpecialArgs = { inherit inputs; };
         };
       };
 
