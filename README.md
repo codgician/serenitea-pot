@@ -1,7 +1,7 @@
 # ❄️ Serenitea Pot
 
-[![validate](https://github.com/codgician/serenitea-pot/actions/workflows/validate.yml/badge.svg)](https://github.com/codgician/nix-fleet/actions/workflows/validate.yml)
-[![evergreen](https://github.com/codgician/serenitea-pot/actions/workflows/evergreen.yml/badge.svg)](https://github.com/codgician/nix-fleet/actions/workflows/evergreen.yml)
+[![validate](https://github.com/codgician/serenitea-pot/actions/workflows/validate.yml/badge.svg)](https://github.com/codgician/serenitea-pot/actions/workflows/validate.yml)
+[![evergreen](https://github.com/codgician/serenitea-pot/actions/workflows/evergreen.yml/badge.svg)](https://github.com/codgician/serenitea-pot/actions/workflows/evergreen.yml)
 ![Man hours](https://manhours.aiursoft.cn/r/github.com/codgician/serenitea-pot.svg)
 
 ![logo](https://github.com/codgician/serenitea-pot/assets/15964984/17d0e39c-9bee-4dd1-9aed-bb8d21f23daf)

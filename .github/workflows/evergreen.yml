@@ -19,7 +19,7 @@ jobs:
         with:
           persist-credentials: 'true'
       - name: Install Nix
-        uses: cachix/install-nix-action@v25
+        uses: cachix/install-nix-action@v27
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Update nix flake
@@ -30,8 +30,8 @@ jobs:
             git config user.name github-actions
             git config user.email github-actions@github.com
             git add flake.lock
-            git commit -m "nix flake update"
+            git commit -m "bot: nix flake update"
             git push
           else
-            echo "Flake.lock is not changed..."
+            echo "flake.lock is not changed..."
           fi
