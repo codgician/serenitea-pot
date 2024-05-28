@@ -295,7 +295,8 @@
       packages = {
         # Terraform configurations
         terraformConfiguration = terranix.lib.terranixConfiguration {
-          inherit system;
+          inherit system pkgs;
+          extraArgs = { inherit lib; };
           modules = [ ./terraform ];
         };
       };
