@@ -1,3 +1,6 @@
 {
-  imports = [ ./celestia ];
+  imports = [ 
+    ./celestia 
+    ./cloudflare
+  ];
 }

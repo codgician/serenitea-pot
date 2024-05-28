@@ -275,6 +275,7 @@
             buildInputs = with pkgs; [
               (lib.optionals (!isDarwin) azure-cli)
               azure-storage-azcopy
+              cf-terraforming
               jq
               hcl2json
               (terraform.withPlugins (p: [
