@@ -5,7 +5,7 @@
       concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
     in
     concatAttrs [
-      (import ./misc.nix { inherit lib codgician; })
-      (import ./secrets.nix { inherit lib codgician; })
+      (import ./misc.nix { inherit lib; })
+      (import ./secrets.nix { inherit lib; })
     ];
 }

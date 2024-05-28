@@ -1,6 +1,4 @@
 { config, lib, pkgs, ... }: {
-  imports = [ (import ./disks.nix { }) ];
-
   boot.supportedFilesystems = [ "bcachefs" ];
 
   boot.initrd.availableKernelModules = [ "xhci_pci" "sr_mod" ];
