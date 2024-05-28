@@ -81,11 +81,12 @@ let
     };
 
   hosts = builtins.map (x: (import ./${x} { inherit inputs; }) // { hostName = x; }) (lib.codgician.getFolderNames ./.);
-  darwinHosts = builtins.filter (x: lib.hasSuffix "-darwin" x.system) hosts;
-  nixosHosts = builtins.filter (x: lib.hasSuffix "-linux" x.system) hosts;
   hostsToAttr = builder: hosts: builtins.listToAttrs (builtins.map (host: { name = host.hostName; value = builder host; }) hosts);
 in
-{
+rec {
+  darwinHosts = builtins.filter (x: lib.hasSuffix "-darwin" x.system) hosts;
+  nixosHosts = builtins.filter (x: lib.hasSuffix "-linux" x.system) hosts;
+
   darwinConfigurations = hostsToAttr darwinSystem darwinHosts;
   nixosConfigurations = hostsToAttr nixosSystem nixosHosts;
 }
