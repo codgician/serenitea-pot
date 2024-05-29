@@ -1,5 +1,6 @@
 { config, lib, ... }: {
   imports = [
+    ./cognitive
     ./vms
     ./budget.nix
     ./network.nix
