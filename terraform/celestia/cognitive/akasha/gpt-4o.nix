@@ -13,7 +13,7 @@
 
     scale = {
       type = "GlobalStandard";
-      capacity = 1;
+      capacity = 20;
     };
   };
 }
