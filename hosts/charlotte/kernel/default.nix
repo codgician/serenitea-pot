@@ -12,7 +12,7 @@
 
     # Enable video encoder and decoder
     (fetchpatch {
-      url = "https://gitlab.com/postmarketOS/pmaports/-/blob/497374e29085c6bfaa2a95113cd65a5719274cca/device/community/linux-postmarketos-mediatek-mt8183/arm64-dts-mediatek-mt8183-Add-video-encoder-decoder.patch";
+      url = "https://gitlab.com/postmarketOS/pmaports/-/raw/497374e29085c6bfaa2a95113cd65a5719274cca/device/community/linux-postmarketos-mediatek-mt8183/arm64-dts-mediatek-mt8183-Add-video-encoder-decoder.patch";
       sha256 = "sha256-0OLWecwVxEFVmh3tcPL/Zfr8px+Q96jTSxbNk/WQuGo=";
     })
 
