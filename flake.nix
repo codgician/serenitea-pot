@@ -165,13 +165,9 @@
           };
 
           # terraform apply
-          terraform-apply =
-            let
-              terraformAgeFileName = "terraformEnv.age";
-            in
-            {
-              type = "app";
-              program = builtins.toString (pkgs.writers.writeBash "terraform-apply" ''
+          terraform-apply = let terraformAgeFileName = "terraformEnv.age"; in
+            inputs.flake-utils.lib.mkApp {
+              drv = pkgs.writeShellScriptBin "terraform-apply" ''
                 # Decrypt terraform secrets and set environment variables
                 dir=$(${pkgs.coreutils}/bin/pwd)
                 cd ${./secrets}
@@ -186,7 +182,7 @@
                 cp ${packages.terraformConfiguration} config.tf.json \
                   && ${pkgs.terraform}/bin/terraform init \
                   && ${pkgs.terraform}/bin/terraform apply
-              '');
+              '';
             };
         };
       });
