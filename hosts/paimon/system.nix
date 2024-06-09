@@ -47,6 +47,8 @@
 
       nixos-vscode-server.enable = true;
 
+      rustdesk-server.enable = true;
+
       samba = {
         enable = true;
         users = [ "codgi" "bmc" ];
