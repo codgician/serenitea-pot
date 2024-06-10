@@ -8,6 +8,8 @@ First boot into NixOS Live CD and clone this repository.
 
 This is required for hosts having `disks.nix` file declaring disk partition layout. This is made possible with [disko](https://github.com/nix-community/disko).
 
+If the target host has encrypted partition, please first create key file according to disko configuration.
+
 Navigate to host folder containing `disk.nix` and run following command:
 
 ```bash
