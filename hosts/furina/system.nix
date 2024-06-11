@@ -95,7 +95,11 @@
       magnification = true;
     };
 
-    NSGlobalDomain.AppleTemperatureUnit = "Celsius";
+    NSGlobalDomain = {
+      AppleTemperatureUnit = "Celsius";
+      AppleMeasurementUnits = "Centimeters";
+      AppleMetricUnits = "1";
+    };
 
     SoftwareUpdate.AutomaticallyInstallMacOSUpdates = true;
   };

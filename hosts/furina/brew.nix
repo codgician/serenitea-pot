@@ -71,5 +71,6 @@
     "wireshark"
     "moonlight"
     "parsec"
+    "hopper-disassembler"
   ];
 }
