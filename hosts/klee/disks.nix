@@ -14,7 +14,7 @@ let
           content = {
             type = "filesystem";
             format = "vfat";
-            mountpoint = "/mnt/boot-${disk}";
+            mountpoint = "/boot-${disk}";
           };
         };
         zroot = {

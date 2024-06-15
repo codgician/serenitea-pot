@@ -33,12 +33,14 @@
   };
 
   # Use grub boot loader.
+  boot.loader.efi.canTouchEfiVariables = true;
   boot.loader.grub = {
     enable = true;
+    efiSupport = true;
     zfsSupport = true;
     mirroredBoots = [
-      { devices = [ "/dev/nvme0n1" ]; path = "/mnt/boot-nvme0n1"; }
-      { devices = [ "/dev/nvme1n1" ]; path = "/mnt/boot-nvme1n1"; }
+      { devices = [ "nodev" ]; path = "/boot-nvme0n1"; }
+      { devices = [ "nodev" ]; path = "/boot-nvme1n1"; }
     ];
   };
 
