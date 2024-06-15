@@ -96,11 +96,14 @@
     };
 
     NSGlobalDomain = {
+      AppleInterfaceStyle = "Dark";
       AppleTemperatureUnit = "Celsius";
       AppleMeasurementUnits = "Centimeters";
-      AppleMetricUnits = "1";
+      AppleMetricUnits = 1;
     };
 
     SoftwareUpdate.AutomaticallyInstallMacOSUpdates = true;
+    
+    trackpad.Clicking = true;
   };
 }

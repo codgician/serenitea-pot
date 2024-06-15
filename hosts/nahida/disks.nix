@@ -1,4 +1,4 @@
-{ disks ? [ "/dev/sda" ], ... }: {
+{ disks ? [ "sda" ], ... }: {
   disko.devices = {
     nodev = {
       root = {
@@ -22,7 +22,7 @@
     };
     disk = {
       sda = {
-        device = builtins.elemAt disks 0;
+        device = "/dev/${builtins.elemAt disks 0}";
         type = "disk";
         content = {
           type = "gpt";
