@@ -4,6 +4,7 @@ rec {
     charlotte = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILL9hl37txex438IfgZQ57uyLgf/WwDxypk9JoUT2Mya" ];
     focalors = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM9elJzxtHicXWL+okluqOjCJ/ZcMlAuPqH/WyTnjfeW" ];
     furina = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOS+hXPeUC7xFR74y5PCT0Ba0AXSC5vJJA5UURThXySJ" ];
+    klee = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKjCagwIiDsO5iACj6ShetzXTfL2y8RBrKa/9dhsiiXF" ];
     lumine = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAjCvIx+0G36EFWdw8nbrfqhkaCaDVsUJDiWnwfWtuEE" ];
     nahida = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICTdhkIHxijiGSGZtu0whn6DsU1uut+iiIfpEINxRzSW" ];
     paimon = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICNKqYpI7+zPOT72qvydVAdzsBNb0KiLbKFXHL9Ll0/Y" ];
@@ -17,7 +18,7 @@ rec {
 
   # Aliases
   someHosts = xs: (builtins.concatLists xs) ++ users.codgi;
-  allServers = builtins.concatLists (with hosts; with users; [ paimon nahida lumine raiden-ei codgi ]);
+  allServers = builtins.concatLists (with hosts; with users; [ paimon nahida lumine raiden-ei klee codgi ]);
   allHosts = (builtins.concatLists (builtins.attrValues hosts)) ++ users.codgi;
   everyone = builtins.concatLists (builtins.concatMap builtins.attrValues [ hosts users ]);
 }
