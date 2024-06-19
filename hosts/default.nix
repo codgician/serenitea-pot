@@ -75,7 +75,10 @@ let
 
         ({ config, ... }: {
           # Set flake for auto upgrade
-          system.autoUpgrade.flake = "github:codgician/serenitea-pot";
+          system.autoUpgrade = {
+            flake = "github:codgician/serenitea-pot";
+            flags = [ "--refresh" ];
+          };
         })
       ] ++ modules;
     };

@@ -103,7 +103,7 @@
     };
 
     SoftwareUpdate.AutomaticallyInstallMacOSUpdates = true;
-    
+
     trackpad.Clicking = true;
   };
 }

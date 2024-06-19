@@ -1,7 +1,7 @@
 # Create /tmp/secret.key before applying disk layout
 
 { disks ? [ "nvme0n1" "nvme1n1" ], ... }:
-let 
+let
   mkDiskConfig = disk: {
     type = "disk";
     device = "/dev/${disk}";
@@ -27,7 +27,7 @@ let
       };
     };
   };
-in 
+in
 {
   disko.devices = {
     # Disks: mirrored ZFS root
