@@ -42,7 +42,9 @@ in
     system.build.azureImage = lib.mkForce
       (import "${modulesPath}/../lib/make-disk-image.nix" {
         inherit pkgs lib;
-        inherit (cfg) diskSize bootSize contents;
+        
+        inherit (cfg) diskSize contents;
+        bootSize = "${builtins.toString cfg.bootSize}M";
 
         config = config // {
           # For disk images, allow elevating without password.
