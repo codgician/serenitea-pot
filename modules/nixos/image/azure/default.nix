@@ -42,7 +42,6 @@ in
     system.build.azureImage = lib.mkForce
       (import "${modulesPath}/../lib/make-disk-image.nix" {
         inherit pkgs lib;
-        
         inherit (cfg) diskSize contents;
         bootSize = "${builtins.toString cfg.bootSize}M";
 
