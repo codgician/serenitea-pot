@@ -59,12 +59,5 @@ in
         '';
         format = "raw";
       });
-
-    assertions = [
-      {
-        assertion = cfg.diskSize > cfg.bootSize;
-        message = "Disk size should be larger than EFI partition size.";
-      }
-    ];
   };
 }
