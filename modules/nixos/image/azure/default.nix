@@ -20,7 +20,7 @@ in
       '';
     };
 
-    efiSize = lib.mkOption {
+    bootSize = lib.mkOption {
       type = types.int;
       default = 512;
       description = ''
@@ -42,7 +42,7 @@ in
     system.build.azureImage = lib.mkForce
       (import "${modulesPath}/../lib/make-disk-image.nix" {
         inherit pkgs lib;
-        inherit (cfg) diskSize efiSize contents;
+        inherit (cfg) diskSize bootSize contents;
 
         config = config // {
           # For disk images, allow elevating without password.
@@ -62,7 +62,7 @@ in
 
     assertions = [
       {
-        assertion = cfg.diskSize > cfg.efiSize;
+        assertion = cfg.diskSize > cfg.bootSize;
         message = "Disk size should be larger than EFI partition size.";
       }
     ];

@@ -24,6 +24,7 @@
   # Generate Azure image
   codgician.image.azure = {
     enable = true;
+    bootSize = 512;
     diskSize = 32 * 1024;
   };
 }
