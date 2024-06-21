@@ -53,10 +53,7 @@
   # Nix garbage collection
   nix.gc = {
     automatic = true;
-    interval = {
-      Hour = 24 * 7;
-      Minute = 0;
-    };
+    interval.Weekday = 7;
   };
 
   # System packages
@@ -67,10 +64,7 @@
   ];
 
   # Fonts
-  fonts = {
-    fontDir.enable = true;
-    fonts = with pkgs; [ cascadia-code ];
-  };
+  fonts.packages = with pkgs; [ cascadia-code ];
 
   # zsh
   programs.zsh = {

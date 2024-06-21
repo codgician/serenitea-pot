@@ -20,10 +20,7 @@
   # Nix garbage collection
   nix.gc = {
     automatic = true;
-    interval = {
-      Hour = 24 * 7;
-      Minute = 0;
-    };
+    interval.Weekday = 7;
   };
 
   # Home manager
