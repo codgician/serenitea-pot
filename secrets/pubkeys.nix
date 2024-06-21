@@ -4,7 +4,7 @@ rec {
     charlotte = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILL9hl37txex438IfgZQ57uyLgf/WwDxypk9JoUT2Mya" ];
     focalors = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM9elJzxtHicXWL+okluqOjCJ/ZcMlAuPqH/WyTnjfeW" ];
     furina = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOS+hXPeUC7xFR74y5PCT0Ba0AXSC5vJJA5UURThXySJ" ];
-    klee = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKjCagwIiDsO5iACj6ShetzXTfL2y8RBrKa/9dhsiiXF" ];
+    klee = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN47LeE1hVBDWCJkKgbks2BmIw/kf2rhak8h9E+ns8LC" ];
     lumine = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAjCvIx+0G36EFWdw8nbrfqhkaCaDVsUJDiWnwfWtuEE" ];
     nahida = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICTdhkIHxijiGSGZtu0whn6DsU1uut+iiIfpEINxRzSW" ];
     paimon = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICNKqYpI7+zPOT72qvydVAdzsBNb0KiLbKFXHL9Ll0/Y" ];
