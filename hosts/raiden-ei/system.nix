@@ -45,7 +45,7 @@
   };
 
   # System packages
-  environment.systemPackages = with pkgs; [ neofetch openssl ];
+  environment.systemPackages = with pkgs; [ fastfetch openssl ];
 
   # zsh
   programs.zsh = {

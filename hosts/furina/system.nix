@@ -61,7 +61,7 @@
 
   # System packages
   environment.systemPackages = with pkgs; [
-    neofetch
+    fastfetch
     zulu
     openssl
   ];

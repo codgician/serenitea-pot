@@ -88,7 +88,7 @@
   # $ nix search wget
   environment.systemPackages = with pkgs; [
     vim
-    neofetch
+    fastfetch
     wget
     xterm
     htop
