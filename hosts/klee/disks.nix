@@ -44,7 +44,7 @@ in
         compression = "on";
         encryption = "aes-256-gcm";
         keyformat = "passphrase";
-        keylocation = "file:///tmp/secret.key";
+        keylocation = "prompt";
         "com.sun:auto-snapshot" = "false";
       };
       mountpoint = "/zroot";
