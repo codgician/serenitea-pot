@@ -5,7 +5,7 @@ rec {
     focalors = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM9elJzxtHicXWL+okluqOjCJ/ZcMlAuPqH/WyTnjfeW" ];
     furina = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOS+hXPeUC7xFR74y5PCT0Ba0AXSC5vJJA5UURThXySJ" ];
     klee = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN47LeE1hVBDWCJkKgbks2BmIw/kf2rhak8h9E+ns8LC" ];
-    lumine = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAjCvIx+0G36EFWdw8nbrfqhkaCaDVsUJDiWnwfWtuEE" ];
+    lumine = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICLgMH2GQZCfmXV2I4jlVHsM6PYiitT9hPRNhX40amKE" ];
     nahida = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICTdhkIHxijiGSGZtu0whn6DsU1uut+iiIfpEINxRzSW" ];
     paimon = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICNKqYpI7+zPOT72qvydVAdzsBNb0KiLbKFXHL9Ll0/Y" ];
     raiden-ei = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIB0g+aVDhTxpSHq7XnLLZvK2Lm9nxLdBNggzyqrD2Hf" ];

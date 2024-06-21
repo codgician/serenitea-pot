@@ -28,6 +28,10 @@ in
           hostname = "furina.lan";
           user = "codgi";
         };
+        "klee" = {
+          hostname = "klee.lan";
+          user = "codgi";
+        };
         "paimon" = {
           hostname = "paimon.lan";
           user = "codgi";
