@@ -4,6 +4,7 @@
   codgician = {
     services = {
       nixos-vscode-server.enable = true;
+
       nginx = {
         enable = true;
         reverseProxies = {
@@ -23,6 +24,15 @@
             ];
             locations."/".proxyPass = "https://sz.codgician.me:4443";
           };
+        };
+      };
+
+      wireguard = {
+        enable = true;
+        interfaces.wg0 = {
+          host = "lumine";
+          peers = [ "suzhou" ];
+          allowedIPsAsRoutes = true;
         };
       };
     };

@@ -29,8 +29,7 @@ with pubKeys; with pubKeys.hosts; {
   "terraformEnv.age".publicKeys = users.codgi;
 
   # WireGuard secrets
-  "wgLuminePresharedKey.age".publicKeys = wgHosts;
   "wgLuminePrivateKey.age".publicKeys = wgHosts;
-  "wgSuzhouPresharedKey.age".publicKeys = wgHosts;
   "wgSuzhouPrivateKey.age".publicKeys = wgHosts;
+  "wgPresharedKey.age".publicKeys = wgHosts;
 }

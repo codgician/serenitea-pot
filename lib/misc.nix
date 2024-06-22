@@ -2,8 +2,8 @@
   # Concat attributes
   concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
 
-   # List all item names with specified type under specified path 
-  getDirContentByType = type: path: 
+  # List all item names with specified type under specified path 
+  getDirContentByType = type: path:
     let
       dirContent = builtins.readDir path;
     in

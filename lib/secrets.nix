@@ -3,6 +3,8 @@
 
   getAgeSecretNameFromPath = path: lib.removeSuffix ".age" (builtins.baseNameOf path);
 
+  getAgeSecretPathFromName = name: secretsDir + "/${name}.age";
+
   mkAgenixAssertions = builtins.map (file: {
     assertion = lib.pathExists file;
     message = "Credential '${file}' must exist.";

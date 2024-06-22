@@ -117,21 +117,15 @@ in
     })
 
     # Agenix secrets
-    (lib.mkIf cfg.enable (
-      let
-        credFileNames = [
-          "gitlabInitRootPasswd"
-          "gitlabDb"
-          "gitlabJws"
-          "gitlabOtp"
-          "gitlabSecret"
-          "gitlabSmtp"
-          "gitlabOmniAuthGitHub"
-        ];
-        credFiles = builtins.map (x: lib.codgician.secretsDir + "/${x}.age") credFileNames;
-      in
-      lib.codgician.mkAgenixConfigs cfg.user credFiles
-    ))
+    (lib.mkIf cfg.enable (with lib.codgician; mkAgenixConfigs cfg.user (builtins.map getAgeSecretPathFromName [
+      "gitlabInitRootPasswd"
+      "gitlabDb"
+      "gitlabJws"
+      "gitlabOtp"
+      "gitlabSecret"
+      "gitlabSmtp"
+      "gitlabOmniAuthGitHub"
+    ])))
 
     # Reverse proxy profile
     (lib.mkIf cfg.reverseProxy.enable {

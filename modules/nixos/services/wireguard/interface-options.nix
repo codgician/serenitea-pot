@@ -1,7 +1,8 @@
 { lib, ... }:
 let
   types = lib.types;
-  hosts = builtins.map (lib.removeSuffix ".nix") (lib.codgician.getRegularFileNames ./peers);
+  hosts = builtins.map (lib.removeSuffix ".nix")
+    (builtins.filter (lib.hasSuffix ".nix") (lib.codgician.getRegularFileNames ./peers));
 in
 {
   options = {
@@ -11,7 +12,7 @@ in
     };
 
     peers = lib.mkOption {
-      type = types.arrayOf (types.enum hosts);
+      type = types.listOf (types.enum hosts);
       description = "List of enabled peer configuration names.";
     };
 
