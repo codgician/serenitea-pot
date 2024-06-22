@@ -20,10 +20,10 @@ lib.optionalAttrs (lib.version >= "24.05") {
     };
 
     displayManager = lib.mkOption {
-      type = types.strMatching "^(sddm|lightdm)$";
+      type = types.enum [ "sddm" "lightdm" ];
       default = "sddm";
       example = "sddm";
-      description = "Select display manager to use (`sddm` or `lightdm`).";
+      description = "Select display manager to use.";
     };
   };
 
