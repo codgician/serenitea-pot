@@ -1,4 +1,10 @@
-{ config, lib, pkgs, inputs, ... }: {
+{ config, lib, pkgs, inputs, ... }: 
+let
+  kernelUpdater = pkgs.writeScriptBin "update-initramfs" ''
+    ${pkgs.coreutils}/bin/dd if=${config.mobile.outputs.depthcharge.kpart} of=/dev/mmcblk0p1
+  '';
+in
+{
   imports = [
     (import "${inputs.mobile-nixos}/lib/configuration.nix" { device = "lenovo-krane"; })
   ];
@@ -33,9 +39,11 @@
   nix.settings.max-jobs = lib.mkDefault 4;
 
   # Script for updating initramfs
-  environment.systemPackages = [
-    (pkgs.writeScriptBin "update-initramfs" ''
-      ${pkgs.coreutils}/bin/dd if=${config.mobile.outputs.depthcharge.kpart} of=/dev/mmcblk0p1
-    '')
-  ];
+  environment.systemPackages = [ kernelUpdater ];
+
+  # Update kernel on activation
+  system.activationScripts.kernelUpdater = {
+    supportsDryActivation = false;
+    text = "${kernelUpdater}/bin/update-initramfs";
+  };
 }
