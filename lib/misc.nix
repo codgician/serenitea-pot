@@ -2,12 +2,18 @@
   # Concat attributes
   concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
 
-  # List all folder names under specified path
-  getFolderNames = path:
+   # List all item names with specified type under specified path 
+  getDirContentByType = type: path: 
     let
       dirContent = builtins.readDir path;
     in
-    builtins.filter (name: dirContent.${name} == "directory") (builtins.attrNames dirContent);
+    builtins.filter (name: dirContent.${name} == type) (builtins.attrNames dirContent);
+
+  # List all folder names under specified path
+  getFolderNames = getDirContentByType "directory";
+
+  # List all regular file names under specified path
+  getRegularFileNames = getDirContentByType "regular";
 
   # Get default.nix under specified path recursively
   getImports = path:
