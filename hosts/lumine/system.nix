@@ -8,6 +8,13 @@
       nginx = {
         enable = true;
         reverseProxies = {
+          "amt.codgician.me" = {
+            enable = true;
+            https = true;
+            domains = [ "amt.codgician.me" ];
+            locations."/".proxyPass = "https://192.168.0.7";
+          };
+
           "books.codgician.me" = {
             enable = true;
             https = true;
