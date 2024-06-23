@@ -9,7 +9,6 @@ in
 
     acmeDomain = lib.mkOption {
       type = types.str;
-      default = "nvdls.codgician.me";
       description = lib.mdDoc ''
         Acme domain for fastapi-dls, used to obtain SSL certificate.
         Must be a public domain.
@@ -115,7 +114,7 @@ in
       codgician.overlays.nur.xddxdd.enable = lib.mkForce true;
 
       # Systemd service for fastapi-dls
-      systemd.services.fastapi-dls = {
+      systemd.services.fastapi-dls = lib.optionalAttrs cfg.enable {
         inherit (cfg) enable;
         restartIfChanged = true;
         description = "fastapi-dls";
@@ -215,7 +214,7 @@ in
       };
 
       # Enable SSL certificate for virtual host
-      codgician.acme = {
+      codgician.acme = lib.optionalAttrs cfg.enable {
         "${cfg.acmeDomain}" = {
           inherit (cfg) enable;
           reloadServices = [ "fastapi-dls" ];
