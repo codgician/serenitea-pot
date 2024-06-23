@@ -8,13 +8,12 @@ in
     (name: {
       name = "${name}-cname";
       value = {
-        inherit name;
+        inherit name zone_id;
         proxied = false;
         ttl = 120;
         comment = "Reverse proxied by lumine";
         type = "CNAME";
         value = "lumine.codgician.me";
-        inherit zone_id;
       };
     })
     cnames);
