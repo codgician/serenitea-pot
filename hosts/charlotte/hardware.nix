@@ -1,4 +1,4 @@
-{ config, lib, pkgs, inputs, ... }: 
+{ config, lib, pkgs, inputs, ... }:
 let
   kernelUpdater = pkgs.writeScriptBin "update-initramfs" ''
     ${pkgs.coreutils}/bin/dd if=${config.mobile.outputs.depthcharge.kpart} of=/dev/mmcblk0p1

@@ -8,6 +8,10 @@ in
       Enable nginx reverse proxy profile for this service.
     '';
 
+    default = lib.mkEnableOption ''
+      Make this profile the default virtual host.
+    '';
+
     https = lib.mkEnableOption ''
       Use https and auto-renew certificates.
     '';

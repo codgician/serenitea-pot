@@ -8,21 +8,61 @@
       nginx = {
         enable = true;
         reverseProxies = {
-          "comfy.codgician.me" = {
+          "books.codgician.me" = {
             enable = true;
             https = true;
-            domains = [ "comfy.codgician.me" ];
-            locations."/".return = "403";
+            domains = [ "books.codgician.me" ];
+            locations."/".proxyPass = "https://192.168.0.7";
+          };
+
+          "bubbles.codgician.me" = {
+            enable = true;
+            https = true;
+            domains = [ "bubbles.codgician.me" ];
+            locations."/".proxyPass = "https://192.168.0.9";
+          };
+
+          "fin.codgician.me" = {
+            enable = true;
+            https = true;
+            domains = [ "fin.codgician.me" ];
+            locations."/".proxyPass = "https://192.168.0.8";
+          };
+
+          "git.codgician.me" = {
+            enable = true;
+            https = true;
+            domains = [ "git.codgician.me" ];
+            locations."/".proxyPass = "https://192.168.0.7";
+          };
+
+          "hass.codgician.me" = {
+            enable = true;
+            https = true;
+            domains = [ "hass.codgician.me" ];
+            locations."/".proxyPass = "https://192.168.0.6";
+          };
+
+          "pve.codgician.me" = {
+            enable = true;
+            https = true;
+            domains = [ "pve.codgician.me" ];
+            locations."/".proxyPass = "https://192.168.0.21:8006";
+          };
+
+          "matrix.codgician.me" = {
+            enable = true;
+            https = true;
+            domains = [ "matrix.codgician.me" ];
+            locations."/".proxyPass = "https://192.168.0.7";
           };
 
           "codgician.me" = {
             enable = true;
             https = true;
-            domains = [
-              "codgician.me"
-              "*.codgician.me"
-            ];
-            locations."/".proxyPass = "https://sz.codgician.me:4443";
+            default = true;
+            domains = [ "codgician.me" "*.codgician.me" ];
+            locations."/".return = "403";
           };
         };
       };

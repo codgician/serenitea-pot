@@ -27,11 +27,13 @@ in
         (name: value: {
           inherit (hostOptions.${value.host}) privateKeyFile ips listenPort;
           inherit (value) allowedIPsAsRoutes;
-          peers = builtins.map (name: { 
-            inherit (hostOptions.${name}) name endpoint publicKey presharedKeyFile allowedIPs; 
-            dynamicEndpointRefreshSeconds = 10;
-            dynamicEndpointRefreshRestartSeconds = 60;
-          }) value.peers;
+          peers = builtins.map
+            (name: {
+              inherit (hostOptions.${name}) name endpoint publicKey presharedKeyFile allowedIPs;
+              dynamicEndpointRefreshSeconds = 10;
+              dynamicEndpointRefreshRestartSeconds = 60;
+            })
+            value.peers;
         })
         cfg.interfaces;
     }

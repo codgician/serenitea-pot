@@ -116,7 +116,7 @@ in
 
       # Systemd service for fastapi-dls
       systemd.services.fastapi-dls = {
-        enable = true;
+        inherit (cfg) enable;
         restartIfChanged = true;
         description = "fastapi-dls";
         wantedBy = [ "multi-user.target" ];
@@ -217,7 +217,7 @@ in
       # Enable SSL certificate for virtual host
       codgician.acme = {
         "${cfg.acmeDomain}" = {
-          enable = true;
+          inherit (cfg) enable;
           reloadServices = [ "fastapi-dls" ];
         };
       };
@@ -226,7 +226,7 @@ in
     # Reverse proxy profile
     (lib.mkIf cfg.reverseProxy.enable {
       codgician.services.nginx = {
-        enable = true;
+        inherit (cfg.reverseProxy) enable;
         reverseProxies.fastapi-dls = {
           inherit (cfg.reverseProxy) enable domains;
           https = true;
