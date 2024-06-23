@@ -26,7 +26,7 @@
             enable = true;
             https = true;
             domains = [ "bubbles.codgician.me" ];
-            locations."/".proxyPass = "https://192.168.0.9";
+            locations."/".proxyPass = "http://192.168.0.9:1234";
           };
 
           "fin.codgician.me" = {
