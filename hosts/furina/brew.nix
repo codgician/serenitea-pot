@@ -70,7 +70,7 @@
     "element"
     "wireshark"
     "moonlight"
-    "parsec"
+    "rustdesk"
     "hopper-disassembler"
   ];
 }
