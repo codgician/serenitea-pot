@@ -39,21 +39,13 @@ in
     }
 
     # Agenix credentials
-    (lib.mkIf agenixEnabled {
-      age.secrets =
-        let
-          hosts = builtins.map (x: x.host) (builtins.attrValues (cfg.interfaces));
-          peers = builtins.concatMap (x: x.peers) (builtins.attrValues (cfg.interfaces));
-          secrets = builtins.concatMap (x: hostOptions.${x}.ageFilePaths) (lib.lists.unique (hosts ++ peers));
-          mkAgeSecretsConfig = path: {
-            "${lib.codgician.getAgeSecretNameFromPath path}" = {
-              file = path;
-              mode = "600";
-              owner = "root";
-            };
-          };
-        in
-        lib.mkMerge (builtins.map mkAgeSecretsConfig secrets);
-    })
+    (lib.mkIf agenixEnabled (
+      let
+        hosts = builtins.map (x: x.host) (builtins.attrValues (cfg.interfaces));
+        peers = builtins.concatMap (x: x.peers) (builtins.attrValues (cfg.interfaces));
+        secrets = builtins.concatMap (x: hostOptions.${x}.ageFilePaths) (lib.lists.unique (hosts ++ peers));
+      in
+      lib.codgician.mkAgenixConfigs "root" secrets
+    ))
   ]);
 }

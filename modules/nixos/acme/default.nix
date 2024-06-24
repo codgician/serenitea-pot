@@ -83,21 +83,13 @@ rec {
     }
 
     # Agenix credentials
-    (lib.mkIf agenixEnabled {
-      age.secrets =
-        let
-          secrets = lib.lists.unique (
-            builtins.filter (x: x != null) (
-              builtins.map (name: cfg.${name}.ageSecretFilePath) domainNames));
-          mkAgeSecretsConfig = path: {
-            "${lib.codgician.getAgeSecretNameFromPath path}" = {
-              file = path;
-              mode = "600";
-              owner = "root";
-            };
-          };
-        in
-        lib.mkMerge (builtins.map mkAgeSecretsConfig secrets);
-    })
+    (lib.mkIf agenixEnabled (
+      let
+        secrets = lib.lists.unique (
+          builtins.map (name: cfg.${name}.ageSecretFilePath) (
+            builtins.filter (name: cfg.${name}.enable && cfg.${name}.ageSecretFilePath != null) domainNames));
+      in
+      lib.codgician.mkAgenixConfigs "root" secrets
+    ))
   ]);
 }
