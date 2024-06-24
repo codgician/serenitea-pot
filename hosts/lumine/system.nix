@@ -69,7 +69,7 @@
             https = true;
             default = true;
             domains = [ "codgician.me" "*.codgician.me" ];
-            locations."/".return = "403";
+            locations."/".root = import ./lumine-web.nix { inherit pkgs; };
           };
         };
       };
