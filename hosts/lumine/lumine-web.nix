@@ -1,8 +1,12 @@
 { pkgs }:
 let
   index = pkgs.writeText "index.html" ''
-    <html style="text-align:center;">
-      <pre style="display:inline;">
+    <html lang="en" style="text-align:center;">
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+      </head>
+      <body>
+        <pre style="display:inline;">
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣴⠶⠟⠋⠉⠉⠉⠉⠀⠀⠈⠉⠉⠙⠒⠶⢄⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⡄⠀⢀⣴⠟⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⠳⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
@@ -35,10 +39,12 @@ let
     ⠀⠀⠀⠀⠀⠀⠀⠀⣰⠿⠶⠶⣧⡀⠀⠀⠀⢻⠀⠀⠉⠛⠶⣤⣉⣀⡠⠖⠋⠁⠀⠀⠀⠀⠘⣷⣶⣶⣖⡼⣿⠶⠛⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠀⠀⢀⡏⠀⠀⢀⡏⠉⠉⠉⠁⡞⠀⠀⠀⠀⠀⠀⠈⠙⢦⣄⠀⠀⠀⠀⠀⠀⠀⢹⠀⠀⠀⠀⢸⡆⠀⠀⠀⠀⠀⠀⠀⠀
     ⠀⠀⠀⠀⠀⠀⢀⣾⠁⠀⠀⣸⠁⠀⠀⠀⢀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢷⡄⠀⠀⠀⠀⠀⢸⠆⠀⠀⠀⢸⡷⠀⠀⠀⠀⠀⠀⠀⠀
-      </pre>
-      <hr>
-      Our paths will surely cross
-    </html>'';
+        </pre>
+        <hr>
+        Our paths will surely cross
+      </body>
+    </html>
+  '';
 in
 pkgs.runCommand "lumine-web" { } ''
   mkdir -p $out
