@@ -20,16 +20,16 @@ in
           hostname = "charlotte.lan";
           user = "codgi";
         };
+        "fischl" = {
+          hostname = "fischl.lan";
+          user = "codgi";
+        };
         "focalors" = {
           hostname = "focalors.lan";
           user = "codgi";
         };
         "furina" = {
           hostname = "furina.lan";
-          user = "codgi";
-        };
-        "klee" = {
-          hostname = "klee.lan";
           user = "codgi";
         };
         "paimon" = {
