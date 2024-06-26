@@ -95,8 +95,24 @@
 
   outputs = inputs @ { self, flake-utils, agenix, terranix, ... }:
     let
-      darwinModules.default = import ./modules/darwin;
-      nixosModules.default = import ./modules/nixos;
+      # All Darwin modules for building system
+      darwinInputModules = with inputs; [
+        agenix.darwinModules.default
+        home-manager.darwinModules.home-manager
+      ];
+
+      # All NixOS modules for building system
+      nixosInputModules = with inputs; [
+        nur.nixosModules.nur
+        impermanence.nixosModules.impermanence
+        home-manager.nixosModules.home-manager
+        disko.nixosModules.disko
+        agenix.nixosModules.default
+        lanzaboote.nixosModules.lanzaboote
+        nixos-wsl.nixosModules.wsl
+        vscode-server.nixosModules.default
+      ];
+
       mkLib = nixpkgs: nixpkgs.lib // (import ./lib { inherit nixpkgs; });
       mkPkgs = nixpkgs: system: import nixpkgs {
         inherit system;
@@ -105,9 +121,18 @@
       };
       lib = mkLib inputs.nixpkgs;
     in
-    {
-      inherit darwinModules nixosModules;
-      inherit (import ./hosts { inherit inputs lib mkLib mkPkgs darwinModules nixosModules; }) darwinConfigurations nixosConfigurations;
+    rec {
+      # Modules
+      darwinModules = import ./modules/darwin { inherit lib; };
+      nixosModules = import ./modules/nixos { inherit lib; };
+
+      # System configurations
+      inherit (import ./hosts {
+        inherit inputs lib mkLib mkPkgs;
+        darwinModules = darwinInputModules ++ [ darwinModules.default ];
+        nixosModules = nixosInputModules ++ [ nixosModules.default ];
+      }) darwinConfigurations nixosConfigurations;
+
     } // flake-utils.lib.eachDefaultSystem (system:
       let
         isDarwin = inputs.nixpkgs.legacyPackages.${system}.stdenvNoCC.isDarwin;

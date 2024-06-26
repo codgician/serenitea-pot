@@ -32,17 +32,12 @@ let
     inputs.darwin.lib.darwinSystem {
       inherit system;
       specialArgs = { inherit inputs lib system; };
-      modules = with inputs; [
-        darwinModules.default
+      modules = darwinModules ++ modules ++ [
         (mkBaseConfig system hostName)
-
-        home-manager.darwinModules.home-manager
-        agenix.darwinModules.default
-
         ({ config, ... }: {
           services.nix-daemon.enable = true;
         })
-      ] ++ modules;
+      ];
     };
 
   # Common configurations for NixOS systems
@@ -60,19 +55,8 @@ let
     nixpkgs.lib.nixosSystem {
       inherit system;
       specialArgs = { inherit inputs lib system; };
-      modules = with inputs; [
-        nixosModules.default
+      modules = nixosModules ++ modules ++ [
         (mkBaseConfig system hostName)
-
-        nur.nixosModules.nur
-        impermanence.nixosModules.impermanence
-        home-manager.nixosModules.home-manager
-        disko.nixosModules.disko
-        agenix.nixosModules.default
-        lanzaboote.nixosModules.lanzaboote
-        nixos-wsl.nixosModules.wsl
-        vscode-server.nixosModules.default
-
         ({ config, ... }: {
           # Set flake for auto upgrade
           system.autoUpgrade = {
@@ -80,7 +64,7 @@ let
             flags = [ "--refresh" ];
           };
         })
-      ] ++ modules;
+      ];
     };
 
   hosts = builtins.map (x: (import ./${x} { inherit inputs; }) // { hostName = x; }) (lib.codgician.getFolderNames ./.);
