@@ -4,25 +4,17 @@ let
 in
 {
   options = {
-    enable = lib.mkEnableOption ''
-      Enable nginx reverse proxy profile for this service.
-    '';
+    enable = lib.mkEnableOption "Enable nginx reverse proxy profile for this service.";
 
-    default = lib.mkEnableOption ''
-      Make this profile the default virtual host.
-    '';
+    default = lib.mkEnableOption "Make this profile the default virtual host.";
 
-    https = lib.mkEnableOption ''
-      Use https and auto-renew certificates.
-    '';
+    https = lib.mkEnableOption "Use https and auto-renew certificates.";
 
     domains = lib.mkOption {
       type = types.listOf types.str;
       example = [ "example.com" "example.org" ];
       default = [ ];
-      description = ''
-        List of domains for the reverse proxy.
-      '';
+      description = "List of domains for the reverse proxy.";
     };
 
     locations = lib.mkOption {
@@ -33,6 +25,7 @@ in
           "/".proxyPass = "http://127.0.0.1:8000";
         }
       '';
+      description = "Declare nginx locations config.";
     };
 
     robots = lib.mkOption {

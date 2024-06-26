@@ -122,11 +122,11 @@
       nixosAllModules = [ nixosModules.default ] ++ nixosInputModules;
 
       mkLib = nixpkgs: nixpkgs.lib // (import ./lib { inherit nixpkgs; });
-      mkPkgs = nixpkgs: system: import nixpkgs {
+      mkPkgs = nixpkgs: system: (import nixpkgs {
         inherit system;
         config.allowUnfree = true;
         flake.source = nixpkgs.outPath;
-      };
+      }) // { lib = mkLib nixpkgs; };
       lib = mkLib inputs.nixpkgs;
     in
     rec {
@@ -185,6 +185,28 @@
             extraArgs = { inherit lib; };
             modules = [ ./terraform ];
           };
+
+          # Documentations
+          darwinDocs = let
+            eval = import "${inputs.darwin}/eval-config.nix" {
+              inherit lib;
+              specialArgs = { inherit lib; };
+              modules = darwinAllModules ++ [{ 
+                nixpkgs = { 
+                  source = lib.mkDefault nixpkgs; 
+                  inherit system; 
+                };
+              }];
+            };
+          in pkgs.nixosOptionsDoc { options = eval.options.codgician; };
+
+          nixosDocs = let
+            eval = import "${inputs.nixpkgs}/nixos/lib/eval-config.nix" {
+              inherit system;
+              specialArgs = { inherit lib; };
+              modules = nixosAllModules;
+            };
+          in pkgs.nixosOptionsDoc { options = eval.options.codgician; };
         };
 
         # Apps: `nix run .#appName`
