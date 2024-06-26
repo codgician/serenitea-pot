@@ -198,7 +198,7 @@
                 };
               }];
             };
-          in pkgs.nixosOptionsDoc { options = eval.options.codgician; };
+          in (pkgs.nixosOptionsDoc { options = eval.options.codgician; }).optionsCommonMark;
 
           nixosDocs = let
             eval = import "${inputs.nixpkgs}/nixos/lib/eval-config.nix" {
@@ -206,7 +206,7 @@
               specialArgs = { inherit lib; };
               modules = nixosAllModules;
             };
-          in pkgs.nixosOptionsDoc { options = eval.options.codgician; };
+          in (pkgs.nixosOptionsDoc { options = eval.options.codgician; }).optionsCommonMark;
         };
 
         # Apps: `nix run .#appName`
