@@ -11,19 +11,19 @@ rec {
     user = lib.mkOption {
       type = types.str;
       default = "jellyfin";
-      description = lib.mdDoc "User under which jellyfin runs.";
+      description = "User under which jellyfin runs.";
     };
 
     group = lib.mkOption {
       type = types.str;
       default = "jellyfin";
-      description = lib.mdDoc "Group under which jellyfin runs.";
+      description = "Group under which jellyfin runs.";
     };
 
     dataDir = lib.mkOption {
       type = types.path;
       default = "/var/lib/jellyfin";
-      description = lib.mdDoc "Data directory for jellyfin.";
+      description = "Data directory for jellyfin.";
     };
 
     # Reverse proxy profile for nginx
@@ -34,7 +34,7 @@ rec {
         type = types.listOf types.str;
         example = [ "example.com" "example.org" ];
         default = [ ];
-        description = lib.mdDoc ''
+        description = ''
           List of domains for the reverse proxy.
         '';
       };
@@ -42,7 +42,7 @@ rec {
       proxyPass = lib.mkOption {
         type = types.str;
         default = "http://127.0.0.1:8096";
-        description = lib.mdDoc ''
+        description = ''
           Source URI for the reverse proxy.
         '';
       };

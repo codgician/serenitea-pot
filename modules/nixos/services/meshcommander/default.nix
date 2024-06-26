@@ -10,25 +10,25 @@ in
     port = lib.mkOption {
       type = types.port;
       default = 3001;
-      description = lib.mdDoc "TCP port for MeshCommander to listen.";
+      description = "TCP port for MeshCommander to listen.";
     };
 
     localhostOnly = lib.mkOption {
       type = types.bool;
       default = true;
-      description = lib.mdDoc "Only bind to `127.0.0.1`.";
+      description = "Only bind to `127.0.0.1`.";
     };
 
     user = lib.mkOption {
       type = types.str;
       default = "meshcommander";
-      description = lib.mdDoc "User under which MeshCommander runs.";
+      description = "User under which MeshCommander runs.";
     };
 
     group = lib.mkOption {
       type = types.str;
       default = "meshcommander";
-      description = lib.mdDoc "Group under which MeshCommander runs.";
+      description = "Group under which MeshCommander runs.";
     };
 
     # Reverse proxy profile for nginx
@@ -39,7 +39,7 @@ in
         type = types.listOf types.str;
         example = [ "example.com" "example.org" ];
         default = [ ];
-        description = lib.mdDoc ''
+        description = ''
           List of domains for the reverse proxy.
         '';
       };
@@ -48,7 +48,7 @@ in
         type = types.str;
         default = "http://127.0.0.1:${toString cfg.port}";
         defaultText = ''http://127.0.0.1:$\{toString config.codgician.services.meshcommander.port}'';
-        description = lib.mdDoc ''
+        description = ''
           Source URI for the reverse proxy.
         '';
       };

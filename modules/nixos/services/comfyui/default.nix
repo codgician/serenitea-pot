@@ -10,7 +10,7 @@ in
     port = lib.mkOption {
       type = types.port;
       default = 8188;
-      description = lib.mdDoc ''
+      description = ''
         Port for comfyui to listen on.
       '';
     };
@@ -18,7 +18,7 @@ in
     dataDir = lib.mkOption {
       type = types.path;
       default = "/var/lib/comfyui";
-      description = lib.mdDoc ''
+      description = ''
         Data directory for comfyui.
       '';
     };
@@ -31,7 +31,7 @@ in
         type = types.listOf types.str;
         example = [ "example.com" "example.org" ];
         default = [ ];
-        description = lib.mdDoc ''
+        description = ''
           List of domains for the reverse proxy.
         '';
       };
@@ -40,7 +40,7 @@ in
         type = types.str;
         default = "http://127.0.0.1:${builtins.toString cfg.port}";
         defaultText = ''http://127.0.0.1:$\{toString config.codgician.services.comfyui.port}'';
-        description = lib.mdDoc ''
+        description = ''
           Source URI for the reverse proxy.
         '';
       };

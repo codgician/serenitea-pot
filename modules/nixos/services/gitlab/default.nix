@@ -22,13 +22,13 @@ in
     user = lib.mkOption {
       type = types.str;
       default = "gitlab";
-      description = lib.mdDoc "User under which GitLab runs.";
+      description = "User under which GitLab runs.";
     };
 
     group = lib.mkOption {
       type = types.str;
       default = "gitlab";
-      description = lib.mdDoc "Group under which GitLab runs.";
+      description = "Group under which GitLab runs.";
     };
 
     # Reverse proxy profile for nginx
@@ -40,7 +40,7 @@ in
         example = [ "example.com" "example.org" ];
         default = [ cfg.host ];
         defaultText = ''[ config.codgician.services.gitlab.host ]'';
-        description = lib.mdDoc ''
+        description = ''
           List of domains for the reverse proxy.
         '';
       };
@@ -48,7 +48,7 @@ in
       proxyPass = lib.mkOption {
         type = types.str;
         default = "http://unix:/run/gitlab/gitlab-workhorse.socket";
-        description = lib.mdDoc ''
+        description = ''
           Source URI for the reverse proxy.
         '';
       };

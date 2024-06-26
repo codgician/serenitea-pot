@@ -26,7 +26,7 @@ let
       home = lib.mkOption {
         type = types.path;
         default = if pkgs.stdenvNoCC.isLinux then "/home/${name}" else "/Users/${name}";
-        description = lib.mdDoc ''
+        description = ''
           Path of home directory for user "${name}".
         '';
       };
@@ -34,7 +34,7 @@ let
       extraAgeFiles = lib.mkOption {
         type = types.listOf types.path;
         default = [ ];
-        description = lib.mdDoc ''
+        description = ''
           Paths to `.age` secret files owned by user "${name}" excluding `hashedPasswordAgeFile`.
           Only effective when agenix is enabled. 
         '';
@@ -44,7 +44,7 @@ let
         type = with types; nullOr (passwdEntry str);
         default = null;
         visible = pkgs.stdenvNoCC.isLinux;
-        description = lib.mdDoc ''
+        description = ''
           Hashed password for user "${name}". Only effective when agenix is **NOT** enabled.
           To generate a hashed password, run `mkpasswd`.
         '';
@@ -54,7 +54,7 @@ let
         type = with types; nullOr path;
         default = null;
         visible = pkgs.stdenvNoCC.isLinux;
-        description = lib.mdDoc ''
+        description = ''
           Path to hashed password file encrypted managed by agenix.
           Should only be set when agenix is enabled.
         '';
@@ -63,7 +63,7 @@ let
       passwordAgeFile = lib.mkOption {
         type = with types; nullOr path;
         default = null;
-        description = lib.mdDoc ''
+        description = ''
           Path to plain password file encrypted managed by agenix.
           Should only be set when agenix is enabled. 
           This option does not set login password.
@@ -74,7 +74,7 @@ let
       extraGroups = lib.mkOption {
         type = types.listOf types.str;
         default = [ ];
-        description = lib.mdDoc ''
+        description = ''
           Auxiliary groups for user "${name}".
         '';
       };

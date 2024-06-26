@@ -11,7 +11,7 @@ in
     ip = lib.mkOption {
       type = types.str;
       default = "127.0.0.1";
-      description = lib.mdDoc ''
+      description = ''
         IP for Calibre Web to listen on (use IPv4).
       '';
     };
@@ -19,7 +19,7 @@ in
     port = lib.mkOption {
       type = types.port;
       default = 3002;
-      description = lib.mdDoc ''
+      description = ''
         Port for Calibre Web to listen on.
       '';
     };
@@ -27,7 +27,7 @@ in
     calibreLibrary = lib.mkOption {
       type = types.nullOr types.path;
       default = null;
-      description = lib.mdDoc ''
+      description = ''
         Path to Calibre library.
       '';
     };
@@ -40,7 +40,7 @@ in
         type = types.listOf types.str;
         example = [ "example.com" "example.org" ];
         default = [ ];
-        description = lib.mdDoc ''
+        description = ''
           List of domains for the reverse proxy.
         '';
       };
@@ -49,7 +49,7 @@ in
         type = types.str;
         default = "http://${cfg.ip}:${toString cfg.port}";
         defaultText = ''http://$\{config.codgician.services.calibre-web.ip}:$\{toString config.codgician.services.calibre-web.port}'';
-        description = lib.mdDoc ''
+        description = ''
           Source URI for the reverse proxy.
         '';
       };

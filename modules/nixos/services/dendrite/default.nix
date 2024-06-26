@@ -24,31 +24,31 @@ in
     httpPort = lib.mkOption {
       type = types.port;
       default = 8008;
-      description = lib.mdDoc "Port for Dendrite server to listen HTTP requests on.";
+      description = "Port for Dendrite server to listen HTTP requests on.";
     };
 
     dataPath = lib.mkOption {
       type = types.str;
       default = "/var/lib/dendrite";
-      description = lib.mdDoc "Path where Dendrite server store its data.";
+      description = "Path where Dendrite server store its data.";
     };
 
     domain = lib.mkOption {
       type = types.str;
       example = "matrix.example.org";
-      description = lib.mdDoc "Domain name for the Dendrite server.";
+      description = "Domain name for the Dendrite server.";
     };
 
     user = lib.mkOption {
       type = types.str;
       default = "dendrite";
-      description = lib.mdDoc "User under which Dendrite server runs.";
+      description = "User under which Dendrite server runs.";
     };
 
     group = lib.mkOption {
       type = types.str;
       default = "dendrite";
-      description = lib.mdDoc "Group under which Dendrite server runs.";
+      description = "Group under which Dendrite server runs.";
     };
 
     # Reverse proxy profile for nginx
@@ -70,7 +70,7 @@ in
         example = [ "example.com" "example.org" ];
         default = [ cfg.domain ];
         defaultText = ''[ config.codgician.services.dendrite.domain ]'';
-        description = lib.mdDoc ''
+        description = ''
           List of domains for the reverse proxy.
         '';
       };
@@ -79,7 +79,7 @@ in
         type = types.str;
         default = "http://127.0.0.1:${builtins.toString cfg.httpPort}";
         defaultText = ''http://127.0.0.1:$\{builtins.toString config.codgician.services.dendrite.httpPort}'';
-        description = lib.mdDoc ''
+        description = ''
           Source URI for the reverse proxy.
         '';
       };

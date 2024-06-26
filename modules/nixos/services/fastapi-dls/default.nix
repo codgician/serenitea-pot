@@ -9,7 +9,7 @@ in
 
     acmeDomain = lib.mkOption {
       type = types.str;
-      description = lib.mdDoc ''
+      description = ''
         Acme domain for fastapi-dls, used to obtain SSL certificate.
         Must be a public domain.
       '';
@@ -18,7 +18,7 @@ in
     host = lib.mkOption {
       type = types.str;
       default = "127.0.0.1";
-      description = lib.mdDoc ''
+      description = ''
         Host for fastapi-dls to listen on, passed as `--host` (IPv4).
       '';
     };
@@ -26,7 +26,7 @@ in
     port = lib.mkOption {
       type = types.port;
       default = 4443;
-      description = lib.mdDoc ''
+      description = ''
         Port for fastapi-dls to listen on, passed as `--port`.
       '';
     };
@@ -34,7 +34,7 @@ in
     announcePort = lib.mkOption {
       type = types.port;
       default = 4443;
-      description = lib.mdDoc ''
+      description = ''
         Port for fastapi-dls to announce. 
         It may be different than `port` if the service runs behind a reverse proxy.
       '';
@@ -43,7 +43,7 @@ in
     user = lib.mkOption {
       type = types.str;
       default = "fastapi-dls";
-      description = lib.mdDoc ''
+      description = ''
         User under which fastapi-dls runs.
       '';
     };
@@ -51,7 +51,7 @@ in
     group = lib.mkOption {
       type = types.str;
       default = "fastapi-dls";
-      description = lib.mdDoc ''
+      description = ''
         Group under which fastapi-dls runs.
       '';
     };
@@ -59,7 +59,7 @@ in
     appDir = lib.mkOption {
       type = types.path;
       default = "/var/lib/fastapi-dls-app";
-      description = lib.mdDoc ''
+      description = ''
         App directory for fastapi-dls (passed as `--app-dir`).
       '';
     };
@@ -67,7 +67,7 @@ in
     dataDir = lib.mkOption {
       type = types.path;
       default = "/var/lib/fastapi-dls-app/data";
-      description = lib.mdDoc ''
+      description = ''
         Data directory for fastapi-dls (passed as `--app-data`).
       '';
     };
@@ -75,7 +75,7 @@ in
     leaseDays = lib.mkOption {
       type = types.int;
       default = 90;
-      description = lib.mdDoc ''
+      description = ''
         Expiration days for issued leases.
       '';
     };
@@ -89,7 +89,7 @@ in
         example = [ "example.com" "example.org" ];
         default = [ cfg.acmeDomain ];
         defaultText = ''[ config.codgician.services.fastapi-dls.acmeDomain ]'';
-        description = lib.mdDoc ''
+        description = ''
           List of domains for the reverse proxy.
         '';
       };
@@ -98,7 +98,7 @@ in
         type = types.str;
         default = "https://${cfg.host}:${toString cfg.port}";
         defaultText = ''https://$\{config.codgician.services.fastapi-dls.host}:$\{toString config.codgician.services.fastapi-dls.port}'';
-        description = lib.mdDoc ''
+        description = ''
           Source URI for the reverse proxy.
         '';
       };

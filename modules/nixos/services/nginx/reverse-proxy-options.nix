@@ -20,7 +20,7 @@ in
       type = types.listOf types.str;
       example = [ "example.com" "example.org" ];
       default = [ ];
-      description = lib.mdDoc ''
+      description = ''
         List of domains for the reverse proxy.
       '';
     };
@@ -42,7 +42,7 @@ in
         Disallow: *
       '';
       default = "";
-      description = lib.mdDoc ''
+      description = ''
         Content of `/robots.txt`.
       '';
     };

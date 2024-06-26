@@ -16,7 +16,7 @@ in
     interfaces = lib.mkOption {
       type = types.attrsOf (types.submodule (import ./interface-options.nix { inherit lib; }));
       default = { };
-      description = lib.mdDoc "WireGuard interface configurations.";
+      description = "WireGuard interface configurations.";
     };
   };
 

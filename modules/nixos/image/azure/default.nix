@@ -15,7 +15,7 @@ in
     diskSize = lib.mkOption {
       type = with types; either (enum [ "auto" ]) int;
       default = "auto";
-      description = lib.mdDoc ''
+      description = ''
         Disk image size (MB).
       '';
     };

@@ -89,7 +89,7 @@ in
           };
         }
       '';
-      description = lib.mdDcoc "Reverse proxy configurations.";
+      description = "Reverse proxy configurations.";
     };
   };
 

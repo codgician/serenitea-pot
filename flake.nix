@@ -113,6 +113,14 @@
         vscode-server.nixosModules.default
       ];
 
+      # Modules provided by this flake
+      darwinModules = import ./modules/darwin { inherit lib; };
+      nixosModules = import ./modules/nixos { inherit lib; };
+
+      # All modules
+      darwinAllModules = [ darwinModules.default ] ++ darwinInputModules;
+      nixosAllModules = [ nixosModules.default ] ++ nixosInputModules;
+
       mkLib = nixpkgs: nixpkgs.lib // (import ./lib { inherit nixpkgs; });
       mkPkgs = nixpkgs: system: import nixpkgs {
         inherit system;
@@ -123,14 +131,13 @@
     in
     rec {
       # Modules
-      darwinModules = import ./modules/darwin { inherit lib; };
-      nixosModules = import ./modules/nixos { inherit lib; };
+      inherit darwinModules nixosModules;
 
       # System configurations
       inherit (import ./hosts {
         inherit inputs lib mkLib mkPkgs;
-        darwinModules = darwinInputModules ++ [ darwinModules.default ];
-        nixosModules = nixosInputModules ++ [ nixosModules.default ];
+        darwinModules = darwinAllModules;
+        nixosModules = nixosAllModules;
       }) darwinConfigurations nixosConfigurations;
 
     } // flake-utils.lib.eachDefaultSystem (system:
