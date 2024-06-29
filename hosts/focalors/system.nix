@@ -75,8 +75,13 @@
     inputMethod = {
       enabled = "fcitx5";
       fcitx5 = {
-        addons = with pkgs; [ fcitx5-rime fcitx5-chinese-addons ];
+        addons = with pkgs; [ 
+          fcitx5-rime 
+          rime-data 
+          fcitx5-chinese-addons 
+        ];
         waylandFrontend = true;
+        plasma6Support = true;
       };
     };
   };
