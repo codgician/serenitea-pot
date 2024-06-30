@@ -21,7 +21,7 @@ in
 
   config = lib.mkMerge [
     # Persist /etc/secureboot if impermanence is on
-    (lib.mkIf impermanenceCfg.enable  {
+    (lib.mkIf impermanenceCfg.enable {
       environment.persistence.${impermanenceCfg.path} = {
         directories = [ "/etc/secureboot" ];
       };

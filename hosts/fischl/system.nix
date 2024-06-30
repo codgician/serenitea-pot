@@ -107,6 +107,12 @@
   security.sudo.wheelNeedsPassword = false;
   nix.settings.trusted-users = [ "root" "@wheel" ];
 
+  security.tpm2 = {
+    enable = true;
+    abrmd.enable = true;
+    pkcs11.enable = true;
+  };
+
   nixpkgs.config.allowUnfree = true;
 
   # List packages installed in system profile. To search, run:
@@ -117,6 +123,9 @@
     wget
     xterm
     htop
+    clevis
+    jose
+    tpm2-tools
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

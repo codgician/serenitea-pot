@@ -13,7 +13,7 @@
   '';
 
   # The root partition decryption key encrypted with tpm
-  # `echo $PLAINTEXT | sudo clevis encrypt tpm2 '{"pcr_bank":"sha384","pcr_ids":"1,7"}'`
+  # `echo $PLAINTEXT | sudo clevis encrypt tpm2 '{"pcr_bank":"sha384","pcr_ids":"7"}'`
   boot.initrd.clevis = {
     enable = true;
     devices."zroot".secretFile = ./zroot.jwe;
