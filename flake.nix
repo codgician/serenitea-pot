@@ -187,26 +187,30 @@
           };
 
           # Documentations
-          darwinDocs = let
-            eval = import "${inputs.darwin}/eval-config.nix" {
-              inherit lib;
-              specialArgs = { inherit lib; };
-              modules = darwinAllModules ++ [{ 
-                nixpkgs = { 
-                  source = lib.mkDefault nixpkgs; 
-                  inherit system; 
-                };
-              }];
-            };
-          in (pkgs.nixosOptionsDoc { options = eval.options.codgician; }).optionsCommonMark;
+          darwinDocs =
+            let
+              eval = import "${inputs.darwin}/eval-config.nix" {
+                inherit lib;
+                specialArgs = { inherit lib; };
+                modules = darwinAllModules ++ [{
+                  nixpkgs = {
+                    source = lib.mkDefault nixpkgs;
+                    inherit system;
+                  };
+                }];
+              };
+            in
+            (pkgs.nixosOptionsDoc { options = eval.options.codgician; }).optionsCommonMark;
 
-          nixosDocs = let
-            eval = import "${inputs.nixpkgs}/nixos/lib/eval-config.nix" {
-              inherit system;
-              specialArgs = { inherit lib; };
-              modules = nixosAllModules;
-            };
-          in (pkgs.nixosOptionsDoc { options = eval.options.codgician; }).optionsCommonMark;
+          nixosDocs =
+            let
+              eval = import "${inputs.nixpkgs}/nixos/lib/eval-config.nix" {
+                inherit system;
+                specialArgs = { inherit lib; };
+                modules = nixosAllModules;
+              };
+            in
+            (pkgs.nixosOptionsDoc { options = eval.options.codgician; }).optionsCommonMark;
         };
 
         # Apps: `nix run .#appName`
