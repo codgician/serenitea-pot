@@ -20,13 +20,7 @@ After running disko, the newly created partitions should be already mounted at `
 
 ## Configure impermanence
 
-For hosts with [impermanence](https://github.com/nix-community/impermanence) enabled, run following command:
-
-```bash
-sudo mkdir /mnt/nix/persist
-```
-
-Run following command to generate new ssh key pair:
+For hosts with [impermanence](https://github.com/nix-community/impermanence) enabled, run following command to generate new ssh key pair:
 
 ```bash
 sudo mkdir -p /mnt/nix/persist/etc/ssh/
@@ -37,6 +31,14 @@ Add generated public key to `/secrets/pubkeys.nix`, then navigate to `/secrets` 
 
 ```bash
 agenix -r
+```
+
+If secure boot is enabled on the host, run following command to generate secure boot signing keys:
+
+```bash
+sudo mkdir -p /mnt/nix/persist/etc/secureboot/
+nix-shell -p sbctl
+sudo sbctl create-keys -e /mnt/nix/persist/etc/secureboot/keys -d /mnt/nix/persist/etc/secureboot/
 ```
 
 ## Install NixOS

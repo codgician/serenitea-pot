@@ -5,7 +5,7 @@ let
 in
 {
   options.codgician.system.secure-boot = {
-    enable = lib.mkEnableOption "Enable Secure Boot.";
+    enable = lib.mkEnableOption "Enable Secure Boot (only systemd-boot is supported).";
     pkiBundle = lib.mkOption {
       type = lib.types.path;
       default = "/etc/secureboot";

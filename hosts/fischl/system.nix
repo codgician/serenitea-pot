@@ -9,7 +9,7 @@
     system = {
       agenix.enable = true;
       impermanence.enable = true;
-      secure-boot.enable = false;
+      secure-boot.enable = true;
     };
 
     users.codgi = with lib.codgician; {
@@ -32,17 +32,9 @@
     home.packages = with pkgs; [ httplz iperf3 screen ];
   };
 
-  # Use grub boot loader.
+  # Use systemd-boot boot loader.
+  boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.loader.grub = {
-    enable = true;
-    efiSupport = true;
-    zfsSupport = true;
-    mirroredBoots = [
-      { devices = [ "nodev" ]; path = "/boot-nvme0n1"; }
-      { devices = [ "nodev" ]; path = "/boot-nvme1n1"; }
-    ];
-  };
 
   # ZFS configurations
   services.zfs = {

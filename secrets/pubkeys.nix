@@ -2,7 +2,7 @@ rec {
   # Keys
   hosts = {
     charlotte = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILL9hl37txex438IfgZQ57uyLgf/WwDxypk9JoUT2Mya" ];
-    fischl = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDWaZcBgCbGemiNfdnkYhOEdwyf49KVWJpu3LeQ6r4Jt" ];
+    fischl = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAII/tpssGW37i+b3HvYh81xhoOaqAPl7fn7yWEp220Ck8" ];
     focalors = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM9elJzxtHicXWL+okluqOjCJ/ZcMlAuPqH/WyTnjfeW" ];
     furina = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOS+hXPeUC7xFR74y5PCT0Ba0AXSC5vJJA5UURThXySJ" ];
     lumine = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICLgMH2GQZCfmXV2I4jlVHsM6PYiitT9hPRNhX40amKE" ];
