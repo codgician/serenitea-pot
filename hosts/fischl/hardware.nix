@@ -9,6 +9,7 @@
 
   # Sync content to backup ESP partition on activation
   system.activationScripts.rsync-esp.text = ''
+    ${pkgs.util-linux}/bin/mountpoint -q /boot-nvme0n1 || \
     ${pkgs.rsync}/bin/rsync -a --delete /boot-nvme0n1/ /boot-nvme1n1/
   '';
 
