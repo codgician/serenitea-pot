@@ -5,30 +5,38 @@ let
 in
 {
   options.codgician.system.secure-boot = {
-    enable = lib.mkEnableOption "Enable Secure Boot (only systemd-boot is supported).";
+    enable = lib.mkEnableOption ''
+      Enable Secure Boot (only systemd-boot is supported).
+    '';
+
     pkiBundle = lib.mkOption {
       type = lib.types.path;
       default = "/etc/secureboot";
       description = ''
         Path to PKI bundle.
+        This path will not be automatically persisted if set to non-default value with impermenance on.
       '';
     };
   };
 
-  config = lib.mkIf cfg.enable {
+  config = lib.mkMerge [
     # Persist /etc/secureboot if impermanence is on
-    environment.persistence.${impermanenceCfg.path} = lib.mkIf impermanenceCfg.enable {
-      directories = [ cfg.pkiBundle ];
-    };
+    (lib.mkIf impermanenceCfg.enable  {
+      environment.persistence.${impermanenceCfg.path} = {
+        directories = [ "/etc/secureboot" ];
+      };
+    })
 
-    # Include sbctl package
-    environment.systemPackages = [ pkgs.sbctl ];
+    (lib.mkIf cfg.enable {
+      # Include sbctl package
+      environment.systemPackages = [ pkgs.sbctl ];
 
-    # Lanzaboote will replace the systemd-boot module.
-    boot.loader.systemd-boot.enable = lib.mkForce false;
-    boot.lanzaboote = {
-      enable = true;
-      pkiBundle = cfg.pkiBundle;
-    };
-  };
+      # Lanzaboote will replace the systemd-boot module.
+      boot.loader.systemd-boot.enable = lib.mkForce false;
+      boot.lanzaboote = {
+        enable = true;
+        pkiBundle = cfg.pkiBundle;
+      };
+    })
+  ];
 }
