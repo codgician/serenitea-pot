@@ -9,8 +9,14 @@
 
   # Sync content to backup ESP partition on activation
   system.activationScripts.rsync-esp.text = ''
-    ${pkgs.util-linux}/bin/mountpoint -q /boot-nvme0n1 || \
-    ${pkgs.rsync}/bin/rsync -a --delete /boot-nvme0n1/ /boot-nvme1n1/
+    if ! ${pkgs.util-linux}/bin/mountpoint -q /boot-nvme0n1; then
+      echo -e "\033[0;33mWARNING: /boot-nvme0n1 not mounted, RAID-1 might have degraded.\033[0m"
+    elif ! ${pkgs.util-linux}/bin/mountpoint -q /boot-nvme1n1; then
+      echo -e "\033[0;33mWARNING: /boot-nvme1n1 not mounted, RAID-1 might have degraded.\033[0m"
+    else
+      echo "Syncing /boot-nvme0n1 to /boot-nvme1n1..."
+      ${pkgs.rsync}/bin/rsync -a --delete /boot-nvme0n1/ /boot-nvme1n1/
+    fi
   '';
 
   # The root partition decryption key encrypted with tpm
