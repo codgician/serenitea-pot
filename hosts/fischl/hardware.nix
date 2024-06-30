@@ -2,7 +2,7 @@
 
 {
   boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usb_storage" "usbhid" "sd_mod" ];
-  boot.initrd.kernelModules = [ ];
+  boot.initrd.kernelModules = [ "tpm_crb" "tpm_tis" ];
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
@@ -12,7 +12,14 @@
   # Sync content to backup ESP partition on activation
   system.activationScripts.rsync-esp.text = ''
     ${pkgs.rsync}/bin/rsync -a --delete /boot-nvme0n1/ /boot-nvme1n1/
-  '';
+  '';  
+
+  # The root partition decryption key encrypted with tpm
+  # `echo $PLAINTEXT | clevis encrypt tpm2 '{"pcr_bank":"sha256","pcr_ids":"1,7,14"}'`
+  boot.initrd.clevis = {
+    enable = true;
+    devices."zroot".secretFile = ./zroot.jwe;
+  };
 
   zramSwap.enable = true;
 
