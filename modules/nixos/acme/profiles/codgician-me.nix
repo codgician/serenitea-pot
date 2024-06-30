@@ -1,6 +1,6 @@
 { domain, config, lib, pkgs, ... }:
 let
-  credPath = ../../../../secrets/cloudflareCredential.age;
+  credPath = lib.codgician.secretsDir + "/cloudflareCredential.age";
 in
 {
   security.acme.certs."${domain}" = {

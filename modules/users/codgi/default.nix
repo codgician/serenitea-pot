@@ -1,7 +1,7 @@
 { config, lib, pkgs, ... }:
 let
   name = builtins.baseNameOf ./.;
-  pubKeys = import ../../../secrets/pubkeys.nix;
+  pubKeys = import (lib.codgician.secretsDir + "/pubkeys.nix");
 in
 {
   users.users.codgi = lib.mkMerge [
