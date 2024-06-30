@@ -33,19 +33,9 @@ Add generated public key to `/secrets/pubkeys.nix`, then navigate to `/secrets` 
 agenix -r
 ```
 
-If secure boot is enabled on the host, run following command to generate secure boot signing keys:
-
-```bash
-sudo mkdir -p /mnt/nix/persist/etc/secureboot/
-nix-shell -p sbctl
-sudo sbctl create-keys -e /mnt/nix/persist/etc/secureboot/keys -d /mnt/nix/persist/etc/secureboot/
-```
-
 ## Install NixOS
 
-Before installation, please note:
-
-- Lanzeboot requires generating keys with `sudo sbctl create-keys` before-hand. You may also temporarily disable Secure Boot and configure it after first boot.
+Before installation, please ensure `config.codgician.services.secure-boot.enabled` is set to `false`.
 
 Run following command under repo root path:
 
@@ -55,3 +45,6 @@ sudo nixos-install --flake .#hostname
 
 You can now reboot from Live CD and boot into your newly installed device.
 
+## Enable secure boot
+
+After first boot, you may try enabling Secure Boot back by setting `codgician.services.secure-boot.enable = true` and following [Lanzaboote's Quick Start Guide](https://github.com/nix-community/lanzaboote/blob/master/docs/QUICK_START.md).

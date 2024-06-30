@@ -6,6 +6,14 @@
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
+  # Specify nvme0n1p1 as the primary ESP partition
+  boot.loader.efi.efiSysMountPoint = "/boot-nvme0n1";
+
+  # Sync content to backup ESP partition on activation
+  system.activationScripts.rsync-esp.text = ''
+    rsync -a --delete /boot-nvme0n1/ /boot-nvme1n1/
+  '';
+
   zramSwap.enable = true;
 
   networking.useDHCP = lib.mkDefault true;

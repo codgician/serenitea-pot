@@ -10,8 +10,9 @@ let
           size = "512M";
           type = "EF00";
           content = {
-            type = "mdraid";
-            name = "boot";
+            type = "filesystem";
+            format = "vfat";
+            mountpoint = "/boot-${disk}";
           };
         };
         zroot = {
@@ -31,18 +32,6 @@ in
     disk = {
       nvme0n1 = mkDiskConfig "nvme0n1";
       nvme1n1 = mkDiskConfig "nvme1n1";
-    };
-
-    # mirrored ESP partition
-    mdadm.boot = {
-      type = "mdadm";
-      level = 1;
-      metadata = "1.0";
-      content = {
-        type = "filesystem";
-        format = "vfat";
-        mountpoint = "/boot";
-      };
     };
 
     # zpool settings
