@@ -36,6 +36,12 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  # Allow RAID-1 esp boot
+  boot.swraid = {
+    enable = true;
+    mdadmConf = "MAILADDR codgi";
+  };
+
   # ZFS configurations
   services.zfs = {
     autoScrub.enable = true;
