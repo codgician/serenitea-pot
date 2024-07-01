@@ -11,6 +11,7 @@ let
         auto-optimise-store = true;
       };
     };
+    nixpkgs.config.allowUnfree = true;
     home-manager = {
       useGlobalPkgs = true;
       useUserPackages = true;

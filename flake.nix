@@ -12,7 +12,6 @@
       url = "github:edolstra/flake-compat";
       flake = false;
     };
-
     flake-parts.url = "github:hercules-ci/flake-parts";
     flake-utils.url = "github:numtide/flake-utils";
 
@@ -41,6 +40,23 @@
       inputs = {
         darwin.follows = "darwin";
         home-manager.follows = "home-manager";
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
+
+    nixvirt = {
+      url = "github:AshleyYakeley/NixVirt";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        nixpkgs-ovmf.follows = "nixpkgs-nixos-unstable";
+      };
+    };
+
+    nixos-wsl = {
+      url = "github:nix-community/NixOS-WSL";
+      inputs = {
+        flake-compat.follows = "flake-compat";
+        flake-utils.follows = "flake-utils";
         nixpkgs.follows = "nixpkgs";
       };
     };
@@ -82,15 +98,6 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
-
-    nixos-wsl = {
-      url = "github:nix-community/NixOS-WSL";
-      inputs = {
-        flake-compat.follows = "flake-compat";
-        flake-utils.follows = "flake-utils";
-        nixpkgs.follows = "nixpkgs";
-      };
-    };
   };
 
   outputs = inputs @ { self, flake-utils, agenix, terranix, ... }:
@@ -110,6 +117,7 @@
         agenix.nixosModules.default
         lanzaboote.nixosModules.lanzaboote
         nixos-wsl.nixosModules.wsl
+        nixvirt.nixosModules.default
         vscode-server.nixosModules.default
       ];
 

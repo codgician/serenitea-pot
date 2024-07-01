@@ -75,8 +75,6 @@
   # Enable Touch ID for sudo
   security.pam.enableSudoTouchIdAuth = true;
 
-  nixpkgs.config.allowUnfree = true;
-
   # Disable ssh password authentication
   environment.etc."ssh/sshd_config.d/110-no-password-authentication.conf" = {
     text = "PasswordAuthentication no";

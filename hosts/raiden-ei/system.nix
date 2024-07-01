@@ -50,8 +50,6 @@
     promptInit = "";
   };
 
-  nixpkgs.config.allowUnfree = true;
-
   system.defaults = {
     dock = {
       launchanim = false;

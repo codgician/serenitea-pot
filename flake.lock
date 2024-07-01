@@ -525,6 +525,29 @@
         "type": "github"
       }
     },
+    "nixvirt": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "nixpkgs-ovmf": [
+          "nixpkgs-nixos-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1718992196,
+        "narHash": "sha256-omEUIlS/xoz/UWHxeRqHa3QwisGs5xos8ZGhcrgYvFw=",
+        "owner": "AshleyYakeley",
+        "repo": "NixVirt",
+        "rev": "0785bd6350e81ffd009c87d6fcedc35018ac5444",
+        "type": "github"
+      },
+      "original": {
+        "owner": "AshleyYakeley",
+        "repo": "NixVirt",
+        "type": "github"
+      }
+    },
     "nur": {
       "locked": {
         "lastModified": 1719827999,
@@ -659,6 +682,7 @@
         "nixpkgs": "nixpkgs",
         "nixpkgs-darwin": "nixpkgs-darwin",
         "nixpkgs-nixos-unstable": "nixpkgs-nixos-unstable",
+        "nixvirt": "nixvirt",
         "nur": "nur",
         "nur-xddxdd": "nur-xddxdd",
         "terranix": "terranix",

@@ -105,8 +105,6 @@
     openFirewall = true;
   };
 
-  nixpkgs.config.allowUnfree = true;
-
   # Use Network Manager
   networking.wireless.enable = false;
   networking.networkmanager.enable = true;
