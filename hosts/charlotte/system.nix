@@ -99,12 +99,6 @@
     enableCompletion = true;
   };
 
-  # Enable the OpenSSH daemon
-  services.openssh = {
-    enable = true;
-    openFirewall = true;
-  };
-
   # Use Network Manager
   networking.wireless.enable = false;
   networking.networkmanager.enable = true;

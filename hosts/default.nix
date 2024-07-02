@@ -64,6 +64,13 @@ let
             flake = "github:codgician/serenitea-pot";
             flags = [ "--refresh" ];
           };
+
+          # OpenSSH security settings
+          services.openssh = {
+            enable = true;
+            openFirewall = true;
+            settings.PasswordAuthentication = false;
+          };
         })
       ];
     };

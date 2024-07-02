@@ -179,9 +179,6 @@
 
   # List services that you want to enable:
 
-  # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
-
   networking.firewall.enable = false;
 
   # This value determines the NixOS release from which the default
