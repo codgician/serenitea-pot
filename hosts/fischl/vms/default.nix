@@ -1,19 +1,29 @@
 { config, ... }: {
-  imports = [
-    ./hass.nix
-    ./openwrt.nix
-  ];
+  # libvirtd 
+  virtualisation.libvirtd = {
+    onBoot = "start";
+    onShutdown = "shutdown";
+    allowedBridges = [ "vmbr0" ];
+  };
 
-  # Enable libvirtd
+  # Virtual machines
   virtualisation.libvirt = {
     enable = true;
     swtpm.enable = true;
+    connections."qemu:///system" = {
+      domains = [
+        { definition = ./openwrt.xml; active = true; }
+        { definition = ./hass.xml; active = true; }
+      ];
+
+      pools = [{ definition = ./zroot.xml; active = true; }];
+    };
   };
 
   # Add codgi to libvirtd group
   codgician.users.codgi.extraGroups = [ "libvirtd" ];
 
-  # Add bridge network for virtual machines
+  # Bridge network for virtual machines
   networking = {
     bridges.vmbr0.interfaces = [ "enp4s0" ];
     interfaces.vmbr0 = {

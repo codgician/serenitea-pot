@@ -1,0 +1,10 @@
+<pool type="zfs">
+  <name>zroot</name>
+  <uuid>80f80234-5a7b-4246-ac6e-9bb1c8a2b0b7</uuid>
+  <source>
+    <name>zroot</name>
+  </source>
+  <target>
+    <path>/dev/zvol/zroot</path>
+  </target>
+</pool>
