@@ -186,7 +186,7 @@
     enable = true;
     enableSSHSupport = true;
   };
-  
+
   # Getty
   services.getty.autologinUser = "codgi";
 

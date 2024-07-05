@@ -1,8 +1,31 @@
 { config, lib, pkgs, ... }: {
-  boot.initrd.availableKernelModules = [ "xhci_pci" "ahci" "nvme" "usb_storage" "usbhid" "sd_mod" ];
-  boot.initrd.kernelModules = [ "tpm_crb" "tpm_tis" ];
-  boot.kernelModules = [ "kvm-intel" ];
-  boot.extraModulePackages = [ ];
+  boot = {
+    initrd = {
+      availableKernelModules = [
+        "xhci_pci"
+        "ahci"
+        "nvme"
+        "usb_storage"
+        "usbhid"
+        "sd_mod"
+      ];
+      kernelModules = [
+        "tpm_crb"
+        "tpm_tis"
+        "vfio"
+        "vfio_pci"
+        "vfio_iommu_type1"
+      ];
+    };
+
+    kernelModules = [ "kvm-intel" ];
+    kernelParams = [
+      "intel_iommu=on"
+      "iommu=pt"
+      "hugepagesz=1G"
+      "default_hugepagesz=2M"
+    ];
+  };
 
   # Specify nvme0n1p1 as the primary ESP partition
   boot.loader.efi.efiSysMountPoint = "/boot-nvme0n1";
@@ -26,6 +49,10 @@
     devices."zroot".secretFile = ./zroot.jwe;
   };
 
+  # Enable graphics
+  hardware.opengl.enable = true;
+
+  # Enable zramSwap
   zramSwap.enable = true;
 
   networking.useDHCP = lib.mkDefault true;

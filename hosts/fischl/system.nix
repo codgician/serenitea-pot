@@ -12,8 +12,6 @@
       secure-boot.enable = true;
     };
 
-    virtualization.libvirt.enable = true;
-
     users.codgi = with lib.codgician; {
       enable = true;
       hashedPasswordAgeFile = secretsDir + "/codgiHashedPassword.age";
