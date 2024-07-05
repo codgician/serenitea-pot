@@ -24,30 +24,32 @@
       zsh.enable = true;
     };
 
-    home.stateVersion = "24.05";
-    home.packages = with pkgs; [
-      httplz
-      iperf3
-      android-tools
-      aria2
-      ghc
-      pandoc
-      acpica-tools
-      terraform
-      crate2nix
-      go
-      gopls
-      go-outline
-      smartmontools
-      pciutils
-      ffmpeg-full
-      httping
-      virt-manager
-    ];
+    home = {
+      stateVersion = "24.05";
+      packages = with pkgs; [
+        httplz
+        iperf3
+        android-tools
+        aria2
+        ghc
+        pandoc
+        acpica-tools
+        terraform
+        crate2nix
+        go
+        gopls
+        go-outline
+        smartmontools
+        pciutils
+        ffmpeg-full
+        httping
+        virt-manager
+      ];
 
-    # symlinks to binaries
-    home.file = {
-      ".local/bin/jdk8".source = pkgs.zulu8;
+      # symlinks to binaries
+      file = {
+        ".local/bin/jdk8".source = pkgs.zulu8;
+      };
     };
   };
 
@@ -56,13 +58,6 @@
     automatic = true;
     interval.Weekday = 7;
   };
-
-  # System packages
-  environment.systemPackages = with pkgs; [
-    fastfetch
-    zulu
-    openssl
-  ];
 
   # Fonts
   fonts.packages = with pkgs; [ cascadia-code ];
@@ -75,10 +70,22 @@
 
   # Enable Touch ID for sudo
   security.pam.enableSudoTouchIdAuth = true;
+  
+  environment = {
+    # Disable ssh password authentication
+    etc."ssh/sshd_config.d/110-no-password-authentication.conf" = {
+      text = "PasswordAuthentication no";
+    };
 
-  # Disable ssh password authentication
-  environment.etc."ssh/sshd_config.d/110-no-password-authentication.conf" = {
-    text = "PasswordAuthentication no";
+    # Workaround lack of dbus
+    variables."GSETTINGS_BACKEND" = "keyfile";
+
+    # System packages
+    systemPackages = with pkgs; [
+      fastfetch
+      zulu
+      openssl
+    ];
   };
 
   # System settings
