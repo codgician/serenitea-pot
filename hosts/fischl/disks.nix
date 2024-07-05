@@ -38,6 +38,7 @@ in
     zpool.zroot = {
       type = "zpool";
       mode = "mirror";
+      mountpoint = "/zroot";
       rootFsOptions = {
         compression = "on";
         encryption = "aes-256-gcm";
@@ -45,7 +46,11 @@ in
         keylocation = "prompt";
         "com.sun:auto-snapshot" = "false";
       };
-      mountpoint = "/zroot";
+
+      options = {
+        ashift = "12";
+        autotrim = "on";
+      };
 
       datasets = {
         root = {
