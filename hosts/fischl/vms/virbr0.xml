@@ -1,0 +1,6 @@
+<network>
+  <name>bridged-network</name>
+  <uuid>5967194e-32f2-419e-81aa-9ba42cc832e4</uuid>
+  <forward mode="bridge" />
+  <bridge name="virbr0" />
+</network>

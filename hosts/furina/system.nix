@@ -70,7 +70,7 @@
 
   # Enable Touch ID for sudo
   security.pam.enableSudoTouchIdAuth = true;
-  
+
   environment = {
     # Disable ssh password authentication
     etc."ssh/sshd_config.d/110-no-password-authentication.conf" = {

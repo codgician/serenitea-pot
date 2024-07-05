@@ -16,6 +16,7 @@
         { definition = ./hass.xml; active = true; }
       ];
 
+      networks = [{ definition = ./virbr0.xml; active = true; }];
       pools = [{ definition = ./zroot.xml; active = true; }];
     };
   };
