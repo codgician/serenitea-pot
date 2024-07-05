@@ -121,9 +121,7 @@
     wget
     xterm
     htop
-    clevis
-    jose
-    tpm2-tools
+    aria2
   ];
 
   # Some programs need SUID wrappers, can be configured further or are

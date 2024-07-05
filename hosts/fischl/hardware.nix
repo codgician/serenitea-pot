@@ -50,13 +50,17 @@
   };
 
   # Enable graphics
-  hardware.opengl = {
-    enable = true;
-    extraPackages = with pkgs; [ virglrenderer ];
-  };
+  hardware.opengl.enable = true;
 
   # Hardware-specific global packages
-  environment.systemPackages = with pkgs; [ intel-gpu-tools ];
+  environment.systemPackages = with pkgs; [
+    intel-gpu-tools
+    virglrenderer
+    lm_sensors
+    clevis
+    jose
+    tpm2-tools
+  ];
 
   # Enable zramSwap
   zramSwap.enable = true;
