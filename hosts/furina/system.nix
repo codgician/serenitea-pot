@@ -42,6 +42,7 @@
       pciutils
       ffmpeg-full
       httping
+      virt-manager
     ];
 
     # symlinks to binaries
