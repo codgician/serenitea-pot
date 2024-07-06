@@ -62,7 +62,7 @@ let
           # Set flake for auto upgrade
           system.autoUpgrade = {
             flake = "github:codgician/serenitea-pot";
-            flags = [ "--refresh" ];
+            flags = [ "--refresh" "--no-write-lock-file" "-L" ];
           };
 
           # OpenSSH security settings
