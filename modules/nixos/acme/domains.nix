@@ -9,5 +9,6 @@
   "hass.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "matrix.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "pve.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
+  "saw.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "codgician.me".challengeProfile = ./profiles/codgician-me.nix;
 }

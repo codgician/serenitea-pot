@@ -64,6 +64,13 @@
             locations."/".proxyPass = "https://192.168.0.7";
           };
 
+          "saw.codgician.me" = {
+            enable = true;
+            https = true;
+            domains = [ "saw.codgician.me" ];
+            locations."/".proxyPass = "https://192.168.0.28";
+          };
+
           "codgician.me" = {
             enable = true;
             https = true;
