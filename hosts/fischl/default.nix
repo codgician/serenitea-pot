@@ -4,6 +4,7 @@
     ./disks.nix
     ./hardware.nix
     ./system.nix
+    ./ups.nix
     ./vms
   ];
 }
