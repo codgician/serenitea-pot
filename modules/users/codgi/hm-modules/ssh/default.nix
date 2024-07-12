@@ -16,10 +16,6 @@ in
         IdentityFile ~/.ssh/id_ed25519
       '';
       matchBlocks = {
-        "charlotte" = {
-          hostname = "charlotte.lan";
-          user = "codgi";
-        };
         "fischl" = {
           hostname = "fischl.lan";
           user = "codgi";
@@ -32,28 +28,32 @@ in
           hostname = "furina.lan";
           user = "codgi";
         };
-        "paimon" = {
-          hostname = "paimon.lan";
+        "lumine" = {
+          hostname = "lumine.codgician.me";
           user = "codgi";
         };
         "nahida" = {
           hostname = "nahida.lan";
           user = "codgi";
         };
-        "raiden-ei" = {
-          hostname = "raiden-ei.lan";
-          user = "codgi";
+        "nanopi" = {
+          hostname = "nanopi.cdu";
+          user = "root";
         };
         "openwrt" = {
           hostname = "openwrt.lan";
           user = "root";
         };
-        "nanopi" = {
-          hostname = "nanopi.cdu";
-          user = "root";
+        "paimon" = {
+          hostname = "paimon.lan";
+          user = "codgi";
         };
-        "lumine" = {
-          hostname = "lumine.codgician.me";
+        "raiden-ei" = {
+          hostname = "raiden-ei.lan";
+          user = "codgi";
+        };
+        "sigewinne" = {
+          hostname = "sigewinne.lan";
           user = "codgi";
         };
       };

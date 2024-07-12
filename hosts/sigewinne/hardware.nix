@@ -31,7 +31,7 @@ in
   };
 
   # boot.initrd.luks.devices = {
-  #   "LUKS-CHARLOTTE-ROOTFS" = {
+  #   "LUKS-SIGEWINNE-ROOTFS" = {
   #     device = "/dev/disk/by-uuid/fcb89377-a96e-4a68-8c5f-8a25364432d4";
   #   };
   # };

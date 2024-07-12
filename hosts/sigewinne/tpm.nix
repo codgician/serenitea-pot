@@ -1,6 +1,6 @@
 { config, pkgs, ... }:
 let
-  luksName = "LUKS-CHARLOTTE-ROOTFS";
+  luksName = "LUKS-SIGEWINNE-ROOTFS";
   luksDev = "/dev/mmcblk0p6";
 in
 {
