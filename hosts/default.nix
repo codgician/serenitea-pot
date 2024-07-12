@@ -1,4 +1,4 @@
-{ inputs, lib, mkLib, mkPkgs, darwinModules, nixosModules, ... }:
+{ inputs, lib, mkLib, mkPkgs, mkDarwinModules, mkNixosModules, ... }:
 let
   # Base configs for all platforms
   mkBaseConfig = system: hostName: { config, ... }: {
@@ -23,17 +23,17 @@ let
     { hostName
     , modules ? [ ]
     , system
-    , nixpkgs ? inputs.nixpkgs-darwin
-    , home-manager ? inputs.home-manager
+    , stable ? true
     }:
     let
+      nixpkgs = if stable then inputs.nixpkgs-darwin else inputs.nixpkgs-nixos-unstable;
       pkgs = mkPkgs nixpkgs system;
       lib = mkLib nixpkgs;
     in
     inputs.darwin.lib.darwinSystem {
       inherit system;
       specialArgs = { inherit inputs lib system; };
-      modules = darwinModules ++ modules ++ [
+      modules = (mkDarwinModules stable) ++ modules ++ [
         (mkBaseConfig system hostName)
         ({ config, ... }: {
           services.nix-daemon.enable = true;
@@ -46,17 +46,17 @@ let
     { hostName
     , modules ? [ ]
     , system
-    , nixpkgs ? inputs.nixpkgs
-    , home-manager ? inputs.home-manager
+    , stable ? true
     }:
     let
+      nixpkgs = if stable then inputs.nixpkgs else inputs.nixpkgs-nixos-unstable;
       pkgs = mkPkgs nixpkgs system;
       lib = mkLib nixpkgs;
     in
     nixpkgs.lib.nixosSystem {
       inherit system;
       specialArgs = { inherit inputs lib system; };
-      modules = nixosModules ++ modules ++ [
+      modules = (mkNixosModules stable) ++ modules ++ [
         (mkBaseConfig system hostName)
         ({ config, ... }: {
           # Set flake for auto upgrade

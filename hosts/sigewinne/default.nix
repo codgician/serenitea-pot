@@ -5,6 +5,5 @@
     ./system.nix
     ./tpm.nix
   ];
-  nixpkgs = inputs.nixpkgs-nixos-unstable;
-  home-manager = inputs.home-manager-unstable;
+  stable = false;
 }
