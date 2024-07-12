@@ -5,5 +5,4 @@
     ./system.nix
     ./tpm.nix
   ];
-  stable = false;
 }

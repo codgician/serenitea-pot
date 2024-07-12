@@ -108,7 +108,7 @@
   hardware.enableRedistributableFirmware = true;
 
   # Enable OpenGL
-  hardware.graphics = {
+  hardware.opengl = {
     enable = true;
     extraPackages = [
       pkgs.vaapiVdpau
