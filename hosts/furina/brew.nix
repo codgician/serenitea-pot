@@ -72,5 +72,6 @@
     "moonlight"
     "rustdesk"
     "hopper-disassembler"
+    "zed"
   ];
 }
