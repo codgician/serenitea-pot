@@ -11,7 +11,11 @@
       };
     };
 
-    system.agenix.enable = true;
+    system = {
+      agenix.enable = true;
+      auto-upgrade.enable = true;
+      common.enable = true;
+    };
 
     users = with lib.codgician; {
       codgi = {
@@ -20,7 +24,6 @@
         extraGroups = [
           "dialout"
           "feedbackd"
-          "networkmanager"
           "video"
           "wheel"
           "tss"
@@ -56,52 +59,12 @@
     home.packages = with pkgs; [ httplz iperf3 screen ];
   };
 
-  # Set your time zone.
-  time.timeZone = "Asia/Shanghai";
-
-  # Select internationalisation properties.
-  i18n.defaultLocale = "en_US.UTF-8";
-
-  # Auto upgrade
-  system.autoUpgrade = {
-    enable = true;
-    dates = "daily";
-    operation = "switch";
-    allowReboot = true;
-    rebootWindow = {
-      lower = "03:00";
-      upper = "05:00";
-    };
-  };
-
-  # Nix garbage collection
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-  };
-
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
+  # Global packages
   environment.systemPackages = with pkgs; [
-    vim
-    fastfetch
-    wget
-    xterm
-    htop
     firefox
     maliit-framework
     maliit-keyboard
   ];
-
-  # Zsh
-  programs.zsh = {
-    enable = true;
-    enableCompletion = true;
-  };
-
-  # Use Network Manager
-  networking.wireless.enable = false;
-  networking.networkmanager.enable = true;
 
   # Firmware
   hardware.firmware = [ config.mobile.device.firmware ];
@@ -131,15 +94,8 @@
   # Enable power management options
   powerManagement.enable = true;
 
-  # It's recommended to keep enabled on these constrained devices
+  # Enable zram swap
   zramSwap.enable = true;
-
-  #
-  # User configuration
-  #
-  users.mutableUsers = false;
-
-  security.sudo.wheelNeedsPassword = false;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

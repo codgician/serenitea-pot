@@ -24,6 +24,8 @@
 
     system = {
       agenix.enable = true;
+      auto-upgrade.enable = true;
+      common.enable = true;
       impermanence.enable = true;
       secure-boot.enable = true;
     };
@@ -54,82 +56,14 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  networking.useNetworkd = true;
-  services.resolved = {
-    enable = true;
-    extraConfig = ''
-      MulticastDNS=yes
-      Cache=no-negative
-    '';
-  };
+  # Global packages
+  environment.systemPackages = with pkgs; [ ];
 
-  # Set your time zone.
-  time.timeZone = "Asia/Shanghai";
+  # Firewall
+  networking.firewall.enable = true;
 
-  # Select internationalisation properties.
-  i18n.defaultLocale = "en_US.UTF-8";
-  console = {
-    font = "Lat2-Terminus16";
-    useXkbConfig = true;
-  };
-
-  # Configure keymap in X11
-  services.xserver = {
-    enable = false;
-    xkb.layout = "us";
-  };
-
-  # Auto upgrade
-  system.autoUpgrade = {
-    enable = true;
-    dates = "daily";
-    operation = "switch";
-    allowReboot = true;
-    rebootWindow = {
-      lower = "03:00";
-      upper = "05:00";
-    };
-  };
-
-  # Nix garbage collection
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-  };
-
-  # Zsh
-  programs.zsh = {
-    enable = true;
-    enableCompletion = true;
-  };
-
-  # Security
-  users.mutableUsers = false;
-  users.users.root.hashedPassword = "!";
-  security.sudo.wheelNeedsPassword = false;
-  nix.settings.trusted-users = [ "root" "@wheel" ];
-
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
-  environment.systemPackages = with pkgs; [
-    vim
-    fastfetch
-    wget
-    xterm
-    htop
-  ];
-
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  programs.mtr.enable = true;
-  programs.gnupg.agent = {
-    enable = true;
-    enableSSHSupport = true;
-  };
-
-  # List services that you want to enable:
-
-  networking.firewall.enable = false;
+  # Enable zram swap
+  zramSwap.enable = true;
 
   # Hack
   systemd.services.nix-daemon.environment.TMPDIR = "/nix/tmp/nix-daemon";

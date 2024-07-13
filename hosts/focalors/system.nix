@@ -12,6 +12,8 @@
 
     system = {
       agenix.enable = true;
+      auto-upgrade.enable = true;
+      common.enable = true;
       impermanence.enable = true;
       secure-boot.enable = true;
     };
@@ -39,20 +41,7 @@
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-
   boot.plymouth.enable = true;
-
-  networking.useNetworkd = true;
-  services.resolved = {
-    enable = true;
-    extraConfig = ''
-      MulticastDNS=yes
-      Cache=no-negative
-    '';
-  };
-
-  # Set your time zone.
-  time.timeZone = "Asia/Shanghai";
 
   # Select internationalisation properties.
   i18n = {
@@ -86,35 +75,6 @@
     };
   };
 
-  console = {
-    font = "Lat2-Terminus16";
-    useXkbConfig = true;
-  };
-
-  # Auto upgrade
-  system.autoUpgrade = {
-    enable = true;
-    dates = "daily";
-    operation = "switch";
-    allowReboot = true;
-    rebootWindow = {
-      lower = "03:00";
-      upper = "05:00";
-    };
-  };
-
-  # Nix garbage collection
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-  };
-
-  # Zsh
-  programs.zsh = {
-    enable = true;
-    enableCompletion = true;
-  };
-
   # Configure fonts
   fonts = {
     fontconfig.enable = true;
@@ -144,32 +104,20 @@
   users.users.root.hashedPassword = "!";
   nix.settings.trusted-users = [ "root" "@wheel" ];
 
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
+  # Global packages
   environment.systemPackages = with pkgs; [
-    vim
-    fastfetch
-    wget
-    xterm
-    htop
     firefox
     vscode
     virt-manager
   ];
 
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  programs.mtr.enable = true;
-  programs.gnupg.agent = {
-    enable = true;
-    enableSSHSupport = true;
-  };
-
   # Hack
   systemd.services.nix-daemon.environment.TMPDIR = "/nix/tmp/nix-daemon";
 
-  # List services that you want to enable:
+  # Enable zram swap
+  zramSwap.enable = true;
 
+  # Firewall
   networking.firewall.enable = false;
 
   # This value determines the NixOS release from which the default

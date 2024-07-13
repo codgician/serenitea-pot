@@ -19,7 +19,7 @@ let
   };
 
   # Common configurations for macOS systems
-  darwinSystem =
+  mkDarwinSystem =
     { hostName
     , modules ? [ ]
     , system
@@ -42,7 +42,7 @@ let
     };
 
   # Common configurations for NixOS systems
-  nixosSystem =
+  mkNixosSystem =
     { hostName
     , modules ? [ ]
     , system
@@ -64,24 +64,17 @@ let
             flake = "github:codgician/serenitea-pot";
             flags = [ "--refresh" "--no-write-lock-file" "-L" ];
           };
-
-          # OpenSSH security settings
-          services.openssh = {
-            enable = true;
-            openFirewall = true;
-            settings.PasswordAuthentication = false;
-          };
         })
       ];
     };
 
-  hosts = builtins.map (x: (import ./${x} { inherit inputs; }) // { hostName = x; }) (lib.codgician.getFolderNames ./.);
+  hosts = builtins.map (x: (import ./${x}) // { hostName = x; }) (lib.codgician.getFolderNames ./.);
   hostsToAttr = builder: hosts: builtins.listToAttrs (builtins.map (host: { name = host.hostName; value = builder host; }) hosts);
 in
 rec {
   darwinHosts = builtins.filter (x: lib.hasSuffix "-darwin" x.system) hosts;
   nixosHosts = builtins.filter (x: lib.hasSuffix "-linux" x.system) hosts;
 
-  darwinConfigurations = hostsToAttr darwinSystem darwinHosts;
-  nixosConfigurations = hostsToAttr nixosSystem nixosHosts;
+  darwinConfigurations = hostsToAttr mkDarwinSystem darwinHosts;
+  nixosConfigurations = hostsToAttr mkNixosSystem nixosHosts;
 }

@@ -91,6 +91,8 @@
 
     system = {
       agenix.enable = true;
+      auto-upgrade.enable = true;
+      common.enable = true;
     };
 
     users = with lib.codgician; {
@@ -122,78 +124,13 @@
     home.packages = with pkgs; [ httplz iperf3 screen ];
   };
 
-  networking.useNetworkd = true;
-  services.resolved = {
-    enable = true;
-    extraConfig = ''
-      MulticastDNS=yes
-      Cache=no-negative
-    '';
-  };
-
-  # Set your time zone.
-  time.timeZone = "Asia/Shanghai";
-
-  # Select internationalisation properties.
-  i18n.defaultLocale = "en_US.UTF-8";
-
-  # Auto upgrade
-  system.autoUpgrade = {
-    enable = true;
-    dates = "daily";
-    operation = "switch";
-    allowReboot = true;
-    rebootWindow = {
-      lower = "03:00";
-      upper = "05:00";
-    };
-  };
-
-  # Nix garbage collection
-  nix.gc = {
-    automatic = true;
-    dates = "weekly";
-  };
-
-  # Zsh
-  programs.zsh = {
-    enable = true;
-    enableCompletion = true;
-  };
-
-  # Define user accounts
-  users.mutableUsers = false;
-  users.users.root.hashedPassword = "!";
-
-  # Security
-  security.sudo.wheelNeedsPassword = false;
-  nix.settings.trusted-users = [ "root" "@wheel" ];
-
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
-  environment.systemPackages = with pkgs; [
-    vim
-    fastfetch
-    wget
-    xterm
-    htop
-  ];
-
-  # Some programs need SUID wrappers, can be configured further or are
-  # started in user sessions.
-  programs.mtr.enable = true;
-  programs.gnupg.agent = {
-    enable = true;
-    enableSSHSupport = true;
-  };
+  # Global packages
+  environment.systemPackages = with pkgs; [ ];
 
   # Getty
   services.getty.autologinUser = "codgi";
 
-  # Open ports in the firewall.
-  # networking.firewall.allowedTCPPorts = [ ... ];
-  # networking.firewall.allowedUDPPorts = [ ... ];
-  # Or disable the firewall altogether.
+  # Firewall
   networking.firewall.enable = false;
 
   # This value determines the NixOS release from which the default

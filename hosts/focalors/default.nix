@@ -1,4 +1,4 @@
-{ inputs, ... }: {
+{
   system = "aarch64-linux";
   modules = [
     ./disks.nix

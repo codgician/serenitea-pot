@@ -5,9 +5,6 @@
 
   boot.growPartition = true;
 
-  swapDevices = [ ];
-  zramSwap.enable = true;
-
   fileSystems."/boot" = {
     device = "/dev/disk/by-label/ESP";
     fsType = "vfat";

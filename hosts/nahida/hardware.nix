@@ -11,9 +11,6 @@
   boot.extraModulePackages = [ ];
   boot.kernelParams = [ "console=ttyS0,115200" ];
 
-  swapDevices = [ ];
-  zramSwap.enable = true;
-
   networking.useDHCP = lib.mkDefault true;
 
   # Enable QEMU guest agent
