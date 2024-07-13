@@ -5,4 +5,5 @@
     ./system.nix
     ./hardware.nix
   ];
+  stable = false;
 }
