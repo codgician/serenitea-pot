@@ -117,9 +117,6 @@
     home.packages = with pkgs; [ httplz iperf3 screen ];
   };
 
-  networking.useNetworkd = true;
-  services.resolved.enable = true;
-
   # Use the systemd-boot EFI boot loader
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
