@@ -4,5 +4,6 @@
     ./hardware.nix
     ./system.nix
     ./tpm.nix
+    ./wireless.nix
   ];
 }

@@ -2,6 +2,9 @@ let
   pubKeys = import ./pubkeys.nix;
 in
 with pubKeys; with pubKeys.hosts; {
+  # Wireless credentials
+  "wirelessEnv.age".publicKeys = someHosts [ sigewinne ];
+
   # User password
   "codgiPassword.age".publicKeys = someHosts [ paimon ];
   "codgiHashedPassword.age".publicKeys = allHosts;

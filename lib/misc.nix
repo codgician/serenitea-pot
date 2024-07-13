@@ -4,10 +4,8 @@
 
   # List all item names with specified type under specified path 
   getDirContentByType = type: path:
-    let
-      dirContent = builtins.readDir path;
-    in
-    builtins.filter (name: dirContent.${name} == type) (builtins.attrNames dirContent);
+    let dirContent = builtins.readDir path;
+    in builtins.filter (name: dirContent.${name} == type) (builtins.attrNames dirContent);
 
   # List all folder names under specified path
   getFolderNames = getDirContentByType "directory";
