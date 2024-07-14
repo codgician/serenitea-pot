@@ -47,7 +47,7 @@
             enable = true;
             https = true;
             domains = [ "hass.codgician.me" ];
-            locations."/".proxyPass = "https://192.168.0.6";
+            locations."/".proxyPass = "http://192.168.0.6:8123";
           };
 
           "pve.codgician.me" = {
