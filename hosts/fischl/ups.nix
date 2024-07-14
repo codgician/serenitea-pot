@@ -5,6 +5,16 @@ lib.mkMerge [
     power.ups = {
       enable = true;
       mode = "standalone";
+      openFirewall = true;
+      users = {
+        "admin" = {
+          actions = [ "SET" ];
+          instcmds = [ "ALL" ];
+          passwordFile = config.age.secrets.nutPassword.path;
+        };
+        "upsmon".passwordFile = config.age.secrets.upsmonPassword.path;
+      };
+
       ups.lakeview = {
         driver = "nutdrv_qx";
         description = "Lakeview UPS";
@@ -24,9 +34,21 @@ lib.mkMerge [
         passwordFile = config.age.secrets.nutPassword.path;
         system = "lakeview";
       };
+
+      upsd = {
+        enable = true;
+        listen = [ 
+          { address = "fischl.lan"; port = 3493; }
+          { address = "127.0.0.1"; port = 3493; }
+          { address = "::1"; port = 3493; }
+        ];
+      };
     };
   }
 
   # Agenix secrets
-  (lib.codgician.mkAgenixConfigs "root" [ (lib.codgician.secretsDir + "/nutPassword.age") ])
+  (lib.codgician.mkAgenixConfigs "root" [ 
+    (lib.codgician.secretsDir + "/nutPassword.age") 
+    (lib.codgician.secretsDir + "/upsmonPassword.age") 
+  ])
 ]

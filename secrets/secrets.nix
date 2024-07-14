@@ -14,6 +14,7 @@ with pubKeys; with pubKeys.hosts; {
 
   # NUT password
   "nutPassword.age".publicKeys = someHosts [ fischl ];
+  "upsmonPassword.age".publicKeys = someHosts [ fischl ];
 
   # Cloudflare token
   "cloudflareCredential.age".publicKeys = allServers;
