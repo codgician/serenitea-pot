@@ -36,7 +36,7 @@ in
       enable = true;
       enableCompletion = true;
     };
-    
+
     # Common global packages
     environment.systemPackages = with pkgs; [
       vim

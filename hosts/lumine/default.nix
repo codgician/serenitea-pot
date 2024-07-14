@@ -3,5 +3,6 @@
   modules = [
     ./hardware.nix
     ./system.nix
+    ./reverse-proxies.nix
   ];
 }

@@ -37,7 +37,7 @@ lib.mkMerge [
 
       upsd = {
         enable = true;
-        listen = [ 
+        listen = [
           { address = "fischl.lan"; port = 3493; }
           { address = "127.0.0.1"; port = 3493; }
           { address = "::1"; port = 3493; }
@@ -47,8 +47,8 @@ lib.mkMerge [
   }
 
   # Agenix secrets
-  (lib.codgician.mkAgenixConfigs "root" [ 
-    (lib.codgician.secretsDir + "/nutPassword.age") 
-    (lib.codgician.secretsDir + "/upsmonPassword.age") 
+  (lib.codgician.mkAgenixConfigs "root" [
+    (lib.codgician.secretsDir + "/nutPassword.age")
+    (lib.codgician.secretsDir + "/upsmonPassword.age")
   ])
 ]
