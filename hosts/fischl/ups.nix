@@ -28,7 +28,7 @@ lib.mkMerge [
       };
 
       upsmon.monitor.lakeview = {
-        user = "nut";
+        user = "admin";
         powerValue = 1;
         type = "master";
         passwordFile = config.age.secrets.nutPassword.path;
