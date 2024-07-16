@@ -1,6 +1,7 @@
 { config, pkgs, ... }: {
   codgician.services.nginx = {
     enable = true;
+    openFirewall = true;
     reverseProxies = {
       "amt.codgician.me" = {
         enable = true;
