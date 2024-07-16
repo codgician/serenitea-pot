@@ -76,6 +76,8 @@ in
       Enable nginx service.
     '';
 
+    openFirewall = lib.mkEnableOption "Open port 80 and 443 in firewall configuration.";
+
     reverseProxies = lib.mkOption {
       type = types.attrsOf (types.submodule (import ./reverse-proxy-options.nix { inherit lib; }));
       default = { };
@@ -113,6 +115,12 @@ in
       };
 
       virtualHosts = lib.codgician.concatAttrs (builtins.map mkVirtualHostConfig reverseProxyNames);
+    };
+
+    # Open firewall
+    networking.firewall = lib.mkIf cfg.openFirewall {
+      allowedTCPPorts = [ 80 443 ];
+      allowedUDPPorts = [ 80 443 ];
     };
 
     # Monitoring

@@ -19,7 +19,9 @@
           domains = [ "fin.codgician.me" ];
         };
       };
+
       nixos-vscode-server.enable = true;
+      nginx.openFirewall = true;
     };
 
     system = {

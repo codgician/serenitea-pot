@@ -6,6 +6,7 @@
       nixos-vscode-server.enable = true;
       wireguard = {
         enable = true;
+        openFirewall = true;
         interfaces.wg0 = {
           host = "lumine";
           peers = [ "suzhou" ];
@@ -53,7 +54,7 @@
   zramSwap.enable = true;
 
   # Firewall
-  networking.firewall.enable = false;
+  networking.firewall.enable = true;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

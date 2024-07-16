@@ -8,10 +8,13 @@ let
     (builtins.filter (lib.hasSuffix ".nix") (lib.codgician.getRegularFileNames ./peers));
   hostOptions = builtins.listToAttrs
     (builtins.map (name: { inherit name; value = import (./peers + "/${name}.nix") { inherit config lib; }; }) hosts);
+  ports = lib.unique (builtins.map (x: x.listenPort) (builtins.attrValues hostOptions));
 in
 {
   options.codgician.services.wireguard = {
     enable = lib.mkEnableOption "Enable WireGuard.";
+
+    openFirewall = lib.mkEnableOption "Open firewall for WireGuard ports.";
 
     interfaces = lib.mkOption {
       type = types.attrsOf (types.submodule (import ./interface-options.nix { inherit lib; }));
@@ -23,19 +26,24 @@ in
   config = lib.mkIf cfg.enable (lib.mkMerge [
     # WireGuard configuration
     {
-      networking.wireguard.interfaces = builtins.mapAttrs
-        (name: value: {
-          inherit (hostOptions.${value.host}) privateKeyFile ips listenPort;
-          inherit (value) allowedIPsAsRoutes;
-          peers = builtins.map
-            (name: {
-              inherit (hostOptions.${name}) name endpoint publicKey presharedKeyFile allowedIPs;
-              dynamicEndpointRefreshSeconds = 10;
-              dynamicEndpointRefreshRestartSeconds = 60;
-            })
-            value.peers;
-        })
-        cfg.interfaces;
+      networking = {
+        wireguard.interfaces = builtins.mapAttrs
+          (name: value: {
+            inherit (hostOptions.${value.host}) privateKeyFile ips listenPort;
+            inherit (value) allowedIPsAsRoutes;
+            peers = builtins.map
+              (name: {
+                inherit (hostOptions.${name}) name endpoint publicKey presharedKeyFile allowedIPs;
+                dynamicEndpointRefreshSeconds = 10;
+                dynamicEndpointRefreshRestartSeconds = 60;
+              })
+              value.peers;
+          })
+          cfg.interfaces;
+
+          # Open firewall
+          firewall.allowedUDPPorts = lib.mkIf cfg.openFirewall ports;
+      };
     }
 
     # Agenix credentials

@@ -62,7 +62,8 @@
       LC_TIME = "en_US.UTF-8";
     };
     inputMethod = {
-      enabled = "fcitx5";
+      enable = true;
+      type = "fcitx5";
       fcitx5 = {
         addons = with pkgs; [
           fcitx5-rime
@@ -88,8 +89,7 @@
     ];
   };
 
-  # Enable sound with pipewire.
-  sound.enable = true;
+  # Enable pipewire.
   services.pipewire = {
     enable = true;
     alsa.enable = true;
