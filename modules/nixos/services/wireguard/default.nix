@@ -41,8 +41,8 @@ in
           })
           cfg.interfaces;
 
-          # Open firewall
-          firewall.allowedUDPPorts = lib.mkIf cfg.openFirewall ports;
+        # Open firewall
+        firewall.allowedUDPPorts = lib.mkIf cfg.openFirewall ports;
       };
     }
 

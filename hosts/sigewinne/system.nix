@@ -47,16 +47,53 @@
   };
 
   # Home manager
-  home-manager.users.codgi = { config, pkgs, ... }: {
-    codgician.codgi = {
-      git.enable = true;
-      pwsh.enable = true;
-      ssh.enable = true;
-      zsh.enable = true;
+  home-manager.users = {
+    codgi = { config, pkgs, ... }: {
+      codgician.codgi = {
+        git.enable = true;
+        pwsh.enable = true;
+        ssh.enable = true;
+        zsh.enable = true;
+      };
+
+      home.stateVersion = "24.05";
+      home.packages = with pkgs; [ httplz iperf3 screen ];
     };
 
-    home.stateVersion = "24.05";
-    home.packages = with pkgs; [ httplz iperf3 screen ];
+    kiosk = { config, osConfig, pkgs, ... }: {
+      home.stateVersion = "24.05";
+
+      # Plasma settings
+      programs.plasma = {
+        enable = osConfig.codgician.services.plasma.enable;
+        configFile = {
+          kscreenlockerrc.Daemon = {
+            Autolock = false;
+            LockGrace = 0;
+            LockOnResume = false;
+          };
+          kwinrc = {
+            Wayland = {
+              "InputMethod[$e]" = "${pkgs.maliit-keyboard}/share/applications/com.github.maliit.keyboard.desktop";
+              VirtualKeyboardEnabled = true;
+            };
+            XWayland.Scale = 1.75;
+          };
+        };
+      };
+
+      # Autostart
+      home.file.".config/autostart/kiosk.desktop".text = ''
+        [Desktop Entry]
+        Exec=firefox --kiosk https://hass.codgician.me
+        Icon=firefox
+        Name=Kiosk
+        StartupNotify=true
+        StartupWMClass=firefox
+        Terminal=false
+        Type=Application
+      '';
+    };
   };
 
   # Global packages

@@ -35,6 +35,12 @@
       inputs.nixpkgs.follows = "nixpkgs-nixos-unstable";
     };
 
+    plasma-manager = {
+      url = "github:nix-community/plasma-manager";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.home-manager.follows = "home-manager";
+    };
+
     agenix = {
       url = "github:ryantm/agenix";
       inputs = {
@@ -114,6 +120,15 @@
         impermanence.nixosModules.impermanence
         (if stable then home-manager.nixosModules.home-manager
         else home-manager-unstable.nixosModules.home-manager)
+        {
+          home-manager = {
+            useGlobalPkgs = true;
+            useUserPackages = true;
+            sharedModules = [
+              plasma-manager.homeManagerModules.plasma-manager
+            ];
+          };
+        }
         disko.nixosModules.disko
         agenix.nixosModules.default
         lanzaboote.nixosModules.lanzaboote

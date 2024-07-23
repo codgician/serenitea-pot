@@ -12,10 +12,6 @@ let
       };
     };
     nixpkgs.config.allowUnfree = true;
-    home-manager = {
-      useGlobalPkgs = true;
-      useUserPackages = true;
-    };
   };
 
   # Common configurations for macOS systems
