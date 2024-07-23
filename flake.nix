@@ -107,35 +107,42 @@
 
   outputs = inputs @ { self, flake-utils, agenix, terranix, ... }:
     let
+      # Make home-manager module
+      mkHomeManagerModules = with inputs; modulesName: stable: sharedModules:
+        let homeManager = if stable then home-manager else home-manager-unstable;
+        in [
+          (homeManager.${modulesName}.home-manager)
+          {
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              inherit sharedModules;
+            };
+          }
+        ];
+
       # All Darwin modules for building system
-      mkDarwinInputModules = stable: with inputs; [
-        agenix.darwinModules.default
-        (if stable then home-manager.darwinModules.home-manager
-        else home-manager-unstable.darwinModules.home-manager)
-      ];
+      mkDarwinInputModules = stable: with inputs;
+        (mkHomeManagerModules "darwinModules" stable [ ]) ++ [
+          agenix.darwinModules.default
+        ];
 
       # All NixOS modules for building system
-      mkNixosInputModules = stable: with inputs; [
-        nur.nixosModules.nur
-        impermanence.nixosModules.impermanence
-        (if stable then home-manager.nixosModules.home-manager
-        else home-manager-unstable.nixosModules.home-manager)
-        {
-          home-manager = {
-            useGlobalPkgs = true;
-            useUserPackages = true;
-            sharedModules = [
-              plasma-manager.homeManagerModules.plasma-manager
-            ];
-          };
-        }
-        disko.nixosModules.disko
-        agenix.nixosModules.default
-        lanzaboote.nixosModules.lanzaboote
-        nixos-wsl.nixosModules.wsl
-        nixvirt.nixosModules.default
-        vscode-server.nixosModules.default
-      ];
+      mkNixosInputModules = stable: with inputs;
+        (mkHomeManagerModules "nixosModules" stable [
+          # Home Manager modules
+          plasma-manager.homeManagerModules.plasma-manager
+        ]) ++ [
+          # NixOS modules
+          nur.nixosModules.nur
+          impermanence.nixosModules.impermanence
+          disko.nixosModules.disko
+          agenix.nixosModules.default
+          lanzaboote.nixosModules.lanzaboote
+          nixos-wsl.nixosModules.wsl
+          nixvirt.nixosModules.default
+          vscode-server.nixosModules.default
+        ];
 
       # Modules provided by this flake
       darwinModules = import ./modules/darwin { inherit lib; };
