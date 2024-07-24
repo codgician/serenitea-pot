@@ -66,12 +66,20 @@
       # Plasma settings
       programs.plasma = {
         enable = osConfig.codgician.services.plasma.enable;
+
+        powerdevil = {
+          powerButtonAction = "showLogoutScreen";
+          autoSuspend.action = "nothing";
+          turnOffDisplay.idleTimeout = "never";
+        };
+
         configFile = {
           kscreenlockerrc.Daemon = {
             Autolock = false;
             LockGrace = 0;
             LockOnResume = false;
           };
+
           kwinrc = {
             Wayland = {
               "InputMethod[$e]" = "${pkgs.maliit-keyboard}/share/applications/com.github.maliit.keyboard.desktop";
@@ -83,16 +91,17 @@
       };
 
       # Autostart
-      home.file.".config/autostart/kiosk.desktop".text = ''
-        [Desktop Entry]
-        Exec=firefox --kiosk https://hass.codgician.me
-        Icon=firefox
-        Name=Kiosk
-        StartupNotify=true
-        StartupWMClass=firefox
-        Terminal=false
-        Type=Application
-      '';
+      home.file.".config/autostart/kiosk.desktop".text = 
+        lib.mkIf osConfig.codgician.services.plasma.enable ''
+          [Desktop Entry]
+          Exec=firefox --kiosk https://hass.codgician.me
+          Icon=firefox
+          Name=Kiosk
+          StartupNotify=true
+          StartupWMClass=firefox
+          Terminal=false
+          Type=Application
+        '';
     };
   };
 
