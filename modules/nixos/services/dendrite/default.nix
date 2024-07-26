@@ -39,18 +39,6 @@ in
       description = "Domain name for the Dendrite server.";
     };
 
-    user = lib.mkOption {
-      type = types.str;
-      default = "dendrite";
-      description = "User under which Dendrite server runs.";
-    };
-
-    group = lib.mkOption {
-      type = types.str;
-      default = "dendrite";
-      description = "Group under which Dendrite server runs.";
-    };
-
     # Reverse proxy profile for nginx
     reverseProxy = {
       enable = lib.mkEnableOption "Enable reverse proxy for Dendrite server.";
@@ -228,7 +216,7 @@ in
         credFileNames = [ "matrixGlobalPrivateKey" "matrixEnv" ];
         credFiles = builtins.map (x: lib.codgician.secretsDir + "/${x}.age") credFileNames;
       in
-      lib.codgician.mkAgenixConfigs cfg.user credFiles
+      lib.codgician.mkAgenixConfigs "root" credFiles
     ))
 
     # Reverse proxy profile

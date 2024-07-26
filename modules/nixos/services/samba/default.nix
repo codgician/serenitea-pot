@@ -31,27 +31,31 @@ in
     services.samba = {
       enable = true;
       package = pkgs.sambaFull;
+      openFirewall = true;
 
       securityType = "user";
       enableNmbd = true;
-      openFirewall = true;
+      enableWinbindd = true;
+      nsswins = true;
 
       invalidUsers = [ "root" ];
 
       extraConfig = ''
         server string = ${config.networking.hostName}
         netbios name = ${config.networking.hostName}
-
-        #server signing = mandatory
-        server min protocol = NT1
-        #server smb encrypt = required
+        wins support = yes
+        server smb encrypt = desired
       '';
 
       shares = cfg.shares;
     };
 
     # Make shares visible to Windows clients
-    services.samba-wsdd.enable = true;
+    services.samba-wsdd = {
+      enable = true;
+      openFirewall = true;
+      hostname = config.networking.hostName;
+    };
 
     # Make sure user passwords are updated
     system.activationScripts.sambaPasswordRefresh = {
