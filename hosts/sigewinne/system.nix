@@ -7,7 +7,6 @@
       plasma = {
         enable = true;
         autoLoginUser = "kiosk";
-        displayManager = "lightdm";
       };
     };
 
