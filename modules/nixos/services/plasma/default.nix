@@ -46,6 +46,10 @@ lib.optionalAttrs (lib.version >= "24.05") {
           enable = true;
           enableHidpi = true;
           theme = "breeze";
+          wayland = {
+            enable = true;
+            compositor = "kwin";
+          };
         };
 
         autoLogin = lib.mkIf (cfg.autoLoginUser != null) {

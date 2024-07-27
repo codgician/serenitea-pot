@@ -91,7 +91,7 @@
       };
 
       # Autostart
-      home.file.".config/autostart/kiosk.desktop".text = 
+      home.file.".config/autostart/kiosk.desktop".text =
         lib.mkIf osConfig.codgician.services.plasma.enable ''
           [Desktop Entry]
           Exec=firefox --kiosk https://hass.codgician.me

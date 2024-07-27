@@ -1,5 +1,11 @@
-{ config, lib, pkgs, ... }: {
-
+{ config, lib, pkgs, ... }:
+let
+  wallpaper = (pkgs.fetchurl {
+    url = "https://cdn.dynamicwallpaper.club/wallpapers/zt6aeujg1pn/Furina.heic";
+    sha256 = "1n8ckyhkbsadilwx171kyw44ivp0z7dhz837p1f5jy3zh811bab6";
+  }).outPath;
+in
+{
   # My settings
   codgician = {
     services = {
@@ -34,8 +40,25 @@
       zsh.enable = true;
     };
 
+    programs.plasma.configFile = {
+      # Furina wallpaper
+      plasmarc.Wallpapers.usersWallpapers = wallpaper;
+      kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General" = {
+        Image = wallpaper;
+        PreviewImage = wallpaper;
+      };
+    };
+
     home.stateVersion = "24.05";
     home.packages = with pkgs; [ httplz iperf3 screen ];
+  };
+
+  # Hyprland
+  services.hypridle.enable = true;
+  programs.hyprlock.enable = true;
+  programs.hyprland = {
+    enable = true;
+    xwayland.enable = true;
   };
 
   # Use the systemd-boot EFI boot loader.
@@ -109,6 +132,7 @@
     firefox
     vscode
     virt-manager
+    kitty
   ];
 
   # Hack
