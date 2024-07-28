@@ -4,16 +4,17 @@ let
   terraformAgeFileName = "terraformEnv.age";
   system = pkgs.system;
   agenixCli = inputs.agenix.packages.${system}.default;
+  secretsDir = lib.codgician.secretsDir;
 in
 # Apply terraform configurations
 inputs.flake-utils.lib.mkApp {
   drv = pkgs.writeShellScriptBin "terraform-apply" ''
     # Decrypt terraform secrets and set environment variables
     dir=$(${pkgs.coreutils}/bin/pwd)
-    cd ${./secrets}
+    cd ${secretsDir}
     
     [ -f "./${terraformAgeFileName}" ] || { 
-      echo "${terraformAgeFileName} not found under ${./secrets}"; 
+      echo "${terraformAgeFileName} not found under ${secretsDir}"; 
       exit 1; 
     }
 
