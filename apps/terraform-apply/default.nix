@@ -1,7 +1,8 @@
-{ system, lib, pkgs, inputs, outputs, ... }:
+{ lib, pkgs, inputs, outputs, ... }:
 
 let
   terraformAgeFileName = "terraformEnv.age";
+  system = pkgs.system;
   agenixCli = inputs.agenix.packages.${system}.default;
 in
 # Apply terraform configurations

@@ -3,7 +3,6 @@ let
   cfg = config.codgician.services.dendrite;
   types = lib.types;
   systemCfg = config.codgician.system;
-  agenixEnabled = (systemCfg?agenix && systemCfg.agenix.enable);
 
   dbHost = "/run/postgresql";
   dbName = "dendrite";
@@ -211,13 +210,13 @@ in
     })
 
     # Agenix secrets
-    (lib.mkIf (cfg.enable && agenixEnabled) (
+    (
       let
         credFileNames = [ "matrixGlobalPrivateKey" "matrixEnv" ];
         credFiles = builtins.map (x: lib.codgician.secretsDir + "/${x}.age") credFileNames;
       in
       lib.codgician.mkAgenixConfigs "root" credFiles
-    ))
+    )
 
     # Reverse proxy profile
     (lib.mkIf cfg.reverseProxy.enable {

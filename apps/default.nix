@@ -1,4 +1,4 @@
-args @ { system, lib, pkgs, inputs, outputs, ... }:
+args @ { lib, pkgs, inputs, outputs, ... }:
 let
   appNames = lib.codgician.getFolderNames ./.;
 in

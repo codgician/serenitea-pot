@@ -4,7 +4,6 @@ let
   cfg = config.codgician.users;
   systemCfg = config.codgician.system;
   types = lib.types;
-  agenixEnabled = (systemCfg?agenix && systemCfg.agenix.enable);
   isLinux = pkgs.stdenvNoCC.isLinux;
 
   # Use list of sub-folder names as list of available users
@@ -37,17 +36,6 @@ let
         default = [ ];
         description = ''
           Paths to `.age` secret files owned by user "${name}" excluding `hashedPasswordAgeFile`.
-          Only effective when agenix is enabled. 
-        '';
-      };
-
-      hashedPassword = lib.mkOption {
-        type = with types; nullOr (passwdEntry str);
-        default = null;
-        visible = isLinux;
-        description = ''
-          Hashed password for user "${name}". Only effective when agenix is **NOT** enabled.
-          To generate a hashed password, run `mkpasswd`.
         '';
       };
 
@@ -57,7 +45,6 @@ let
         visible = isLinux;
         description = ''
           Path to hashed password file encrypted managed by agenix.
-          Should only be set when agenix is enabled.
         '';
       };
 
@@ -66,7 +53,6 @@ let
         default = null;
         description = ''
           Path to plain password file encrypted managed by agenix.
-          Should only be set when agenix is enabled. 
           This option does not set login password.
         '';
       };
@@ -85,13 +71,8 @@ let
   # Define assertions for each user
   mkUserAssertions = name: lib.mkIf cfg.${name}.enable [
     {
-      assertion = !isLinux || agenixEnabled || cfg.${name}.hashedPassword != null;
-      message = ''User "${name}" must have `hashedPassword` specified because agenix module is not enabled.'';
-    }
-
-    {
-      assertion = !isLinux || !agenixEnabled || cfg.${name}.hashedPasswordAgeFile != null;
-      message = ''User "${name}" must have `hashedPasswordAgeFile` specified because agenix module is enabled.'';
+      assertion = !isLinux || cfg.${name}.hashedPasswordAgeFile != null;
+      message = ''User "${name}" must have `hashedPasswordAgeFile` specified.'';
     }
   ];
 
@@ -116,7 +97,7 @@ let
     }
 
     # Agenix: manage secrets if enabled
-    (lib.mkIf agenixEnabled (
+    (
       let
         credFiles = cfg.${name}.extraAgeFiles
           ++ (builtins.filter (x: x != null) [
@@ -125,7 +106,7 @@ let
         ]);
       in
       lib.codgician.mkAgenixConfigs name credFiles
-    ))
+    )
 
     # Common options
     {
@@ -136,8 +117,7 @@ let
       } // lib.optionalAttrs (cfg.${name}?extraGroups) {
         extraGroups = cfg.${name}.extraGroups;
       } // lib.optionalAttrs isLinux {
-        hashedPassword = lib.mkIf (!agenixEnabled) cfg.${name}.hashedPassword;
-        hashedPasswordFile = lib.mkIf (agenixEnabled)
+        hashedPasswordFile =
           config.age.secrets."${lib.codgician.getAgeSecretNameFromPath cfg.${name}.hashedPasswordAgeFile}".path;
       };
     }

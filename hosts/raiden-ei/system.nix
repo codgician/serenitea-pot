@@ -3,7 +3,6 @@
   # My settings
   codgician = {
     system = {
-      agenix.enable = true;
       brew = {
         enable = true;
         casks = [

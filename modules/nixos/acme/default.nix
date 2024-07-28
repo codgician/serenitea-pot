@@ -5,7 +5,6 @@ let
   cfg = config.codgician.acme;
   systemCfg = config.codgician.system;
   types = lib.types;
-  agenixEnabled = (systemCfg?agenix && systemCfg.agenix.enable);
 
   # Define module options for each certificate
   mkAcmeOptions = name: {
@@ -83,13 +82,13 @@ rec {
     }
 
     # Agenix credentials
-    (lib.mkIf agenixEnabled (
+    (
       let
         secrets = lib.lists.unique (
           builtins.map (name: cfg.${name}.ageSecretFilePath) (
             builtins.filter (name: cfg.${name}.enable && cfg.${name}.ageSecretFilePath != null) domainNames));
       in
       lib.codgician.mkAgenixConfigs "root" secrets
-    ))
+    )
   ]);
 }

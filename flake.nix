@@ -175,7 +175,7 @@
       in
       rec {
         # Development shell: `nix develop .#name`
-        devShells = (import ./shells { inherit system lib pkgs inputs; outputs = self; });
+        devShells = (import ./shells { inherit lib pkgs inputs; outputs = self; });
 
         # Formatter: `nix fmt`
         formatter = pkgs.nixpkgs-fmt;
@@ -217,6 +217,6 @@
         };
 
         # Apps: `nix run .#appName`
-        apps = (import ./apps { inherit system lib pkgs inputs; outputs = self; });
+        apps = (import ./apps { inherit lib pkgs inputs; outputs = self; });
       });
 }

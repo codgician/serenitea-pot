@@ -1,5 +1,6 @@
-args @ { system, lib, pkgs, inputs, outputs, ... }:
+args @ { lib, pkgs, inputs, outputs, ... }:
 let
+  system = pkgs.system;
   basePkgs = [ inputs.agenix.packages.${system}.default ];
   shellNames = lib.codgician.getFolderNames ./.;
 in

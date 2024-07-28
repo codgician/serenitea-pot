@@ -12,10 +12,5 @@ in
 
   codgician.acme."${domain}".ageSecretFilePath = credPath;
 
-  assertions = [
-    {
-      assertion = config.codgician.system.agenix.enable;
-      message = "Agenix must be enabled to acticate codgician-me acme profile.";
-    }
-  ] ++ lib.codgician.mkAgenixAssertions [ credPath ];
+  assertions = lib.codgician.mkAgenixAssertions [ credPath ];
 }

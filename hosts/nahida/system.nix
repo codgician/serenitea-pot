@@ -25,7 +25,6 @@
     };
 
     system = {
-      agenix.enable = true;
       auto-upgrade.enable = true;
       common.enable = true;
       impermanence.enable = true;

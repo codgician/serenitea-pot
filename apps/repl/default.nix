@@ -1,4 +1,4 @@
-{ system, lib, pkgs, inputs, outputs, ... }:
+{ lib, pkgs, inputs, outputs, ... }:
 
 # nix repl for debugging
 inputs.flake-utils.lib.mkApp {
