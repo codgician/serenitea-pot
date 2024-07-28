@@ -142,8 +142,8 @@ let
       };
     }
 
-    # Import home-manager modules
-    ({
+    # Import home-manager modules (only when createHome is enabled)
+    (lib.mkIf cfg.${name}.createHome {
       home-manager.users.${name} = { lib, ... }:
         let
           modules = import (lib.codgician.modulesDir + "/home") { inherit lib; };
@@ -151,7 +151,6 @@ let
         in
         {
           imports = lib.optionals (modules?"${name}") [ (modules.${name}.${platform}) ];
-          home.stateVersion = lib.mkDefault "24.05";
         };
     })
   ]);
