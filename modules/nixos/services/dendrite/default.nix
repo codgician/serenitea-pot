@@ -210,13 +210,13 @@ in
     })
 
     # Agenix secrets
-    (
+    (lib.mkIf cfg.enable (
       let
         credFileNames = [ "matrixGlobalPrivateKey" "matrixEnv" ];
         credFiles = builtins.map (x: lib.codgician.secretsDir + "/${x}.age") credFileNames;
       in
       lib.codgician.mkAgenixConfigs "root" credFiles
-    )
+    ))
 
     # Reverse proxy profile
     (lib.mkIf cfg.reverseProxy.enable {
