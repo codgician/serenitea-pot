@@ -175,29 +175,7 @@
       in
       rec {
         # Development shell: `nix develop .#name`
-        devShells =
-          let commonPkgs = with pkgs; [ agenixCli ];
-          in {
-            default = pkgs.mkShell {
-              buildInputs = commonPkgs;
-            };
-
-            cloud = pkgs.mkShell {
-              buildInputs = with pkgs; [
-                (lib.optionals (!isDarwin) azure-cli)
-                azure-storage-azcopy
-                cf-terraforming
-                jq
-                hcl2json
-                (terraform.withPlugins (p: [
-                  p.azurerm
-                  p.cloudflare
-                  p.proxmox
-                  p.utils
-                ]))
-              ] ++ commonPkgs;
-            };
-          };
+        devShells = (import ./shells { inherit system lib pkgs inputs; outputs = self; });
 
         # Formatter: `nix fmt`
         formatter = pkgs.nixpkgs-fmt;
@@ -239,34 +217,6 @@
         };
 
         # Apps: `nix run .#appName`
-        apps = {
-          # nix repl for debugging
-          repl = inputs.flake-utils.lib.mkApp {
-            drv = pkgs.writeShellScriptBin "repl" ''
-              nix repl --expr "builtins.getFlake (toString $(${pkgs.git}/bin/git rev-parse --show-toplevel))"
-            '';
-          };
-
-          # terraform apply
-          terraform-apply = let terraformAgeFileName = "terraformEnv.age"; in
-            inputs.flake-utils.lib.mkApp {
-              drv = pkgs.writeShellScriptBin "terraform-apply" ''
-                # Decrypt terraform secrets and set environment variables
-                dir=$(${pkgs.coreutils}/bin/pwd)
-                cd ${./secrets}
-                [ -f "./${terraformAgeFileName}" ] || { echo "${terraformAgeFileName} not found under ${./secrets}"; exit 1; }
-                envs=$(${agenixCli}/bin/agenix -d terraformEnv.age)
-                [ ! -z "$envs" ] || { echo "Terraform envs should not be empty. Decryption failure?"; exit 1; }
-                export $(echo $envs | xargs)
-                cd $dir
-
-                # Apply terraform configurations
-                [ ! -e config.tf.json ] || rm -f config.tf.json
-                cp ${packages.terraformConfiguration} config.tf.json \
-                  && ${pkgs.terraform}/bin/terraform init \
-                  && ${pkgs.terraform}/bin/terraform apply
-              '';
-            };
-        };
+        apps = (import ./apps { inherit system lib pkgs inputs; outputs = self; });
       });
 }
