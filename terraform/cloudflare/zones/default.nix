@@ -1,3 +1,3 @@
 { lib, ... }: {
-  imports = lib.codgician.getImports ./.;
+  imports = lib.codgician.getFolderPaths ./.;
 }

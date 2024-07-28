@@ -107,6 +107,15 @@
 
   outputs = inputs @ { self, flake-utils, agenix, terranix, ... }:
     let
+      # Extending lib
+      mkLib = nixpkgs: (import ./lib { lib = nixpkgs.lib; });
+      mkPkgs = nixpkgs: system: (import nixpkgs {
+        inherit system;
+        config.allowUnfree = true;
+        flake.source = nixpkgs.outPath;
+      }) // { lib = mkLib nixpkgs; };
+      lib = mkLib inputs.nixpkgs;
+
       # Make home-manager module
       mkHomeManagerModules = with inputs; modulesName: stable: sharedModules:
         let homeManager = if stable then home-manager else home-manager-unstable;
@@ -144,31 +153,16 @@
           vscode-server.nixosModules.default
         ];
 
-      # Modules provided by this flake
-      darwinModules = import ./modules/darwin { inherit lib; };
-      nixosModules = import ./modules/nixos { inherit lib; };
-
       # All modules
-      mkDarwinAllModules = stable: [ darwinModules.default ] ++ (mkDarwinInputModules stable);
-      mkNixosAllModules = stable: [ nixosModules.default ] ++ (mkNixosInputModules stable);
-
-      mkLib = nixpkgs: nixpkgs.lib // (import ./lib { inherit nixpkgs; });
-      mkPkgs = nixpkgs: system: (import nixpkgs {
-        inherit system;
-        config.allowUnfree = true;
-        flake.source = nixpkgs.outPath;
-      }) // { lib = mkLib nixpkgs; };
-      lib = mkLib inputs.nixpkgs;
+      modules = import ./modules { inherit lib; };
+      mkDarwinModules = stable: [ modules.darwin ] ++ (mkDarwinInputModules stable);
+      mkNixosModules = stable: [ modules.nixos ] ++ (mkNixosInputModules stable);
     in
     rec {
-      # Modules
-      inherit darwinModules nixosModules;
-
       # System configurations
       inherit (import ./hosts {
         inherit inputs lib mkLib mkPkgs;
-        mkDarwinModules = mkDarwinAllModules;
-        mkNixosModules = mkNixosAllModules;
+        inherit mkDarwinModules mkNixosModules;
       }) darwinConfigurations nixosConfigurations;
 
     } // flake-utils.lib.eachDefaultSystem (system:
@@ -223,7 +217,7 @@
               eval = import "${inputs.darwin}/eval-config.nix" {
                 inherit lib;
                 specialArgs = { inherit lib; };
-                modules = (mkDarwinAllModules true) ++ [{
+                modules = (mkDarwinModules true) ++ [{
                   nixpkgs = {
                     source = lib.mkDefault nixpkgs;
                     inherit system;
@@ -238,7 +232,7 @@
               eval = import "${inputs.nixpkgs}/nixos/lib/eval-config.nix" {
                 inherit system;
                 specialArgs = { inherit lib; };
-                modules = mkNixosAllModules true;
+                modules = mkNixosModules true;
               };
             in
             (pkgs.nixosOptionsDoc { options = eval.options.codgician; }).optionsCommonMark;

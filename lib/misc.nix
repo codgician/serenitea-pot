@@ -1,23 +1,21 @@
 { lib, ... }: rec {
-  # Concat attributes
-  concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
+  # Path to modules folder
+  modulesDir = ../modules;
 
   # List all item names with specified type under specified path 
   getDirContentByType = type: path:
-    let dirContent = builtins.readDir path;
+    let dirContent = if lib.pathIsDirectory path then builtins.readDir path else { };
     in builtins.filter (name: dirContent.${name} == type) (builtins.attrNames dirContent);
 
-  # List all folder names under specified path
+  # Get all folder names under specified path
   getFolderNames = getDirContentByType "directory";
 
-  # List all regular file names under specified path
+  # Get all folder full paths under specified path
+  getFolderPaths = path: builtins.map (x: path + "/${x}") (getFolderNames path);
+
+  # Get all regular file names under specified path
   getRegularFileNames = getDirContentByType "regular";
 
-  # Get default.nix under specified path recursively
-  getImports = path:
-    let
-      dirNames = getFolderNames path;
-      allFiles = builtins.concatMap (x: (lib.filesystem.listFilesRecursive (path + "/${x}"))) dirNames;
-    in
-    builtins.filter (x: (builtins.baseNameOf x) == "default.nix") allFiles;
+  # Get all regular file full paths under specified path
+  getRegularFilePaths = path: builtins.map (x: path + "/${x}") (getRegularFileNames path);
 }

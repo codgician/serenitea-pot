@@ -63,7 +63,10 @@
     };
 
     NSGlobalDomain = {
+      AppleInterfaceStyle = "Dark";
+      AppleInterfaceStyleSwitchesAutomatically = false;
       AppleTemperatureUnit = "Celsius";
+      AppleMeasurementUnits = "Centimeters";
       NSAutomaticWindowAnimationsEnabled = false;
       NSScrollAnimationEnabled = false;
     };
@@ -71,8 +74,8 @@
     SoftwareUpdate.AutomaticallyInstallMacOSUpdates = true;
 
     universalaccess = {
-      reduceMotion = false;
-      reduceTransparency = false;
+      reduceMotion = true;
+      reduceTransparency = true;
     };
   };
 }

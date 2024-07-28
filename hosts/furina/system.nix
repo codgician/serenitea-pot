@@ -97,6 +97,7 @@
 
     NSGlobalDomain = {
       AppleInterfaceStyle = "Dark";
+      AppleInterfaceStyleSwitchesAutomatically = false;
       AppleTemperatureUnit = "Celsius";
       AppleMeasurementUnits = "Centimeters";
       AppleMetricUnits = 1;

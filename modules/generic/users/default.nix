@@ -5,6 +5,7 @@ let
   systemCfg = config.codgician.system;
   types = lib.types;
   agenixEnabled = (systemCfg?agenix && systemCfg.agenix.enable);
+  isLinux = pkgs.stdenvNoCC.isLinux;
 
   # Use list of sub-folder names as list of available users
   dirs = builtins.readDir ./.;
@@ -25,7 +26,7 @@ let
 
       home = lib.mkOption {
         type = types.path;
-        default = if pkgs.stdenvNoCC.isLinux then "/home/${name}" else "/Users/${name}";
+        default = if isLinux then "/home/${name}" else "/Users/${name}";
         description = ''
           Path of home directory for user "${name}".
         '';
@@ -43,7 +44,7 @@ let
       hashedPassword = lib.mkOption {
         type = with types; nullOr (passwdEntry str);
         default = null;
-        visible = pkgs.stdenvNoCC.isLinux;
+        visible = isLinux;
         description = ''
           Hashed password for user "${name}". Only effective when agenix is **NOT** enabled.
           To generate a hashed password, run `mkpasswd`.
@@ -53,7 +54,7 @@ let
       hashedPasswordAgeFile = lib.mkOption {
         type = with types; nullOr path;
         default = null;
-        visible = pkgs.stdenvNoCC.isLinux;
+        visible = isLinux;
         description = ''
           Path to hashed password file encrypted managed by agenix.
           Should only be set when agenix is enabled.
@@ -70,7 +71,7 @@ let
         '';
       };
 
-    } // lib.optionalAttrs pkgs.stdenvNoCC.isLinux {
+    } // lib.optionalAttrs isLinux {
       extraGroups = lib.mkOption {
         type = types.listOf types.str;
         default = [ ];
@@ -84,12 +85,12 @@ let
   # Define assertions for each user
   mkUserAssertions = name: lib.mkIf cfg.${name}.enable [
     {
-      assertion = !pkgs.stdenvNoCC.isLinux || agenixEnabled || cfg.${name}.hashedPassword != null;
+      assertion = !isLinux || agenixEnabled || cfg.${name}.hashedPassword != null;
       message = ''User "${name}" must have `hashedPassword` specified because agenix module is not enabled.'';
     }
 
     {
-      assertion = !pkgs.stdenvNoCC.isLinux || !agenixEnabled || cfg.${name}.hashedPasswordAgeFile != null;
+      assertion = !isLinux || !agenixEnabled || cfg.${name}.hashedPasswordAgeFile != null;
       message = ''User "${name}" must have `hashedPasswordAgeFile` specified because agenix module is enabled.'';
     }
   ];
@@ -134,12 +135,25 @@ let
         home = cfg.${name}.home;
       } // lib.optionalAttrs (cfg.${name}?extraGroups) {
         extraGroups = cfg.${name}.extraGroups;
-      } // lib.optionalAttrs pkgs.stdenvNoCC.isLinux {
+      } // lib.optionalAttrs isLinux {
         hashedPassword = lib.mkIf (!agenixEnabled) cfg.${name}.hashedPassword;
         hashedPasswordFile = lib.mkIf (agenixEnabled)
           config.age.secrets."${lib.codgician.getAgeSecretNameFromPath cfg.${name}.hashedPasswordAgeFile}".path;
       };
     }
+
+    # Import home-manager modules
+    ({
+      home-manager.users.${name} = { lib, ... }:
+        let
+          modules = import (lib.codgician.modulesDir + "/home") { inherit lib; };
+          platform = if isLinux then "nixos" else "darwin";
+        in
+        {
+          imports = lib.optionals (modules?"${name}") [ (modules.${name}.${platform}) ];
+          home.stateVersion = lib.mkDefault "24.05";
+        };
+    })
   ]);
 in
 {

@@ -21,9 +21,4 @@ in
 
   # Trust me
   nix.settings.trusted-users = [ name ];
-
-  # Home manager
-  home-manager.users.codgi = { config, lib, ... }: {
-    imports = [ ./hm-modules ];
-  };
 }
