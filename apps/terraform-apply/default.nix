@@ -2,8 +2,6 @@
 
 let
   terraformAgeFileName = "terraformEnv.age";
-  system = pkgs.system;
-  agenixCli = inputs.agenix.packages.${system}.default;
   secretsDir = lib.codgician.secretsDir;
 in
 # Apply terraform configurations
@@ -18,7 +16,7 @@ inputs.flake-utils.lib.mkApp {
       exit 1; 
     }
 
-    envs=$(${agenixCli}/bin/agenix -d terraformEnv.age)
+    envs=$(${pkgs.agenix}/bin/agenix -d terraformEnv.age)
     [ ! -z "$envs" ] || { 
       echo "Terraform envs should not be empty. Decryption failure?"; 
       exit 1; 
@@ -29,7 +27,7 @@ inputs.flake-utils.lib.mkApp {
 
     # Apply terraform configurations
     [ ! -e config.tf.json ] || rm -f config.tf.json
-    cp ${outputs.packages.${system}.terraformConfiguration} config.tf.json \
+    cp ${outputs.packages.${pkgs.system}.terraformConfiguration} config.tf.json \
       && ${pkgs.terraform}/bin/terraform init \
       && ${pkgs.terraform}/bin/terraform apply
   '';

@@ -110,11 +110,15 @@
       # Extending lib
       mkLib = nixpkgs: (import ./lib { lib = nixpkgs.lib; });
       mkPkgs = nixpkgs: system: (import nixpkgs {
-        inherit system;
+        inherit system overlays;
         config.allowUnfree = true;
         flake.source = nixpkgs.outPath;
-      }) // { lib = mkLib nixpkgs; };
+      });
       lib = mkLib inputs.nixpkgs;
+
+      # Package overlays
+      overlays = [ (self: super: { lib = mkLib super; }) ]
+        ++ (builtins.map (x: import x { inherit inputs; }) (with lib.codgician; getNixFilePaths overlaysDir));
 
       # Make home-manager module
       mkHomeManagerModules = with inputs; modulesName: stable: sharedModules:
@@ -158,20 +162,21 @@
       mkDarwinModules = stable: [ modules.darwin ] ++ (mkDarwinInputModules stable);
       mkNixosModules = stable: [ modules.nixos ] ++ (mkNixosInputModules stable);
     in
-    rec {
+    {
       # System configurations
       inherit (import ./hosts {
-        inherit inputs lib mkLib mkPkgs;
+        inherit inputs lib mkLib overlays;
         inherit mkDarwinModules mkNixosModules;
       }) darwinConfigurations nixosConfigurations;
 
+      # Export custom library namespace
+      lib = { inherit (lib) codgician; };
     } // flake-utils.lib.eachDefaultSystem (system:
       let
         isDarwin = inputs.nixpkgs.legacyPackages.${system}.stdenvNoCC.isDarwin;
         nixpkgs = if isDarwin then inputs.nixpkgs-darwin else inputs.nixpkgs;
         lib = mkLib nixpkgs;
         pkgs = mkPkgs nixpkgs system;
-        agenixCli = agenix.packages.${system}.default;
       in
       rec {
         # Development shell: `nix develop .#name`

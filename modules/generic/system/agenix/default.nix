@@ -1,8 +1,4 @@
-{ config, pkgs, inputs, ... }:
-let
-  system = pkgs.system;
-in
-{
+{ config, pkgs, inputs, ... }: {
   # Install agenix CLI
-  config.environment.systemPackages = [ inputs.agenix.packages.${system}.default ];
+  config.environment.systemPackages = with pkgs; [ agenix ];
 }

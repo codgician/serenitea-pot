@@ -111,7 +111,7 @@ in
     # fastapi-dls configuration
     (lib.mkIf cfg.enable {
       # Use fastapi-dls package from xddxdd's NUR
-      codgician.overlays.nur.xddxdd.enable = lib.mkForce true;
+      codgician.nur.xddxdd.enable = lib.mkForce true;
 
       # Systemd service for fastapi-dls
       systemd.services.fastapi-dls = lib.optionalAttrs cfg.enable {

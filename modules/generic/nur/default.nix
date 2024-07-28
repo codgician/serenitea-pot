@@ -1,9 +1,9 @@
 { config, lib, pkgs, inputs, ... }:
 let
-  cfg = config.codgician.overlays.nur;
+  cfg = config.codgician.nur;
 in
 {
-  options.codgician.overlays.nur = {
+  options.codgician.nur = {
     xddxdd = {
       enable = lib.mkEnableOption "Enable xddxdd's NUR.";
     };
@@ -11,11 +11,11 @@ in
 
   config = {
     nixpkgs.overlays = [
-      (lib.mkIf cfg.xddxdd.enable (final: prev: {
+      (lib.mkIf cfg.xddxdd.enable (self: super: {
         nur = import inputs.nur {
-          nurpkgs = prev;
-          pkgs = prev;
-          repoOverrides = { xddxdd = import inputs.nur-xddxdd { pkgs = prev; }; };
+          nurpkgs = super;
+          pkgs = super;
+          repoOverrides = { xddxdd = import inputs.nur-xddxdd { pkgs = super; }; };
         };
       }))
     ];

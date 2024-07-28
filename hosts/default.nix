@@ -1,4 +1,4 @@
-{ inputs, lib, mkLib, mkPkgs, mkDarwinModules, mkNixosModules, ... }:
+{ inputs, lib, mkLib, mkDarwinModules, mkNixosModules, overlays ? [ ], ... }:
 let
   # Base configs for all platforms
   mkBaseConfig = system: hostName: { config, ... }: {
@@ -11,7 +11,10 @@ let
         auto-optimise-store = true;
       };
     };
-    nixpkgs.config.allowUnfree = true;
+    nixpkgs = {
+      config.allowUnfree = true;
+      inherit overlays;
+    };
   };
 
   # Common configurations for macOS systems
@@ -23,12 +26,11 @@ let
     }:
     let
       nixpkgs = if stable then inputs.nixpkgs-darwin else inputs.nixpkgs-nixos-unstable;
-      pkgs = mkPkgs nixpkgs system;
       lib = mkLib nixpkgs;
     in
     inputs.darwin.lib.darwinSystem {
       inherit system;
-      specialArgs = { inherit inputs lib system; };
+      specialArgs = { inherit inputs lib; };
       modules = (mkDarwinModules stable) ++ modules ++ [
         (mkBaseConfig system hostName)
         ({ config, ... }: {
@@ -46,12 +48,11 @@ let
     }:
     let
       nixpkgs = if stable then inputs.nixpkgs else inputs.nixpkgs-nixos-unstable;
-      pkgs = mkPkgs nixpkgs system;
       lib = mkLib nixpkgs;
     in
     nixpkgs.lib.nixosSystem {
       inherit system;
-      specialArgs = { inherit inputs lib system; };
+      specialArgs = { inherit inputs lib; };
       modules = (mkNixosModules stable) ++ modules ++ [
         (mkBaseConfig system hostName)
         ({ config, ... }: {
