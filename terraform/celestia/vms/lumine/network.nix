@@ -100,7 +100,7 @@
       name = "lumine-netint";
       location = config.resource.azurerm_resource_group.celestia.location;
       resource_group_name = config.resource.azurerm_resource_group.celestia.name;
-      enable_accelerated_networking = false;
+      accelerated_networking_enabled = false;
 
       ip_configuration = [
         {
