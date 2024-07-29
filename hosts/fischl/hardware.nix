@@ -30,6 +30,12 @@
   # Specify nvme0n1p1 as the primary ESP partition
   boot.loader.efi.efiSysMountPoint = "/boot-nvme0n1";
 
+  # Mount efi partitions at boot
+  fileSystems = {
+    "/boot-nvme0n1".neededForBoot = true;
+    "/boot-nvme1n1".neededForBoot = true;
+  };
+
   # Sync content to backup ESP partition on activation
   system.activationScripts.rsync-esp.text = ''
     if ! ${pkgs.util-linux}/bin/mountpoint -q /boot-nvme0n1; then
