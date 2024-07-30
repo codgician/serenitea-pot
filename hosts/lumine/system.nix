@@ -9,7 +9,7 @@
         openFirewall = true;
         interfaces.wg0 = {
           host = "lumine";
-          peers = [ "suzhou" ];
+          peers = [ "lumidouce" ];
           allowedIPsAsRoutes = true;
         };
       };

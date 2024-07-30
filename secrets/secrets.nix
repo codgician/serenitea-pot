@@ -37,6 +37,6 @@ with pubKeys; with pubKeys.hosts; {
 
   # WireGuard secrets
   "wgLuminePrivateKey.age".publicKeys = wgHosts;
-  "wgSuzhouPrivateKey.age".publicKeys = wgHosts;
+  "wgLumidoucePrivateKey.age".publicKeys = wgHosts;
   "wgPresharedKey.age".publicKeys = wgHosts;
 }

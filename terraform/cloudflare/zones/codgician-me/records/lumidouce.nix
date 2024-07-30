@@ -11,7 +11,7 @@ in
         inherit name zone_id;
         proxied = false;
         ttl = 120;
-        comment = "Suzhou endpoint";
+        comment = "Lumidouce Harbor";
         type = "CNAME";
         value = "sz.codgician.me";
       };
