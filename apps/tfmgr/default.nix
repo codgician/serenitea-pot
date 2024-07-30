@@ -30,6 +30,9 @@ inputs.flake-utils.lib.mkApp {
       echo '  plan        Show infrastructure changes from new configuration'
       echo '  apply       Apply infrastructure changes from new configuration'
       echo ' '
+      echo 'Options:'
+      echo ' '
+      echo ' -h --help    Show this screen'
       echo ' '
     }
 

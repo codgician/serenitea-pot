@@ -1,5 +1,7 @@
 # 🌩️ Terraform configurations
 
+This folder contain terraform configurations to set up my infrastructure.
+
 ## Preparations
 
 Create a service principal for Terraform authentication.
@@ -22,4 +24,10 @@ To build and apply configuration:
 
 ```bash
 nix run .#tfmgr -- apply
+```
+
+To get other supported commands, try:
+
+```bash
+nix run .#tfmgr -- --help
 ```

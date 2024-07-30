@@ -187,12 +187,8 @@
 
         # Packages: `nix build .#pkgName`
         packages = {
-          # Terraform configurations
-          terraformConfiguration = terranix.lib.terranixConfiguration {
-            inherit system pkgs;
-            extraArgs = { inherit lib; };
-            modules = [ ./terraform ];
-          };
+          # Terraform configuration
+          terraformConfiguration = (import ./terraform { inherit lib pkgs terranix; });
 
           # Documentations
           darwinDocs =

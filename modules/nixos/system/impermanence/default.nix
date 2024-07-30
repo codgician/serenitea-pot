@@ -37,9 +37,11 @@ in
     };
 
     # Clean up persisted files in root partition on boot
-    boot.initrd.postMountCommands = let
-      mkRmCommand = filePath: "rm -rf /mnt-root/${filePath}";
-      commands = builtins.map (x: mkRmCommand x.filePath) config.environment.persistence.${cfg.path}.files;
-    in lib.mkBefore (builtins.concatStringsSep "\n" commands);
+    boot.initrd.postMountCommands =
+      let
+        mkRmCommand = filePath: "rm -rf /mnt-root/${filePath}";
+        commands = builtins.map (x: mkRmCommand x.filePath) config.environment.persistence.${cfg.path}.files;
+      in
+      lib.mkBefore (builtins.concatStringsSep "\n" commands);
   };
 }
