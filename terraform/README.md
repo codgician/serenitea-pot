@@ -21,5 +21,5 @@ nix build .#terraformConfiguration
 To build and apply configuration:
 
 ```bash
-nix run .#terraform-apply
+nix run .#tfmgr -- apply
 ```
