@@ -61,6 +61,9 @@ let
             flake = "github:codgician/serenitea-pot";
             flags = [ "--refresh" "--no-write-lock-file" "-L" ];
           };
+
+          # Enable redistributable firmware
+          hardware.enableRedistributableFirmware = true;
         })
       ];
     };

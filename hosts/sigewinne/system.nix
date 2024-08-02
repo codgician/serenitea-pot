@@ -112,7 +112,6 @@
 
   # Firmware
   hardware.firmware = [ config.mobile.device.firmware ];
-  hardware.enableRedistributableFirmware = true;
 
   # Enable OpenGL
   hardware.opengl = {
