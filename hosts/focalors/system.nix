@@ -36,6 +36,7 @@ in
       git.enable = true;
       pwsh.enable = true;
       ssh.enable = true;
+      vscode.enable = true;
       zsh.enable = true;
     };
 
@@ -129,7 +130,6 @@ in
   # Global packages
   environment.systemPackages = with pkgs; [
     firefox
-    vscode
     virt-manager
     kitty
   ];
