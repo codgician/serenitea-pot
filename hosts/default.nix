@@ -1,4 +1,4 @@
-{ inputs, lib, mkLib, mkDarwinModules, mkNixosModules, overlays ? [ ], ... }:
+{ inputs, mkLib, mkDarwinModules, mkNixosModules, overlays ? [ ], ... }:
 let
   # Base configs for all platforms
   mkBaseConfig = system: hostName: { config, ... }: {
@@ -68,6 +68,7 @@ let
       ];
     };
 
+  lib = mkLib inputs.nixpkgs;
   hosts = builtins.map (x: (import ./${x}) // { hostName = x; }) (lib.codgician.getFolderNames ./.);
   hostsToAttr = builder: hosts: builtins.listToAttrs (builtins.map (host: { name = host.hostName; value = builder host; }) hosts);
 in

@@ -65,7 +65,7 @@
       programs.plasma = {
         enable = osConfig.codgician.services.plasma.enable;
 
-        powerdevil = {
+        powerdevil.AC = {
           powerButtonAction = "showLogoutScreen";
           autoSuspend.action = "nothing";
           turnOffDisplay.idleTimeout = "never";

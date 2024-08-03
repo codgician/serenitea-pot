@@ -109,16 +109,18 @@
     let
       # Extending lib
       mkLib = nixpkgs: (import ./lib { lib = nixpkgs.lib; });
-      mkPkgs = nixpkgs: system: (import nixpkgs {
-        inherit system overlays;
-        config.allowUnfree = true;
-        flake.source = nixpkgs.outPath;
-      });
       lib = mkLib inputs.nixpkgs;
 
       # Package overlays
       overlays = [ (self: super: { lib = mkLib super; }) ]
         ++ (builtins.map (x: import x { inherit inputs; }) (with lib.codgician; getNixFilePaths overlaysDir));
+
+      # Make package universe
+      mkPkgs = nixpkgs: system: (import nixpkgs {
+        inherit system overlays;
+        config.allowUnfree = true;
+        flake.source = nixpkgs.outPath;
+      });
 
       # Make home-manager module
       mkHomeManagerModules = with inputs; modulesName: stable: sharedModules:
@@ -165,7 +167,7 @@
     {
       # System configurations
       inherit (import ./hosts {
-        inherit inputs lib mkLib overlays;
+        inherit inputs mkLib overlays;
         inherit mkDarwinModules mkNixosModules;
       }) darwinConfigurations nixosConfigurations;
 
@@ -175,7 +177,6 @@
       let
         isDarwin = inputs.nixpkgs.legacyPackages.${system}.stdenvNoCC.isDarwin;
         nixpkgs = if isDarwin then inputs.nixpkgs-darwin else inputs.nixpkgs;
-        lib = mkLib nixpkgs;
         pkgs = mkPkgs nixpkgs system;
       in
       rec {
@@ -191,30 +192,22 @@
           terraformConfiguration = (import ./terraform { inherit lib pkgs terranix; });
 
           # Documentations
-          darwinDocs =
-            let
-              eval = import "${inputs.darwin}/eval-config.nix" {
-                inherit lib;
-                specialArgs = { inherit lib; };
-                modules = (mkDarwinModules true) ++ [{
-                  nixpkgs = {
-                    source = lib.mkDefault nixpkgs;
-                    inherit system;
-                  };
-                }];
-              };
-            in
-            (pkgs.nixosOptionsDoc { options = eval.options.codgician; }).optionsCommonMark;
-
-          nixosDocs =
-            let
-              eval = import "${inputs.nixpkgs}/nixos/lib/eval-config.nix" {
+          darwinDocs = let eval = import "${inputs.darwin}/eval-config.nix" {
+            inherit lib;
+            specialArgs = { inherit lib; };
+            modules = (mkDarwinModules true) ++ [{
+              nixpkgs = {
+                source = lib.mkDefault nixpkgs;
                 inherit system;
-                specialArgs = { inherit lib; };
-                modules = mkNixosModules true;
               };
-            in
-            (pkgs.nixosOptionsDoc { options = eval.options.codgician; }).optionsCommonMark;
+            }];
+          }; in (pkgs.nixosOptionsDoc { options = eval.options.codgician; }).optionsCommonMark;
+
+          nixosDocs = let eval = import "${inputs.nixpkgs}/nixos/lib/eval-config.nix" {
+            inherit system;
+            specialArgs = { inherit lib; };
+            modules = mkNixosModules true;
+          }; in (pkgs.nixosOptionsDoc { options = eval.options.codgician; }).optionsCommonMark;
         };
 
         # Apps: `nix run .#appName`
