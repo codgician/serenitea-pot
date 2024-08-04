@@ -29,7 +29,7 @@ let
       lib = mkLib nixpkgs;
     in
     inputs.darwin.lib.darwinSystem {
-      inherit system;
+      inherit system lib;
       specialArgs = { inherit inputs lib; };
       modules = (mkDarwinModules stable) ++ modules ++ [
         (mkBaseConfig system hostName)
@@ -51,7 +51,7 @@ let
       lib = mkLib nixpkgs;
     in
     nixpkgs.lib.nixosSystem {
-      inherit system;
+      inherit system lib;
       specialArgs = { inherit inputs lib; };
       modules = (mkNixosModules stable) ++ modules ++ [
         (mkBaseConfig system hostName)
