@@ -40,6 +40,8 @@ let
         http2 = true;
         http3 = true;
         http3_hq = true;
+        quic = true;
+        kTLS = true;
         acmeRoot = null;
       };
     };
