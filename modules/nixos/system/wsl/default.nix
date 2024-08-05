@@ -2,6 +2,7 @@
 let
   cfg = config.codgician.system.wsl;
   types = lib.types;
+  ldLibraryPath = lib.makeLibraryPath [ pkgs.addOpenGLRunpath.driverLink ];
 in
 {
   options.codgician.system.wsl = {
@@ -14,8 +15,8 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    wsl = { 
-      inherit (cfg) enable defaultUser; 
+    wsl = {
+      inherit (cfg) enable defaultUser;
       useWindowsDriver = true;
       nativeSystemd = true;
       wslConf.network.generateResolvConf = !config.services.resolved.enable;
@@ -30,5 +31,22 @@ in
       enable = true;
       libraries = config.hardware.opengl.extraPackages;
     };
+
+    # Enable OpenGL
+    environment.systemPackages = with pkgs; [ glxinfo vulkan-tools ];
+    hardware.opengl = {
+      enable = true;
+      driSupport = true;
+      extraPackages = with pkgs; [
+        mesa.drivers
+        libvdpau-va-gl
+        vaapiVdpau
+      ];
+    };
+
+    # Hack LD_LIBRARY_PATH
+    # See: https://github.com/nix-community/NixOS-WSL/issues/454
+    environment.sessionVariables.LD_LIBRARY_PATH = ldLibraryPath;
+    services.displayManager.environment.LD_LIBRARY_PATH = ldLibraryPath;
   };
 }
