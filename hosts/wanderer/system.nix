@@ -9,7 +9,10 @@
     system = {
       auto-upgrade.enable = true;
       common.enable = true;
-      wsl.enable = true;
+      wsl = {
+        enable = true;
+        defaultUser = "codgi";
+      };
     };
 
     users.codgi = with lib.codgician; {
@@ -18,9 +21,6 @@
       extraGroups = [ "wheel" ];
     };
   };
-
-  # WSL default user
-  wsl.defaultUser = "codgi";
 
   # Home manager
   home-manager.users.codgi = { config, ... }: rec {
