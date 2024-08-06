@@ -13,6 +13,7 @@ let
             type = "filesystem";
             format = "vfat";
             mountpoint = "/boot-${disk}";
+            mountOptions = [ "umask=0077" ];
           };
         };
         zroot = {
