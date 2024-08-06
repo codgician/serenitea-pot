@@ -1,25 +1,30 @@
-{ config, ... }: {
+{ config, ... }: 
+let
+  resource_group_name = config.resource.azurerm_resource_group.celestia.name;
+  location = config.resource.azurerm_resource_group.celestia.location;
+in
+{
   resource = {
     # Storage accounts
     azurerm_storage_account = {
       # Boot diagnostics
       constellation = {
         name = "constellation";
-        resource_group_name = config.resource.azurerm_resource_group.celestia.name;
-        location = config.resource.azurerm_resource_group.celestia.location;
+        inherit resource_group_name location;
         account_tier = "Standard";
         account_replication_type = "LRS";
+        public_network_access_enabled = false;
         allow_nested_items_to_be_public = false;
       };
 
       # Resources needed for provisioning
       gnosis = {
         name = "gnosis";
-        resource_group_name = config.resource.azurerm_resource_group.celestia.name;
-        location = config.resource.azurerm_resource_group.celestia.location;
+        inherit resource_group_name location;
         account_tier = "Standard";
         account_replication_type = "LRS";
-        allow_nested_items_to_be_public = true;
+        public_network_access_enabled = false;
+        allow_nested_items_to_be_public = false;
       };
     };
 
