@@ -1,11 +1,15 @@
-{ config, ... }: {
+{ config, ... }:
+let
+  location = config.resource.azurerm_resource_group.celestia.location;
+  resource_group_name = config.resource.azurerm_resource_group.celestia.name;
+in
+{
   resource = {
     # Public IP prefixes 
     azurerm_public_ip_prefix = {
       lumine-ipv4-prefix = {
         name = "lumine-ipv4-prefix";
-        location = config.resource.azurerm_resource_group.celestia.location;
-        resource_group_name = config.resource.azurerm_resource_group.celestia.name;
+        inherit location resource_group_name;
         ip_version = "IPv4";
         prefix_length = 31;
         sku = "Standard";
@@ -13,8 +17,7 @@
 
       lumine-ipv6-prefix = {
         name = "lumine-ipv6-prefix";
-        location = config.resource.azurerm_resource_group.celestia.location;
-        resource_group_name = config.resource.azurerm_resource_group.celestia.name;
+        inherit location resource_group_name;
         ip_version = "IPv6";
         prefix_length = 127;
         sku = "Standard";
@@ -25,8 +28,7 @@
     azurerm_public_ip = {
       lumine-ipv4-1 = {
         name = "lumine-ipv4-1";
-        resource_group_name = config.resource.azurerm_resource_group.celestia.name;
-        location = config.resource.azurerm_resource_group.celestia.location;
+        inherit location resource_group_name;
         allocation_method = "Static";
         public_ip_prefix_id = config.resource.azurerm_public_ip_prefix.lumine-ipv4-prefix "id";
         ip_version = "IPv4";
@@ -36,8 +38,7 @@
 
       lumine-ipv6-1 = {
         name = "lumine-ipv6-1";
-        resource_group_name = config.resource.azurerm_resource_group.celestia.name;
-        location = config.resource.azurerm_resource_group.celestia.location;
+        inherit location resource_group_name;
         allocation_method = "Static";
         public_ip_prefix_id = config.resource.azurerm_public_ip_prefix.lumine-ipv6-prefix "id";
         ip_version = "IPv6";
@@ -47,8 +48,7 @@
 
       lumine-ipv4-2 = {
         name = "lumine-ipv4-2";
-        resource_group_name = config.resource.azurerm_resource_group.celestia.name;
-        location = config.resource.azurerm_resource_group.celestia.location;
+        inherit location resource_group_name;
         allocation_method = "Static";
         public_ip_prefix_id = config.resource.azurerm_public_ip_prefix.lumine-ipv4-prefix "id";
         ip_version = "IPv4";
@@ -58,8 +58,7 @@
 
       lumine-ipv6-2 = {
         name = "lumine-ipv6-2";
-        resource_group_name = config.resource.azurerm_resource_group.celestia.name;
-        location = config.resource.azurerm_resource_group.celestia.location;
+        inherit location resource_group_name;
         allocation_method = "Static";
         public_ip_prefix_id = config.resource.azurerm_public_ip_prefix.lumine-ipv6-prefix "id";
         ip_version = "IPv6";
@@ -71,8 +70,7 @@
     # Network security group
     azurerm_network_security_group.lumine-nsg = {
       name = "lumine-nsg";
-      location = config.resource.azurerm_resource_group.celestia.location;
-      resource_group_name = config.resource.azurerm_resource_group.celestia.name;
+      inherit location resource_group_name;
 
       security_rule = builtins.map
         (direction: {
@@ -98,8 +96,7 @@
     # Network interface
     azurerm_network_interface.lumine-netint = {
       name = "lumine-netint";
-      location = config.resource.azurerm_resource_group.celestia.location;
-      resource_group_name = config.resource.azurerm_resource_group.celestia.name;
+      inherit location resource_group_name;
       accelerated_networking_enabled = false;
 
       ip_configuration = [
