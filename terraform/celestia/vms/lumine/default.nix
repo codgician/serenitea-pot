@@ -1,4 +1,9 @@
-{ config, ... }: {
+{ config, ... }:
+let
+  location = config.resource.azurerm_resource_group.celestia.location;
+  resource_group_name = config.resource.azurerm_resource_group.celestia.name;
+in
+{
   imports = [
     ./image.nix
     ./network.nix
@@ -14,16 +19,15 @@
     };
 
     # Virtual machines
-    azurerm_linux_virtual_machine.lumine = {
+    azurerm_linux_virtual_machine.lumine = with config.resource; {
       name = "lumine";
-      location = config.resource.azurerm_resource_group.celestia.location;
-      resource_group_name = config.resource.azurerm_resource_group.celestia.name;
-      network_interface_ids = with config.resource.azurerm_network_interface; [ (lumine-netint "id") ];
-      size = "Standard_B2s";
+      inherit location resource_group_name;
+      network_interface_ids = with azurerm_network_interface; [ (lumine-netint "id") ];
+      size = "Standard_B2als_v2";
       admin_username = "codgi";
       secure_boot_enabled = false;
       vtpm_enabled = false;
-      source_image_id = config.resource.azurerm_image.lumine-image "id";
+      source_image_id = azurerm_image.lumine-image "id";
       encryption_at_host_enabled = true;
 
       # These keys are not used for actual authentication
@@ -33,7 +37,7 @@
       }];
 
       os_disk = [{
-        name = "lumine-os-disk";
+        name = "lumine-sda";
         caching = "ReadWrite";
         storage_account_type = "Standard_LRS";
       }];

@@ -18,6 +18,7 @@
     system = {
       auto-upgrade.enable = true;
       common.enable = true;
+      impermanence.enable = true;
     };
 
     users.codgi = with lib.codgician; {
@@ -43,6 +44,19 @@
   # Use the systemd-boot EFI boot loader
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+
+  # ZFS configurations
+  services.zfs = {
+    autoScrub.enable = true;
+    autoSnapshot.enable = false;
+    expandOnBoot = "all";
+    trim.enable = true;
+  };
+
+  # ZFS boot configs
+  boot.supportedFilesystems = [ "zfs" ];
+  fileSystems."/nix/persist".neededForBoot = true;
+  networking.hostId = "2b4cf168";
 
   # Global packages
   environment.systemPackages = with pkgs; [

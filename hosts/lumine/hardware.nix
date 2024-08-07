@@ -1,27 +1,23 @@
 { config, lib, pkgs, modulesPath, ... }: {
   imports = [
-    (modulesPath + "/virtualisation/azure-common.nix")
+    (modulesPath + "/virtualisation/azure-agent.nix")
+    (modulesPath + "/profiles/headless.nix")
   ];
 
+  boot.kernelParams = [ "console=ttyS0" "earlyprintk=ttyS0" "rootdelay=300" "panic=1" "boot.panic_on_fail" ];
+  boot.initrd.kernelModules = [ "hv_vmbus" "hv_netvsc" "hv_utils" "hv_storvsc" ];
   boot.growPartition = true;
 
-  fileSystems."/boot" = {
-    device = "/dev/disk/by-label/ESP";
-    fsType = "vfat";
-  };
+  environment.systemPackages = with pkgs; [ cryptsetup sg3_utils ];
 
-  # Azure specific configurations
+  services.udev.extraRules = with builtins; concatStringsSep "\n" (map
+    (i: ''
+      ENV{DEVTYPE}=="disk", KERNEL!="sda" SUBSYSTEM=="block", SUBSYSTEMS=="scsi", KERNELS=="?:0:0:${toString i}", ATTR{removable}=="0", SYMLINK+="disk/by-lun/${toString i}"
+    '')
+    (lib.range 1 15));
+
   virtualisation.azure.agent.enable = true;
   services.cloud-init.enable = true;
-  systemd.services.cloud-config.serviceConfig = {
-    Restart = "on-failure";
-  };
+  systemd.services.cloud-config.serviceConfig.Restart = "on-failure";
   services.cloud-init.network.enable = true;
-
-  # Generate Azure image
-  codgician.image.azure = {
-    enable = true;
-    bootSize = 512;
-    diskSize = 32 * 1024;
-  };
 }

@@ -20,7 +20,7 @@ inputs.flake-utils.lib.mkApp {
 
     # Display help message
     function show_help {
-      echo '${binName} - Review and apply terraform configurations in this flake.'
+      echo '${binName} - review and apply terraform configurations.'
       echo ' '
       echo 'Usage: ${binName} [command]'
       echo ' '
