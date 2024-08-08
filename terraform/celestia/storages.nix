@@ -24,14 +24,31 @@ in
         account_replication_type = "LRS";
         allow_nested_items_to_be_public = true;
       };
+
+      # Binary cache
+      primogems = {
+        name = "primogems";
+        inherit resource_group_name location;
+        account_tier = "Standard";
+        account_replication_type = "LRS";
+        allow_nested_items_to_be_public = true;
+      };
     };
 
     # Storage account containers
-    azurerm_storage_container = {
+    azurerm_storage_container = with config.resource; {
+      # Bootstrap images for lumine
       gnosis-lumine = {
         name = "lumine";
-        storage_account_name = config.resource.azurerm_storage_account.gnosis.name;
+        storage_account_name = azurerm_storage_account.gnosis.name;
         container_access_type = "private";
+      };
+
+      # Binary cache for serenitea pot
+      serenitea-pot = {
+        name = "serenitea-pot";
+        storage_account_name = azurerm_storage_account.primogems.name;
+        container_access_type = "blob";
       };
     };
   };

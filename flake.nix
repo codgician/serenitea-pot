@@ -173,6 +173,7 @@
 
       # Export custom library namespace
       lib = { inherit (lib) codgician; };
+
     } // flake-utils.lib.eachDefaultSystem (system:
       let
         isDarwin = inputs.nixpkgs.legacyPackages.${system}.stdenvNoCC.isDarwin;

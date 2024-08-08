@@ -3,9 +3,9 @@
     ./cognitive
     ./vms
     ./budget.nix
-    ./network.nix
+    ./networks.nix
     ./providers.nix
-    ./storage.nix
+    ./storages.nix
   ];
 
   resource = {
