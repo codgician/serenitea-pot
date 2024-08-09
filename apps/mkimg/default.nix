@@ -146,7 +146,7 @@ inputs.flake-utils.lib.mkApp {
     cp $privkey_path $tempdir/ssh_host_ed25519_key
     privkey_path="$tempdir/ssh_host_ed25519_key"
     pubkey_path="$tempdir/ssh_host_ed25519_key.pub"
-    echo '$pubkey' > $pubkey_path
+    echo "$pubkey" > $pubkey_path
 
     # Build image
     echo "Building image for $hostname ..."
