@@ -154,9 +154,7 @@ inputs.flake-utils.lib.mkApp {
     cd $tempdir
     $script --build-memory $mem_size \
       --post-format-files $privkey_path $ssh_dir/ssh_host_ed25519_key \
-      --post-format-files $pubkey_path $ssh_dir/ssh_host_ed25519_key.pub \
-      --post-format-files $privkey_path /mnt/$ssh_dir/ssh_host_ed25519_key \
-      --post-format-files $pubkey_path /mnt/$ssh_dir/ssh_host_ed25519_key.pub
+      --post-format-files $pubkey_path $ssh_dir/ssh_host_ed25519_key.pub
     [[ $? -ne 0 ]] && err "Failed to build image"
 
     # Convert built image
