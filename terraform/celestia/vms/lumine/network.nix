@@ -77,7 +77,7 @@ in
     azurerm_network_interface.lumine-netint = {
       name = "lumine-netint";
       inherit location resource_group_name;
-      accelerated_networking_enabled = false;
+      accelerated_networking_enabled = true;
 
       ip_configuration = [
         {
