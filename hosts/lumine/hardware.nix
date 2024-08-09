@@ -5,7 +5,6 @@ in
 {
   imports = [
     (modulesPath + "/virtualisation/azure-agent.nix")
-    (modulesPath + "/profiles/headless.nix")
   ];
 
   boot.kernelParams = [ "console=ttyS0" "earlyprintk=ttyS0" "rootdelay=300" "panic=1" "boot.panic_on_fail" ];

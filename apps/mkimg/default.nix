@@ -139,6 +139,7 @@ inputs.flake-utils.lib.mkApp {
 
     # Build imaging script for provided hostname
     nix build .#nixosConfigurations.$hostname.config.system.build.diskoImagesScript
+    [[ $? -ne 0 ]] && err "Failed to build disko script"
 
     # Write public key to temp dir
     tempdir=$(${pkgs.coreutils}/bin/mktemp -d)

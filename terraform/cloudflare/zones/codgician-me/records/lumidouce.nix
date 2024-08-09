@@ -13,7 +13,7 @@ in
         ttl = 120;
         comment = "Lumidouce Harbor";
         type = "CNAME";
-        value = "sz.codgician.me";
+        content = "sz.codgician.me";
       };
     })
     cnames);

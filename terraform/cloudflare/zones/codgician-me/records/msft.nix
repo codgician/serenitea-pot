@@ -10,7 +10,7 @@ in
       proxied = false;
       comment = "Microsoft Exchange Auto-discovery";
       type = "CNAME";
-      value = "autodiscover.outlook.com";
+      content = "autodiscover.outlook.com";
       inherit zone_id ttl;
     };
 
@@ -19,7 +19,7 @@ in
       proxied = false;
       comment = "Intune MDM";
       type = "CNAME";
-      value = "enterpriseenrollment-s.manage.microsoft.com";
+      content = "enterpriseenrollment-s.manage.microsoft.com";
       inherit zone_id ttl;
     };
 
@@ -28,7 +28,7 @@ in
       proxied = false;
       comment = "Intune MDM";
       type = "CNAME";
-      value = "enterpriseregistration.windows.net";
+      content = "enterpriseregistration.windows.net";
       inherit zone_id ttl;
     };
 
@@ -36,7 +36,7 @@ in
       name = "@";
       comment = "SFP TXT record for Microsoft Exchange";
       type = "TXT";
-      value = "v=spf1 include:spf.protection.outlook.com -all";
+      content = "v=spf1 include:spf.protection.outlook.com -all";
       inherit zone_id ttl;
     };
 
@@ -44,7 +44,7 @@ in
       name = "@";
       comment = "MX record for Microsoft Exchange";
       type = "MX";
-      value = "codgician-me.mail.protection.outlook.com";
+      content = "codgician-me.mail.protection.outlook.com";
       priority = 0;
       inherit zone_id ttl;
     };

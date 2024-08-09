@@ -13,7 +13,7 @@ in
         ttl = 120;
         comment = "Reverse proxied by lumine";
         type = "CNAME";
-        value = "lumine.codgician.me";
+        content = "lumine.codgician.me";
       };
     })
     cnames);

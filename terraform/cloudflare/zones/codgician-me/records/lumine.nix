@@ -10,7 +10,7 @@ in
       ttl = 120;
       comment = "Lumine, on celestia";
       type = "A";
-      value = config.resource.azurerm_linux_virtual_machine.lumine "public_ip_addresses[0]";
+      content = config.resource.azurerm_linux_virtual_machine.lumine "public_ip_addresses[0]";
       inherit zone_id;
     };
 
@@ -20,7 +20,7 @@ in
       ttl = 120;
       comment = "Lumine, on celestia";
       type = "AAAA";
-      value = config.resource.azurerm_linux_virtual_machine.lumine "public_ip_addresses[1]";
+      content = config.resource.azurerm_linux_virtual_machine.lumine "public_ip_addresses[1]";
       inherit zone_id;
     };
   };
