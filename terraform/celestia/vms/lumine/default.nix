@@ -42,9 +42,7 @@ in
         storage_account_type = "Standard_LRS";
       }];
 
-      boot_diagnostics = [{
-        storage_account_uri = config.resource.azurerm_storage_account.constellation "primary_blob_endpoint";
-      }];
+      boot_diagnostics = [{ storage_account_uri = null; }];
     };
   };
 }

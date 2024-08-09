@@ -32,10 +32,10 @@ Upload built vhd to Azure Blob Storage using generated SAS:
 ```bash
 end=`date -u -d "60 minutes" '+%Y-%m-%dT%H:%MZ'`
 sas=$(az storage container generate-sas \
-    --account-name "gnosis" \
+    --account-name "constellation" \
     --name "lumine" \
     --expiry $end \
     --permissions acdlrw \
     --auth-mode key | tr -d '"')
-azcopy copy ./sda.vhd "https://gnosis.blob.core.windows.net/lumine/?$sas" --blob-type PageBlob
+azcopy copy ./sda.vhd "https://constellation.blob.core.windows.net/lumine/?$sas" --blob-type PageBlob
 ```

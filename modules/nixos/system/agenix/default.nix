@@ -7,10 +7,7 @@ in
   options.codgician.system.agenix = {
     hostIdentityPaths = lib.mkOption {
       type = lib.types.listOf lib.types.path;
-      default = [
-        "/etc/ssh/ssh_host_ed25519_key"
-        "/etc/ssh/ssh_host_rsa_key"
-      ];
+      default = [ "/etc/ssh/ssh_host_ed25519_key" ];
       description = "Host identity (ssh public keys) paths.";
     };
   };

@@ -7,7 +7,7 @@ in
   resource = {
     # Storage accounts
     azurerm_storage_account = {
-      # Boot diagnostics
+      # Resources needed for provisioning
       constellation = {
         name = "constellation";
         inherit resource_group_name location;
@@ -16,7 +16,7 @@ in
         allow_nested_items_to_be_public = false;
       };
 
-      # Resources needed for provisioning
+      # Test storage account
       gnosis = {
         name = "gnosis";
         inherit resource_group_name location;
@@ -38,8 +38,15 @@ in
     # Storage account containers
     azurerm_storage_container = with config.resource; {
       # Bootstrap images for lumine
-      gnosis-lumine = {
+      constellation-lumine = {
         name = "lumine";
+        storage_account_name = azurerm_storage_account.constellation.name;
+        container_access_type = "private";
+      };
+
+      # Test container
+      gnosis-test = {
+        name = "test";
         storage_account_name = azurerm_storage_account.gnosis.name;
         container_access_type = "private";
       };

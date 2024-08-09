@@ -51,6 +51,8 @@ inputs.flake-utils.lib.mkApp {
       echo ' -priv --private-key  Path to ed25519 ssh private key'
       echo ' --ssh-dir            Path to directory that stores ssh keys on host,'
       echo '                      defaults to /etc/ssh'
+      echo ' -m --build-memory    Memory size of virtual machine used for building image (MB),'
+      echo '                      defaults to 2048'
       echo ' '
       echo 'Available host names:'
       echo ' '
@@ -63,6 +65,7 @@ inputs.flake-utils.lib.mkApp {
     qemuimg_extra_args=""
     output_path=$(${pkgs.coreutils}/bin/pwd)
     ssh_dir='/etc/ssh'
+    mem_size=2048
 
     while test $# -gt 0; do
       case "$1" in
@@ -86,7 +89,11 @@ inputs.flake-utils.lib.mkApp {
           shift
           [[ ! -d $1 ]] && err "Output path not existing: $1"
           output_path=$1
-          log_verbose "Output path: $output_path"
+          ;;
+        -m|--build-memory)
+          shift
+          [[ ! -n $1 ]] && err "Build memory is not a number: $1"
+          mem_size=$1
           ;;
         -priv|--private)
           shift
@@ -125,8 +132,10 @@ inputs.flake-utils.lib.mkApp {
     # Check args
     [[ -z $privkey_path ]] && err "Private key must be provided."
     [[ -z $hostname ]] && err "Host name must be specified."
-    log_verbose "qemu-img extra args: $qemuimg_extra_args"
+    log_verbose "Extra args for qemu-img: $qemuimg_extra_args"
     log_verbose "SSH directory on host: $ssh_dir"
+    log_verbose "Output path: $output_path"
+    log_verbose "Build memory: $mem_size"
 
     # Build imaging script for provided hostname
     nix build .#nixosConfigurations.$hostname.config.system.build.diskoImagesScript
@@ -143,7 +152,7 @@ inputs.flake-utils.lib.mkApp {
     echo "Building image for $hostname ..."
     script=$(readlink -f ./result)
     cd $tempdir
-    $script --build-memory 2048 \
+    $script --build-memory $mem_size \
       --post-format-files $privkey_path $ssh_dir/ssh_host_ed25519_key \
       --post-format-files $pubkey_path $ssh_dir/ssh_host_ed25519_key.pub \
       --post-format-files $privkey_path /mnt/$ssh_dir/ssh_host_ed25519_key \

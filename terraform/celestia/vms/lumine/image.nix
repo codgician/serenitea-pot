@@ -9,8 +9,10 @@
     os_disk = [{
       os_type = "Linux";
       os_state = "Generalized";
-      blob_uri = "${azurerm_storage_account.gnosis "primary_blob_endpoint"}${azurerm_storage_container.gnosis-lumine.name}/sda.vhd";
+      blob_uri = "${azurerm_storage_account.constellation "primary_blob_endpoint"}${azurerm_storage_container.constellation-lumine.name}/sda.vhd";
       size_gb = 48;
     }];
+
+    depends_on = [ "azurerm_storage_container.constellation-lumine" ];
   };
 }
