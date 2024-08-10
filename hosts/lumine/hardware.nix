@@ -8,7 +8,8 @@ in
   ];
 
   boot.kernelParams = [ "console=ttyS0" "earlyprintk=ttyS0" "rootdelay=300" "panic=1" "boot.panic_on_fail" ];
-  boot.initrd.kernelModules = [ "hv_vmbus" "hv_netvsc" "hv_utils" "hv_storvsc" ] ++ mlxDrivers;
+  boot.initrd.kernelModules = [ "hv_vmbus" "hv_netvsc" "hv_utils" "hv_storvsc" ];
+  boot.initrd.availableKernelModules = mlxDrivers;
   boot.growPartition = true;
 
   environment.systemPackages = with pkgs; [ cryptsetup sg3_utils ];
