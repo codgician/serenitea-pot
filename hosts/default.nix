@@ -3,14 +3,6 @@ let
   # Base configs for all platforms
   mkBaseConfig = system: hostName: { config, ... }: {
     networking.hostName = hostName;
-    nix = {
-      extraOptions = "experimental-features = nix-command flakes repl-flake";
-      settings = {
-        extra-nix-path = "nixpkgs=flake:nixpkgs";
-        sandbox = true;
-        auto-optimise-store = true;
-      };
-    };
     nixpkgs = {
       config.allowUnfree = true;
       inherit overlays;
@@ -33,9 +25,6 @@ let
       specialArgs = { inherit inputs lib; };
       modules = (mkDarwinModules stable) ++ modules ++ [
         (mkBaseConfig system hostName)
-        ({ config, ... }: {
-          services.nix-daemon.enable = true;
-        })
       ];
     };
 
@@ -55,16 +44,6 @@ let
       specialArgs = { inherit inputs lib; };
       modules = (mkNixosModules stable) ++ modules ++ [
         (mkBaseConfig system hostName)
-        ({ config, ... }: {
-          # Set flake for auto upgrade
-          system.autoUpgrade = {
-            flake = "github:codgician/serenitea-pot";
-            flags = [ "--refresh" "--no-write-lock-file" "-L" ];
-          };
-
-          # Enable redistributable firmware
-          hardware.enableRedistributableFirmware = true;
-        })
       ];
     };
 

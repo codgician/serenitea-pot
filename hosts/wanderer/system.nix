@@ -8,7 +8,6 @@
 
     system = {
       auto-upgrade.enable = true;
-      common.enable = true;
       wsl = {
         enable = true;
         defaultUser = "codgi";

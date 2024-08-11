@@ -3,11 +3,15 @@ let
   cfg = config.codgician.system.common;
 in
 {
-  options.codgician.system.common = {
-    enable = lib.mkEnableOption "Enable common options shared accross all systems.";
-  };
-
   config = lib.mkIf cfg.enable {
+    # Set flake for auto upgrade
+    system.autoUpgrade = {
+      flake = "github:codgician/serenitea-pot";
+      flags = [ "--refresh" "--no-write-lock-file" "-L" ];
+    };
+
+    # Enable redistributable firmware
+    hardware.enableRedistributableFirmware = true;
 
     # Use networkd
     networking.useNetworkd = true;

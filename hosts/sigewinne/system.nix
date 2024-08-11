@@ -12,7 +12,6 @@
 
     system = {
       auto-upgrade.enable = true;
-      common.enable = true;
     };
 
     users = with lib.codgician; {

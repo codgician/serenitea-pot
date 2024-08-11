@@ -17,7 +17,6 @@
 
     system = {
       auto-upgrade.enable = true;
-      common.enable = true;
       impermanence.enable = true;
     };
 
