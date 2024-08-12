@@ -24,7 +24,6 @@
     "OneDrive" = 823766827;
 
     "Telegram" = 747648890;
-    "Twitter" = 1482454543;
     "WeChat" = 836500024;
     "QQ" = 451108668;
     "VooV" = 1497685373;
@@ -33,7 +32,6 @@
     "WireGuard" = 1451685025;
     "LocalSend" = 1661733229;
     "Hex Fiend" = 1342896380;
-    "CADReader" = 1484905765;
     "sing-box" = 6451272673;
 
     "IT之家" = 570610859;
@@ -43,7 +41,7 @@
     "VidHub" = 1659622164;
     "APTV" = 1630403500;
     "Home Assistant" = 1099568401;
-    "Whisper" = 1668083311;
+    "Whisper Transcription" = 1668083311;
   };
 
   # Homebrew casks
