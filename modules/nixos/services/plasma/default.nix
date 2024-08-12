@@ -54,9 +54,14 @@ lib.optionalAttrs (lib.version >= "24.05") {
     programs.dconf.enable = true;
 
     # Auto unlock Kwallet
-    security.pam.services.kwallet = {
-      name = "kwallet";
-      enableKwallet = true;
+    security.pam.services = {
+      login.kwallet.enable = true;
+      kde = {
+        allowNullPassword = true;
+        kwallet.enable = true;
+      };
+      kde-fingerprint = lib.mkIf config.services.fprintd.enable { fprintAuth = true; };
+      kde-smartcard = lib.mkIf config.security.pam.p11.enable { p11Auth = true; };
     };
 
     # Configure keymap in X11
