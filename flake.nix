@@ -191,32 +191,6 @@
         packages = {
           # Terraform configuration
           terraformConfiguration = (import ./terraform { inherit lib pkgs terranix; });
-
-          # Documentations
-          darwinDocs =
-            let
-              eval = import "${inputs.darwin}/eval-config.nix" {
-                inherit lib;
-                specialArgs = { inherit lib; };
-                modules = (mkDarwinModules true) ++ [{
-                  nixpkgs = {
-                    source = lib.mkDefault nixpkgs;
-                    inherit system;
-                  };
-                }];
-              };
-            in
-            (pkgs.nixosOptionsDoc { options = eval.options.codgician; }).optionsCommonMark;
-
-          nixosDocs =
-            let
-              eval = import "${inputs.nixpkgs}/nixos/lib/eval-config.nix" {
-                inherit system;
-                specialArgs = { inherit lib; };
-                modules = mkNixosModules true;
-              };
-            in
-            (pkgs.nixosOptionsDoc { options = eval.options.codgician; }).optionsCommonMark;
         };
 
         # Apps: `nix run .#appName`
