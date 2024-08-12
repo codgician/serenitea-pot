@@ -65,6 +65,8 @@ in
   boot.loader.efi.canTouchEfiVariables = true;
   boot.plymouth.enable = true;
 
+  fileSystems."/nix/persist".neededForBoot = true;
+
   # Select internationalisation properties.
   i18n = {
     defaultLocale = "en_US.UTF-8";
@@ -84,8 +86,7 @@ in
       LC_TIME = "en_US.UTF-8";
     };
     inputMethod = {
-      enable = true;
-      type = "fcitx5";
+      enabled = "fcitx5";
       fcitx5 = {
         addons = with pkgs; [
           fcitx5-rime
