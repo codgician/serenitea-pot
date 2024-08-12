@@ -44,7 +44,6 @@ in
 
             "org.kde.plasma.panelspacer"
             "org.kde.plasma.marginsseparator"
-            "org.kde.plasma.manage-inputmethod"
             "org.kde.plasma.systemtray"
             "org.kde.plasma.digitalclock"
             "org.kde.plasma.showdesktop"
