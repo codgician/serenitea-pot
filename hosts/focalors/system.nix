@@ -39,12 +39,15 @@ in
       zsh.enable = true;
     };
 
-    programs.plasma.configFile = {
-      # Furina wallpaper
-      plasmarc.Wallpapers.usersWallpapers = wallpaper;
-      kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General" = {
-        Image = wallpaper;
-        PreviewImage = wallpaper;
+    programs.plasma = {
+      workspace = { inherit wallpaper; };
+      configFile = {
+        plasmarc.Wallpapers.usersWallpapers = wallpaper;
+        kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General" = {
+          Image = wallpaper;
+          PreviewImage = wallpaper;
+        };
+        kwinrc.Xwayland.Scale = 2;
       };
     };
 
@@ -133,9 +136,6 @@ in
     virt-manager
     kitty
   ];
-
-  # Hack
-  systemd.services.nix-daemon.environment.TMPDIR = "/nix/tmp/nix-daemon";
 
   # Enable zram swap
   zramSwap.enable = true;

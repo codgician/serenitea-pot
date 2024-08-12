@@ -16,6 +16,23 @@ in
   config = lib.mkIf cfg.enable {
     programs.plasma = {
       enable = true;
+
+      workspace = {
+        cursor = {
+          theme = "Breeze";
+          size = 24;
+        };
+
+        desktop.icons = {
+          alignment = "right";
+          arrangement = "topToBottom";
+        };
+
+        iconTheme = "Breeze Dark";
+        lookAndFeel = "org.kde.breezedark.desktop";
+        theme = "breeze-dark";
+      };
+
       configFile = {
         kiorc.Confirmations.ConfirmEmptyTrash = true;
       };
