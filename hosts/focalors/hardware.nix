@@ -1,6 +1,4 @@
 { config, lib, pkgs, ... }: {
-  boot.supportedFilesystems = [ "bcachefs" ];
-
   boot.initrd.availableKernelModules = [ "xhci_pci" "sr_mod" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ ];
