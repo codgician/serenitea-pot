@@ -47,7 +47,10 @@ in
           Image = wallpaper;
           PreviewImage = wallpaper;
         };
-        kwinrc.Xwayland.Scale = 2;
+        kwinrc = {
+          Xwayland.Scale = 2;
+          Wayland."InputMethod[$e]" = "${pkgs.fcitx5}/share/applications/fcitx5-wayland-launcher.desktop";
+        };
       };
     };
 
@@ -66,7 +69,10 @@ in
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.plymouth.enable = true;
+  boot.plymouth = {
+    enable = true;
+    theme = "breeze";
+  };
 
   fileSystems."/nix/persist".neededForBoot = true;
 

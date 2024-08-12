@@ -17,6 +17,41 @@ in
     programs.plasma = {
       enable = true;
 
+      panels = [
+        {
+          alignment = "center";
+          floating = true;
+          height = 44;
+          hiding = "none";
+          lengthMode = "fill";
+          location = "bottom";
+          widgets = [
+            {
+              name = "org.kde.plasma.kickoff";
+              config.General.icon = "nix-snowflake-white";
+            }
+
+            "org.kde.plasma.panelspacer"
+
+            {
+              name = "org.kde.plasma.icontasks";
+              config.General.launchers = [
+                "applications:org.kde.dolphin.desktop"
+                "applications:firefox.desktop"
+                "applications:org.kde.konsole.desktop"
+              ] ++ (lib.optional (config.codgician.codgi.vscode.enable) "applications:code.desktop");
+            }
+
+            "org.kde.plasma.panelspacer"
+            "org.kde.plasma.marginsseparator"
+            "org.kde.plasma.manage-inputmethod"
+            "org.kde.plasma.systemtray"
+            "org.kde.plasma.digitalclock"
+            "org.kde.plasma.showdesktop"
+          ];
+        }
+      ];
+
       workspace = {
         cursor = {
           theme = "Breeze";
@@ -36,6 +71,17 @@ in
       configFile = {
         kiorc.Confirmations.ConfirmEmptyTrash = true;
       };
+    };
+
+    # Unify look for GTK applications
+    gtk = {
+      enable = true;
+      cursorTheme = {
+        name = "breeze_cursors";
+        inherit (config.programs.plasma.workspace.cursor) size;
+      };
+      iconTheme.name = "breeze-dark";
+      theme.name = "Breeze";
     };
   };
 }
