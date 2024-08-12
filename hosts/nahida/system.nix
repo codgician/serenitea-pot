@@ -56,6 +56,8 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
+  fileSystems."/nix/persist".neededForBoot = true;
+
   # Global packages
   environment.systemPackages = with pkgs; [ ];
 
