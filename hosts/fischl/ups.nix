@@ -38,9 +38,7 @@ lib.mkMerge [
       upsd = {
         enable = true;
         listen = [
-          { address = "fischl.lan"; port = 3493; }
-          { address = "127.0.0.1"; port = 3493; }
-          { address = "::1"; port = 3493; }
+          { address = "::"; port = 3493; }
         ];
       };
     };

@@ -72,6 +72,7 @@
   environment.systemPackages = with pkgs; [
     lm_sensors
     smartmontools
+    linuxPackages.turbostat
   ];
 
   # Enable zram swap
