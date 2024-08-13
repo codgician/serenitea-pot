@@ -16,15 +16,6 @@ in
         allow_nested_items_to_be_public = false;
       };
 
-      # Test storage account
-      gnosis = {
-        name = "gnosis";
-        inherit resource_group_name location;
-        account_tier = "Standard";
-        account_replication_type = "LRS";
-        allow_nested_items_to_be_public = true;
-      };
-
       # Binary cache
       primogems = {
         name = "primogems";
@@ -41,13 +32,6 @@ in
       constellation-lumine = {
         name = "lumine";
         storage_account_name = azurerm_storage_account.constellation.name;
-        container_access_type = "private";
-      };
-
-      # Test container
-      gnosis-test = {
-        name = "test";
-        storage_account_name = azurerm_storage_account.gnosis.name;
         container_access_type = "private";
       };
 

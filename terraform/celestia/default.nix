@@ -6,6 +6,7 @@
     ./networks.nix
     ./providers.nix
     ./storages.nix
+    ./gallery.nix
   ];
 
   resource = {
