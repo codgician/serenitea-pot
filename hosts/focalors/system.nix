@@ -32,6 +32,11 @@ in
   # Home manager
   home-manager.users.codgi = { config, ... }: rec {
     codgician.codgi = {
+      dev = {
+        haskell.enable = true;
+        rust.enable = true;
+      };
+      
       git.enable = true;
       pwsh.enable = true;
       ssh.enable = true;

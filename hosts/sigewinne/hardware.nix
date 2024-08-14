@@ -9,6 +9,9 @@ in
     (import "${inputs.mobile-nixos}/lib/configuration.nix" { device = "lenovo-krane"; })
   ];
 
+  # Required for autorotate
+  hardware.sensor.iio.enable = lib.mkDefault true;
+
   # Custom kernel
   mobile = {
     boot.stage-1 = {

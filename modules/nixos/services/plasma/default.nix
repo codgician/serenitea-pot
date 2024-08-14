@@ -78,11 +78,9 @@ lib.optionalAttrs (lib.version >= "24.05") {
       vulkan-tools
       aha
       kdePackages.kio-admin
+      kdePackages.kwallet-pam
       qt6.qtvirtualkeyboard
     ] ++ (lib.optionals cfg.wayland [ wayland-utils ]));
-
-    # Required for autorotate
-    hardware.sensor.iio.enable = lib.mkDefault true;
 
     # todo: remove
     # hack to fix conflict

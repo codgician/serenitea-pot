@@ -4,23 +4,35 @@ let
   types = lib.types;
 in
 {
+  imports = lib.codgician.getNixFilePaths ./envs;
+
   options.codgician.codgi.vscode = {
     enable = lib.mkEnableOption "Enable Visual Studio Code.";
 
     useWayland = lib.mkOption {
       type = types.bool;
       default = true;
-      description = ''Use Wayland backend for Visual Studio Code.'';
+      description = "Use Wayland backend for Visual Studio Code.";
     };
-
   };
 
   config = lib.mkIf cfg.enable {
     programs.vscode = {
       enable = true;
       enableUpdateCheck = false;
-      enableExtensionUpdateCheck = true;
-      mutableExtensionsDir = true;
+      enableExtensionUpdateCheck = false;
+      mutableExtensionsDir = false;
+
+      extensions = with pkgs.vscode-extensions; [
+        jnoortheen.nix-ide
+        ms-vscode.hexeditor
+        ms-vscode-remote.remote-ssh
+        ms-vscode-remote.remote-ssh-edit
+        ms-vscode-remote.remote-containers
+        github.copilot
+        github.copilot-chat
+        github.vscode-pull-request-github
+      ];
     };
 
     xdg.configFile = {
