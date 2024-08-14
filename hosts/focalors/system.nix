@@ -34,6 +34,7 @@ in
     codgician.codgi = {
       dev = {
         haskell.enable = true;
+        nix.enable = true;
         rust.enable = true;
       };
 

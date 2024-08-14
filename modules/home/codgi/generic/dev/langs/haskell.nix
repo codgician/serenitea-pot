@@ -9,16 +9,20 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    programs.vscode.extensions = with pkgs.vscode-extensions; [
-      haskell.haskell
-    ];
+    programs.vscode = {
+      extensions = with pkgs.vscode-extensions; [
+        haskell.haskell
+      ];
+
+      userSettings.haskell.serverExecutablePath =
+        "${pkgs.haskell-language-server}/bin/haskell-language-server-wrapper";
+    };
 
     home.packages = with pkgs; [
       ghc
       stack
       cabal-install
       cabal2nix
-      haskell-language-server
     ];
   };
 }

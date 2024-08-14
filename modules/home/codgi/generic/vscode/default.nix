@@ -16,7 +16,6 @@ in
       mutableExtensionsDir = false;
 
       extensions = with pkgs.vscode-extensions; [
-        jnoortheen.nix-ide
         ms-vscode.hexeditor
         ms-vscode-remote.remote-ssh
         ms-vscode-remote.remote-ssh-edit

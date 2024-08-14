@@ -9,12 +9,16 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    programs.vscode.extensions = with pkgs.vscode-extensions; [
-      rust-lang.rust-analyzer
-    ];
+    programs.vscode = {
+      extensions = with pkgs.vscode-extensions; [
+        rust-lang.rust-analyzer
+      ];
+
+      userSettings.rust-analyzer.server.path =
+        "${pkgs.rust-analyzer-unwrapped}/bin/rust-analyzer";
+    };
 
     home.packages = with pkgs; [
-      rust-analyzer-unwrapped
       rustc
       cargo
     ];
