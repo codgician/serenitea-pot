@@ -1,7 +1,6 @@
-{ config, osConfig, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 let
   cfg = config.codgician.codgi.dev.rust;
-  types = lib.types;
 in
 {
   options.codgician.codgi.dev.rust = {
@@ -10,7 +9,7 @@ in
 
   config = lib.mkIf cfg.enable {
     programs.vscode = {
-      extensions = with pkgs.vscode-extensions; [
+      extensions = with pkgs.vscode-marketplace; [
         rust-lang.rust-analyzer
       ];
 

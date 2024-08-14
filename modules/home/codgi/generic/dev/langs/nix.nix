@@ -1,7 +1,6 @@
-{ config, osConfig, lib, pkgs, ... }:
+{ config, lib, pkgs, ... }:
 let
   cfg = config.codgician.codgi.dev.nix;
-  types = lib.types;
 in
 {
   options.codgician.codgi.dev.nix = {
@@ -10,13 +9,16 @@ in
 
   config = lib.mkIf cfg.enable {
     programs.vscode = {
-      extensions = with pkgs.vscode-extensions; [
+      extensions = with pkgs.vscode-marketplace; [
         jnoortheen.nix-ide
       ];
 
       userSettings = {
         "[nix]".editor.tabSize = 2;
-        nix.serverPath = "${pkgs.nil}/bin/nil";
+        nix = {
+          enableLanguageServer = true;
+          serverPath = "${pkgs.nil}/bin/nil";
+        };
       };
     };
   };
