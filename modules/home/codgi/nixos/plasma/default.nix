@@ -1,4 +1,4 @@
-{ config, osConfig, lib, pkgs, ... }:
+{ config, osConfig, lib, ... }:
 let
   cfg = config.codgician.codgi.plasma;
   types = lib.types;

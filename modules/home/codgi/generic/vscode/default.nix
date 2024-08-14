@@ -16,13 +16,19 @@ in
 
       extensions = with pkgs.vscode-marketplace; [
         ms-vscode.hexeditor
-        ms-vscode-remote.remote-ssh
         ms-vscode-remote.remote-ssh-edit
         ms-vscode-remote.remote-containers
         github.vscode-pull-request-github
+      ] ++ (with pkgs.vscode-marketplace-release; [
         github.copilot
         github.copilot-chat
-      ];
+        ms-vscode-remote.remote-ssh
+      ]);
+
+      userSettings.editor = {
+        fontFamily = "'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace";
+        fontSize = 14;
+      };
     };
   };
 }

@@ -1,4 +1,4 @@
-{ config, osConfig, lib, pkgs, ... }:
+{ config, lib, ... }:
 let
   cfg = config.codgician.codgi.vscode;
   types = lib.types;
