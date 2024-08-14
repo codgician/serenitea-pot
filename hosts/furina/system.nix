@@ -17,9 +17,15 @@
   # Home manager
   home-manager.users.codgi = { config, pkgs, ... }: {
     codgician.codgi = {
+      dev = {
+        haskell.enable = true;
+        rust.enable = true;
+      };
+
       git.enable = true;
       pwsh.enable = true;
       ssh.enable = true;
+      vscode.enable = true;
       zsh.enable = true;
     };
 

@@ -10,6 +10,9 @@ in
       flags = [ "--refresh" "--no-write-lock-file" "-L" ];
     };
 
+    # Enable sandboxed nix builds
+    nix.settings.sandbox = true;
+
     # Enable redistributable firmware
     hardware.enableRedistributableFirmware = true;
 

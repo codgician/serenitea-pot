@@ -15,7 +15,6 @@ in
       extraOptions = "experimental-features = nix-command flakes repl-flake";
       settings = {
         extra-nix-path = "nixpkgs=flake:nixpkgs";
-        sandbox = true;
         auto-optimise-store = true;
       };
     };

@@ -48,7 +48,6 @@
   casks = [
     "appcleaner"
     "calibre"
-    "visual-studio-code"
     "microsoft-edge"
     "microsoft-teams"
     "logi-options-plus"
