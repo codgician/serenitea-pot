@@ -1,8 +1,8 @@
-{ config, lib, pkgs, ... }: {
+{ lib, pkgs, ... }: {
 
   # My settings
   codgician = {
-    services = rec {
+    services = {
       nginx.openFirewall = true;
 
       postgresql = {
@@ -112,7 +112,7 @@
   };
 
   # Home manager
-  home-manager.users.codgi = { config, ... }: rec {
+  home-manager.users.codgi = { config, ... }: {
     codgician.codgi = {
       git.enable = true;
       pwsh.enable = true;
@@ -125,7 +125,7 @@
   };
 
   # Global packages
-  environment.systemPackages = with pkgs; [ ];
+  environment.systemPackages = [ ];
 
   # Getty
   services.getty.autologinUser = "codgi";

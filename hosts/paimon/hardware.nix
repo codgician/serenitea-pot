@@ -1,4 +1,4 @@
-{ config, lib, modulesPath, ... }: {
+{ lib, modulesPath, ... }: {
   imports =
     [
       (modulesPath + "/virtualisation/proxmox-lxc.nix")

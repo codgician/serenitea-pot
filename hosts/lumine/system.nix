@@ -1,4 +1,4 @@
-{ config, lib, pkgs, agenix, ... }: {
+{ lib, pkgs, ... }: {
 
   # My settings
   codgician = {
@@ -28,7 +28,7 @@
   };
 
   # Home manager
-  home-manager.users.codgi = { config, ... }: rec {
+  home-manager.users.codgi = { config, ... }: {
     codgician.codgi = {
       git.enable = true;
       pwsh.enable = true;

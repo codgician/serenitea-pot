@@ -1,7 +1,6 @@
 { config, lib, ... }:
 let
   cfg = config.codgician.services.rustdesk-server;
-  types = lib.types;
 in
 {
   options.codgician.services.rustdesk-server = {

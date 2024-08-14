@@ -2,7 +2,6 @@
 let
   cfg = config.codgician.services.dendrite;
   types = lib.types;
-  systemCfg = config.codgician.system;
 
   dbHost = "/run/postgresql";
   dbName = "dendrite";

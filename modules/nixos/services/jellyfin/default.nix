@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, ... }:
 let
   cfg = config.codgician.services.jellyfin;
   systemCfg = config.codgician.system;

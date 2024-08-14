@@ -1,4 +1,4 @@
-{ config, lib, pkgs, agenix, ... }: {
+{ lib, pkgs, ... }: {
 
   # My settings
   codgician = {
@@ -40,7 +40,7 @@
   };
 
   # Home manager
-  home-manager.users.codgi = { config, ... }: rec {
+  home-manager.users.codgi = { config, ... }: {
     codgician.codgi = {
       git.enable = true;
       pwsh.enable = true;
@@ -59,7 +59,7 @@
   fileSystems."/nix/persist".neededForBoot = true;
 
   # Global packages
-  environment.systemPackages = with pkgs; [ ];
+  environment.systemPackages = [ ];
 
   # Firewall
   networking.firewall.enable = true;

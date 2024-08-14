@@ -1,4 +1,4 @@
-{ config, lib, pkgs, modulesPath, ... }:
+{ lib, pkgs, modulesPath, ... }:
 let
   mlxDrivers = [ "mlx4_en" "mlx4_core" "mlx5_core" ];
 in

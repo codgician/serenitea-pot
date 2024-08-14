@@ -2,7 +2,6 @@
 let
   cfg = config.codgician.services.wireguard;
   types = lib.types;
-  systemCfg = config.codgician.system;
   hosts = builtins.map (lib.removeSuffix ".nix")
     (builtins.filter (lib.hasSuffix ".nix") (lib.codgician.getRegularFileNames ./peers));
   hostOptions = builtins.listToAttrs

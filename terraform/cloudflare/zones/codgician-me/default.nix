@@ -1,4 +1,4 @@
-{ config, lib, ... }: {
+{ lib, ... }: {
   imports = lib.codgician.getRegularFilePaths ./records;
 
   resource.cloudflare_zone.codgician-me = {

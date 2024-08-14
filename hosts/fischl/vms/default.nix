@@ -1,4 +1,4 @@
-{ config, ... }: {
+{ ... }: {
   # libvirtd 
   virtualisation.libvirtd = {
     qemu.swtpm.enable = true;

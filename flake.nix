@@ -146,7 +146,7 @@
         ];
 
       # All Darwin modules for building system
-      mkDarwinInputModules = stable: with inputs;
+      mkDarwinInputModules = stable:
         (mkHomeManagerModules "darwinModules" stable [ ]) ++ [
           agenix.darwinModules.default
         ];
@@ -189,7 +189,7 @@
         nixpkgs = if isDarwin then inputs.nixpkgs-darwin else inputs.nixpkgs;
         pkgs = mkPkgs nixpkgs system;
       in
-      rec {
+      {
         # Development shell: `nix develop .#name`
         devShells = (import ./shells { inherit lib pkgs inputs; outputs = self; });
 

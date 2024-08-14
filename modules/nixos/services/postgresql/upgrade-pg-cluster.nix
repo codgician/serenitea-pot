@@ -1,6 +1,6 @@
 # Reference: https://nixos.org/manual/nixos/stable/#module-services-postgres-upgrading
 
-{ config, lib, pkgs, ... }:
+{ config, pkgs, ... }:
 let
   newPostgres = pkgs.postgresql.withPackages (pp: [
     # List extensions you need here, example: pp.plv8

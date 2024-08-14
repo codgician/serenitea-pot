@@ -1,4 +1,4 @@
-{ config, lib, pkgs, inputs, ... }:
+{ config, lib, ... }:
 let
   cfg = config.codgician.system.agenix;
   impermanenceCfg = config.codgician.system.impermanence;

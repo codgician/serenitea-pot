@@ -3,7 +3,6 @@ let
   domains = import ./domains.nix;
   domainNames = builtins.attrNames domains;
   cfg = config.codgician.acme;
-  systemCfg = config.codgician.system;
   types = lib.types;
 
   # Define module options for each certificate
@@ -70,7 +69,7 @@ let
     }
   ]);
 in
-rec {
+{
   options.codgician.acme = lib.codgician.concatAttrs (builtins.map mkAcmeOptions domainNames);
   config = lib.mkMerge ((builtins.map mkAcmeConfig domainNames) ++ [
     # Accept terms

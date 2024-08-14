@@ -1,7 +1,6 @@
-{ config, lib, pkgs, ... }:
+{ pkgs, ... }:
 let
   name = builtins.baseNameOf ./.;
-  cfg = config.codgician.users.${name};
 in
 {
   users.users.kiosk = {

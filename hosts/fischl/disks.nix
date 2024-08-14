@@ -1,4 +1,5 @@
 { disks ? [ "nvme0n1" "nvme1n1" ], ... }:
+
 let
   mkDiskConfig = disk: {
     type = "disk";
@@ -33,8 +34,8 @@ in
     devices = {
       # Disks: mirrored ZFS root
       disk = {
-        nvme0n1 = mkDiskConfig "nvme0n1";
-        nvme1n1 = mkDiskConfig "nvme1n1";
+        nvme0n1 = mkDiskConfig (builtins.elemAt disks 0);
+        nvme1n1 = mkDiskConfig (builtins.elemAt disks 1);
       };
 
       # zpool settings

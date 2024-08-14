@@ -1,4 +1,4 @@
-{ config, pkgs, ... }: {
+{ pkgs, ... }: {
   codgician.services.nginx = {
     enable = true;
     openFirewall = true;

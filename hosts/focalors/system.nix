@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ lib, pkgs, ... }:
 let
   wallpaper = (pkgs.fetchurl {
     url = "https://cdn.dynamicwallpaper.club/wallpapers/zt6aeujg1pn/Furina.heic";
@@ -30,7 +30,7 @@ in
   };
 
   # Home manager
-  home-manager.users.codgi = { config, ... }: rec {
+  home-manager.users.codgi = { config, ... }: {
     codgician.codgi = {
       dev = {
         haskell.enable = true;

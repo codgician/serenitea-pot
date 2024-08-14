@@ -1,4 +1,6 @@
-{ config, lib, ... }: lib.mkMerge [
+{ config, lib, ... }:
+
+lib.mkMerge [
   {
     # Wireless
     networking.wireless = {

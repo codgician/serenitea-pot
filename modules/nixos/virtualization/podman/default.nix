@@ -2,7 +2,6 @@
 let
   cfg = config.codgician.virtualization.podman;
   systemCfg = config.codgician.system;
-  types = lib.types;
 in
 {
   options.codgician.virtualization.podman.enable = lib.mkEnableOption ''

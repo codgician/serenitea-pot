@@ -1,4 +1,4 @@
-{ mobile-nixos, fetchurl, fetchpatch, lib, kernel, ... }: mobile-nixos.kernel-builder {
+{ mobile-nixos, fetchpatch, kernel, ... }: mobile-nixos.kernel-builder {
   inherit (kernel) src version;
   configfile = ./config.aarch64;
 

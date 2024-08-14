@@ -1,4 +1,4 @@
-{ config, lib, pkgs, agenix, nixos-wsl, ... }: {
+{ lib, pkgs, ... }: {
 
   # My settings
   codgician = {
@@ -22,7 +22,7 @@
   };
 
   # Home manager
-  home-manager.users.codgi = { config, ... }: rec {
+  home-manager.users.codgi = { config, ... }: {
     codgician.codgi = {
       git.enable = true;
       pwsh.enable = true;
@@ -35,7 +35,7 @@
   };
 
   # Global packages
-  environment.systemPackages = with pkgs; [ ];
+  environment.systemPackages = [ ];
 
   # Enable zram swap
   zramSwap.enable = true;

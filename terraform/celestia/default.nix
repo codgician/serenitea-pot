@@ -1,4 +1,4 @@
-{ config, lib, ... }: {
+{ ... }: {
   imports = [
     ./cognitive
     ./vms

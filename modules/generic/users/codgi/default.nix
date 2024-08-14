@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ lib, pkgs, ... }:
 let
   name = builtins.baseNameOf ./.;
   pubKeys = import (lib.codgician.secretsDir + "/pubkeys.nix");
