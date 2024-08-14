@@ -25,9 +25,15 @@ in
         ms-vscode-remote.remote-ssh
       ]);
 
-      userSettings.editor = {
-        fontFamily = "'Cascadia Code', 'Fira Code', 'JetBrains Mono', monospace";
-        fontSize = 14;
+      userSettings = {
+        editor = {
+          fontFamily = "'Cascadia Code NF', 'Cascadia Code', monospace";
+          fontSize = 14;
+        };
+        terminal.integrated = {
+          fontFamily = "'Cascadia Mono PL', 'Cascadia Mono', monospace";
+          fontSize = 14;
+        };
       };
     };
   };

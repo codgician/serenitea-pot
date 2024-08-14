@@ -1,4 +1,4 @@
-{ config, osConfig, lib, ... }:
+{ config, osConfig, lib, pkgs, ... }:
 let
   cfg = config.codgician.codgi.plasma;
   types = lib.types;
@@ -69,6 +69,21 @@ in
 
       configFile = {
         kiorc.Confirmations.ConfirmEmptyTrash = true;
+      };
+    };
+
+    # Konsole
+    programs.konsole = rec {
+      enable = true;
+      defaultProfile = profiles.default.name;
+      profiles.default = {
+        name = "Default";
+        colorScheme = "Breeze";
+        command = "${pkgs.zsh}/bin/zsh";
+        font = {
+          name = "Cascadia Mono PL";
+          size = 11;
+        };
       };
     };
 
