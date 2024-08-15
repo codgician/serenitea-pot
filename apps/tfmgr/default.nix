@@ -58,7 +58,11 @@ inputs.flake-utils.lib.mkApp {
       ${pkgs.terraform}/bin/terraform init
     }
 
-    test $# -eq 0 && (show_help && exit 1)
+    if test $# -eq 0; then
+      show_help
+      exit 1 
+    fi
+    
     while test $# -gt 0; do
       case "$1" in
         -h|--help)

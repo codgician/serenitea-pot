@@ -60,7 +60,11 @@ inputs.flake-utils.lib.mkApp {
       echo ' '
     }
 
-    test $# -eq 0 && (show_help && exit 1)
+    if test $# -eq 0; then
+      show_help
+      exit 1 
+    fi
+    
     imgfmt="raw"
     qemuimg_extra_args=""
     output_path=$(${pkgs.coreutils}/bin/pwd)
