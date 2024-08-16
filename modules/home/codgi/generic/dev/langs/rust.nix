@@ -13,13 +13,13 @@ in
         rust-lang.rust-analyzer
       ];
 
-      userSettings.rust-analyzer.server.path =
-        "${pkgs.rust-analyzer-unwrapped}/bin/rust-analyzer";
+      userSettings.rust-analyzer.server.path = "rust-analyzer";
     };
 
     home.packages = with pkgs; [
       rustc
       cargo
+      rust-analyzer-unwrapped
     ];
   };
 }

@@ -42,6 +42,12 @@
   # Home manager
   home-manager.users.codgi = { config, ... }: {
     codgician.codgi = {
+      dev = {
+        haskell.enable = true;
+        nix.enable = true;
+        rust.enable = true;
+      };
+
       git.enable = true;
       pwsh.enable = true;
       ssh.enable = true;

@@ -17,9 +17,12 @@ in
         "[nix]".editor.tabSize = 2;
         nix = {
           enableLanguageServer = true;
-          serverPath = "${pkgs.nil}/bin/nil";
+          serverPath = "nil";
         };
       };
     };
+
+    # Language server
+    home.packages = with pkgs; [ nil ];
   };
 }

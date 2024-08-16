@@ -13,8 +13,7 @@ in
         haskell.haskell
       ];
 
-      userSettings.haskell.serverExecutablePath =
-        "${pkgs.haskell-language-server}/bin/haskell-language-server-wrapper";
+      userSettings.haskell.serverExecutablePath = "haskell-language-server-wrapper";
     };
 
     home.packages = with pkgs; [
@@ -22,6 +21,7 @@ in
       stack
       cabal-install
       cabal2nix
+      haskell-language-server
     ];
   };
 }
