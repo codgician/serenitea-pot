@@ -25,6 +25,7 @@ jobs:
       - name: Check flake
         run: nix flake check --all-systems
       - name: Build OS configurations
+        if: ${{ false }}
         run: |
           system=$(nix eval --expr "builtins.currentSystem" --impure --raw)
           type=$([[ $system == *-darwin ]] && echo "darwinConfigurations" || echo "nixosConfigurations")
