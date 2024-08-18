@@ -29,5 +29,6 @@ jobs:
           system=$(nix eval --expr "builtins.currentSystem" --impure --raw)
           type=$([[ $system == *-darwin ]] && echo "darwinConfigurations" || echo "nixosConfigurations")
           args=$(nix eval .\#${type} --raw \
-            --apply "x: builtins.concatStringsSep \" \" (map (y: \".#${type}.\${y}.system\") (builtins.filter (y: x.\${y}.pkgs.system == ''${system}'') (builtins.attrNames x)))")
+            --apply "x: builtins.concatStringsSep \" \" (map (y: \".#${type}.\${y}.config.system.build.toplevel\") \
+              (builtins.filter (y: x.\${y}.pkgs.system == ''${system}'') (builtins.attrNames x)))")
           nix build $args
