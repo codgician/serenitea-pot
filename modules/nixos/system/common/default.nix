@@ -52,7 +52,14 @@ in
       xterm
       htop
       aria2
+      iperf3
     ];
+
+    # Open firewall for iperf3
+    networking.firewall = {
+      allowedTCPPorts = [ 5201 ];
+      allowedUDPPorts = [ 5201 ];
+    };
 
     # Security
     users.mutableUsers = false;
