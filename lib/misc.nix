@@ -28,6 +28,9 @@
   # Get all nix file names under specified path
   getNixFileNames = path: builtins.filter (lib.hasSuffix ".nix") (getRegularFileNames path);
 
+  # Get all nix file names under specified path without extension
+  getNixFileNamesWithoutExt = path: builtins.map (lib.removeSuffix ".nix") (getNixFileNames path);
+
   # Get all nix file full paths under specified path
   getNixFilePaths = path: builtins.map (x: path + "/${x}") (getNixFileNames path);
 }

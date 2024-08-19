@@ -12,6 +12,8 @@
       secure-boot.enable = true;
     };
 
+    power.ups.devices = [ "lakeview" ];
+
     users.codgi = with lib.codgician; {
       enable = true;
       hashedPasswordAgeFile = secretsDir + "/codgiHashedPassword.age";
