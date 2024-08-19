@@ -61,7 +61,7 @@ in
     };
 
     home.stateVersion = "24.05";
-    home.packages = with pkgs; [ httplz iperf3 screen ];
+    home.packages = with pkgs; [ httplz screen ];
   };
 
   # Hyprland

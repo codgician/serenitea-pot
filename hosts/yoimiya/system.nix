@@ -9,10 +9,10 @@
     system = {
       auto-upgrade.enable = true;
       impermanence.enable = true;
-      secure-boot.enable = true;
+      #secure-boot.enable = true;
     };
 
-    power.ups.devices = [ "lakeview" ];
+    power.ups.devices = [ "br1500g" ];
 
     users.codgi = with lib.codgician; {
       enable = true;
@@ -47,7 +47,7 @@
   # ZFS configurations
   services.zfs = {
     autoScrub.enable = true;
-    autoSnapshot.enable = false;
+    autoSnapshot.enable = true;
     expandOnBoot = "all";
     trim.enable = true;
   };
@@ -58,7 +58,7 @@
   fileSystems."/nix/persist".neededForBoot = true;
   boot.plymouth.enable = false;
 
-  networking.hostId = "4b6c6565";
+  networking.hostId = "a7f3fe2e";
 
   # TPM
   security.tpm2 = {
