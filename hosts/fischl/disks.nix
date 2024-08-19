@@ -1,9 +1,9 @@
 { disks ? [ "nvme0n1" "nvme1n1" ], ... }:
 
 let
-  mkDiskConfig = disk: {
+  mkDiskConfig = id: {
     type = "disk";
-    device = "/dev/${disk}";
+    device = "/dev/${builtins.elemAt disks id}";
     content = {
       type = "gpt";
       partitions = {
@@ -13,7 +13,7 @@ let
           content = {
             type = "filesystem";
             format = "vfat";
-            mountpoint = "/boot-${disk}";
+            mountpoint = "/boot-${builtins.toString id}";
             mountOptions = [ "umask=0077" ];
           };
         };
@@ -34,8 +34,8 @@ in
     devices = {
       # Disks: mirrored ZFS root
       disk = {
-        nvme0n1 = mkDiskConfig (builtins.elemAt disks 0);
-        nvme1n1 = mkDiskConfig (builtins.elemAt disks 1);
+        zroot-0 = mkDiskConfig 0;
+        zroot-1 = mkDiskConfig 1;
       };
 
       # zpool settings

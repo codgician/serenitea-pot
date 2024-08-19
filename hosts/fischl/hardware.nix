@@ -27,24 +27,24 @@
     ];
   };
 
-  # Specify nvme0n1p1 as the primary ESP partition
-  boot.loader.efi.efiSysMountPoint = "/boot-nvme0n1";
+  # Specify boot-0 as the primary ESP partition
+  boot.loader.efi.efiSysMountPoint = "/boot-0";
 
   # Mount efi partitions at boot
   fileSystems = {
-    "/boot-nvme0n1".neededForBoot = true;
-    "/boot-nvme1n1".neededForBoot = true;
+    "/boot-0".neededForBoot = true;
+    "/boot-1".neededForBoot = true;
   };
 
   # Sync content to backup ESP partition on activation
   system.activationScripts.rsync-esp.text = ''
-    if ! ${pkgs.util-linux}/bin/mountpoint -q /boot-nvme0n1; then
-      echo -e "\033[0;33mWARNING: /boot-nvme0n1 not mounted, RAID-1 might have degraded.\033[0m"
-    elif ! ${pkgs.util-linux}/bin/mountpoint -q /boot-nvme1n1; then
-      echo -e "\033[0;33mWARNING: /boot-nvme1n1 not mounted, RAID-1 might have degraded.\033[0m"
+    if ! ${pkgs.util-linux}/bin/mountpoint -q /boot-0; then
+      echo -e "\033[0;33mWARNING: /boot-0 not mounted, RAID-1 might have degraded.\033[0m"
+    elif ! ${pkgs.util-linux}/bin/mountpoint -q /boot-1; then
+      echo -e "\033[0;33mWARNING: /boot-1 not mounted, RAID-1 might have degraded.\033[0m"
     else
-      echo "Syncing /boot-nvme0n1 to /boot-nvme1n1..."
-      ${pkgs.rsync}/bin/rsync -a --delete /boot-nvme0n1/ /boot-nvme1n1/
+      echo "Syncing /boot-0 to /boot-1..."
+      ${pkgs.rsync}/bin/rsync -a --delete /boot-0/ /boot-1/
     fi
   '';
 
