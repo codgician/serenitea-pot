@@ -22,7 +22,7 @@ let
     in
     inputs.darwin.lib.darwinSystem {
       inherit system lib;
-      specialArgs = { inherit inputs lib; };
+      specialArgs = { inherit inputs lib system; };
       modules = (mkDarwinModules stable) ++ modules ++ [
         (mkBaseConfig system hostName)
       ];
@@ -41,7 +41,7 @@ let
     in
     nixpkgs.lib.nixosSystem {
       inherit system lib;
-      specialArgs = { inherit inputs lib; };
+      specialArgs = { inherit inputs lib system; };
       modules = (mkNixosModules stable) ++ modules ++ [
         (mkBaseConfig system hostName)
       ];

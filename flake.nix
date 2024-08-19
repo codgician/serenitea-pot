@@ -15,6 +15,15 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     flake-utils.url = "github:numtide/flake-utils";
 
+    proxmox-nixos = {
+      url = "github:SaumonNet/proxmox-nixos";
+      inputs = {
+        nixpkgs-stable.follows = "nixpkgs";
+        flake-compat.follows = "flake-compat";
+        utils.follows = "flake-utils";
+      };
+    };
+
     mobile-nixos = {
       url = "github:codgician/mobile-nixos/fix-depmod";
       flake = false;
@@ -166,6 +175,10 @@
           nixos-wsl.nixosModules.wsl
           nixvirt.nixosModules.default
           vscode-server.nixosModules.default
+          proxmox-nixos.nixosModules.proxmox-ve
+          ({ system, ... }: {
+            nixpkgs.overlays = [ proxmox-nixos.overlays.${system} ];
+          })
         ];
 
       # All modules
