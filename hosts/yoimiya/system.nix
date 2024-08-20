@@ -3,6 +3,16 @@
   # My settings
   codgician = {
     services = {
+      mlx5-sriov.enp65s0f0np0 = {
+        vfNum = 8;
+        macs = [
+          "ac:79:86:2a:81:da"
+          "ac:79:86:31:25:b7"
+          "ac:79:86:28:02:91"
+          "ac:79:86:92:0b:af"
+        ];
+      };
+
       nixos-vscode-server.enable = true;
     };
 
