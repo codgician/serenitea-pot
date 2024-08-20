@@ -9,7 +9,7 @@ let
     echo ${builtins.toString cfg.${name}.vfNum} > /sys/class/net/${name}/device/mlx5_num_vfs
   '' + (builtins.concatStringsSep "\n" (builtins.map
     (x: ''
-      ip link set ${name} vf ${builtins.toString x.fst} mac ${x.snd}
+      ${pkgs.iproute2}/bin/ip link set ${name} vf ${builtins.toString x.fst} mac ${x.snd}
       echo "Up" > /sys/class/net/${name}/device/sriov/${builtins.toString x.fst}/link_state
     '')
     (lib.zipLists (lib.range 0 (cfg.${name}.vfNum - 1)) cfg.${name}.macs)));
@@ -57,7 +57,7 @@ in
       after = [ "network.target" ];
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = "${script}/bin/${script.name}";
+        ExecStart = "${pkgs.bash}/bin/bash ${script}/bin/${script.name}";
         RemainAfterExit = true;
       };
     };
