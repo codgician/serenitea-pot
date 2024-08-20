@@ -1,4 +1,4 @@
-<domain type="kvm" xmlns:qemu="http://libvirt.org/schemas/domain/qemu/1.0">
+<domain xmlns:qemu="http://libvirt.org/schemas/domain/qemu/1.0" type="kvm">
   <name>openwrt</name>
   <uuid>940df2db-4ddb-4a63-ac8a-2cc22001af85</uuid>
   <metadata>
@@ -153,17 +153,11 @@
       <target type="virtio" name="org.qemu.guest_agent.0"/>
       <address type="virtio-serial" controller="0" bus="0" port="1"/>
     </channel>
-    <input type="tablet" bus="virtio">
-      <address type="pci" domain="0x0000" bus="0x08" slot="0x00" function="0x0"/>
-    </input>
     <input type="mouse" bus="ps2"/>
     <input type="keyboard" bus="ps2"/>
     <graphics type="vnc" port="-1" autoport="yes">
       <listen type="address"/>
     </graphics>
-    <sound model="ich9">
-      <address type="pci" domain="0x0000" bus="0x00" slot="0x1b" function="0x0"/>
-    </sound>
     <audio id="1" type="none"/>
     <video>
       <model type="virtio" heads="1" primary="yes"/>
@@ -197,7 +191,7 @@
     </rng>
   </devices>
   <qemu:commandline>
-    <qemu:arg value='-overcommit'/>
-    <qemu:arg value='cpu-pm=on'/>
+    <qemu:arg value="-overcommit"/>
+    <qemu:arg value="cpu-pm=on"/>
   </qemu:commandline>
 </domain>
