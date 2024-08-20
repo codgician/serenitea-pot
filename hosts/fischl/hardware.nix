@@ -55,14 +55,6 @@
     devices."zroot".secretFile = ./zroot.jwe;
   };
 
-  # Bind first 3 ethernet cards to vfio for passthrough
-  boot.initrd.preDeviceCommands = ''
-    for dev in 0000:01:00.0 0000:02:00.0 0000:03:00.0; do 
-      echo "vfio-pci" > /sys/bus/pci/devices/$dev/driver_override 
-      echo "$dev" > /sys/bus/pci/drivers/vfio-pci/bind 
-    done
-  '';
-
   # Enable graphics
   hardware.opengl.enable = true;
 
