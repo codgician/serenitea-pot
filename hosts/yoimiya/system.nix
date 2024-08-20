@@ -44,6 +44,9 @@
     home.packages = with pkgs; [ httplz screen ];
   };
 
+  # Enable proxmox VE
+  services.proxmox-ve.enable = true;
+
   # Use systemd-boot boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
