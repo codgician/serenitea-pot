@@ -11,6 +11,7 @@ in
   config = lib.mkIf cfg.enable {
     programs.git = rec {
       enable = true;
+      delta.enable = true;
       lfs.enable = true;
       package = pkgs.gitFull;
 
