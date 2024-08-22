@@ -35,6 +35,16 @@
     nvidiaSettings = true;
   };
 
+  # Limit TDP for nvidia card
+  systemd.services.nvidia-power-limit = {
+    description = "Limit NVIDIA GPU Power Limit";
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      ExecStart = "${config.hardware.nvidia.package.bin}/bin/nvidia-smi -pl 300";
+      Type = "oneshot";
+    };
+  };
+
   # Enable use of nvidia card in containers
   hardware.nvidia-container-toolkit.enable = true;
 
