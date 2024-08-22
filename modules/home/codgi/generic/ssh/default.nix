@@ -8,6 +8,7 @@ in
   config = lib.mkIf cfg.enable {
     programs.ssh = {
       enable = true;
+      addKeysToAgent = "yes";
       extraConfig = ''
         AddKeysToAgent yes
       '' + lib.optionalString pkgs.stdenvNoCC.isDarwin ''
