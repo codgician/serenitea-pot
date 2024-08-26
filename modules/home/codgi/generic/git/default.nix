@@ -31,5 +31,11 @@ in
         credential.helper = lib.mkIf (pkgs.stdenvNoCC.isDarwin) "osxkeychain";
       };
     };
+
+    programs.gh = {
+      enable = true;
+      gitCredentialHelper.enable = true;
+      settings.editor = "${pkgs.vim}/bin/vim";
+    };
   };
 }
