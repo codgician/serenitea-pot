@@ -23,7 +23,6 @@
 
       dendrite = {
         enable = true;
-        dataPath = "/mnt/data/dendrite";
         domain = "matrix.codgician.me";
         reverseProxy = {
           enable = true;
