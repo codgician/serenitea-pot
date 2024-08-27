@@ -8,8 +8,8 @@ with pubKeys; with pubKeys.hosts; {
   # User password
   "codgiPassword.age".publicKeys = someHosts [ paimon ];
   "codgiHashedPassword.age".publicKeys = allHosts;
-  "bmcPassword.age".publicKeys = someHosts [ paimon ];
-  "bmcHashedPassword.age".publicKeys = someHosts [ paimon ];
+  "smbPassword.age".publicKeys = someHosts [ paimon ];
+  "smbHashedPassword.age".publicKeys = someHosts [ paimon ];
   "kioskHashedPassword.age".publicKeys = someHosts [ sigewinne ];
 
   # NUT password

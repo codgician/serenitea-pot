@@ -52,7 +52,7 @@
 
       samba = {
         enable = true;
-        users = [ "codgi" "bmc" ];
+        users = [ "codgi" "smb" ];
         shares = {
           "media" = {
             path = "/mnt/nas/media";
@@ -102,11 +102,11 @@
         passwordAgeFile = secretsDir + "/codgiPassword.age";
         extraGroups = [ "wheel" ];
       };
-      bmc = {
+      smb = {
         enable = true;
         createHome = false;
-        hashedPasswordAgeFile = secretsDir + "/bmcHashedPassword.age";
-        passwordAgeFile = secretsDir + "/bmcPassword.age";
+        hashedPasswordAgeFile = secretsDir + "/smbHashedPassword.age";
+        passwordAgeFile = secretsDir + "/smbPassword.age";
       };
     };
   };

@@ -3,9 +3,9 @@ let
   name = builtins.baseNameOf ./.;
 in
 {
-  users.users.bmc = {
+  users.users.smb = {
     inherit name;
-    description = "bmc samba user";
+    description = "samba user";
     isNormalUser = true;
   };
 }
