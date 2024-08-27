@@ -1,6 +1,7 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.codgician.services.samba;
+  systemCfg = config.codgician.system;
   userCfg = config.codgician.users;
   types = lib.types;
 in
@@ -73,6 +74,11 @@ in
           script = builtins.concatStringsSep "; " commands;
         in
         "${pkgs.sudo}/bin/sudo ${pkgs.bash}/bin/bash -c '${script}'";
+    };
+
+    # Persist data
+    environment = lib.optionalAttrs (systemCfg?impermanence) {
+      persistence.${systemCfg.impermanence.path}.directories = [ "/var/lib/samba" ];
     };
 
     # Assertions
