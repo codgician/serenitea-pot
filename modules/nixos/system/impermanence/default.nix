@@ -23,6 +23,7 @@ in
         "/var/lib/acme"
         "/var/lib/bluetooth"
         "/var/lib/nixos"
+        "/var/lib/private"
         "/var/lib/systemd/coredump"
         "/etc/NetworkManager/system-connections"
         "/home"
