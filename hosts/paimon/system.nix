@@ -93,6 +93,7 @@
 
     system = {
       auto-upgrade.enable = true;
+      impermanence.enable = true;
     };
 
     users = with lib.codgician; {

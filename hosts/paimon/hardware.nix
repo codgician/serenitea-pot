@@ -1,8 +1,7 @@
 { lib, modulesPath, ... }: {
-  imports =
-    [
-      (modulesPath + "/virtualisation/proxmox-lxc.nix")
-    ];
+  imports = [
+    (modulesPath + "/virtualisation/proxmox-lxc.nix")
+  ];
 
   proxmoxLXC = {
     privileged = false;

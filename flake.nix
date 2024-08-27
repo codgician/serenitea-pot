@@ -5,8 +5,10 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
     nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-24.05-darwin";
     nixpkgs-nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixos-hardware.url = "github:NixOS/nixos-hardware";
-    impermanence.url = "github:nix-community/impermanence";
+    nixos-generators = {
+      url = "github:nix-community/nixos-generators";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     flake-compat = {
       url = "github:edolstra/flake-compat";
@@ -49,6 +51,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.home-manager.follows = "home-manager";
     };
+
+    impermanence.url = "github:nix-community/impermanence";
 
     agenix = {
       url = "github:ryantm/agenix";
@@ -172,6 +176,7 @@
           disko.nixosModules.disko
           agenix.nixosModules.default
           lanzaboote.nixosModules.lanzaboote
+          nixos-generators.nixosModules.all-formats
           nixos-wsl.nixosModules.wsl
           nixvirt.nixosModules.default
           vscode-server.nixosModules.default
