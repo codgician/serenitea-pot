@@ -8,6 +8,7 @@ in
     # Generic configurations
     {
       inherit name;
+      uid = 1000;
       description = "Shijia Zhang";
       shell = pkgs.zsh;
       openssh.authorizedKeys.keys = pubKeys.users.${name};
