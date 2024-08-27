@@ -50,6 +50,8 @@
         ffmpeg-full
         httping
         virt-manager
+        tcping-go
+        httping
       ];
 
       # symlinks to binaries
