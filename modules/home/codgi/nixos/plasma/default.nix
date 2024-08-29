@@ -50,16 +50,16 @@ in
           ];
         }
       ];
+      
+      desktop.icons = {
+        alignment = "right";
+        arrangement = "topToBottom";
+      };
 
       workspace = {
         cursor = {
           theme = "Breeze";
           size = 24;
-        };
-
-        desktop.icons = {
-          alignment = "right";
-          arrangement = "topToBottom";
         };
 
         iconTheme = "Breeze Dark";
