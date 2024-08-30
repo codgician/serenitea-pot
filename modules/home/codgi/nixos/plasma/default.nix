@@ -50,7 +50,7 @@ in
           ];
         }
       ];
-      
+
       desktop.icons = {
         alignment = "right";
         arrangement = "topToBottom";
