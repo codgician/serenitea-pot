@@ -15,7 +15,7 @@ in
         os_type = "Linux";
         os_state = "Generalized";
         blob_uri = "${azurerm_storage_account.constellation "primary_blob_endpoint"}${azurerm_storage_container.constellation-lumine.name}/sda.vhd";
-        size_gb = 48;
+        size_gb = 64;
       }];
 
       depends_on = [ "azurerm_storage_container.constellation-lumine" ];
@@ -28,7 +28,7 @@ in
       inherit location resource_group_name;
       os_type = "Linux";
 
-      architecture = "x64";
+      architecture = "Arm64";
       hyper_v_generation = "V2";
       accelerated_network_support_enabled = true;
       trusted_launch_supported = true;

@@ -15,10 +15,10 @@ in
       name = "lumine";
       inherit location resource_group_name;
       network_interface_ids = with azurerm_network_interface; [ (lumine-netint "id") ];
-      size = "Standard_B2als_v2";
+      size = "Standard_B2pls_v2";
       admin_username = "codgi";
       secure_boot_enabled = false;
-      vtpm_enabled = true;
+      vtpm_enabled = false;
       source_image_id = azurerm_shared_image_version.lumine-1 "id";
       encryption_at_host_enabled = true;
 
