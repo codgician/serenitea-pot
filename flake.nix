@@ -158,19 +158,27 @@
           }
         ];
 
+      # All modules
+      myModules = import ./modules { inherit lib; };
+
       # All Darwin modules for building system
-      mkDarwinInputModules = stable:
-        (mkHomeManagerModules "darwinModules" stable [ ]) ++ [
+      mkDarwinModules = stable:
+        (mkHomeManagerModules "darwinModules" stable [
+          # Home Manager modules
+        ]) ++ [
+          # Darwin modules
+          myModules.darwin
           agenix.darwinModules.default
         ];
 
       # All NixOS modules for building system
-      mkNixosInputModules = stable: with inputs;
+      mkNixosModules = stable: with inputs;
         (mkHomeManagerModules "nixosModules" stable [
           # Home Manager modules
           plasma-manager.homeManagerModules.plasma-manager
         ]) ++ [
           # NixOS modules
+          myModules.nixos
           nur.nixosModules.nur
           impermanence.nixosModules.impermanence
           disko.nixosModules.disko
@@ -185,11 +193,6 @@
             nixpkgs.overlays = [ proxmox-nixos.overlays.${system} ];
           })
         ];
-
-      # All modules
-      modules = import ./modules { inherit lib; };
-      mkDarwinModules = stable: [ modules.darwin ] ++ (mkDarwinInputModules stable);
-      mkNixosModules = stable: [ modules.nixos ] ++ (mkNixosInputModules stable);
     in
     {
       # System configurations

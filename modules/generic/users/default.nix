@@ -126,7 +126,7 @@ let
     (lib.mkIf cfg.${name}.createHome {
       home-manager.users.${name} = { lib, ... }:
         let
-          modules = import (lib.codgician.modulesDir + "/home") { inherit lib; };
+          modules = import lib.codgician.hmModulesDir { inherit lib; };
           platform = if isLinux then "nixos" else "darwin";
         in
         {

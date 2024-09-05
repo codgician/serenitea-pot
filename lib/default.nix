@@ -6,6 +6,7 @@ let
 
   # Extend lib with custom functions
   mkMyLib = { lib }: concatAttrs [
+    (import ./consts.nix { inherit lib; })
     (import ./misc.nix { inherit lib; })
     (import ./secrets.nix { inherit lib; })
     ({ inherit concatAttrs; })

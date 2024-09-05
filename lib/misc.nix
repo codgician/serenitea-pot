@@ -1,12 +1,4 @@
 { lib, ... }: rec {
-  # Path to root
-  rootDir = ../.;
-
-  # Path to modules folder
-  modulesDir = rootDir + "/modules";
-
-  # Path to overlays folder
-  overlaysDir = rootDir + "/overlays";
 
   # List all item names with specified type under specified path 
   getDirContentByType = type: path:
