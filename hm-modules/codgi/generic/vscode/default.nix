@@ -15,6 +15,7 @@ in
       mutableExtensionsDir = false;
 
       extensions = with pkgs.vscode-marketplace; [
+        tamasfe.even-better-toml
         ms-vscode.hexeditor
         ms-vscode-remote.remote-ssh-edit
         ms-vscode-remote.remote-containers
