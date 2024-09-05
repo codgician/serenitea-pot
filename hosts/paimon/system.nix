@@ -127,9 +127,6 @@
   # Global packages
   environment.systemPackages = [ ];
 
-  # Getty
-  services.getty.autologinUser = "codgi";
-
   # Firewall
   networking.firewall.enable = true;
 
