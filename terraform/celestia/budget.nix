@@ -20,5 +20,12 @@
         contact_roles = [ "Owner" ];
       }];
     };
+
+    azurerm_cost_anomaly_alert.celestia-cost-anomaly-alert = {
+      name = "celestia-cost-anomaly-alert";
+      display_name = "Celestia cost anomaly alert";
+      email_subject = "Celestia cost anomaly alert";
+      email_addresses = [ "i@codgician.me" ];
+    };
   };
 }
