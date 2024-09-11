@@ -17,7 +17,7 @@ let
     , stable ? true
     }:
     let
-      nixpkgs = if stable then inputs.nixpkgs-darwin else inputs.nixpkgs-nixos-unstable;
+      nixpkgs = if stable then inputs.nixpkgs else inputs.nixpkgs-nixos-unstable;
       lib = mkLib nixpkgs;
     in
     inputs.darwin.lib.darwinSystem {

@@ -20,7 +20,12 @@ in
 
     nix = {
       package = pkgs.lix;
+      extraOptions = "experimental-features = nix-command flakes repl-flake";
       settings = lib.mkMerge [
+        {
+          extra-nix-path = "nixpkgs=flake:nixpkgs";
+          auto-optimise-store = true;
+        }
         {
           substituters = [
             "https://nix-community.cachix.org"

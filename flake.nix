@@ -3,7 +3,6 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";
-    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-24.05-darwin";
     nixpkgs-nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
@@ -33,7 +32,7 @@
 
     darwin = {
       url = "github:lnl7/nix-darwin";
-      inputs.nixpkgs.follows = "nixpkgs-darwin";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     home-manager = {
@@ -206,8 +205,7 @@
 
     } // flake-utils.lib.eachDefaultSystem (system:
       let
-        isDarwin = inputs.nixpkgs.legacyPackages.${system}.stdenvNoCC.isDarwin;
-        nixpkgs = if isDarwin then inputs.nixpkgs-darwin else inputs.nixpkgs;
+        inherit (inputs) nixpkgs;
         pkgs = mkPkgs nixpkgs system;
       in
       {
