@@ -9,10 +9,7 @@
   nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
 
   nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "prl-tools" ];
-  hardware.parallels = {
-    enable = true;
-    autoMountShares = true;
-  };
+  hardware.parallels.enable = true;
 
   nix.settings = {
     extra-platforms = [ "x86_64-linux" ];
