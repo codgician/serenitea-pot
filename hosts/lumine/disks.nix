@@ -1,6 +1,5 @@
 { disks ? [ "sda" ], ... }: {
   disko = {
-    extraRootModules = [ "zfs" ];
     devices = {
       disk.sda = {
         imageSize = "8G";

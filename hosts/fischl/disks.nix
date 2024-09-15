@@ -30,7 +30,6 @@ let
 in
 {
   disko = {
-    extraRootModules = [ "zfs" ];
     devices = {
       # Disks: mirrored ZFS root
       disk = {
