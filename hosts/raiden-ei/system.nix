@@ -77,4 +77,6 @@
       reduceTransparency = true;
     };
   };
+
+  system.stateVersion = 5;
 }
