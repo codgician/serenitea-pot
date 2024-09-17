@@ -31,8 +31,8 @@ jobs:
             --apply "x: builtins.toJSON (map (y: { name = y; system = x.\${y}.pkgs.system; }) (builtins.attrNames x))")
           darwin=$(nix eval .\#darwinConfigurations --raw \
             --apply "x: builtins.toJSON (map (y: { name = y; system = x.\${y}.pkgs.system; }) (builtins.attrNames x))")
-          echo "linux=$linux" >> $GITHUB_OUTPUTS
-          echo "darwin=$darwin" >> $GITHUB_OUTPUTS
+          echo "linux=$linux" >> $GITHUB_OUTPUT
+          echo "darwin=$darwin" >> $GITHUB_OUTPUT
 
   build-linux:
     needs: validate
