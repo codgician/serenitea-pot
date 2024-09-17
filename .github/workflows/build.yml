@@ -1,0 +1,61 @@
+name: build
+
+on:
+  # pull_request:
+  # push:
+  #   branches: [ main ]
+  #   paths-ignore:
+  #   - '**.md'
+  #   - '.gitignore'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      darwin: ${{ steps.get_matrix.outputs.darwin }}
+      linux: ${{ steps.get_matrix.outputs.linux }}
+    steps:
+      - name: Checkout new change
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Check flake
+        run: nix flake check --all-systems
+      - name: Calculate strategy matrix
+        id: get_matrix
+        run: |
+          linux=$(nix eval .\#nixosConfigurations --raw \
+            --apply "x: builtins.toJSON (map (y: { name = y; system = x.\${y}.pkgs.system; }) (builtins.attrNames x))")
+          darwin=$(nix eval .\#darwinConfigurations --raw \
+            --apply "x: builtins.toJSON (map (y: { name = y; system = x.\${y}.pkgs.system; }) (builtins.attrNames x))")
+          echo "linux=$linux" >> $GITHUB_OUTPUTS
+          echo "darwin=$darwin" >> $GITHUB_OUTPUTS
+
+  build-linux:
+    needs: validate
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: 
+        host: ${{ fromJson(needs.validate.outputs.linux) }}
+    steps:
+      - name: Checkout new change
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+      - name: Setup QEMU
+        if: matrix.host.system == 'aarch64-linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: "arm64"
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Build
+        run: |
+          nix build .#nixosConfigurations.${{ matrix.host.name }}.config.system.build.toplevel
