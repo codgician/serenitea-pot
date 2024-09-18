@@ -1,13 +1,17 @@
 name: build
 
 on:
-  # pull_request:
-  # push:
-  #   branches: [ main ]
-  #   paths-ignore:
-  #   - '**.md'
-  #   - '.gitignore'
+  pull_request:
+  push:
+    branches: [ main ]
+    paths-ignore:
+    - '**.md'
+    - '.gitignore'
+  repository_dispatch:
+    types: [ build ]
   workflow_dispatch:
+
+concurrency: evergreen
 
 jobs:
   validate:
