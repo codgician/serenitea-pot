@@ -22,8 +22,8 @@ jobs:
           fetch-depth: 1
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
-      #- name: Check flake
-      #  run: nix flake check --all-systems
+      - name: Check flake
+        run: nix flake check --all-systems
       - name: Calculate strategy matrix
         id: get_matrix
         run: |
@@ -36,11 +36,12 @@ jobs:
 
   build-linux:
     needs: validate
-    runs-on: ubuntu-latest
     strategy:
       matrix: 
         host: ${{ fromJson(needs.validate.outputs.linux) }}
       fail-fast: false
+    runs-on: ubuntu-latest
+    if: ${{ matrix.host.system == "x86_64-linux" }} # Only build x86_64-linux for now
     steps:
       - name: Checkout new change
         uses: actions/checkout@v4
@@ -50,17 +51,12 @@ jobs:
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: true
-      - name: Setup QEMU
-        if: matrix.host.system == 'aarch64-linux'
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: "arm64"
       - uses: cachix/install-nix-action@v27
         with:
           nix_path: 'nixpkgs=https://github.com/NixOS/nixpkgs/archive/refs/heads/nixos-unstable.tar.gz'
           extra_nix_config: |
             experimental-features = nix-command flakes
-            extra-platforms = aarch64-linux i686-linux
+            extra-platforms = i686-linux
             substituters = https://cache.nixos.org https://cache.saumon.network/proxmox-nixos
             trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= proxmox-nixos:nveXDuVVhFDRFx8Dn19f1WDEaNRJjPrF2CPD2D+m1ys=
       - uses: cachix/cachix-action@v15
@@ -72,3 +68,33 @@ jobs:
       - name: Build
         run: |
           nix build .#nixosConfigurations.${{ matrix.host.name }}.config.system.build.toplevel
+
+  build-darwin:
+    needs: validate
+    runs-on: macos-latest
+    strategy:
+      matrix: 
+        host: ${{ fromJson(needs.validate.outputs.darwin) }}
+      fail-fast: false
+    steps:
+      - name: Checkout new change
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: cachix/install-nix-action@v27
+        with:
+          nix_path: 'nixpkgs=https://github.com/NixOS/nixpkgs/archive/refs/heads/nixos-unstable.tar.gz'
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            extra-platforms = x86_64-darwin
+            substituters = https://cache.nixos.org https://cache.saumon.network/proxmox-nixos
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= proxmox-nixos:nveXDuVVhFDRFx8Dn19f1WDEaNRJjPrF2CPD2D+m1ys=
+      - uses: cachix/cachix-action@v15
+        with:
+          name: codgician
+          extraPullNames: nix-community
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+      - name: Build
+        run: |
+          nix build .#darwinConfigurations.${{ matrix.host.name }}.config.system.build.toplevel       
