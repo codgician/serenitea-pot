@@ -15,8 +15,9 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
+  config = {
     environment.persistence.${cfg.path} = {
+      inherit (cfg) enable;
       hideMounts = true;
       directories = [
         "/var/log"
@@ -36,11 +37,12 @@ in
     };
 
     # Clean up persisted files in root partition on boot
-    boot.initrd.postMountCommands =
+    boot.initrd.postMountCommands = lib.mkIf cfg.enable (
       let
         mkRmCommand = filePath: "rm -rf /mnt-root/${filePath}";
         commands = builtins.map (x: mkRmCommand x.filePath) config.environment.persistence.${cfg.path}.files;
       in
-      lib.mkBefore (builtins.concatStringsSep "\n" commands);
+      lib.mkBefore (builtins.concatStringsSep "\n" commands)
+    );
   };
 }
