@@ -28,7 +28,7 @@ jobs:
         id: get_matrix
         run: |
           linux=$(nix eval .\#nixosConfigurations --raw \
-            --apply "x: builtins.toJSON (map (y: { name = y; system = x.\${y}.pkgs.system; }) (builtins.attrNames x))")
+            --apply "x: builtins.toJSON (builtins.filter (y: y.system == \"x86_64-linux\") (map (y: { name = y; system = x.\${y}.pkgs.system; }) (builtins.attrNames x)))")
           darwin=$(nix eval .\#darwinConfigurations --raw \
             --apply "x: builtins.toJSON (map (y: { name = y; system = x.\${y}.pkgs.system; }) (builtins.attrNames x))")
           echo "linux=$linux" >> $GITHUB_OUTPUT
@@ -41,7 +41,6 @@ jobs:
         host: ${{ fromJson(needs.validate.outputs.linux) }}
       fail-fast: false
     runs-on: ubuntu-latest
-    if: ${{ matrix.host.system == "x86_64-linux" }} # Only build x86_64-linux for now
     steps:
       - name: Checkout new change
         uses: actions/checkout@v4
