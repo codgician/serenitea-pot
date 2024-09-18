@@ -46,7 +46,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Free Disk Space (Ubuntu)
+      - name: Free disk space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
         with:
           tool-cache: true
@@ -55,13 +55,20 @@ jobs:
         uses: docker/setup-qemu-action@v3
         with:
           platforms: "arm64"
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: cachix/install-nix-action@v27
         with:
-          extra-conf: |
-            substituters = https://nix-community.cachix.org https://codgician.cachix.org https://cache.saumon.network/proxmox-nixos
-            trusted-public-keys = nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= codgician.cachix.org-1:v4RtwkbJZJwfDxH5hac1lHehIX6JoSL726vk1ZctN8Y= proxmox-nixos:nveXDuVVhFDRFx8Dn19f1WDEaNRJjPrF2CPD2D+m1ys=
-            extra-platforms = aarch64-linux
-      - uses: DeterminateSystems/magic-nix-cache-action@main
+          nix_path: 'nixpkgs=https://github.com/NixOS/nixpkgs/archive/refs/heads/nixos-unstable.tar.gz'
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            extra-platforms = aarch64-linux i686-linux
+            substituters = https://cache.nixos.org https://cache.saumon.network/proxmox-nixos
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= proxmox-nixos:nveXDuVVhFDRFx8Dn19f1WDEaNRJjPrF2CPD2D+m1ys=
+      - uses: cachix/cachix-action@v15
+        with:
+          name: codgician
+          extraPullNames: nix-community
+          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
+          signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
       - name: Build
         run: |
           nix build .#nixosConfigurations.${{ matrix.host.name }}.config.system.build.toplevel
