@@ -40,6 +40,7 @@ jobs:
     strategy:
       matrix: 
         host: ${{ fromJson(needs.validate.outputs.linux) }}
+      fail-fast: false
     steps:
       - name: Checkout new change
         uses: actions/checkout@v4

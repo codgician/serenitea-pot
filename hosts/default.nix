@@ -52,8 +52,8 @@ let
   hostsToAttr = builder: hosts: builtins.listToAttrs (builtins.map (host: { name = host.hostName; value = builder host; }) hosts);
 in
 rec {
-  darwinHosts = builtins.filter (x: lib.hasSuffix "-darwin" x.system) hosts;
-  nixosHosts = builtins.filter (x: lib.hasSuffix "-linux" x.system) hosts;
+  darwinHosts = builtins.filter (x: lib.hasSuffix "-darwin" x.system && (!x?enable || x.enable)) hosts;
+  nixosHosts = builtins.filter (x: lib.hasSuffix "-linux" x.system && (!x?enable || x.enable)) hosts;
 
   darwinConfigurations = hostsToAttr mkDarwinSystem darwinHosts;
   nixosConfigurations = hostsToAttr mkNixosSystem nixosHosts;
