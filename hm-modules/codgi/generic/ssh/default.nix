@@ -9,9 +9,7 @@ in
     programs.ssh = {
       enable = true;
       addKeysToAgent = "yes";
-      extraConfig = ''
-        AddKeysToAgent yes
-      '' + lib.optionalString pkgs.stdenvNoCC.isDarwin ''
+      extraConfig = lib.optionalString pkgs.stdenvNoCC.isDarwin ''
         IgnoreUnknown UseKeychain
         UseKeychain yes
         IdentityFile ~/.ssh/id_ed25519

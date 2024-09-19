@@ -10,10 +10,7 @@ in
   codgician = {
     services = {
       nixos-vscode-server.enable = true;
-      plasma = {
-        enable = true;
-        autoLoginUser = "codgi";
-      };
+      plasma.enable = true;
     };
 
     system = {

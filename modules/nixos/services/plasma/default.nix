@@ -81,9 +81,5 @@ lib.optionalAttrs (lib.version >= "24.05") {
       kdePackages.kwallet-pam
       qt6.qtvirtualkeyboard
     ] ++ (lib.optionals cfg.wayland [ wayland-utils ]));
-
-    # todo: remove
-    # hack to fix conflict
-    programs.gnupg.agent.pinentryPackage = lib.mkForce pkgs.pinentry-qt;
   };
 }

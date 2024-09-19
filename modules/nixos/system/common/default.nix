@@ -93,5 +93,7 @@ in
       gnupg.agent.enable = true;
       ssh.startAgent = true;
     };
+
+    security.pam.sshAgentAuth.enable = true;
   };
 }
