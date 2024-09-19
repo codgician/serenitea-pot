@@ -9,10 +9,11 @@ in
     programs.ssh = {
       enable = true;
       addKeysToAgent = "yes";
-      extraConfig = lib.optionalString pkgs.stdenvNoCC.isDarwin ''
+      extraConfig = ''
+        IdentityFile ~/.ssh/id_ed25519
+      '' + lib.optionalString pkgs.stdenvNoCC.isDarwin ''
         IgnoreUnknown UseKeychain
         UseKeychain yes
-        IdentityFile ~/.ssh/id_ed25519
       '';
       matchBlocks = {
         "fischl" = {
