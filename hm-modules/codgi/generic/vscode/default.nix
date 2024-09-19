@@ -15,11 +15,12 @@ in
       mutableExtensionsDir = false;
 
       extensions = with pkgs.vscode-marketplace; [
+        editorconfig.editorconfig
+        github.vscode-pull-request-github
         tamasfe.even-better-toml
         ms-vscode.hexeditor
         ms-vscode-remote.remote-ssh-edit
         ms-vscode-remote.remote-containers
-        github.vscode-pull-request-github
       ] ++ (with pkgs.vscode-marketplace-release; [
         github.copilot
         github.copilot-chat
