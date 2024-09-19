@@ -5,5 +5,4 @@
     ./disks.nix
     ./hardware.nix
   ];
-  enable = false;
 }
