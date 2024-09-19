@@ -46,6 +46,7 @@ in
       workspace = { inherit wallpaper; };
       configFile = {
         plasmarc.Wallpapers.usersWallpapers = wallpaper;
+        kdeglobals.KScreen.ScaleFactor = 2;
         kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General" = {
           Image = wallpaper;
           PreviewImage = wallpaper;
@@ -59,6 +60,11 @@ in
 
     home.stateVersion = "24.05";
     home.packages = with pkgs; [ httplz screen ];
+  };
+
+  # SDDM default scaling
+  services.displayManager.sddm.settings.General = {
+    GreeterEnvironment = "QT_SCREEN_SCALE_FACTORS=2,QT_FONT_DPI=192";
   };
 
   # Hyprland
@@ -144,6 +150,12 @@ in
     firefox
     virt-manager
     kitty
+
+    # SDDM login wallpaper
+     (pkgs.writeTextDir "share/sddm/themes/breeze/theme.conf.user" ''
+      [General]
+      background=${wallpaper}
+    '')
   ];
 
   # Enable zram swap

@@ -7,6 +7,8 @@ lib.optionalAttrs (lib.version >= "24.05") {
   options.codgician.services.plasma = {
     enable = lib.mkEnableOption "Enable Plasma Desktop.";
 
+    hidpi = lib.mkEnableOption "Enable Hi-DPI support.";
+
     wayland = lib.mkOption {
       type = types.bool;
       default = true;
@@ -28,7 +30,7 @@ lib.optionalAttrs (lib.version >= "24.05") {
 
         sddm = {
           enable = true;
-          enableHidpi = true;
+          enableHidpi = cfg.hidpi;
           theme = "breeze";
           wayland = {
             enable = cfg.wayland;
