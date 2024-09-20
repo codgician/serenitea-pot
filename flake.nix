@@ -1,5 +1,5 @@
 {
-  description = "❄️ codgician's nix fleet";
+  description = "❄️ Home to codgician's nix-managed device profiles";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.05";

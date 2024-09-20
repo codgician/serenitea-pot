@@ -95,8 +95,8 @@ jobs:
           extra_nix_config: |
             experimental-features = nix-command flakes
             extra-platforms = x86_64-darwin
-            substituters = https://cache.nixos.org https://cache.saumon.network/proxmox-nixos
-            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= proxmox-nixos:nveXDuVVhFDRFx8Dn19f1WDEaNRJjPrF2CPD2D+m1ys=
+            substituters = https://cache.nixos.org
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
       - uses: cachix/cachix-action@v15
         with:
           name: codgician

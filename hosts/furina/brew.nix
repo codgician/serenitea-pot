@@ -1,7 +1,7 @@
 {
   # GUI applications from Mac AppStore
   masApps = {
-    #"Xcode" = 497799835;
+    "Xcode" = 497799835;
 
     "Pages" = 409201541;
     "Numbers" = 409203825;
