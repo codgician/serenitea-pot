@@ -22,6 +22,7 @@
     "Microsoft OneNote" = 784801555;
     "Microsoft To Do" = 1274495053;
     "OneDrive" = 823766827;
+    "Windows App" = 1295203466;
 
     "Telegram" = 747648890;
     "WeChat" = 836500024;
