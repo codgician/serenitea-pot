@@ -19,6 +19,12 @@ in
     ];
 
     nix = {
+      # Nix garbage collection
+      gc = {
+        automatic = true;
+        options = "--delete-older-than 7d";
+      };
+
       extraOptions = "experimental-features = nix-command flakes repl-flake";
       settings = lib.mkMerge [
         {

@@ -20,11 +20,5 @@ in
         upper = "05:00";
       };
     };
-
-    # Nix garbage collection
-    nix.gc = {
-      automatic = true;
-      dates = "weekly";
-    };
   };
 }
