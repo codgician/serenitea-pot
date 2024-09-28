@@ -61,12 +61,6 @@
     };
   };
 
-  # Nix garbage collection
-  nix.gc = {
-    automatic = true;
-    interval.Weekday = 7;
-  };
-
   # Fonts
   fonts.packages = with pkgs; [ cascadia-code ];
 

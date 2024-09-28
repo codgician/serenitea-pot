@@ -16,12 +16,6 @@
     users.codgi.enable = true;
   };
 
-  # Nix garbage collection
-  nix.gc = {
-    automatic = true;
-    interval.Weekday = 7;
-  };
-
   # Home manager
   home-manager.users.codgi = { config, pkgs, ... }: {
     codgician.codgi = {
