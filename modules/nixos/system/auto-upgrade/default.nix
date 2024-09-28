@@ -11,8 +11,9 @@ in
     # Auto upgrade
     system.autoUpgrade = {
       enable = true;
-      dates = "daily";
+      dates = "03:00";
       operation = "switch";
+      randomizedDelaySec = "1h";
       allowReboot = true;
       rebootWindow = {
         lower = "03:00";
