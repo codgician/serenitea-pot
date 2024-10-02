@@ -17,7 +17,7 @@
     flake-utils.url = "github:numtide/flake-utils";
 
     proxmox-nixos = {
-      url = "github:SaumonNet/proxmox-nixos";
+      url = "github:codgician/proxmox-nixos/pve-edk2-firmware";
       inputs = {
         nixpkgs-stable.follows = "nixpkgs";
         flake-compat.follows = "flake-compat";

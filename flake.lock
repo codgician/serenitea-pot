@@ -126,11 +126,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1727856734,
-        "narHash": "sha256-YGKkZJGZiopMia83mf04zbK2p2OHdtbyJq05jkmGGis=",
+        "lastModified": 1727871633,
+        "narHash": "sha256-6VwLDSSpHUdxzJ/NkFJtGTSpkUOwMV9W91e9rrjSrPY=",
         "owner": "nix-community",
         "repo": "disko",
-        "rev": "da8f49246ce226b70feaf132d9b73a4cb7595f10",
+        "rev": "fa0c181a83ea8e8dc3eb5e632f2cd7a2bf5e51ea",
         "type": "github"
       },
       "original": {
@@ -641,11 +641,11 @@
     },
     "nur": {
       "locked": {
-        "lastModified": 1727862373,
-        "narHash": "sha256-viH52KlflVeTo5++dEKvTjCQBoui5Shi6LIo0l6iEHI=",
+        "lastModified": 1727870867,
+        "narHash": "sha256-16gtzZ8yOFHcP9MEn+2lJJ6x14J27SBFwHMoAwOekGk=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "5cf5605cb2630639a716450161e0bba47bd439f4",
+        "rev": "0773b6dd4cb24ce2538430344a874f0f32863e2a",
         "type": "github"
       },
       "original": {
@@ -794,15 +794,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1727026900,
-        "narHash": "sha256-0b+Mo27UE1WTd00k0hHibdeGA5tBTxepg3clAWZZOdo=",
-        "owner": "SaumonNet",
+        "lastModified": 1727870750,
+        "narHash": "sha256-kgKuWqjr/IVxPVOFl13xI9SnnU5Lt5LSQVkdcmhqMaM=",
+        "owner": "codgician",
         "repo": "proxmox-nixos",
-        "rev": "53f9cd6ad81f1bf36b257470d82e77e0629578c8",
+        "rev": "6ead308809723690d6c6eae1732f1bb361d02293",
         "type": "github"
       },
       "original": {
-        "owner": "SaumonNet",
+        "owner": "codgician",
+        "ref": "pve-edk2-firmware",
         "repo": "proxmox-nixos",
         "type": "github"
       }
