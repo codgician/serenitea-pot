@@ -641,11 +641,11 @@
     },
     "nur": {
       "locked": {
-        "lastModified": 1727945199,
-        "narHash": "sha256-uhe0CgmTw3fm9LPu9ADi+LuGoMCBv2XwFpuYO0OskU0=",
+        "lastModified": 1727973876,
+        "narHash": "sha256-MG4whkoN7YF/eiUA20Tcip6agMXk1BfTwf44SwUml9w=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "0c800912c07bd05851b69850e10e59b48da07280",
+        "rev": "23b332974fcbf9fb906b4aaec1794f5c3222613e",
         "type": "github"
       },
       "original": {
@@ -794,11 +794,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1727870750,
-        "narHash": "sha256-kgKuWqjr/IVxPVOFl13xI9SnnU5Lt5LSQVkdcmhqMaM=",
+        "lastModified": 1727976090,
+        "narHash": "sha256-s66wHeTThd8BugmF235KcZZYmAZ+BkvZkayXTkm9mLg=",
         "owner": "codgician",
         "repo": "proxmox-nixos",
-        "rev": "6ead308809723690d6c6eae1732f1bb361d02293",
+        "rev": "f655f637db834ab96ad491d0c4f7be9a75db65d1",
         "type": "github"
       },
       "original": {
