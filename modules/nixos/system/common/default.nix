@@ -79,11 +79,20 @@ in
       enable = true;
       openFirewall = true;
       settings.PasswordAuthentication = false;
-      hostKeys = [{
-        path = "/etc/ssh/ssh_host_ed25519_key";
-        rounds = 100;
-        type = "ed25519";
-      }];
+      hostKeys = [
+        {
+          path = "/etc/ssh/ssh_host_ed25519_key";
+          rounds = 100;
+          type = "ed25519";
+        }
+        {
+          path = "/etc/ssh/ssh_host_rsa_key";
+          bits = 4096;
+          openSSHFormat = true;
+          rounds = 100;
+          type = "rsa";
+        }
+      ];
     };
 
     # Some programs need SUID wrappers, can be configured further or are
