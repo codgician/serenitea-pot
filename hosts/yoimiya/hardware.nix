@@ -8,6 +8,8 @@
         "usb_storage"
         "usbhid"
         "sd_mod"
+        "virtio_pci" 
+        "virtio_scsi"
       ];
       kernelModules = [
         "tpm_crb"
