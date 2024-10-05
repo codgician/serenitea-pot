@@ -64,10 +64,7 @@
 
     nixvirt = {
       url = "github:AshleyYakeley/NixVirt";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        nixpkgs-ovmf.follows = "nixpkgs-nixos-unstable";
-      };
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     nixos-wsl = {

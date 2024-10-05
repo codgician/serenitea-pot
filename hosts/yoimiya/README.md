@@ -4,14 +4,18 @@
 
 NixOS configuration for Proxmox VE hypervisor host. 
 
-Migration planned early October, 2024. So far this profile is work in progress and untested.
+Migration planned early 2025. So far this profile is work in progress and untested.
 
 ## To-dos
 
-Goal: apply on bare-metal early October, 2024
+Goal: apply on bare-metal early 2025
 
 - [x] init zroot RAID-1 layout
 - [ ] evaluate feasibility of installing mlnx-ofed drivers
-- [ ] migrate existing hacks and services
-- [ ] add config for proxmox-nixos (and workaround ovmf UEFI support)
-- [ ] (early October) switch over.
+- [x] migrate existing hacks and services
+- [x] add config for proxmox-nixos
+- [x] fix missing ovmf firmware in upstream (PR in review)
+- [x] fix broken zfs / btrfs management in upstream (PR in review)
+- [ ] add updater scripts for packages that doesn't have one in upstream
+- [ ] migrate secrets
+- [ ] (early 2025) switch over.
