@@ -70,8 +70,8 @@
   # Watchdog
   systemd.watchdog = {
     device = "/dev/watchdog0";
-    runtimeTime = "1m";
-    rebootTime = "10m";
+    runtimeTime = "30s";
+    rebootTime = "600s";
   };
 
   # Firmware updates
