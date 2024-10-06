@@ -67,6 +67,13 @@
     pkcs11.enable = true;
   };
 
+  # Watchdog
+  systemd.watchdog = {
+    device = "/dev/watchdog0";
+    runtimeTime = "1m";
+    rebootTime = "10m";
+  };
+
   # Firmware updates
   services.fwupd.enable = true;
 
