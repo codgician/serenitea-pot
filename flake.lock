@@ -106,11 +106,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1727999297,
-        "narHash": "sha256-LTJuQPCsSItZ/8TieFeP30iY+uaLoD0mT0tAj1gLeyQ=",
+        "lastModified": 1728385805,
+        "narHash": "sha256-mUd38b0vhB7yzgAjNOaFz7VY9xIVzlbn3P2wjGBcVV0=",
         "owner": "lnl7",
         "repo": "nix-darwin",
-        "rev": "8c8388ade72e58efdeae71b4cbb79e872c23a56b",
+        "rev": "48b50b3b137be5cfb9f4d006835ce7c3fe558ccc",
         "type": "github"
       },
       "original": {
@@ -483,11 +483,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1728299182,
-        "narHash": "sha256-wzxKH5DyG+uyhnGtP8YmN3LCYtEyYR/4fhjKVY2Rtxg=",
+        "lastModified": 1728399236,
+        "narHash": "sha256-X1a4t/OkB9fH6Ao+Pqkto8mJrzlG6t8Dimn8jkbPuZc=",
         "owner": "nix-community",
         "repo": "NixOS-WSL",
-        "rev": "830b6a752d0097c2043985ff4c1203aba07b268d",
+        "rev": "9f4fbf5f9e381826e6d66a6f699ad30ff3122075",
         "type": "github"
       },
       "original": {
@@ -641,11 +641,11 @@
     },
     "nur": {
       "locked": {
-        "lastModified": 1728377231,
-        "narHash": "sha256-hbmCAd9XZQ/xybpFWO6FWprqtVlcttXu41cliyxaxww=",
+        "lastModified": 1728405827,
+        "narHash": "sha256-42AAPd4xeFnOhSBrf/apokFvSIwxfvXkGjbwliE2C7U=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "f5694462fd4654504660d882a36280b075e77ce2",
+        "rev": "2e52722d523714a4dd2ee1f221b8998145151dcd",
         "type": "github"
       },
       "original": {
@@ -794,16 +794,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1728305686,
-        "narHash": "sha256-mnvCYxWNQ+CJBXiGUZDfSfSiOtNukhsrmJtI/3Nua8k=",
-        "owner": "codgician",
+        "lastModified": 1728407037,
+        "narHash": "sha256-rS+OBUvSdgoNwCWjmKqlPKxgsC/AFH17xiQ+x1BJhyQ=",
+        "owner": "SaumonNet",
         "repo": "proxmox-nixos",
-        "rev": "1d2be1dd083cce8c06a2ec3735f0587a8c40544a",
+        "rev": "e1da88a20d755cfb7095309fe12bb75495686655",
         "type": "github"
       },
       "original": {
-        "owner": "codgician",
-        "ref": "pve-edk2-firmware",
+        "owner": "SaumonNet",
         "repo": "proxmox-nixos",
         "type": "github"
       }
