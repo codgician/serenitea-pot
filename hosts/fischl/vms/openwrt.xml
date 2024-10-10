@@ -190,6 +190,7 @@
       <address type="pci" domain="0x0000" bus="0x09" slot="0x00" function="0x0"/>
     </rng>
   </devices>
+  <panic model="isa"/>
   <qemu:commandline>
     <qemu:arg value="-overcommit"/>
     <qemu:arg value="cpu-pm=on"/>

@@ -168,5 +168,6 @@
       <backend model="random">/dev/urandom</backend>
       <address type="pci" domain="0x0000" bus="0x05" slot="0x00" function="0x0"/>
     </rng>
+    <panic model="isa"/>
   </devices>
 </domain>
