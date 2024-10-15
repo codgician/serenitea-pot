@@ -8,7 +8,7 @@
         "usb_storage"
         "usbhid"
         "sd_mod"
-        "virtio_pci" 
+        "virtio_pci"
         "virtio_scsi"
       ];
       kernelModules = [
@@ -80,7 +80,11 @@
 
   networking.useDHCP = lib.mkDefault true;
 
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  nixpkgs.hostPlatform = lib.mkDefault {
+    gcc.arch = "x86-64-v3";
+    system = "x86_64-linux";
+  };
+
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   powerManagement = {
     cpuFreqGovernor = "powersave";
