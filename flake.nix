@@ -117,8 +117,8 @@
     terranix = {
       url = "github:terranix/terranix";
       inputs = {
-        flake-utils.follows = "flake-utils";
         nixpkgs.follows = "nixpkgs";
+        flake-parts.follows = "flake-parts";
       };
     };
   };
