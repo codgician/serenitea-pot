@@ -2,6 +2,7 @@
   imports = [
     ./gpt-4.nix
     ./gpt-4o.nix
+    ./gpt-4o-realtime.nix
   ];
 
   resource.azurerm_cognitive_account.akasha = rec {
