@@ -2,6 +2,7 @@
   boot.initrd.availableKernelModules = [ "xhci_pci" "sr_mod" ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ ];
+  boot.kernelParams = [ "video=Virtual-1:3024x1890@120" ];
   boot.extraModulePackages = [ ];
 
   networking.useDHCP = lib.mkDefault true;
