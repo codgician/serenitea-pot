@@ -22,7 +22,7 @@ jobs:
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Update nix flake
-        run: nix flake update
+        run: nix flake update >> $GITHUB_STEP_SUMMARY
       - name: Push changes
         id: push
         run: |
