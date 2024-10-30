@@ -52,6 +52,7 @@
         virt-manager
         tcping-go
         httping
+        github-copilot-cli
       ];
 
       # symlinks to binaries

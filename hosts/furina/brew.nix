@@ -72,5 +72,6 @@
     "rustdesk"
     "hopper-disassembler"
     "zed"
+    "github-copilot-for-xcode"
   ];
 }
