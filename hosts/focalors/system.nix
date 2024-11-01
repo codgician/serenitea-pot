@@ -59,7 +59,7 @@ in
     };
 
     home.stateVersion = "24.05";
-    home.packages = with pkgs; [ httplz screen ];
+    home.packages = with pkgs; [ httplz screen binwalk ];
   };
 
   # SDDM default scaling

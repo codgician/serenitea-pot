@@ -53,6 +53,7 @@
         tcping-go
         httping
         github-copilot-cli
+        binwalk
       ];
 
       # symlinks to binaries
