@@ -12,6 +12,15 @@
         };
       };
 
+      open-webui = {
+        enable = true;
+        stateDir = "/nix/persist/open-webui";
+        reverseProxy = {
+          enable = true;
+          domains = [ "akasha.codgician.me" ];
+        };
+      };
+
       jellyfin = {
         enable = true;
         reverseProxy = {
