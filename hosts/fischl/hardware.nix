@@ -28,6 +28,9 @@
     ];
   };
 
+  # Connected to UPS
+  codgician.power.ups.devices = [ "br1500g" ];
+
   # Specify boot-0 as the primary ESP partition
   boot.loader.efi.efiSysMountPoint = "/boot-0";
 
