@@ -44,5 +44,10 @@ in
       in
       lib.mkBefore (builtins.concatStringsSep "\n" commands)
     );
+
+    # Suppress systemd-machine-id-commit service
+    systemd.suppressedSystemUnits = lib.mkIf cfg.enable [
+      "systemd-machine-id-commit.service"
+    ];
   };
 }
