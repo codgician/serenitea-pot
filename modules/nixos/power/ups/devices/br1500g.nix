@@ -11,7 +11,6 @@ in
       directives = [
         "vendorid = 051D"
         "productid = 0002"
-        "serial = 5B2231T57909"
         "vendor = \"American Power Conversion\""
         "ondelay = 90"
         "offdelay = 60"
