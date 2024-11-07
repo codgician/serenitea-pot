@@ -62,7 +62,7 @@ in
       services.open-webui = {
         enable = true;
         inherit (cfg) port stateDir;
-        environment = {};
+        environment = { };
       };
     })
 

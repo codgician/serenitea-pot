@@ -7,10 +7,33 @@ in
 {
   imports = lib.codgician.getNixFilePaths ./devices;
 
-  options.codgician.power.ups.devices = lib.mkOption {
-    type = with types; listOf (enum deviceNames);
-    default = [ ];
-    description = "List of UPS device models that are connected.";
+  options.codgician.power.ups = {
+    devices = lib.mkOption {
+      type = with types; listOf (enum deviceNames);
+      default = [ ];
+      description = "List of UPS device models that are connected.";
+    };
+
+    onDelay = lib.mkOption {
+      type = types.int;
+      default = 90;
+      description = "Time to wait before switching on the UPS (seconds).";
+    };
+
+    offDelay = lib.mkOption {
+      type = types.int;
+      default = 60;
+      description = "Time to wait before switching off the UPS (seconds).";
+    };
+
+    batteryLow = lib.mkOption {
+      type = types.int;
+      default = 10;
+      description = ''
+        Battery charge percentage at which the UPS will shut down.
+        Note not all model support this configuration.
+      '';
+    };
   };
 
   config = lib.mkIf ((builtins.length cfg.devices) > 0) (lib.mkMerge [

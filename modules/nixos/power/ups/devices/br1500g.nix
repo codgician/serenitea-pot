@@ -12,9 +12,9 @@ in
         "vendorid = 051D"
         "productid = 0002"
         "vendor = \"American Power Conversion\""
-        "ondelay = 90"
-        "offdelay = 60"
-        "override.battery.charge.low = 20"
+        "ondelay = ${toString cfg.onDelay}"
+        "offdelay = ${toString cfg.offDelay}"
+        "override.battery.charge.low = ${toString cfg.batteryLow}"
       ];
     };
 

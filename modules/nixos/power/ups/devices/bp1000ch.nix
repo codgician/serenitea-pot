@@ -10,8 +10,8 @@ in
       port = "auto";
       directives = [
         "protocol = voltronic-qs"
-        "ondelay = 90"
-        "offdelay = 60"
+        "ondelay = ${toString cfg.onDelay}"
+        "offdelay = ${toString cfg.offDelay}"
         "port = /dev/ttyS0"
       ];
     };

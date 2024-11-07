@@ -11,8 +11,8 @@ in
       directives = [
         "vendorid = 0925"
         "productid = 1234"
-        "ondelay = 60"
-        "offdelay = 30"
+        "ondelay = ${toString cfg.onDelay}"
+        "offdelay = ${toString cfg.offDelay}"
       ];
     };
 

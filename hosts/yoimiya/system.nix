@@ -22,8 +22,6 @@
       #secure-boot.enable = true;
     };
 
-    power.ups.devices = [ "br1500g" ];
-
     users.codgi = with lib.codgician; {
       enable = true;
       hashedPasswordAgeFile = secretsDir + "/codgiHashedPassword.age";

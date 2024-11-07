@@ -78,6 +78,12 @@
     tpm2-tools
   ];
 
+  # Connected to UPS
+  codgician.power.ups = {
+    devices = [ "br1500g" ];
+    batteryLow = 20;
+  };
+
   networking.useDHCP = lib.mkDefault true;
 
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
