@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, pkgs, lib, ... }:
 let
   cfg = config.codgician.power.ups;
   types = lib.types;
@@ -34,6 +34,17 @@ in
         Note not all model support this configuration.
       '';
     };
+
+    sched = {
+      shutdownTimer = lib.mkOption {
+        type = types.int;
+        default = 0;
+        description = ''
+          Time to wait before shutting down the system (seconds),
+          regardless of UPS battery level. Set to 0 to disable.
+        '';
+      };
+    };
   };
 
   config = lib.mkIf ((builtins.length cfg.devices) > 0) (lib.mkMerge [
@@ -57,6 +68,8 @@ in
             { address = "::"; port = 3493; }
           ];
         };
+
+        schedulerRules = (import ./sched.nix { inherit config pkgs lib; }).outPath;
       };
     }
 
