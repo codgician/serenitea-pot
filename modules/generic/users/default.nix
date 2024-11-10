@@ -1,6 +1,5 @@
 { config, lib, pkgs, ... }:
 let
-  secretsFile = lib.codgician.secretsDir + "/secrets.nix";
   cfg = config.codgician.users;
   systemCfg = config.codgician.system;
   types = lib.types;

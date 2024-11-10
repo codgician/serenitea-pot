@@ -43,7 +43,7 @@
   };
 
   # Enable proxmox VE
-  services.proxmox-ve.enable = true;
+  # services.proxmox-ve.enable = true;
 
   # Use systemd-boot boot loader.
   boot.loader.systemd-boot.enable = true;
