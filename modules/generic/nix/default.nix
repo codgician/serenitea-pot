@@ -26,10 +26,10 @@ in
       };
 
       extraOptions = "experimental-features = nix-command flakes";
+      optimise.automatic = true;
       settings = lib.mkMerge [
         {
           extra-nix-path = "nixpkgs=flake:nixpkgs";
-          auto-optimise-store = true;
         }
         {
           substituters = [
