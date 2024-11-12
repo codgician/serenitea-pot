@@ -20,7 +20,6 @@ in
       ghc
       stack
       cabal-install
-      cabal2nix
       haskell-language-server
     ];
   };
