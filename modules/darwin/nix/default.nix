@@ -9,10 +9,5 @@
       Hour = 2;
       Minute = 30;
     };
-
-    linux-builder = {
-      enable = true;
-      ephemeral = true;
-    };
   };
 }
