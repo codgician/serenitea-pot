@@ -19,6 +19,7 @@
   # Home manager
   home-manager.users.codgi = { config, pkgs, ... }: {
     codgician.codgi = {
+      dev.nix.enable = true;
       git.enable = true;
       pwsh.enable = true;
       ssh.enable = true;

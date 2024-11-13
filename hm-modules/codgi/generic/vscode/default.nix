@@ -8,7 +8,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    programs.vscode = rec {
+    programs.vscode = {
       enable = true;
       enableUpdateCheck = false;
       enableExtensionUpdateCheck = false;
@@ -42,7 +42,7 @@ in
           fontFamily = "'Cascadia Mono PL', 'Cascadia Mono', monospace";
           fontSize = 14;
         };
-        remote.SSH.defaultExtensions = builtins.map (ext: ext.vscodeExtUniqueId) extensions;
+        remote.SSH.defaultExtensions = builtins.map (ext: ext.vscodeExtUniqueId) config.programs.vscode.extensions;
       };
     };
   };
