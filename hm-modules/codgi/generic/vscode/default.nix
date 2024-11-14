@@ -22,10 +22,11 @@ in
         ms-vscode.vscode-diagnostic-tools
         ms-vscode.remote-explorer
         ms-vscode.remote-repositories
+        ms-vscode.azure-repos
+        github.remotehub
         ms-vscode.remote-server
         ms-vscode-remote.remote-ssh-edit
         ms-vscode-remote.remote-containers
-        ms-vscode-remote.vscode-remote-extensionpack
       ] ++ (with pkgs.vscode-marketplace-release; [
         github.copilot
         github.copilot-chat
