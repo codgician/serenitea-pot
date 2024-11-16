@@ -25,7 +25,10 @@ in
         options = "--delete-older-than 7d";
       };
 
-      extraOptions = "experimental-features = nix-command flakes";
+      extraOptions = ''
+        experimental-features = nix-command flakes
+        accept-flake-config = true
+      '';
       optimise.automatic = true;
       settings = lib.mkMerge [
         {

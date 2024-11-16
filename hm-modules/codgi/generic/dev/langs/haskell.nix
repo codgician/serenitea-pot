@@ -11,6 +11,7 @@ in
     programs.vscode = {
       extensions = with pkgs.vscode-marketplace; [
         haskell.haskell
+        justusadam.language-haskell
       ];
 
       userSettings.haskell.serverExecutablePath = "haskell-language-server-wrapper";
