@@ -1,6 +1,20 @@
 {
   description = "❄️ Home to codgician's nix-managed device profiles";
 
+  nixConfig = {
+    allow-import-from-derivation = "true";
+    extra-substituters = [
+      "https://nix-community.cachix.org"
+      "https://cache.saumon.network/proxmox-nixos"
+      "https://codgician.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "proxmox-nixos:nveXDuVVhFDRFx8Dn19f1WDEaNRJjPrF2CPD2D+m1ys="
+      "codgician.cachix.org-1:v4RtwkbJZJwfDxH5hac1lHehIX6JoSL726vk1ZctN8Y="
+    ];
+  };
+
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     nixpkgs-nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";

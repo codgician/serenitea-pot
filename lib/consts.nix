@@ -10,4 +10,7 @@
 
   # Path to overlays folder
   overlaysDir = rootDir + "/overlays";
+
+  # Path to secrets dirctory
+  secretsDir = ../secrets;
 }

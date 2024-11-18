@@ -1,6 +1,9 @@
 { config, lib, inputs, ... }:
 let
   cfg = config.codgician.nix;
+  flakePath = lib.codgician.rootDir + "/flake.nix";
+  substituters = (import flakePath).nixConfig.extra-substituters;
+  trusted-public-keys = (import flakePath).nixConfig.extra-trusted-public-keys;
 in
 {
   options.codgician.nix = {
@@ -32,21 +35,8 @@ in
       optimise.automatic = true;
       settings = lib.mkMerge [
         {
+          inherit substituters trusted-public-keys;
           extra-nix-path = "nixpkgs=flake:nixpkgs";
-        }
-        {
-          substituters = [
-            "https://nix-community.cachix.org"
-            "https://cache.lix.systems"
-            "https://cache.saumon.network/proxmox-nixos"
-            "https://codgician.cachix.org"
-          ];
-          trusted-public-keys = [
-            "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-            "cache.lix.systems:aBnZUw8zA7H35Cz2RyKFVs3H4PlGTLawyY5KRbvJR8o="
-            "proxmox-nixos:nveXDuVVhFDRFx8Dn19f1WDEaNRJjPrF2CPD2D+m1ys="
-            "codgician.cachix.org-1:v4RtwkbJZJwfDxH5hac1lHehIX6JoSL726vk1ZctN8Y="
-          ];
         }
 
         # Use xddxdd's binary cache

@@ -1,12 +1,9 @@
 { lib, ... }: rec {
-  # Path to secrets dirctory
-  secretsDir = ../secrets;
-
   # Extract secret name from secret path
   getAgeSecretNameFromPath = path: lib.removeSuffix ".age" (builtins.baseNameOf path);
 
   # Convert secret name to secret path
-  getAgeSecretPathFromName = name: secretsDir + "/${name}.age";
+  getAgeSecretPathFromName = name: lib.secretsDir + "/${name}.age";
 
   # Make assertion rules for specified age file paths
   mkAgenixAssertions = builtins.map (file: {
