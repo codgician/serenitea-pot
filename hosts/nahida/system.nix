@@ -13,7 +13,7 @@
       };
 
       open-webui = {
-        enable = true;
+        enable = false;
         stateDir = "/nix/persist/open-webui";
         reverseProxy = {
           enable = true;
