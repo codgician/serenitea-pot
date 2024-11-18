@@ -34,21 +34,20 @@ in
       package = pkgs.sambaFull;
       openFirewall = true;
 
-      securityType = "user";
-      enableNmbd = true;
-      enableWinbindd = true;
       nsswins = true;
+      nmbd.enable = true;
+      winbindd.enable = true;
 
-      invalidUsers = [ "root" ];
-
-      extraConfig = ''
-        server string = ${config.networking.hostName}
-        netbios name = ${config.networking.hostName}
-        wins support = yes
-        server smb encrypt = desired
-      '';
-
-      shares = cfg.shares;
+      settings = cfg.shares // {
+        global = {
+          "server string" = config.networking.hostName;
+          "netbios name" = config.networking.hostName;
+          "wins support" = "yes";
+          "server smb encrypt" = "desired";
+          "invalid users" = [ "root" ];
+          "security" = "user";
+        };
+      };
     };
 
     # Make shares visible to Windows clients

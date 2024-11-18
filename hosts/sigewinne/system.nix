@@ -114,7 +114,7 @@
   hardware.firmware = [ config.mobile.device.firmware ];
 
   # Enable OpenGL
-  hardware.opengl = {
+  hardware.graphics = {
     enable = true;
     extraPackages = [
       pkgs.vaapiVdpau
@@ -123,6 +123,7 @@
   };
 
   # Use PulseAudio
+  services.pipewire.enable = false;
   hardware.pulseaudio.enable = true;
 
   # Enable Bluetooth

@@ -48,10 +48,8 @@
         smartmontools
         pciutils
         ffmpeg-full
-        httping
         virt-manager
         tcping-go
-        httping
         github-copilot-cli
         binwalk
       ];

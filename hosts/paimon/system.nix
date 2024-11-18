@@ -11,7 +11,7 @@
       };
 
       calibre-web = {
-        enable = true;
+        enable = false;
         ip = "127.0.0.1";
         port = 3002;
         calibreLibrary = "/mnt/nas/media/books";

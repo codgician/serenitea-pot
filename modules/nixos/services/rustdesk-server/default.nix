@@ -11,7 +11,11 @@ in
     services.rustdesk-server = {
       enable = true;
       openFirewall = true;
-      relayIP = "0.0.0.0";
+      signal = {
+        enable = true;
+        relayHosts = [ "0.0.0.0" "::" ];
+      };
+      relay.enable = true;
     };
   };
 }

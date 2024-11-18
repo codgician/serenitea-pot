@@ -29,14 +29,13 @@ in
     # Make windows drivers working
     programs.nix-ld = {
       enable = true;
-      libraries = config.hardware.opengl.extraPackages;
+      libraries = config.hardware.graphics.extraPackages;
     };
 
     # Enable OpenGL
     environment.systemPackages = with pkgs; [ glxinfo vulkan-tools ];
-    hardware.opengl = {
+    hardware.graphics = {
       enable = true;
-      driSupport = true;
       extraPackages = with pkgs; [
         mesa.drivers
         libvdpau-va-gl

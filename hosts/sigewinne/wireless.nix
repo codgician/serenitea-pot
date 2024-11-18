@@ -5,8 +5,8 @@ lib.mkMerge [
     # Wireless
     networking.wireless = {
       enable = true;
-      environmentFile = config.age.secrets.wirelessEnv.path;
-      networks.codgician.psk = "@CODGI_PASS@";
+      secretsFile = config.age.secrets.wirelessEnv.path;
+      networks.codgician.pskRaw = "ext:CODGI_PASS";
     };
   }
 

@@ -31,7 +31,6 @@
       httplz
       iperf3
       aria2
-      httping
     ];
   };
 

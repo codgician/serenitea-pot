@@ -53,10 +53,10 @@ in
     (lib.mkIf cfg.enable {
       virtualisation.oci-containers.containers.comfyui = {
         autoStart = true;
-        image = "docker.io/yanwk/comfyui-boot:megapak";
+        image = "docker.io/yanwk/comfyui-boot:cu124-megapak";
         ports = [ "${builtins.toString cfg.port}:8188" ];
         volumes = [ "${cfg.dataDir}:/root" ];
-        extraOptions = [ "--device=nvidia.com/gpu=all" ];
+        extraOptions = [ "--log-level=debug" ] ++ lib.optionals config.hardware.nvidia-container-toolkit.enable [ "--device=nvidia.com/gpu=all" ];
       };
 
       virtualisation.podman.enable = true;

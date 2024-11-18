@@ -68,7 +68,7 @@
   '';
 
   # Enable graphics
-  hardware.opengl.enable = true;
+  hardware.graphics.enable = true;
 
   # Hardware-specific global packages
   environment.systemPackages = with pkgs; [

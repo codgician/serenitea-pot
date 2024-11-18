@@ -104,7 +104,8 @@ in
       LC_TIME = "en_US.UTF-8";
     };
     inputMethod = {
-      enabled = "fcitx5";
+      enable = true;
+      type = "fcitx5";
       fcitx5 = {
         addons = with pkgs; [
           fcitx5-rime
@@ -124,7 +125,7 @@ in
     enableGhostscriptFonts = true;
     packages = with pkgs; [
       noto-fonts
-      noto-fonts-cjk
+      noto-fonts-cjk-sans
       noto-fonts-emoji
       cascadia-code
     ];
@@ -137,6 +138,7 @@ in
     alsa.support32Bit = true;
     pulse.enable = true;
   };
+  hardware.pulseaudio.enable = false;
 
   programs.kdeconnect.enable = true;
 

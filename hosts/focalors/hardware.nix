@@ -12,9 +12,6 @@
   nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "prl-tools" ];
   hardware.parallels.enable = true;
 
-  # todo: remove for 24.10
-  hardware.parallels.autoMountShares = false;
-
   nix.settings = {
     extra-platforms = [ "x86_64-linux" ];
     extra-sandbox-paths = [

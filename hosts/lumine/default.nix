@@ -6,5 +6,4 @@
     ./system.nix
     ./reverse-proxies.nix
   ];
-  stable = false;
 }

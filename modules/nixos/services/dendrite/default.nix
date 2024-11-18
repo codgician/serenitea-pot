@@ -187,17 +187,6 @@ in
       # Allow R/W to media path
       systemd.services.dendrite.serviceConfig.ReadWritePaths = [ cfg.dataPath ];
 
-      # Matrix sliding-sync
-      services.matrix-sliding-sync = {
-        enable = true;
-        settings = {
-          SYNCV3_SERVER = "https://${cfg.domain}";
-          SYNCV3_BINDADDR = slidingSyncBindAddr;
-          SYNCV3_DB = "postgresql:///${slidingSyncDbName}?host=${dbHost}";
-        };
-        environmentFile = config.age.secrets.matrixEnv.path;
-      };
-
       # PostgreSQL 
       codgician.services.postgresql.enable = true;
       services.postgresql = {
