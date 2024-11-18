@@ -45,6 +45,26 @@ in
         sku = "Standard";
         idle_timeout_in_minutes = 30;
       };
+
+      lumine-ipv4-2 = {
+        name = "lumine-ipv4-2";
+        inherit location resource_group_name;
+        allocation_method = "Static";
+        public_ip_prefix_id = config.resource.azurerm_public_ip_prefix.lumine-ipv4-prefix "id";
+        ip_version = "IPv4";
+        sku = "Standard";
+        idle_timeout_in_minutes = 30;
+      };
+
+      lumine-ipv6-2 = {
+        name = "lumine-ipv6-2";
+        inherit location resource_group_name;
+        allocation_method = "Static";
+        public_ip_prefix_id = config.resource.azurerm_public_ip_prefix.lumine-ipv6-prefix "id";
+        ip_version = "IPv6";
+        sku = "Standard";
+        idle_timeout_in_minutes = 30;
+      };
     };
 
     # Network security group
@@ -83,7 +103,7 @@ in
         {
           name = "ipv4cfg-1";
           subnet_id = config.resource.azurerm_subnet.celestia-subnet "id";
-          public_ip_address_id = config.resource.azurerm_public_ip.lumine-ipv4-1 "id";
+          public_ip_address_id = config.resource.azurerm_public_ip.lumine-ipv4-2 "id";
           primary = true;
           private_ip_address_allocation = "Dynamic";
           private_ip_address_version = "IPv4";
@@ -91,7 +111,7 @@ in
         {
           name = "ipv6cfg-1";
           subnet_id = config.resource.azurerm_subnet.celestia-subnet "id";
-          public_ip_address_id = config.resource.azurerm_public_ip.lumine-ipv6-1 "id";
+          public_ip_address_id = config.resource.azurerm_public_ip.lumine-ipv6-2 "id";
           private_ip_address_allocation = "Dynamic";
           private_ip_address_version = "IPv6";
         }
