@@ -26,7 +26,7 @@
       zsh.enable = true;
     };
 
-    home.stateVersion = "24.05";
+    home.stateVersion = "24.11";
     home.packages = with pkgs; [
       httplz
       iperf3
