@@ -2,6 +2,7 @@
 
 { config, pkgs, ... }:
 let
+  cfg = config.codgician.services.postgresql;
   newPostgres = pkgs.postgresql.withPackages (pp: [
     # List extensions you need here, example: pp.plv8
   ]);
@@ -13,7 +14,7 @@ pkgs.writeScriptBin "upgrade-pg-cluster" ''
   # XXX it's perhaps advisable to stop all services that depend on postgresql
   ${pkgs.systemd}/bin/systemctl stop postgresql.service
 
-  export NEWDATA="/var/lib/postgresql/${newPostgres.psqlSchema}"
+  export NEWDATA="${cfg.dataDir}/${newPostgres.psqlSchema}"
   export NEWBIN="${newPostgres}/bin"
   export OLDDATA="${config.services.postgresql.dataDir}"
   export OLDBIN="${config.services.postgresql.package}/bin"

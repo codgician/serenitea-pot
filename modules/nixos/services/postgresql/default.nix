@@ -18,7 +18,8 @@ in
 
   config = lib.mkIf cfg.enable {
     services.postgresql = {
-      inherit (cfg) enable dataDir;
+      inherit (cfg) enable;
+      dataDir = "${cfg.dataDir}/${config.services.postgresql.package.psqlSchema}";
       settings = {
         full_page_writes = lib.mkIf cfg.zfsOptimizations false; # Not needed for ZFS
       };
