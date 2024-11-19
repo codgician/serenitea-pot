@@ -66,6 +66,8 @@ jobs:
             accept-flake-config = true
             system-features = big-parallel gccarch-x86-64-v3
             experimental-features = nix-command flakes
+            builders-use-substitutes = true
+            max-jobs = auto
             extra-platforms = ${{ matrix.host.system == 'aarch64-linux' && 'aarch64-linux' || 'i686-linux' }}
       - uses: cachix/cachix-action@v15
         with:
@@ -96,6 +98,8 @@ jobs:
             accept-flake-config = true
             system-features = big-parallel
             experimental-features = nix-command flakes
+            builders-use-substitutes = true
+            max-jobs = auto
             extra-platforms = x86_64-darwin
       - uses: cachix/cachix-action@v15
         with:
