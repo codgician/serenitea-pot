@@ -145,7 +145,7 @@
 
       # Package overlays
       overlays = [ (self: super: { lib = mkLib super; }) ]
-        ++ (builtins.map (x: import x { inherit inputs; }) (with lib.codgician; getNixFilePaths overlaysDir));
+        ++ (builtins.map (x: import x { inherit inputs lib; }) (with lib.codgician; getNixFilePaths overlaysDir));
 
       # Make package universe
       mkPkgs = nixpkgs: system: (import nixpkgs {

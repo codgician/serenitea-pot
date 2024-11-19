@@ -1,4 +1,4 @@
-{ inputs }:
+{ inputs, ... }:
 
 self: super:
 let

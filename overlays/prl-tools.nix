@@ -1,6 +1,6 @@
 # Always use prl-tools from unstable
 
-{ inputs }:
+{ inputs, ... }:
 
 self: super:
 let
