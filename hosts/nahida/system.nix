@@ -13,8 +13,7 @@
       };
 
       open-webui = {
-        enable = false;
-        stateDir = "/nix/persist/open-webui";
+        enable = true;
         reverseProxy = {
           enable = true;
           domains = [ "akasha.codgician.me" ];

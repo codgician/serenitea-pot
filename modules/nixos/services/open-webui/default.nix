@@ -9,7 +9,7 @@ in
 
     host = lib.mkOption {
       type = types.str;
-      default = "::";
+      default = "127.0.0.1";
       description = ''
         Host for open-webui to listen on.
       '';
@@ -20,14 +20,6 @@ in
       default = 3010;
       description = ''
         Port for open-webui to listen on.
-      '';
-    };
-
-    stateDir = lib.mkOption {
-      type = types.path;
-      default = "/var/lib/open-webui";
-      description = ''
-        Data directory for comfyui.
       '';
     };
 
@@ -46,8 +38,8 @@ in
 
       proxyPass = lib.mkOption {
         type = types.str;
-        default = "http://127.0.0.1:${builtins.toString cfg.port}";
-        defaultText = ''http://127.0.0.1:$\{toString config.codgician.services.comfyui.port}'';
+        default = "http://${cfg.host}:${builtins.toString cfg.port}";
+        defaultText = ''http://$\{cfg.host\}:$\{toString config.codgician.services.comfyui.port\}'';
         description = ''
           Source URI for the reverse proxy.
         '';
@@ -61,10 +53,22 @@ in
     (lib.mkIf cfg.enable {
       services.open-webui = {
         enable = true;
-        inherit (cfg) port stateDir;
-        environment = { };
+        inherit (cfg) host port;
+        environmentFile = config.age.secrets.openWebuiEnv.path;
+        environment = { 
+          WEBUI_AUTH = "True";
+          WEBUI_NAME = "Akasha";
+          WEBUI_URL = if cfg.reverseProxy.enable 
+                      then builtins.head cfg.reverseProxy.domains
+                      else "${cfg.host}:${builtins.toString cfg.port}";
+          ENABLE_SIGNUP = "False";
+          ENABLE_LOGIN_FORM = "True";
+          DEFAULT_USER_ROLE = "pending";
+        };
       };
     })
+
+    (lib.codgician.mkAgenixConfigs "root" [ (lib.codgician.secretsDir + "/openWebuiEnv.age") ])
 
     # Reverse proxy profile
     (lib.mkIf cfg.reverseProxy.enable {

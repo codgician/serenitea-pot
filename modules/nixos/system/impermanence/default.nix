@@ -24,7 +24,7 @@ in
         "/var/lib/acme"
         "/var/lib/bluetooth"
         "/var/lib/nixos"
-        "/var/lib/private"
+        { directory = "/var/lib/private"; mode = "0700";  }
         "/var/lib/systemd/coredump"
         "/etc/NetworkManager/system-connections"
         "/home"
