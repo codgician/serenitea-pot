@@ -55,12 +55,13 @@ in
         enable = true;
         inherit (cfg) host port;
         environmentFile = config.age.secrets.openWebuiEnv.path;
-        environment = { 
+        environment = {
           WEBUI_AUTH = "True";
           WEBUI_NAME = "Akasha";
-          WEBUI_URL = if cfg.reverseProxy.enable 
-                      then builtins.head cfg.reverseProxy.domains
-                      else "${cfg.host}:${builtins.toString cfg.port}";
+          WEBUI_URL =
+            if cfg.reverseProxy.enable
+            then builtins.head cfg.reverseProxy.domains
+            else "${cfg.host}:${builtins.toString cfg.port}";
           ENABLE_SIGNUP = "False";
           ENABLE_LOGIN_FORM = "True";
           DEFAULT_USER_ROLE = "pending";
@@ -68,7 +69,8 @@ in
       };
     })
 
-    (lib.codgician.mkAgenixConfigs "root" [ (lib.codgician.secretsDir + "/openWebuiEnv.age") ])
+    (lib.mkIf cfg.enable
+      (lib.codgician.mkAgenixConfigs "root" [ (lib.codgician.secretsDir + "/openWebuiEnv.age") ]))
 
     # Reverse proxy profile
     (lib.mkIf cfg.reverseProxy.enable {

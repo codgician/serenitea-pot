@@ -5,15 +5,12 @@ let
 
   dbHost = "/run/postgresql";
   dbName = "dendrite";
-  slidingSyncDbName = "matrix-sliding-sync";
   database = {
     connection_string = "postgres:///${dbName}?host=${dbHost}";
     max_open_conns = 80;
     max_idle_conns = 5;
     conn_max_lifetime = -1;
   };
-
-  slidingSyncBindAddr = "127.0.0.1:8009";
 in
 {
   options.codgician.services.dendrite = {
@@ -190,7 +187,7 @@ in
       # PostgreSQL 
       codgician.services.postgresql.enable = true;
       services.postgresql = {
-        ensureDatabases = [ dbName slidingSyncDbName ];
+        ensureDatabases = [ dbName ];
         ensureUsers = [
           { name = dbName; ensureDBOwnership = true; }
         ];
@@ -245,13 +242,6 @@ in
                   proxy_buffering off;
                 '';
               };
-
-              # Sliding sync
-              "~ ^/(client/|_matrix/client/unstable/org.matrix.msc3575/sync)" =
-                lib.mkIf (!cfg.reverseProxy.proxyAll) {
-                  inherit (cfg.reverseProxy) lanOnly;
-                  proxyPass = "http://${slidingSyncBindAddr}";
-                };
 
               # Announce server & client metadata
               "= /.well-known/matrix/server" = lib.mkIf (!cfg.reverseProxy.proxyAll) {
