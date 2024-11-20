@@ -1,19 +1,22 @@
-{ config, lib, pkgs, outputs,... }:
+{ config, lib, pkgs, outputs, ... }:
 let
   cfg = config.codgician.services.litellm;
   types = lib.types;
 
   terraformConf = builtins.fromJSON outputs.packages.${pkgs.system}.terraformConfiguration.value;
   azureApiBase = "https://${terraformConf.resource.azurerm_cognitive_account.akasha.name}.openai.azure.com";
-  azureModels = builtins.map (x: {
-    model_name = x.name;
-    litellm_params = {
-      model = "azure/${x.name}";
-      api_base = azureApiBase;
-      api_key = "os.environ/AZURE_AKASHA_API_KEY";
-      rpm = 6;
-    };
-  }) (builtins.attrValues terraformConf.resource.azurerm_cognitive_deployment);
+  azureModels = builtins.map
+    (x: {
+      model_name = x.name;
+      litellm_params = {
+        model = "azure/${x.name}";
+        api_base = azureApiBase;
+        api_key = "os.environ/AZURE_AKASHA_API_KEY";
+        rpm = 6;
+      };
+    })
+    (builtins.filter (x: x.model.name != "gpt-4o-realtime-preview")
+      (builtins.attrValues terraformConf.resource.azurerm_cognitive_deployment));
 
   settingsFormat = pkgs.formats.yaml { };
   settings.model_list = azureModels;
@@ -86,68 +89,70 @@ in
     };
   };
 
-  config = let
-    litellmProxyPkg = cfg.package.overridePythonAttrs (prev: {
-      dependencies = prev.dependencies ++ cfg.package.optional-dependencies.proxy;
-    });
-  in lib.mkMerge [
-    (lib.mkIf cfg.enable {
-      # Systemd service for LiteLLM
-      systemd.services.litellm = lib.optionalAttrs cfg.enable {
-        inherit (cfg) enable;
-        restartIfChanged = true;
-        description = "LiteLLM proxy service";
-        wantedBy = [ "multi-user.target" ];
-        after = [ "network.target" ];
+  config =
+    let
+      litellmProxyPkg = cfg.package.overridePythonAttrs (prev: {
+        dependencies = prev.dependencies ++ cfg.package.optional-dependencies.proxy;
+      });
+    in
+    lib.mkMerge [
+      (lib.mkIf cfg.enable {
+        # Systemd service for LiteLLM
+        systemd.services.litellm = lib.optionalAttrs cfg.enable {
+          inherit (cfg) enable;
+          restartIfChanged = true;
+          description = "LiteLLM proxy service";
+          wantedBy = [ "multi-user.target" ];
+          after = [ "network.target" ];
 
-        serviceConfig = {
-          ExecStart = ''
-            ${litellmProxyPkg}/bin/litellm \
-              --config ${settingsFormat.generate "litellm-config.yml" settings} \
-              --host ${cfg.host} \
-              --port ${builtins.toString cfg.port} \
-              --telemetry False
-          '';
+          serviceConfig = {
+            ExecStart = ''
+              ${litellmProxyPkg}/bin/litellm \
+                --config ${settingsFormat.generate "litellm-config.yml" settings} \
+                --host ${cfg.host} \
+                --port ${builtins.toString cfg.port} \
+                --telemetry False
+            '';
 
-          EnvironmentFile = config.age.secrets.litellmEnv.path;
-          WorkingDirectory = cfg.dataDir;
-          StateDirectory = "litellm";
-          RuntimeDirectory = "litellm";
-          RuntimeDirectoryMode = "0755";
-          PrivateTmp = true;
-          DynamicUser = true;
-          DevicePolicy = "closed";
-          LockPersonality = true;
-          PrivateUsers = true;
-          ProtectHome = true;
-          ProtectHostname = true;
-          ProtectKernelLogs = true;
-          ProtectKernelModules = true;
-          ProtectKernelTunables = true;
-          ProtectControlGroups = true;
-          RestrictNamespaces = true;
-          RestrictRealtime = true;
-          SystemCallArchitectures = "native";
-          UMask = "0077";
-        };
-      };
-    })
-
-    (lib.mkIf cfg.enable
-      (lib.codgician.mkAgenixConfigs "root" [ (lib.codgician.secretsDir + "/litellmEnv.age") ]))
-
-    # Reverse proxy profile
-    (lib.mkIf cfg.reverseProxy.enable {
-      codgician.services.nginx = {
-        enable = true;
-        reverseProxies.ollama = {
-          inherit (cfg.reverseProxy) enable domains;
-          https = true;
-          locations."/" = {
-            inherit (cfg.reverseProxy) proxyPass lanOnly;
+            EnvironmentFile = config.age.secrets.litellmEnv.path;
+            WorkingDirectory = cfg.dataDir;
+            StateDirectory = "litellm";
+            RuntimeDirectory = "litellm";
+            RuntimeDirectoryMode = "0755";
+            PrivateTmp = true;
+            DynamicUser = true;
+            DevicePolicy = "closed";
+            LockPersonality = true;
+            PrivateUsers = true;
+            ProtectHome = true;
+            ProtectHostname = true;
+            ProtectKernelLogs = true;
+            ProtectKernelModules = true;
+            ProtectKernelTunables = true;
+            ProtectControlGroups = true;
+            RestrictNamespaces = true;
+            RestrictRealtime = true;
+            SystemCallArchitectures = "native";
+            UMask = "0077";
           };
         };
-      };
-    })
-  ];
+      })
+
+      (lib.mkIf cfg.enable
+        (lib.codgician.mkAgenixConfigs "root" [ (lib.codgician.secretsDir + "/litellmEnv.age") ]))
+
+      # Reverse proxy profile
+      (lib.mkIf cfg.reverseProxy.enable {
+        codgician.services.nginx = {
+          enable = true;
+          reverseProxies.ollama = {
+            inherit (cfg.reverseProxy) enable domains;
+            https = true;
+            locations."/" = {
+              inherit (cfg.reverseProxy) proxyPass lanOnly;
+            };
+          };
+        };
+      })
+    ];
 }

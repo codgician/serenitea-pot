@@ -4,7 +4,7 @@ let
   types = lib.types;
   listToStr = lib.strings.concatStringsSep ";";
 
-  litellmEnable =  config.codgician.services.litellm.enable;
+  litellmEnable = config.codgician.services.litellm.enable;
   litellmHost = config.codgician.services.litellm.host;
   litellmPort = config.codgician.services.litellm.port;
   litellmBases = lib.optionals litellmEnable [ "http://${litellmHost}:${builtins.toString litellmPort}" ];
@@ -84,7 +84,7 @@ in
           );
           ENABLE_OPENAI_API = "True";
           OPENAI_API_BASE_URLS = listToStr litellmBases;
-          OPENAI_API_KEYS = listToStr litellmKeys; 
+          OPENAI_API_KEYS = listToStr litellmKeys;
         };
       };
     })
