@@ -23,6 +23,8 @@ in
       '';
     };
 
+    openFirewall = lib.mkEnableOption "Open firewall for open-webui.";
+
     # Reverse proxy profile for nginx
     reverseProxy = {
       enable = lib.mkEnableOption "Enable reverse proxy for open-webui.";
@@ -39,7 +41,7 @@ in
       proxyPass = lib.mkOption {
         type = types.str;
         default = "http://${cfg.host}:${builtins.toString cfg.port}";
-        defaultText = ''http://$\{cfg.host\}:$\{toString config.codgician.services.comfyui.port\}'';
+        defaultText = ''http://$\{config.codgician.services.open-webui.host\}:$\{toString config.codgician.services.open-webui.port\}'';
         description = ''
           Source URI for the reverse proxy.
         '';
@@ -53,7 +55,7 @@ in
     (lib.mkIf cfg.enable {
       services.open-webui = {
         enable = true;
-        inherit (cfg) host port;
+        inherit (cfg) host port openFirewall;
         environmentFile = config.age.secrets.openWebuiEnv.path;
         environment = {
           WEBUI_AUTH = "True";
@@ -65,6 +67,13 @@ in
           ENABLE_SIGNUP = "False";
           ENABLE_LOGIN_FORM = "True";
           DEFAULT_USER_ROLE = "pending";
+          OLLAMA_API_BASE_URL = lib.mkIf config.services.ollama.enable (
+            let
+              ollamaHost = config.services.ollama.host;
+              ollamaPort = config.services.ollama.port;
+            in
+            "http://${ollamaHost}:${builtins.toString ollamaPort}"
+          );
         };
       };
     })

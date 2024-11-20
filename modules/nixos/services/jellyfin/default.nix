@@ -61,10 +61,14 @@ rec {
         group = cfg.group;
       };
 
-      # Persist data
+      # Persist data when dataDir is default value
       environment = lib.optionalAttrs (systemCfg?impermanence) {
         persistence.${systemCfg.impermanence.path}.directories =
-          lib.mkIf (cfg.dataDir == options.codgician.services.jellyfin.dataDir.default) [ cfg.dataDir ];
+          lib.mkIf (cfg.dataDir == options.codgician.services.jellyfin.dataDir.default) [{
+            directory = cfg.dataDir;
+            mode = "0750";
+            inherit (cfg) user group;
+          }];
       };
     })
 
