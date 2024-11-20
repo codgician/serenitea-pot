@@ -106,7 +106,7 @@ in
               --config ${settingsFormat.generate "litellm-config.yml" settings} \
               --host ${cfg.host} \
               --port ${builtins.toString cfg.port} \
-              --telemetry False --detailed_debug
+              --telemetry False
           '';
 
           EnvironmentFile = config.age.secrets.litellmEnv.path;
