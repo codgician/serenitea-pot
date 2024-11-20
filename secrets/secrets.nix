@@ -35,6 +35,9 @@ with pubKeys; with pubKeys.hosts; {
   # Open-WebUI secrets
   "openWebuiEnv.age".publicKeys = someHosts [ nahida ];
 
+  # LiteLLM secrets
+  "litellmEnv.age".publicKeys = someHosts [ nahida ];
+
   # Terraform secrets
   "terraformEnv.age".publicKeys = users.codgi;
 

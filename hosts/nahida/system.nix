@@ -13,6 +13,7 @@
       };
 
       ollama.enable = true;
+      litellm.enable = true;
       open-webui = {
         enable = true;
         reverseProxy = {

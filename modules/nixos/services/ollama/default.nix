@@ -1,10 +1,9 @@
 { config, lib, ... }:
 let
   cfg = config.codgician.services.ollama;
-  systemCfg = config.codgician.system;
   types = lib.types;
 in
-rec {
+{
   options.codgician.services.ollama = {
     enable = lib.mkEnableOption "Enable Ollama.";
 
@@ -55,7 +54,7 @@ rec {
 
     # Reverse proxy profile for nginx
     reverseProxy = {
-      enable = lib.mkEnableOption "Enable reverse proxy for open-webui.";
+      enable = lib.mkEnableOption "Enable reverse proxy for ollama.";
 
       domains = lib.mkOption {
         type = types.listOf types.str;

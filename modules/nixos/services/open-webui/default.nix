@@ -2,6 +2,13 @@
 let
   cfg = config.codgician.services.open-webui;
   types = lib.types;
+  listToStr = lib.strings.concatStringsSep ";";
+
+  litellmEnable =  config.codgician.services.litellm.enable;
+  litellmHost = config.codgician.services.litellm.host;
+  litellmPort = config.codgician.services.litellm.port;
+  litellmBases = lib.optionals litellmEnable [ "http://${litellmHost}:${builtins.toString litellmPort}" ];
+  litellmKeys = lib.optionals litellmEnable [ "dummy" ];
 in
 {
   options.codgician.services.open-webui = {
@@ -67,13 +74,17 @@ in
           ENABLE_SIGNUP = "False";
           ENABLE_LOGIN_FORM = "True";
           DEFAULT_USER_ROLE = "pending";
-          OLLAMA_API_BASE_URL = lib.mkIf config.services.ollama.enable (
+          ENABLE_OLLAMA_API = if config.services.ollama.enable then "True" else "False";
+          OLLAMA_BASE_URL = lib.mkIf config.services.ollama.enable (
             let
               ollamaHost = config.services.ollama.host;
               ollamaPort = config.services.ollama.port;
             in
             "http://${ollamaHost}:${builtins.toString ollamaPort}"
           );
+          ENABLE_OPENAI_API = "True";
+          OPENAI_API_BASE_URLS = listToStr litellmBases;
+          OPENAI_API_KEYS = listToStr litellmKeys; 
         };
       };
     })

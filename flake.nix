@@ -211,6 +211,7 @@
       inherit (import ./hosts {
         inherit inputs mkLib overlays;
         inherit mkDarwinModules mkNixosModules;
+        outputs = self;
       }) darwinConfigurations nixosConfigurations;
 
       # Export custom library namespace

@@ -1,4 +1,4 @@
-{ inputs, mkLib, mkDarwinModules, mkNixosModules, overlays ? [ ], ... }:
+{ inputs, outputs, mkLib, mkDarwinModules, mkNixosModules, overlays ? [ ], ... }:
 let
   # Base configs for all platforms
   mkBaseConfig = system: hostName: { config, ... }: {
@@ -22,7 +22,7 @@ let
     in
     inputs.darwin.lib.darwinSystem {
       inherit system lib;
-      specialArgs = { inherit inputs lib system; };
+      specialArgs = { inherit inputs outputs lib system; };
       modules = (mkDarwinModules stable) ++ modules ++ [
         (mkBaseConfig system hostName)
       ];
@@ -41,7 +41,7 @@ let
     in
     nixpkgs.lib.nixosSystem {
       inherit system lib;
-      specialArgs = { inherit inputs lib system; };
+      specialArgs = { inherit inputs outputs lib system; };
       modules = (mkNixosModules stable) ++ modules ++ [
         (mkBaseConfig system hostName)
       ];
