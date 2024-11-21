@@ -87,7 +87,7 @@ in
           OPENAI_API_KEYS = listToStr litellmKeys;
           ENABLE_SEARCH_QUERY = "True";
           ENABLE_RAG_WEB_SEARCH = "True";
-          RAG_WEB_SEARCH_ENGINE = "jina";
+          RAG_WEB_SEARCH_ENGINE = "google_pse";
         };
       };
     })
