@@ -12,7 +12,11 @@
         };
       };
 
-      ollama.enable = true;
+      ollama = {
+        enable = true;
+        loadModels = [ "qwen2.5:32b" "qwen2.5-coder:32b" ];
+      };
+
       litellm.enable = true;
       open-webui = {
         enable = true;
