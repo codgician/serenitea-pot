@@ -15,9 +15,8 @@
       ollama = {
         enable = true;
         loadModels = [ 
-          "llama3.2-vision:11b"
-          "qwen2.5:32b" 
-          "qwen2.5-coder:32b"
+          "qwen2.5:32b-instruct" 
+          "qwen2.5-coder:32b-instruct"
         ];
       };
 
