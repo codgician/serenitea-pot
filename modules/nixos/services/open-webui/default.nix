@@ -85,6 +85,9 @@ in
           ENABLE_OPENAI_API = "True";
           OPENAI_API_BASE_URLS = listToStr litellmBases;
           OPENAI_API_KEYS = listToStr litellmKeys;
+          ENABLE_SEARCH_QUERY = "True";
+          ENABLE_RAG_WEB_SEARCH = "True";
+          RAG_WEB_SEARCH_ENGINE = "duckduckgo";
         };
       };
     })
