@@ -14,7 +14,11 @@
 
       ollama = {
         enable = true;
-        loadModels = [ "qwen2.5:32b" "qwen2.5-coder:32b" ];
+        loadModels = [ 
+          "llama3.2-vision:11b"
+          "qwen2.5:32b" 
+          "qwen2.5-coder:32b"
+        ];
       };
 
       litellm.enable = true;
