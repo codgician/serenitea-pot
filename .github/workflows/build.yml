@@ -44,17 +44,14 @@ jobs:
       matrix: 
         host: ${{ fromJson(needs.validate.outputs.linux) }}
       fail-fast: false
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout new change
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Free disk space (Ubuntu)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          swap-storage: false
+      - name: Free disk space
+        run: curl -fsSL https://raw.githubusercontent.com/apache/arrow/e49d8ae15583ceff03237571569099a6ad62be32/ci/scripts/util_free_space.sh | bash
       - uses: docker/setup-qemu-action@v3
         if: matrix.host.system == 'aarch64-linux'
         with:
