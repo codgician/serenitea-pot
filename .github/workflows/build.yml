@@ -15,7 +15,7 @@ concurrency: evergreen
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       darwin: ${{ steps.get_matrix.outputs.darwin }}
       linux: ${{ steps.get_matrix.outputs.linux }}
@@ -51,7 +51,9 @@ jobs:
         with:
           fetch-depth: 1
       - name: Free disk space
-        run: curl -fsSL https://raw.githubusercontent.com/apache/arrow/e49d8ae15583ceff03237571569099a6ad62be32/ci/scripts/util_free_space.sh | bash
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/apache/arrow/e49d8ae15583ceff03237571569099a6ad62be32/ci/scripts/util_free_space.sh | bash
+          sudo docker image prune --all --force || true
       - uses: docker/setup-qemu-action@v3
         if: matrix.host.system == 'aarch64-linux'
         with:
