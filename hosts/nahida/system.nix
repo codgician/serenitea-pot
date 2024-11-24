@@ -14,8 +14,8 @@
 
       ollama = {
         enable = true;
-        loadModels = [ 
-          "qwen2.5:32b" 
+        loadModels = [
+          "qwen2.5:32b"
           "qwen2.5-coder:32b"
           "dolphin-mixtral:8x7b-v2.5-q3_K_M"
         ];

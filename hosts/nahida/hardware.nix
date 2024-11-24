@@ -1,4 +1,4 @@
-{ config, lib, modulesPath, ... }: {
+{ config, lib, pkgs, modulesPath, ... }: {
   imports = [
     (modulesPath + "/profiles/qemu-guest.nix")
   ];
@@ -7,6 +7,7 @@
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
+  boot.kernelPackages = pkgs.linuxPackages_latest;
   boot.kernelParams = [ "console=ttyS0,115200" ];
 
   networking.useDHCP = lib.mkDefault true;
