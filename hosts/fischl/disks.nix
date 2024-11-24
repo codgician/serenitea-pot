@@ -77,11 +77,13 @@ in
           openwrt-os = {
             type = "zfs_volume";
             size = "1G";
+            options."com.sun:auto-snapshot" = "true";
           };
 
           hass-os = {
             type = "zfs_volume";
             size = "64G";
+            options."com.sun:auto-snapshot" = "false";
           };
         };
       };
