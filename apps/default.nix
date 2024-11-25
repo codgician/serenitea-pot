@@ -1,8 +1,9 @@
 args @ { lib, ... }:
-let names = lib.codgician.getFolderNames ./.;
-in builtins.listToAttrs (builtins.map
-  (name: {
-    inherit name;
-    value = import ./${name} args;
-  })
-  names)
+let
+  attrs = builtins.map
+    (name: builtins.mapAttrs
+      (k: v: { "${name}" = v; })
+      (import ./${name} args))
+    (lib.codgician.getFolderNames ./.);
+in
+builtins.foldl' lib.attrsets.recursiveUpdate { } attrs

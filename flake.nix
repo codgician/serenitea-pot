@@ -207,10 +207,7 @@
       inherit lib;
 
       # Apps: `nix run .#appName`
-      apps = lib.codgician.forAllSystems (pkgs: import ./apps {
-        inherit lib pkgs inputs;
-        outputs = self;
-      });
+      apps = (import ./apps { inherit lib inputs; outputs = self; });
 
       # Development shell: `nix develop .#name`
       devShells = lib.codgician.forAllSystems (pkgs: import ./shells {
