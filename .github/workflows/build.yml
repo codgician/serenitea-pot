@@ -11,8 +11,6 @@ on:
     types: [ build ]
   workflow_dispatch:
 
-concurrency: evergreen
-
 jobs:
   validate:
     runs-on: ubuntu-24.04
