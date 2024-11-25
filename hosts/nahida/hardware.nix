@@ -29,6 +29,7 @@
     powerManagement.enable = true;
     open = true;
     nvidiaSettings = true;
+    package = config.boot.kernelPackages.nvidiaPackages.beta;
   };
 
   # Limit TDP for nvidia card
