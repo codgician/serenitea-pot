@@ -30,6 +30,7 @@
     home.packages = with pkgs; [
       httplz
       iperf3
+      htop
       aria2
     ];
   };

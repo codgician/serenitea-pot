@@ -1,11 +1,11 @@
-{ inputs, outputs, mkLib, mkDarwinModules, mkNixosModules, overlays ? [ ], ... }:
+{ inputs, outputs, lib, mkDarwinModules, mkNixosModules, ... }:
 let
   # Base configs for all platforms
   mkBaseConfig = system: hostName: { config, ... }: {
     networking.hostName = hostName;
     nixpkgs = {
       config.allowUnfree = true;
-      inherit overlays;
+      inherit (lib.codgician) overlays;
     };
   };
 
@@ -16,10 +16,6 @@ let
     , system
     , stable ? true
     }:
-    let
-      nixpkgs = if stable then inputs.nixpkgs else inputs.nixpkgs-nixos-unstable;
-      lib = mkLib nixpkgs;
-    in
     inputs.darwin.lib.darwinSystem {
       inherit system lib;
       specialArgs = { inherit inputs outputs lib system; };
@@ -35,11 +31,8 @@ let
     , system
     , stable ? true
     }:
-    let
-      nixpkgs = if stable then inputs.nixpkgs else inputs.nixpkgs-nixos-unstable;
-      lib = mkLib nixpkgs;
-    in
-    nixpkgs.lib.nixosSystem {
+    let nixpkgs = if stable then inputs.nixpkgs else inputs.nixpkgs-nixos-unstable;
+    in nixpkgs.lib.nixosSystem {
       inherit system lib;
       specialArgs = { inherit inputs outputs lib system; };
       modules = (mkNixosModules stable) ++ modules ++ [
@@ -47,7 +40,6 @@ let
       ];
     };
 
-  lib = mkLib inputs.nixpkgs;
   hosts = builtins.map (x: (import ./${x}) // { hostName = x; }) (lib.codgician.getFolderNames ./.);
   hostsToAttr = builder: hosts: builtins.listToAttrs (builtins.map (host: { name = host.hostName; value = builder host; }) hosts);
 in

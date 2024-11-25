@@ -139,22 +139,11 @@
     };
   };
 
-  outputs = inputs @ { self, flake-utils, agenix, terranix, ... }:
+  outputs = inputs @ { self, agenix, terranix, ... }:
     let
       # Extending lib
-      mkLib = nixpkgs: (import ./lib { lib = nixpkgs.lib; });
+      mkLib = nixpkgs: (import ./lib { lib = nixpkgs.lib; inherit inputs; });
       lib = mkLib inputs.nixpkgs;
-
-      # Package overlays
-      overlays = [ (self: super: { lib = mkLib super; }) ]
-        ++ (builtins.map (x: import x { inherit inputs lib; }) (with lib.codgician; getNixFilePaths overlaysDir));
-
-      # Make package universe
-      mkPkgs = nixpkgs: system: (import nixpkgs {
-        inherit system overlays;
-        config.allowUnfree = true;
-        flake.source = nixpkgs.outPath;
-      });
 
       # Make home-manager module
       mkHomeManagerModules = with inputs; modulesName: stable: sharedModules:
@@ -209,33 +198,30 @@
     {
       # System configurations
       inherit (import ./hosts {
-        inherit inputs mkLib overlays;
+        inherit inputs lib;
         inherit mkDarwinModules mkNixosModules;
         outputs = self;
       }) darwinConfigurations nixosConfigurations;
 
-      # Export custom library namespace
-      lib = { inherit (lib) codgician; };
+      # Export custom library
+      inherit lib;
 
-    } // flake-utils.lib.eachDefaultSystem (system:
-      let
-        inherit (inputs) nixpkgs;
-        pkgs = mkPkgs nixpkgs system;
-      in
-      {
-        # Development shell: `nix develop .#name`
-        devShells = (import ./shells { inherit lib pkgs inputs; outputs = self; });
-
-        # Formatter: `nix fmt`
-        formatter = pkgs.nixpkgs-fmt;
-
-        # Packages: `nix build .#pkgName`
-        packages = {
-          # Terraform configuration
-          terraformConfiguration = (import ./terraform { inherit lib pkgs terranix; });
-        };
-
-        # Apps: `nix run .#appName`
-        apps = (import ./apps { inherit lib pkgs inputs; outputs = self; });
+      # Apps: `nix run .#appName`
+      apps = lib.codgician.forAllSystems (pkgs: import ./apps {
+        inherit lib pkgs inputs;
+        outputs = self;
       });
+
+      # Development shell: `nix develop .#name`
+      devShells = lib.codgician.forAllSystems (pkgs: import ./shells {
+        inherit lib pkgs inputs;
+        outputs = self;
+      });
+
+      # Formatter: `nix fmt`
+      formatter = lib.codgician.forAllSystems (pkgs: pkgs.nixpkgs-fmt);
+
+      # Packages: `nix build .#pkgName`
+      packages = (import ./packages { inherit lib inputs; outputs = self; });
+    };
 }

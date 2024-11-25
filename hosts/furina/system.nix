@@ -35,8 +35,9 @@
       packages = with pkgs; [
         httplz
         iperf3
-        android-tools
+        htop
         aria2
+        android-tools
         ghc
         pandoc
         acpica-tools

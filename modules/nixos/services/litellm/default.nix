@@ -3,7 +3,7 @@ let
   cfg = config.codgician.services.litellm;
   types = lib.types;
 
-  terraformConf = builtins.fromJSON outputs.packages.${pkgs.system}.terraformConfiguration.value;
+  terraformConf = builtins.fromJSON outputs.packages.${pkgs.system}.terraform-config.value;
   azureApiBase = "https://${terraformConf.resource.azurerm_cognitive_account.akasha.name}.openai.azure.com";
   azureModels = builtins.map
     (x: {

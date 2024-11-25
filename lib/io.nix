@@ -1,5 +1,4 @@
 { lib, ... }: rec {
-
   # List all item names with specified type under specified path 
   getDirContentByType = type: path:
     let dirContent = if lib.pathIsDirectory path then builtins.readDir path else { };

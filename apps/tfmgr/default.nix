@@ -54,7 +54,7 @@ inputs.flake-utils.lib.mkApp {
       cd $dir
 
       [ ! -e config.tf.json ] || rm -f config.tf.json
-      cp ${outputs.packages.${pkgs.system}.terraformConfiguration} config.tf.json
+      cp ${outputs.packages.${pkgs.system}.terraform-config} config.tf.json
       ${pkgs.terraform}/bin/terraform init
     }
 
