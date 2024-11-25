@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 let
   cfg = config.codgician.services.ollama;
   types = lib.types;
@@ -52,6 +52,12 @@ in
       '';
     };
 
+    acceleration = lib.mkOption {
+      type = types.nullOr (types.enum [ false "cuda" "rocm" ]);
+      default = null;
+      description = "Acceleration backend for ollama.";
+    };
+
     # Reverse proxy profile for nginx
     reverseProxy = {
       enable = lib.mkEnableOption "Enable reverse proxy for ollama.";
@@ -82,9 +88,14 @@ in
     (lib.mkIf cfg.enable {
       services.ollama = {
         enable = true;
-        inherit (cfg) host port loadModels user group;
+        inherit (cfg) host port loadModels user group acceleration;
         home = cfg.dataDir;
         models = "${cfg.dataDir}/models";
+
+        # Override package to save build time
+        package = if cfg.acceleration == "rocm" then pkgs.ollama-rocm
+                  else if cfg.acceleration == "cuda" then pkgs.ollama-cuda
+                  else pkgs.ollama;
       };
     })
 
