@@ -93,9 +93,10 @@ in
         models = "${cfg.dataDir}/models";
 
         # Override package to save build time
-        package = if cfg.acceleration == "rocm" then pkgs.ollama-rocm
-                  else if cfg.acceleration == "cuda" then pkgs.ollama-cuda
-                  else pkgs.ollama;
+        package =
+          if cfg.acceleration == "rocm" then pkgs.ollama-rocm
+          else if cfg.acceleration == "cuda" then pkgs.ollama-cuda
+          else pkgs.ollama;
       };
     })
 

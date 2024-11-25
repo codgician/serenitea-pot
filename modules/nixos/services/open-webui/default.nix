@@ -36,6 +36,15 @@ in
     reverseProxy = {
       enable = lib.mkEnableOption "Enable reverse proxy for open-webui.";
 
+      favicon = lib.mkOption {
+        type = types.nullOr types.path;
+        example = "/path/to/favicon.png";
+        default = null;
+        description = ''
+          Path to the customized favicon.png file.
+        '';
+      };
+
       domains = lib.mkOption {
         type = types.listOf types.str;
         example = [ "example.com" "example.org" ];
@@ -105,6 +114,7 @@ in
           locations."/" = {
             inherit (cfg.reverseProxy) proxyPass lanOnly;
           };
+          locations."=/static/favicon.png".alias = with cfg.reverseProxy; lib.mkIf (favicon != null) favicon;
         };
       };
     })

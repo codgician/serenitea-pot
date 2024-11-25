@@ -22,6 +22,15 @@ in
       '';
     };
 
+    alias = lib.mkOption {
+      type = types.nullOr types.path;
+      example = "/path/to/alias";
+      default = null;
+      description = ''
+        The path of the alias directory.
+      '';
+    };
+
     root = lib.mkOption {
       type = types.nullOr types.path;
       example = "/path/to/webroot";

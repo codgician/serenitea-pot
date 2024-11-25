@@ -1,7 +1,7 @@
 { lib, pkgs, ... }:
 let
   wallpaper = (pkgs.fetchurl {
-    url = "https://cdn.dynamicwallpaper.club/wallpapers/zt6aeujg1pn/Furina.heic";
+    url = "https://web.archive.org/web/20240727142306if_/https://cdn.dynamicwallpaper.club/wallpapers/zt6aeujg1pn/Furina.heic";
     sha256 = "1n8ckyhkbsadilwx171kyw44ivp0z7dhz837p1f5jy3zh811bab6";
   }).outPath;
 in

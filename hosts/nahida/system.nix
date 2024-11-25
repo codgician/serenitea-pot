@@ -1,5 +1,4 @@
 { lib, pkgs, ... }: {
-
   # My settings
   codgician = {
     services = {
