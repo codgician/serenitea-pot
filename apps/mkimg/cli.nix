@@ -125,8 +125,14 @@ inputs.flake-utils.lib.mkApp {
             echo ""
             show_help
             exit 1
-          else 
+          else
+            supported=("${builtins.concatStringsSep ''" "'' hostNames}")
             hostname=$1
+            if [[ " ''${supported[@]} " =~ " $hostname " ]]; then
+              log_verbose "Supported host: $hostname"
+            else
+              err "Unsupported host name: $hostname"
+            fi
           fi
           ;;
       esac
