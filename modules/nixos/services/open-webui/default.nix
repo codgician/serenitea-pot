@@ -114,7 +114,7 @@ in
           locations."/" = {
             inherit (cfg.reverseProxy) proxyPass lanOnly;
           };
-          locations."=/static/favicon.png".alias = with cfg.reverseProxy; lib.mkIf (favicon != null) favicon;
+          locations."=/static/favicon.png" = with cfg.reverseProxy; lib.mkIf (favicon != null) { alias = favicon; };
         };
       };
     })
