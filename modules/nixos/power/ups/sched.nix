@@ -7,7 +7,7 @@ let
     runtimeInputs = with pkgs; [ nut util-linux ];
     text = ''
       log_event () {
-        logger -t upssched-cmd $1
+        logger -t upssched-cmd "$1"
       }
 
       case $1 in
