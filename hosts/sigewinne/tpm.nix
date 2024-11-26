@@ -51,10 +51,10 @@ in
         symlink = "/bin/cat";
       }
       {
-        object = pkgs.writeScript "unlock-rootfs" ''
-          #!/bin/bash
-          clevis luks unlock -d /dev/mmcblk0p6 -n ${luksName} >> /clevis-unlock.log 2>&1
-        '';
+        object = pkgs.writeShellApplication {
+          name = "unlock-rootfs";
+          text = "clevis luks unlock -d /dev/mmcblk0p6 -n ${luksName} >> /clevis-unlock.log 2>&1";
+        };
         symlink = "/bin/unlock-rootfs";
       }
     ];

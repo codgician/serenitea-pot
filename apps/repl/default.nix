@@ -2,7 +2,11 @@
 
 # nix repl for debugging
 lib.codgician.forAllSystems (pkgs: inputs.flake-utils.lib.mkApp {
-  drv = pkgs.writeShellScriptBin "repl" ''
-    nix repl --expr "builtins.getFlake (builtins.toString $(${pkgs.git}/bin/git rev-parse --show-toplevel))"
-  '';
+  drv = pkgs.writeShellApplication {
+    name = builtins.baseNameOf ./.;
+    runtimeInputs = with pkgs; [ git ];
+    text = ''
+      nix repl --expr "builtins.getFlake (builtins.toString $(git rev-parse --show-toplevel))"
+    '';
+  };
 })

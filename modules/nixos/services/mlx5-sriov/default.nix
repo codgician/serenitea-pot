@@ -9,12 +9,15 @@ let
     echo ${builtins.toString cfg.${name}.vfNum} > /sys/class/net/${name}/device/mlx5_num_vfs
   '' + (builtins.concatStringsSep "\n" (builtins.map
     (x: ''
-      ${pkgs.iproute2}/bin/ip link set ${name} vf ${builtins.toString x.fst} mac ${x.snd}
+      ip link set ${name} vf ${builtins.toString x.fst} mac ${x.snd}
       echo "Up" > /sys/class/net/${name}/device/sriov/${builtins.toString x.fst}/link_state
     '')
     (lib.zipLists (lib.range 0 (cfg.${name}.vfNum - 1)) cfg.${name}.macs)));
-  script = pkgs.writeScriptBin "mlx5-sriov"
-    (builtins.concatStringsSep "\n" (builtins.map mkScriptForInterface interfaceNames));
+  script = pkgs.writeShellApplication {
+    name = "mlx5-sriov";
+    runtimeInputs = with pkgs; [ iproute2 ];
+    text = builtins.concatStringsSep "\n" (builtins.map mkScriptForInterface interfaceNames);
+  };
 in
 {
   options.codgician.services.mlx5-sriov = lib.mkOption {
