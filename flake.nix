@@ -198,7 +198,7 @@
     {
       # System configurations
       inherit (import ./hosts {
-        inherit inputs lib;
+        inherit inputs mkLib;
         inherit mkDarwinModules mkNixosModules;
         outputs = self;
       }) darwinConfigurations nixosConfigurations;
