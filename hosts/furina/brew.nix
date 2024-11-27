@@ -33,7 +33,6 @@
     "WireGuard" = 1451685025;
     "LocalSend" = 1661733229;
     "Hex Fiend" = 1342896380;
-    "sing-box" = 6451272673;
 
     "IT之家" = 570610859;
     "Store Redirect" = 1601434613;
@@ -71,7 +70,6 @@
     "moonlight"
     "rustdesk"
     "hopper-disassembler"
-    "zed"
     "github-copilot-for-xcode"
   ];
 }
