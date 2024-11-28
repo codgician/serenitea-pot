@@ -81,7 +81,12 @@ inputs.flake-utils.lib.mkApp {
             ;;
           apply)
             init
-            terraform apply
+            for i in {1..3}; do
+              echo "Attempt #$i"
+              if terraform apply; then
+                break
+              fi
+            done
             ;;
           *)
             warn "Unrecognized command: $1"

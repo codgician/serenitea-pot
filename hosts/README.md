@@ -1,4 +1,4 @@
-# Hosts
+# 🖥️ Hosts
 
 List of machines managed by this nix flake.
 
