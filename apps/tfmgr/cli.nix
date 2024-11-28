@@ -34,7 +34,8 @@ inputs.flake-utils.lib.mkApp {
         echo ' '
         echo 'Options:'
         echo ' '
-        echo ' -h --help    Show this screen'
+        echo ' -h --help        Show this screen'
+        echo ' --auto-approve   Auto-approve terraform changes when applying'
         echo ' '
       }
 
@@ -65,11 +66,15 @@ inputs.flake-utils.lib.mkApp {
         exit 1 
       fi
     
+      tfargs=""
       while test $# -gt 0; do
         case "$1" in
           -h|--help)
             show_help
             exit 0
+            ;;
+          --auto-approve)
+            tfargs+=" --auto-approve"
             ;;
           validate)
             init
@@ -83,7 +88,7 @@ inputs.flake-utils.lib.mkApp {
             init
             for i in {1..3}; do
               echo "Attempt #$i"
-              if terraform apply; then
+              if eval "terraform apply $tfargs"; then
                 break
               fi
             done
