@@ -10,41 +10,47 @@ in
     nurs.xddxdd.enable = lib.mkEnableOption "Enable xddxdd's NUR.";
   };
 
-  config = {
-    nixpkgs.overlays = [
-      (lib.mkIf cfg.nurs.xddxdd.enable (self: super: {
-        nur = import inputs.nur {
-          nurpkgs = super;
-          pkgs = super;
-          repoOverrides = { xddxdd = import inputs.nur-xddxdd { pkgs = super; }; };
-        };
-      }))
-    ];
-
-    nix = {
-      # Nix garbage collection
-      gc = {
-        automatic = true;
-        options = "--delete-older-than 7d";
-      };
-
-      extraOptions = ''
-        experimental-features = nix-command flakes
-        accept-flake-config = true
-      '';
-      optimise.automatic = true;
-      settings = lib.mkMerge [
-        {
-          inherit substituters trusted-public-keys;
-          extra-nix-path = "nixpkgs=flake:nixpkgs";
-        }
-
-        # Use xddxdd's binary cache
-        (lib.mkIf cfg.nurs.xddxdd.enable {
-          substituters = [ "https://xddxdd.cachix.org" ];
-          trusted-public-keys = [ "xddxdd.cachix.org-1:ay1HJyNDYmlSwj5NXQG065C8LfoqqKaTNCyzeixGjf8=" ];
-        })
+  config = lib.mkMerge [
+    {
+      nixpkgs.overlays = [
+        (lib.mkIf cfg.nurs.xddxdd.enable (self: super: {
+          nur = import inputs.nur {
+            nurpkgs = super;
+            pkgs = super;
+            repoOverrides = { xddxdd = import inputs.nur-xddxdd { pkgs = super; }; };
+          };
+        }))
       ];
-    };
-  };
+
+      nix = {
+        # Nix garbage collection
+        gc = {
+          automatic = true;
+          options = "--delete-older-than 7d";
+        };
+
+        extraOptions = ''
+          experimental-features = nix-command flakes
+          accept-flake-config = true
+          !include ${config.age.secrets.nixAccessTokens.path}
+        '';
+        optimise.automatic = true;
+        settings = lib.mkMerge [
+          {
+            inherit substituters trusted-public-keys;
+            extra-nix-path = "nixpkgs=flake:nixpkgs";
+          }
+
+          # Use xddxdd's binary cache
+          (lib.mkIf cfg.nurs.xddxdd.enable {
+            substituters = [ "https://xddxdd.cachix.org" ];
+            trusted-public-keys = [ "xddxdd.cachix.org-1:ay1HJyNDYmlSwj5NXQG065C8LfoqqKaTNCyzeixGjf8=" ];
+          })
+        ];
+      };
+    }
+
+    # Agenix secrets
+    (with lib.codgician; mkAgenixConfigs "root" [ (secretsDir + "/nixAccessTokens.age") ])
+  ];
 }
