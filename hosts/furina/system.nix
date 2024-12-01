@@ -95,6 +95,7 @@
   system.defaults = {
     dock = {
       largesize = 128;
+      tilesize = 64;
       magnification = true;
     };
 
