@@ -116,7 +116,10 @@ in
         ];
       };
 
-      virtualHosts = lib.codgician.concatAttrs (builtins.map mkVirtualHostConfig reverseProxyNames);
+      virtualHosts = lib.pipe reverseProxyNames [
+        (builtins.map mkVirtualHostConfig)
+        lib.codgician.concatAttrs
+      ];
     };
 
     # Open firewall
@@ -132,9 +135,15 @@ in
     };
 
     # ACME settings
-    codgician.acme = lib.codgician.concatAttrs (builtins.map mkAcmeConfig reverseProxyNames);
+    codgician.acme = lib.pipe reverseProxyNames [
+      (builtins.map mkAcmeConfig)
+      lib.codgician.concatAttrs
+    ];
 
     # Assertions
-    assertions = builtins.concatLists (builtins.map mkAssertions reverseProxyNames);
+    assertions = lib.pipe reverseProxyNames [
+      (builtins.map mkAssertions)
+      builtins.concatLists
+    ];
   };
 }

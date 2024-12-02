@@ -81,13 +81,10 @@ in
     }
 
     # Agenix credentials
-    (
-      let
-        secrets = lib.lists.unique (
-          builtins.map (name: cfg.${name}.ageSecretFilePath) (
-            builtins.filter (name: cfg.${name}.enable && cfg.${name}.ageSecretFilePath != null) domainNames));
-      in
-      lib.codgician.mkAgenixConfigs "root" secrets
-    )
+    (lib.codgician.mkAgenixConfigs "root" (lib.pipe domainNames [
+      (builtins.filter (name: cfg.${name}.enable && cfg.${name}.ageSecretFilePath != null))
+      (builtins.map (name: cfg.${name}.ageSecretFilePath))
+      lib.lists.unique
+    ]))
   ]);
 }

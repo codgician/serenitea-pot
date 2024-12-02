@@ -1,8 +1,10 @@
 { lib, ... }:
 let
   types = lib.types;
-  hosts = builtins.map (lib.removeSuffix ".nix")
-    (builtins.filter (lib.hasSuffix ".nix") (lib.codgician.getRegularFileNames ./peers));
+  hosts = lib.pipe (lib.codgician.getRegularFileNames ./peers) [
+    (builtins.filter (lib.hasSuffix ".nix"))
+    (builtins.map (lib.removeSuffix ".nix"))
+  ];
 in
 {
   options = {

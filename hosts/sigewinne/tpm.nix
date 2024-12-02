@@ -53,13 +53,14 @@ in
       {
         object = pkgs.writeShellApplication {
           name = "unlock-rootfs";
+          runtimeInputs = with pkgs; [ clevis cryptsetup tpm2-tools ];
           text = "clevis luks unlock -d /dev/mmcblk0p6 -n ${luksName} >> /clevis-unlock.log 2>&1";
         };
         symlink = "/bin/unlock-rootfs";
       }
     ];
 
-    # Add clevis as extea utilities
+    # Add clevis as extra utilities
     extraUtils = [
       { package = pkgs.clevis; }
       { package = pkgs.cryptsetup; }
