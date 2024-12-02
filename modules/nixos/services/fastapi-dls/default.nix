@@ -137,7 +137,7 @@ in
               };
             in
             ''
-              ${pkgs.nur.repos.xddxdd.fastapi-dls}/bin/fastapi-dls \
+              ${lib.getExe pkgs.nur.repos.xddxdd.fastapi-dls} \
                 --host ${cfg.host} --port ${builtins.toString cfg.port} \
                 --app-dir ${cfg.appDir} \
                 --ssl-keyfile ${credsDir}/key.pem --ssl-certfile ${credsDir}/cert.pem \
@@ -185,10 +185,10 @@ in
             mkdir -p ${cfg.dataDir}/cert
           fi
           if [ ! -f "${cfg.dataDir}/cert/instance.private.pem" ]; then 
-            ${pkgs.openssl}/bin/openssl genrsa -out ${cfg.dataDir}/cert/instance.private.pem 2048
+            ${lib.getExe pkgs.openssl} genrsa -out ${cfg.dataDir}/cert/instance.private.pem 2048
           fi
           if [ ! -f "${cfg.dataDir}/cert/instance.public.pem" ]; then
-            ${pkgs.openssl}/bin/openssl rsa -in ${cfg.dataDir}/cert/instance.private.pem -outform PEM -pubout -out ${cfg.dataDir}/cert/instance.public.pem
+            ${lib.getExe pkgs.openssl} rsa -in ${cfg.dataDir}/cert/instance.private.pem -outform PEM -pubout -out ${cfg.dataDir}/cert/instance.public.pem
           fi
           rm -rf ${cfg.appDir}/cert
           ln -s ${cfg.dataDir}/cert ${cfg.appDir}/cert

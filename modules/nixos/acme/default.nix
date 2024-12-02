@@ -62,7 +62,7 @@ let
         reloadServices = cfg.${name}.reloadServices;
         postRun =
           let
-            commands = builtins.map (x: "${pkgs.bash}/bin/bash -c '${x}'") cfg.${name}.postRunScripts;
+            commands = builtins.map (x: "${lib.getExe pkgs.bash} -c '${x}'") cfg.${name}.postRunScripts;
           in
           builtins.concatStringsSep "\n" commands;
       };

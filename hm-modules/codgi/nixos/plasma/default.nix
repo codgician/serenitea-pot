@@ -79,7 +79,7 @@ in
       profiles.default = {
         name = "Default";
         colorScheme = "Breeze";
-        command = "${pkgs.zsh}/bin/zsh";
+        command = lib.getExe pkgs.zsh;
         font = {
           name = "Cascadia Mono PL";
           size = 11;

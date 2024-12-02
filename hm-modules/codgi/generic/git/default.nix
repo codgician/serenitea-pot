@@ -35,7 +35,7 @@ in
     programs.gh = {
       enable = true;
       gitCredentialHelper.enable = true;
-      settings.editor = "${pkgs.vim}/bin/vim";
+      settings.editor = lib.getExe pkgs.vim;
     };
   };
 }

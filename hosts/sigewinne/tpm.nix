@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 let
   luksName = "LUKS-SIGEWINNE-ROOTFS";
   luksDev = "/dev/mmcblk0p6";
@@ -43,7 +43,7 @@ in
     # Symlink dependencies to /bin
     contents = [
       {
-        object = "${pkgs.bash}/bin/bash";
+        object = lib.getExe pkgs.bash;
         symlink = "/bin/bash";
       }
       {
@@ -51,11 +51,11 @@ in
         symlink = "/bin/cat";
       }
       {
-        object = pkgs.writeShellApplication {
+        object = lib.getExe (pkgs.writeShellApplication {
           name = "unlock-rootfs";
           runtimeInputs = with pkgs; [ clevis cryptsetup tpm2-tools ];
           text = "clevis luks unlock -d /dev/mmcblk0p6 -n ${luksName} >> /clevis-unlock.log 2>&1";
-        };
+        });
         symlink = "/bin/unlock-rootfs";
       }
     ];
@@ -65,39 +65,6 @@ in
       { package = pkgs.clevis; }
       { package = pkgs.cryptsetup; }
       { package = pkgs.tpm2-tools; }
-      {
-        package = pkgs.runCommand "empty" { } "mkdir -p $out";
-        extraCommand = ''
-          copy_bin_and_libs ${pkgs.jose}/bin/jose
-          copy_bin_and_libs ${pkgs.curl}/bin/curl
-          copy_bin_and_libs ${pkgs.bash}/bin/bash
-
-          copy_bin_and_libs ${pkgs.tpm2-tools}/bin/.tpm2-wrapped
-          mv $out/bin/{.tpm2-wrapped,tpm2}
-          cp {${pkgs.tpm2-tss},$out}/lib/libtss2-tcti-device.so.0
-
-          copy_bin_and_libs ${pkgs.clevis}/bin/.clevis-wrapped
-          mv $out/bin/{.clevis-wrapped,clevis}
-
-          for BIN in ${pkgs.clevis}/bin/clevis-decrypt*; do
-            copy_bin_and_libs $BIN
-          done
-
-          for BIN in $out/bin/clevis{,-decrypt{,-null,-tang,-tpm2}}; do
-            sed -i $BIN -e 's,${pkgs.bash},,' -e 's,${pkgs.coreutils},,'
-          done
-
-          for BIN in ${pkgs.clevis}/bin/clevis-luks*; do
-            copy_bin_and_libs $BIN
-          done
-
-          for BIN in $out/bin/clevis-luks*; do
-            sed -i $BIN -e 's,${pkgs.bash},,' -e 's,${pkgs.coreutils},,'
-          done
-
-          sed -i $out/bin/clevis-decrypt-tpm2 -e 's,tpm2_,tpm2 ,'
-        '';
-      }
     ];
   };
 

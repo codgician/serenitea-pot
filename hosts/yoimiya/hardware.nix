@@ -59,7 +59,7 @@
       echo -e "\033[0;33mWARNING: /boot-1 not mounted, RAID-1 might have degraded.\033[0m"
     else
       echo "Syncing /boot-0 to /boot-1..."
-      ${pkgs.rsync}/bin/rsync -a --delete /boot-0/ /boot-1/
+      ${lib.getExe pkgs.rsync} -a --delete /boot-0/ /boot-1/
     fi
   '';
 

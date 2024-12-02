@@ -107,7 +107,7 @@ in
 
           serviceConfig = {
             ExecStart = ''
-              ${litellmProxyPkg}/bin/litellm \
+              ${lib.getExe litellmProxyPkg} \
                 --config ${settingsFormat.generate "litellm-config.yml" settings} \
                 --host ${cfg.host} \
                 --port ${builtins.toString cfg.port} \

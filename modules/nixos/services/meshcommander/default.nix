@@ -68,9 +68,9 @@ in
 
         serviceConfig = {
           Type = "simple";
-          ExecStart = "${pkgs.nodejs}/bin/node --tls-min-v1.1 ${pkgs.nodePackages.meshcommander}/bin/meshcommander --port ${builtins.toString cfg.port}"
+          ExecStart = "${lib.getExe pkgs.nodejs} --tls-min-v1.1 ${lib.getExe pkgs.nodePackages.meshcommander} --port ${builtins.toString cfg.port}"
             + (lib.optionalString (!cfg.localhostOnly) " --any");
-          ExecStop = "${pkgs.killall}/bin/killall meshcommander";
+          ExecStop = "${lib.getExe pkgs.killall} meshcommander";
           Restart = "always";
           User = cfg.user;
           Group = cfg.group;

@@ -72,7 +72,7 @@ in
           ] ++ builtins.map mkCommand cfg.users;
           script = builtins.concatStringsSep "; " commands;
         in
-        "${pkgs.sudo}/bin/sudo ${pkgs.bash}/bin/bash -c '${script}'";
+        "${lib.getExe pkgs.sudo} ${lib.getExe pkgs.bash} -c '${script}'";
     };
 
     # Persist data

@@ -31,7 +31,7 @@ in
           [Microsoft.PowerShell.PSConsoleReadLine]::EndOfLine() 
       }
 
-      ${pkgs.oh-my-posh}/bin/oh-my-posh init pwsh `
+      ${lib.getExe pkgs.oh-my-posh} init pwsh `
         --config "${pkgs.oh-my-posh}/share/oh-my-posh/themes/half-life.omp.json" | Invoke-Expression
     '';
   };

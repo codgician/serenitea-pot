@@ -60,7 +60,7 @@ in
       after = [ "network.target" ];
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = "${pkgs.bash}/bin/bash ${script}/bin/${script.name}";
+        ExecStart = "${lib.getExe pkgs.bash} ${script}/bin/${script.name}";
         RemainAfterExit = true;
       };
     };
