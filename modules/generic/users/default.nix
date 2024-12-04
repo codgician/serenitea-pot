@@ -104,7 +104,7 @@ let
           cfg.${name}.hashedPasswordAgeFile
         ]);
       in
-      lib.codgician.mkAgenixConfigs name credFiles
+      lib.codgician.mkAgenixConfigs { owner = name; } credFiles
     )
 
     # Common options

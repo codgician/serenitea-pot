@@ -51,7 +51,7 @@ in
         peers = builtins.concatMap (x: x.peers) (builtins.attrValues (cfg.interfaces));
         secrets = builtins.concatMap (x: hostOptions.${x}.ageFilePaths) (lib.lists.unique (hosts ++ peers));
       in
-      lib.codgician.mkAgenixConfigs "root" secrets
+      lib.codgician.mkAgenixConfigs { } secrets
     )
   ]);
 }

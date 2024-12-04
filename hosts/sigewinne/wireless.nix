@@ -10,5 +10,5 @@ lib.mkMerge [
     };
   }
 
-  (lib.codgician.mkAgenixConfigs "root" [ (lib.codgician.secretsDir + "/wirelessEnv.age") ])
+  (lib.codgician.mkAgenixConfigs { } [ (lib.codgician.secretsDir + "/wirelessEnv.age") ])
 ]

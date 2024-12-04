@@ -200,7 +200,7 @@ in
         credFileNames = [ "matrixGlobalPrivateKey" "matrixEnv" ];
         credFiles = builtins.map (x: lib.codgician.secretsDir + "/${x}.age") credFileNames;
       in
-      lib.codgician.mkAgenixConfigs "root" credFiles
+      lib.codgician.mkAgenixConfigs { } credFiles
     ))
 
     # Reverse proxy profile

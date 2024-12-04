@@ -74,7 +74,7 @@ in
     }
 
     # Agenix secrets
-    (with lib.codgician; mkAgenixConfigs "root" [
+    (with lib.codgician; mkAgenixConfigs { } [
       (secretsDir + "/nutPassword.age")
       (secretsDir + "/upsmonPassword.age")
     ])

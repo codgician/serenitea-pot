@@ -51,6 +51,6 @@ in
     }
 
     # Agenix secrets
-    (with lib.codgician; mkAgenixConfigs "root" [ (secretsDir + "/nixAccessTokens.age") ])
+    (with lib.codgician; mkAgenixConfigs { } [ (secretsDir + "/nixAccessTokens.age") ])
   ];
 }

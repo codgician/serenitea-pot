@@ -14,6 +14,11 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    # Remove ~/.gtkrc-2.0 created by plasma on activation
+    home.activation.rmGtkRc = config.lib.dag.entryAfter [ "writeBoundary" ] ''
+      rm -rf ~/.gtkrc-2.0
+    '';
+
     programs.plasma = {
       enable = true;
 

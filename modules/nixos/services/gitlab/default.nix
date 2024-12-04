@@ -117,7 +117,7 @@ in
     })
 
     # Agenix secrets
-    (lib.mkIf cfg.enable (with lib.codgician; mkAgenixConfigs cfg.user (builtins.map getAgeSecretPathFromName [
+    (lib.mkIf cfg.enable (with lib.codgician; mkAgenixConfigs { owner = cfg.user; } (builtins.map getAgeSecretPathFromName [
       "gitlabInitRootPasswd"
       "gitlabDb"
       "gitlabJws"

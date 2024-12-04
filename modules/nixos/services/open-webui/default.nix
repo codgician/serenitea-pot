@@ -102,7 +102,7 @@ in
     })
 
     (lib.mkIf cfg.enable
-      (with lib.codgician; mkAgenixConfigs "root" [ (secretsDir + "/openWebuiEnv.age") ]))
+      (with lib.codgician; mkAgenixConfigs { } [ (secretsDir + "/openWebuiEnv.age") ]))
 
     # Reverse proxy profile
     (lib.mkIf cfg.reverseProxy.enable {
