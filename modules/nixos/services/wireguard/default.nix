@@ -2,11 +2,22 @@
 let
   cfg = config.codgician.services.wireguard;
   types = lib.types;
-  hosts = builtins.map (lib.removeSuffix ".nix")
-    (builtins.filter (lib.hasSuffix ".nix") (lib.codgician.getRegularFileNames ./peers));
-  hostOptions = builtins.listToAttrs
-    (builtins.map (name: { inherit name; value = import (./peers + "/${name}.nix") { inherit config lib; }; }) hosts);
-  ports = lib.unique (builtins.map (x: x.listenPort) (builtins.attrValues hostOptions));
+  hosts = lib.pipe (lib.codgician.getRegularFileNames ./peers) [
+    (builtins.filter (lib.hasSuffix ".nix"))
+    (builtins.map (lib.removeSuffix ".nix"))
+  ];
+  hostOptions = lib.pipe hosts [
+    (builtins.map (name: {
+      inherit name;
+      value = import (./peers + "/${name}.nix") { inherit config lib; };
+    }))
+    builtins.listToAttrs
+  ];
+  ports = lib.pipe hostOptions [
+    builtins.attrValues
+    (builtins.map (x: x.listenPort))
+    lib.unique
+  ];
 in
 {
   options.codgician.services.wireguard = {
@@ -15,7 +26,23 @@ in
     openFirewall = lib.mkEnableOption "Open firewall for WireGuard ports.";
 
     interfaces = lib.mkOption {
-      type = types.attrsOf (types.submodule (import ./interface-options.nix { inherit lib; }));
+      type = with types; attrsOf (submodule {
+        options = {
+          host = lib.mkOption {
+            type = types.enum hosts;
+            description = "Name of host configuration file to use.";
+          };
+
+          peers = lib.mkOption {
+            type = with types; listOf (enum hosts);
+            description = "List of enabled peer configuration names.";
+          };
+
+          allowedIPsAsRoutes = lib.mkEnableOption ''
+            Whether to add allowed IPs as routes or not.
+          '';
+        };
+      });
       default = { };
       description = "WireGuard interface configurations.";
     };

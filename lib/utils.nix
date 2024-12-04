@@ -15,6 +15,8 @@
   # List of supported systems
   darwinSystems = [ "aarch64-darwin" "x86_64-darwin" ];
   linuxSystems = [ "aarch64-linux" "x86_64-linux" ];
+  isDarwinSystem = lib.hasSuffix "-darwin";
+  isLinuxSystem = lib.hasSuffix "-linux";
   allSystems = darwinSystems ++ linuxSystems;
 
   # Generate attribution set for specified systems

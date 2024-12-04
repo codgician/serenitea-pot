@@ -13,13 +13,13 @@
 
   # Make agenix config for specified owner and age file paths
   mkAgenixConfigs = { owner ? "root", group ? "root", mode ? "600" }: files: {
-    age.secrets = builtins.listToAttrs (builtins.map
-      (file: {
+    age.secrets = lib.pipe files [
+      (builtins.map (file: {
         name = getAgeSecretNameFromPath file;
         value = { inherit file owner group mode; };
-      })
-      files);
-
+      }))
+      builtins.listToAttrs
+    ];
     assertions = mkAgenixAssertions files;
   };
 }

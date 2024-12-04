@@ -10,9 +10,10 @@ let
     nixos = generic ++ (lib.codgician.getFolderPaths ./${user}/nixos);
   };
 in
-builtins.listToAttrs (builtins.map
-  (user: {
+lib.pipe names [
+  (builtins.map (user: {
     name = user;
     value = builtins.mapAttrs (_: v: mkModule v) (hmPaths user);
-  })
-  names)
+  }))
+  builtins.listToAttrs
+]

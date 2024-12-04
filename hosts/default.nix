@@ -48,12 +48,18 @@ let
     };
 
   lib = mkLib inputs.nixpkgs;
-  hosts = builtins.map (x: (import ./${x}) // { hostName = x; }) (lib.codgician.getFolderNames ./.);
-  hostsToAttr = builder: hosts: builtins.listToAttrs (builtins.map (host: { name = host.hostName; value = builder host; }) hosts);
+  hosts = lib.pipe (lib.codgician.getFolderNames ./.) [
+    (builtins.map (x: (import ./${x}) // { hostName = x; }))
+    (builtins.filter (x: !x?enable || x.enable))
+  ];
+  hostsToAttr = builder: hosts: lib.pipe hosts [
+    (builtins.map (host: { name = host.hostName; value = builder host; }))
+    builtins.listToAttrs
+  ];
 in
 rec {
-  darwinHosts = builtins.filter (x: lib.hasSuffix "-darwin" x.system && (!x?enable || x.enable)) hosts;
-  nixosHosts = builtins.filter (x: lib.hasSuffix "-linux" x.system && (!x?enable || x.enable)) hosts;
+  darwinHosts = builtins.filter (x: lib.codgician.isDarwinSystem x.system) hosts;
+  nixosHosts = builtins.filter (x: lib.codgician.isLinuxSystem x.system) hosts;
 
   darwinConfigurations = hostsToAttr mkDarwinSystem darwinHosts;
   nixosConfigurations = hostsToAttr mkNixosSystem nixosHosts;
