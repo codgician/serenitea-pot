@@ -2,10 +2,7 @@
 let
   cfg = config.codgician.services.wireguard;
   types = lib.types;
-  hosts = lib.pipe (lib.codgician.getRegularFileNames ./peers) [
-    (builtins.filter (lib.hasSuffix ".nix"))
-    (builtins.map (lib.removeSuffix ".nix"))
-  ];
+  hosts = lib.codgician.getNixFileNamesWithoutExt ./peers;
   hostOptions = lib.pipe hosts [
     (builtins.map (name: {
       inherit name;
