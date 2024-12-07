@@ -177,7 +177,6 @@
         (mkHomeManagerModules "nixosModules" stable [
           # Home Manager modules
           plasma-manager.homeManagerModules.plasma-manager
-          nur.modules.home-manager.default
         ]) ++ [
           # NixOS modules
           myModules.nixos
