@@ -177,10 +177,11 @@
         (mkHomeManagerModules "nixosModules" stable [
           # Home Manager modules
           plasma-manager.homeManagerModules.plasma-manager
+          nur.modules.home-manager.default
         ]) ++ [
           # NixOS modules
           myModules.nixos
-          nur.nixosModules.nur
+          nur.modules.nixos.default
           impermanence.nixosModules.impermanence
           disko.nixosModules.disko
           agenix.nixosModules.default
