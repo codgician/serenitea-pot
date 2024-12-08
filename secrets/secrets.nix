@@ -20,7 +20,10 @@ with pubKeys; with pubKeys.hosts; {
   "cloudflareCredential.age".publicKeys = allServers;
 
   # Nix access tokens
-  "nixAccessTokens.age".publicKeys = allHosts;
+  "nixAccessTokens.age" = {
+    publicKeys = allHosts;
+    expiryDates = [ "2025-12-07" ];
+  };
 
   # GitLab secrets
   "gitlabInitRootPasswd.age".publicKeys = someHosts [ paimon ];
