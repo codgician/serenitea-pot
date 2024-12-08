@@ -1,0 +1,22 @@
+name: expiry
+
+on:
+  schedule:
+  - cron: '0 9 * * *'
+  workflow_dispatch:
+
+concurrency: expiry
+ 
+jobs:
+  expiry:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: 'true'
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Check secrets expiry
+        run: nix run .#chkexp

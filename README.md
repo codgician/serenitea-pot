@@ -3,6 +3,7 @@
 [![Built with Nix](https://img.shields.io/static/v1?logo=nixos&logoColor=white&label=&message=Built%20with%20Nix&color=41439a)](https://builtwithnix.org)
 [![build](https://github.com/codgician/serenitea-pot/actions/workflows/build.yml/badge.svg)](https://github.com/codgician/serenitea-pot/actions/workflows/build.yml)
 [![evergreen](https://github.com/codgician/serenitea-pot/actions/workflows/evergreen.yml/badge.svg)](https://github.com/codgician/serenitea-pot/actions/workflows/evergreen.yml)
+[![expiry](https://github.com/codgician/serenitea-pot/actions/workflows/expiry.yml/badge.svg)](https://github.com/codgician/serenitea-pot/actions/workflows/expiry.yml)
 ![Man hours](https://manhours.aiursoft.cn/r/github.com/codgician/serenitea-pot.svg)  
 ![logo](https://github.com/codgician/serenitea-pot/assets/15964984/17d0e39c-9bee-4dd1-9aed-bb8d21f23daf)
 
