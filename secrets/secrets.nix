@@ -45,7 +45,12 @@ with pubKeys; with pubKeys.hosts; {
   "litellmEnv.age".publicKeys = someHosts [ nahida ];
 
   # Terraform secrets
-  "terraformEnv.age".publicKeys = users.codgi;
+  "terraformEnv.age" = {
+    publicKeys = users.codgi;
+    expiryDates = [
+      "2025-03-06" # Azure: caribert
+    ];
+  };
 
   # WireGuard secrets
   "wgLuminePrivateKey.age".publicKeys = wgHosts;
