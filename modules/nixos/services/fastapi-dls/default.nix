@@ -110,9 +110,6 @@ in
   config = lib.mkMerge [
     # fastapi-dls configuration
     (lib.mkIf cfg.enable {
-      # Use fastapi-dls package from xddxdd's NUR
-      codgician.nix.nurs.xddxdd.enable = lib.mkForce true;
-
       # Systemd service for fastapi-dls
       systemd.services.fastapi-dls = lib.optionalAttrs cfg.enable {
         inherit (cfg) enable;

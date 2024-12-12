@@ -93,11 +93,6 @@
     };
 
     nur.url = "github:nix-community/NUR";
-    nur-xddxdd = {
-      url = "github:xddxdd/nur-packages";
-      inputs.flake-parts.follows = "flake-parts";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
 
     lanzaboote = {
       url = "github:nix-community/lanzaboote";
