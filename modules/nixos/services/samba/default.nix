@@ -40,12 +40,21 @@ in
 
       settings = cfg.shares // {
         global = {
+          "protocol" = "SMB3";
           "server string" = config.networking.hostName;
           "netbios name" = config.networking.hostName;
           "wins support" = "yes";
           "server smb encrypt" = "desired";
           "invalid users" = [ "root" ];
           "security" = "user";
+          "vfs objects" = "acl_xattr fruit streams_xattr aio_pthread";
+          "fruit:aapl" = "yes";
+          "fruit:posix_rename" = "yes";
+          "fruit:metadata" = "stream";
+          "fruit:nfs_aces" = "no";
+          "recycle:keeptree" = "no";
+          "oplocks" = "yes";
+          "locking" = "yes";
         };
       };
     };
