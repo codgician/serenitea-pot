@@ -38,14 +38,9 @@
         htop
         aria2
         android-tools
-        ghc
         pandoc
         acpica-tools
         terraform
-        crate2nix
-        go
-        gopls
-        go-outline
         smartmontools
         pciutils
         ffmpeg-full
