@@ -35,8 +35,15 @@
     ];
   };
 
-  # System packages
-  environment.systemPackages = with pkgs; [ fastfetch openssl ];
+  environment = {
+    # Disable ssh password authentication
+    etc."ssh/sshd_config.d/110-no-password-authentication.conf" = {
+      text = "PasswordAuthentication no";
+    };
+
+    # System packages
+    systemPackages = with pkgs; [ fastfetch openssl ];
+  };
 
   # zsh
   programs.zsh = {
@@ -49,6 +56,18 @@
       launchanim = false;
       magnification = false;
       mineffect = "scale";
+      persistent-apps = [
+        "/System/Applications/Launchpad.app"
+        "/System/Cryptexes/App/System/Applications/Safari.app"
+        "/System/Applications/Messages.app"
+        "/System/Applications/FaceTime.app"
+        "/System/Applications/Home.app"
+        "/System/Applications/FindMy.app"
+        "/System/Applications/Utilities/Terminal.app"
+        "/System/Applications/App Store.app"
+        "/System/Applications/System Settings.app"
+        "/Applications/BlueBubbles.app"
+      ];
     };
 
     loginwindow = {
@@ -61,6 +80,7 @@
       AppleInterfaceStyleSwitchesAutomatically = false;
       AppleTemperatureUnit = "Celsius";
       AppleMeasurementUnits = "Centimeters";
+      AppleMetricUnits = 1;
       NSAutomaticWindowAnimationsEnabled = false;
       NSScrollAnimationEnabled = false;
     };
