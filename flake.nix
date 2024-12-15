@@ -156,16 +156,13 @@
           }
         ];
 
-      # All modules
-      myModules = import ./modules { inherit lib; };
-
       # All Darwin modules for building system
       mkDarwinModules = stable:
         (mkHomeManagerModules "darwinModules" stable [
           # Home Manager modules
         ]) ++ [
           # Darwin modules
-          myModules.darwin
+          self.modules.darwin
           agenix.darwinModules.default
         ];
 
@@ -176,7 +173,7 @@
           plasma-manager.homeManagerModules.plasma-manager
         ]) ++ [
           # NixOS modules
-          myModules.nixos
+          self.modules.nixos
           nur.modules.nixos.default
           impermanence.nixosModules.impermanence
           disko.nixosModules.disko
@@ -199,6 +196,9 @@
         inherit mkDarwinModules mkNixosModules;
         outputs = self;
       }) darwinConfigurations nixosConfigurations;
+
+      # Modules
+      modules = import ./modules { inherit lib; };
 
       # Export custom library
       inherit lib;

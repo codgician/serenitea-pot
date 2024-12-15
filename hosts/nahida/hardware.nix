@@ -43,7 +43,7 @@
       Type = "oneshot";
     };
   };
-  
+
   # Start ollama after limiting TDP
   systemd.services.ollama.after = [ "nvidia-power-limit.service" ];
 
