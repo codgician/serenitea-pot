@@ -139,61 +139,17 @@
   outputs = inputs @ { self, agenix, terranix, ... }:
     let
       # Extending lib
-      mkLib = nixpkgs: (import ./lib { lib = nixpkgs.lib; inherit inputs; });
+      mkLib = nixpkgs: (import ./lib {
+        lib = nixpkgs.lib;
+        inherit inputs;
+        outputs = self;
+      });
       lib = mkLib inputs.nixpkgs;
-
-      # Make home-manager module
-      mkHomeManagerModules = with inputs; modulesName: stable: sharedModules:
-        let homeManager = if stable then home-manager else home-manager-unstable;
-        in [
-          (homeManager.${modulesName}.home-manager)
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              inherit sharedModules;
-            };
-          }
-        ];
-
-      # All Darwin modules for building system
-      mkDarwinModules = stable:
-        (mkHomeManagerModules "darwinModules" stable [
-          # Home Manager modules
-        ]) ++ [
-          # Darwin modules
-          self.modules.darwin
-          agenix.darwinModules.default
-        ];
-
-      # All NixOS modules for building system
-      mkNixosModules = stable: with inputs;
-        (mkHomeManagerModules "nixosModules" stable [
-          # Home Manager modules
-          plasma-manager.homeManagerModules.plasma-manager
-        ]) ++ [
-          # NixOS modules
-          self.modules.nixos
-          nur.modules.nixos.default
-          impermanence.nixosModules.impermanence
-          disko.nixosModules.disko
-          agenix.nixosModules.default
-          lanzaboote.nixosModules.lanzaboote
-          nixos-generators.nixosModules.all-formats
-          nixos-wsl.nixosModules.wsl
-          nixvirt.nixosModules.default
-          vscode-server.nixosModules.default
-          proxmox-nixos.nixosModules.proxmox-ve
-          ({ system, ... }: {
-            nixpkgs.overlays = [ proxmox-nixos.overlays.${system} ];
-          })
-        ];
     in
     {
       # System configurations
       inherit (import ./hosts {
         inherit inputs mkLib;
-        inherit mkDarwinModules mkNixosModules;
         outputs = self;
       }) darwinConfigurations nixosConfigurations;
 
