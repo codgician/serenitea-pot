@@ -43,6 +43,9 @@
       Type = "oneshot";
     };
   };
+  
+  # Start ollama after limiting TDP
+  systemd.services.ollama.after = [ "nvidia-power-limit.service" ];
 
   # Enable use of nvidia card in containers
   hardware.nvidia-container-toolkit.enable = true;
