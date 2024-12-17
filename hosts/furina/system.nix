@@ -15,7 +15,7 @@
   };
 
   # Home manager
-  home-manager.users.codgi = { config, pkgs, ... }: {
+  home-manager.users.codgi = { pkgs, ... }: {
     codgician.codgi = {
       dev = {
         haskell.enable = true;

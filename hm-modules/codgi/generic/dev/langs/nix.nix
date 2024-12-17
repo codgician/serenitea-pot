@@ -17,12 +17,15 @@ in
         "[nix]".editor.tabSize = 2;
         nix = {
           enableLanguageServer = true;
-          serverPath = "nil";
+          serverPath = "nixd";
+          serverSettings.nixd = {
+            formatting.command = [ "nixfmt " ];
+          };
         };
       };
     };
 
     # Language server
-    home.packages = with pkgs; [ nil ];
+    home.packages = with pkgs; [ nixd ];
   };
 }
