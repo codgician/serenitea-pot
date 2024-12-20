@@ -97,6 +97,7 @@ in
           ENABLE_SEARCH_QUERY = "True";
           ENABLE_RAG_WEB_SEARCH = "True";
           RAG_WEB_SEARCH_ENGINE = "google_pse";
+          TTS_ENGINE = "transformers";
         };
       };
     })
