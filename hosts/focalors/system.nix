@@ -27,7 +27,7 @@ in
   };
 
   # Home manager
-  home-manager.users.codgi = { config, ... }: {
+  home-manager.users.codgi = { ... }: {
     codgician.codgi = {
       dev = {
         haskell.enable = true;
@@ -61,6 +61,9 @@ in
     home.stateVersion = "24.11";
     home.packages = with pkgs; [ httplz screen binwalk ];
   };
+
+  # Enable Network Manager
+  networking.networkmanager.enable = true;
 
   # SDDM default scaling
   services.displayManager.sddm.settings.General = {
