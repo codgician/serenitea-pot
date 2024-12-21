@@ -19,7 +19,15 @@ let
       (builtins.attrValues terraformConf.resource.azurerm_cognitive_deployment));
 
   settingsFormat = pkgs.formats.yaml { };
-  settings.model_list = azureModels;
+  settings.model_list = azureModels ++ [
+    {
+      model_name = "gemini-2.0-flash";
+      litellm_params = {
+        model = "gemini/gemini-2.0-flash-exp";
+        api_key = "os.environ/GEMINI_API_KEY";
+      };
+    }
+  ];
 in
 {
   options.codgician.services.litellm = {
