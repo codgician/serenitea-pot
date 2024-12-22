@@ -86,6 +86,9 @@
   # Global packages
   environment.systemPackages = [ ];
 
+  # Use networkd
+  networking.useNetworkd = true;
+
   # Firewall
   networking.firewall.enable = true;
 

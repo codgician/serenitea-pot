@@ -92,6 +92,9 @@
   # Enable zram swap
   zramSwap.enable = true;
 
+  # Use networkd
+  networking.useNetworkd = true;
+
   # Firewall
   networking.firewall.enable = true;
 

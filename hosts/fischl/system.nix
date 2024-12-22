@@ -20,7 +20,7 @@
   };
 
   # Home manager
-  home-manager.users.codgi = { config, ... }: {
+  home-manager.users.codgi = { ... }: {
     codgician.codgi = {
       dev.nix.enable = true;
       git.enable = true;
@@ -93,6 +93,9 @@
 
   # Enable zram swap
   zramSwap.enable = true;
+
+  # Use networkd
+  networking.useNetworkd = true;
 
   # Firewall
   networking.firewall.enable = true;

@@ -45,7 +45,7 @@
 
   # Home manager
   home-manager.users = {
-    codgi = { config, pkgs, ... }: {
+    codgi = { pkgs, ... }: {
       codgician.codgi = {
         dev.nix.enable = true;
         git.enable = true;
@@ -58,7 +58,7 @@
       home.packages = with pkgs; [ httplz screen ];
     };
 
-    kiosk = { config, osConfig, pkgs, ... }: {
+    kiosk = { osConfig, pkgs, ... }: {
       home.stateVersion = "24.11";
 
       # Plasma settings
@@ -140,6 +140,12 @@
 
   # Enable zram swap
   zramSwap.enable = true;
+
+  # Use networkd
+  networking.useNetworkd = true;
+
+  # Firewall
+  networking.firewall.enable = true;
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

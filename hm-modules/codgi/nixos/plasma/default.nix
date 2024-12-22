@@ -22,6 +22,16 @@ in
     programs.plasma = {
       enable = true;
 
+      kwin.effects = {
+        blur = {
+          enable = true;
+          noiseStrength = 5;
+          strength = 15;
+        };
+        shakeCursor.enable = true;
+        snapHelper.enable = true;
+      };
+
       panels = [
         {
           alignment = "center";
@@ -74,6 +84,8 @@ in
 
       configFile = {
         kiorc.Confirmations.ConfirmEmptyTrash = true;
+        breezerc.Style.MenuOpacity = 60;
+        plasmaashellrc.PlasmaViews.panelOpacity = 2;
       };
     };
 

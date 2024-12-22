@@ -23,9 +23,6 @@ in
     # Enable redistributable firmware
     hardware.enableRedistributableFirmware = true;
 
-    # Use networkd
-    networking.useNetworkd = true;
-
     # Enable resolved
     services.resolved = {
       enable = true;
