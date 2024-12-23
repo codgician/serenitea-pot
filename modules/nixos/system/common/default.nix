@@ -71,6 +71,12 @@ in
     security.sudo.wheelNeedsPassword = false;
     nix.settings.trusted-users = [ "root" "@wheel" ];
 
+    security = {
+      audit.enable = true;
+      auditd.enable = true;
+      apparmor.enable = true;
+    };
+
     # OpenSSH
     services.openssh = {
       enable = true;
