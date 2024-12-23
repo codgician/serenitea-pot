@@ -74,7 +74,7 @@ in
     security = {
       audit.enable = !config.boot.isContainer;
       auditd.enable = !config.boot.isContainer;
-      apparmor.enable = true;
+      apparmor.enable = !config.boot.isContainer;
     };
 
     # OpenSSH
