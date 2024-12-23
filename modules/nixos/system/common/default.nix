@@ -72,8 +72,8 @@ in
     nix.settings.trusted-users = [ "root" "@wheel" ];
 
     security = {
-      audit.enable = true;
-      auditd.enable = true;
+      audit.enable = !config.boot.isContainer;
+      auditd.enable = !config.boot.isContainer;
       apparmor.enable = true;
     };
 
