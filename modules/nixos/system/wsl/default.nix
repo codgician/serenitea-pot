@@ -22,9 +22,10 @@ in
       wslConf.network.generateResolvConf = !config.services.resolved.enable;
     };
 
-    # Disable networkd and resolved for compatibility
+    # Disable networkd, resolved and apparmor for compatibility
     networking.useNetworkd = lib.mkForce false;
     services.resolved.enable = lib.mkForce false;
+    security.apparmor.enable = lib.mkForce false;
 
     # Make windows drivers working
     programs.nix-ld = {
