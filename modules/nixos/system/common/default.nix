@@ -32,6 +32,17 @@ in
       '';
     };
 
+    systemd.network.networks = {
+      "99-ethernet-default" = {
+        matchConfig.Name = [ "en*" "eth*" ];
+        networkConfig = {
+          MulticastDNS = true;
+          IPv6AcceptRA = true;
+          IPv6PrivacyExtensions = true;
+        };
+      };
+    };
+
     # Time zone.
     time.timeZone = "Asia/Shanghai";
 
