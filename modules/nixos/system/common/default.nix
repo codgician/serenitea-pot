@@ -33,8 +33,14 @@ in
     };
 
     systemd.network.networks = {
-      "99-ethernet-default" = {
-        matchConfig.Name = [ "en*" "eth*" ];
+      "99-ethernet-default-dhcp" = {
+        networkConfig = {
+          MulticastDNS = true;
+          IPv6AcceptRA = true;
+          IPv6PrivacyExtensions = true;
+        };
+      };
+      "99-wireless-client-dhcp" = {
         networkConfig = {
           MulticastDNS = true;
           IPv6AcceptRA = true;
