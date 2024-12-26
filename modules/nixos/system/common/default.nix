@@ -32,12 +32,19 @@ in
       '';
     };
 
+    # Enable mDNS
     systemd.network.networks = {
       "99-ethernet-default-dhcp".networkConfig = {
         MulticastDNS = true;
       };
       "99-wireless-client-dhcp".networkConfig = {
         MulticastDNS = true;
+      };
+    };
+    networking.networkmanager = {
+      dns = "systemd-resolved";
+      connectionConfig = {
+        "connection.mdns" = "2";
       };
     };
 
@@ -68,10 +75,10 @@ in
       iperf3
     ];
 
-    # Open firewall for iperf3
+    # Open firewall for iperf3 and mDNS
     networking.firewall = {
       allowedTCPPorts = [ 5201 ];
-      allowedUDPPorts = [ 5201 ];
+      allowedUDPPorts = [ 5201 5353 ];
     };
 
     # Security
