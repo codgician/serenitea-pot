@@ -1,6 +1,12 @@
 { config, lib, pkgs, ... }:
 let
   cfg = config.codgician.system.common;
+  networkConfig = {
+    MulticastDNS = true;
+    LLMNR = true;
+    LLDP = true;
+    IPv6SendRA = true;
+  };
 in
 {
   options.codgician.system.common = {
@@ -26,6 +32,7 @@ in
     # Enable resolved
     services.resolved = {
       enable = true;
+      llmnr = "true";
       extraConfig = ''
         MulticastDNS=yes
         Cache=no-negative
@@ -34,12 +41,8 @@ in
 
     # Enable mDNS
     systemd.network.networks = {
-      "99-ethernet-default-dhcp".networkConfig = {
-        MulticastDNS = true;
-      };
-      "99-wireless-client-dhcp".networkConfig = {
-        MulticastDNS = true;
-      };
+      "99-ethernet-default-dhcp" = { inherit networkConfig; };
+      "99-wireless-client-dhcp" = { inherit networkConfig; };
     };
     networking.networkmanager = {
       dns = "systemd-resolved";
