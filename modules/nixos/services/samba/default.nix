@@ -35,6 +35,7 @@ in
       openFirewall = true;
 
       nsswins = true;
+      smbd.enable = true;
       nmbd.enable = true;
       winbindd.enable = true;
 
