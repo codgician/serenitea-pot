@@ -21,7 +21,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
-    nixpkgs-nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs-nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable-small";
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
