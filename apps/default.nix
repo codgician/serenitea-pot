@@ -5,5 +5,6 @@ let
       (k: v: { "${name}" = v; })
       (import ./${name} args))
     (lib.codgician.getFolderNames ./.);
+  limit = path: lhs: rhs: (builtins.length path) >= 2;
 in
-builtins.foldl' lib.attrsets.recursiveUpdate { } attrs
+builtins.foldl' (lib.attrsets.recursiveUpdateUntil limit) { } attrs

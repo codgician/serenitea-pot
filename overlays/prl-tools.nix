@@ -2,7 +2,7 @@
 
 { lib, ... }:
 
-self: super:{
+self: super: {
   linuxPackages = super.linuxPackages.extend (lpself: lpsuper: {
     prl-tools = lpsuper.prl-tools.overrideAttrs rec {
       version = "20.1.3-55743";
