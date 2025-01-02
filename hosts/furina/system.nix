@@ -57,9 +57,6 @@
     };
   };
 
-  # Fonts
-  fonts.packages = with pkgs; [ cascadia-code ];
-
   # zsh
   programs.zsh = {
     enable = true;

@@ -9,13 +9,6 @@ let
   };
 in
 {
-  options.codgician.system.common = {
-    enable = lib.mkOption {
-      default = true;
-      description = "Enable common options shared accross all systems.";
-    };
-  };
-
   config = lib.mkIf cfg.enable {
     # Set flake for auto upgrade
     system.autoUpgrade = {
@@ -77,6 +70,13 @@ in
       aria2
       iperf3
     ];
+
+    # Fonts
+    fonts = {
+      fontconfig.enable = true;
+      fontDir.enable = true;
+      enableGhostscriptFonts = true;
+    };
 
     # Open firewall for iperf3 and mDNS
     networking.firewall = {
