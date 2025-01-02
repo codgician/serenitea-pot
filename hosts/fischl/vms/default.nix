@@ -5,6 +5,7 @@
     onBoot = "start";
     onShutdown = "shutdown";
     allowedBridges = [ "virbr0" ];
+    startDelay = 3;
     hooks.qemu = {
       "10-isolate-cpu" = lib.getExe (pkgs.writeShellApplication {
         name = "qemu-hook";
