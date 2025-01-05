@@ -48,7 +48,6 @@
         tcping-go
         github-copilot-cli
         binwalk
-        insomnia
       ];
 
       # symlinks to binaries

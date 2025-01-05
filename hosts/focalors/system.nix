@@ -63,7 +63,6 @@ in
       httplz
       screen
       binwalk
-      insomnia
     ];
   };
 

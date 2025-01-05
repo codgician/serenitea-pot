@@ -71,5 +71,6 @@
     "rustdesk"
     "hopper-disassembler"
     "github-copilot-for-xcode"
+    "insomnia"
   ];
 }
