@@ -25,6 +25,8 @@
       "hugepagesz=1G"
       "default_hugepagesz=2M"
       "pcie_aspm=off"
+      "isolcpus=2-5"
+      "nohz_full=2-5"
     ];
   };
 
