@@ -59,7 +59,12 @@ in
     };
 
     home.stateVersion = "24.11";
-    home.packages = with pkgs; [ httplz screen binwalk ];
+    home.packages = with pkgs; [
+      httplz
+      screen
+      binwalk
+      insomnia
+    ];
   };
 
   # Enable Network Manager
