@@ -72,5 +72,6 @@
     "hopper-disassembler"
     "github-copilot-for-xcode"
     "insomnia"
+    "google-earth-pro"
   ];
 }
