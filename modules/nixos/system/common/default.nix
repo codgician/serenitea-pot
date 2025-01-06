@@ -5,7 +5,6 @@ let
     MulticastDNS = true;
     LLMNR = true;
     LLDP = true;
-    IPv6SendRA = true;
   };
 in
 {
