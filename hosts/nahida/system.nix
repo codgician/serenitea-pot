@@ -19,6 +19,7 @@
           "qwen2.5-coder:32b"
           "qwq:32b"
           "llama3.2-vision:11b"
+          "phi4:14b"
         ];
       };
 
@@ -59,7 +60,7 @@
   };
 
   # Home manager
-  home-manager.users.codgi = { config, ... }: {
+  home-manager.users.codgi = { ... }: {
     codgician.codgi = {
       dev = {
         haskell.enable = true;
