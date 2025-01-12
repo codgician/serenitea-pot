@@ -6,7 +6,7 @@ in
   config = lib.mkIf cfg.enable {
     # Enable OpenSSH
     services.openssh.enable = true;
-    
+
     # Set identity path for agenix
     age.identityPaths = [
       "/etc/ssh/ssh_host_ed25519_key"

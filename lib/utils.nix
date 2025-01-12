@@ -1,10 +1,10 @@
 { lib, inputs, outputs, ... }: rec {
   # Package overlays
-  overlays = [ 
+  overlays = [
     (self: super: { inherit lib; })
-    inputs.nur.overlay
+    inputs.nur.overlays.default
   ]
-    ++ (builtins.map
+  ++ (builtins.map
     (x: import x { inherit inputs lib; })
     (with lib.codgician; getNixFilePaths overlaysDir));
 
