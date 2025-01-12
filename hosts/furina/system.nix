@@ -9,6 +9,7 @@
         casks = (import ./brew.nix).casks;
         masApps = (import ./brew.nix).masApps;
       };
+      common.enable = true;
     };
 
     users.codgi.enable = true;
@@ -48,7 +49,9 @@
         tcping-go
         github-copilot-cli
         binwalk
-      ];
+      ] ++ (with pkgs.nur.repos.codgician; [
+        mtk_uartboot
+      ]);
 
       # symlinks to binaries
       file = {
@@ -57,31 +60,12 @@
     };
   };
 
-  # zsh
-  programs.zsh = {
-    enable = true;
-    promptInit = "";
-  };
-
-  # Enable Touch ID for sudo
-  security.pam.enableSudoTouchIdAuth = true;
-
-  environment = {
-    # Disable ssh password authentication
-    etc."ssh/sshd_config.d/110-no-password-authentication.conf" = {
-      text = "PasswordAuthentication no";
-    };
-
-    # Workaround lack of dbus
-    variables."GSETTINGS_BACKEND" = "keyfile";
-
-    # System packages
-    systemPackages = with pkgs; [
-      fastfetch
-      zulu
-      openssl
-    ];
-  };
+  # System packages
+  environment.systemPackages = with pkgs; [
+    fastfetch
+    zulu
+    openssl
+  ];
 
   # System settings
   system.defaults = {

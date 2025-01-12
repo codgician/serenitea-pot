@@ -11,6 +11,7 @@
         ];
         masApps = { };
       };
+      common.enable = true;
     };
 
     users.codgi.enable = true;

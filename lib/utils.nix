@@ -1,6 +1,9 @@
 { lib, inputs, outputs, ... }: rec {
   # Package overlays
-  overlays = [ (self: super: { inherit lib; }) ]
+  overlays = [ 
+    (self: super: { inherit lib; })
+    inputs.nur.overlay
+  ]
     ++ (builtins.map
     (x: import x { inherit inputs lib; })
     (with lib.codgician; getNixFilePaths overlaysDir));
@@ -44,7 +47,6 @@
     ]) ++ [
       # NixOS modules
       outputs.modules.nixos
-      nur.modules.nixos.default
       impermanence.nixosModules.impermanence
       disko.nixosModules.disko
       agenix.nixosModules.default

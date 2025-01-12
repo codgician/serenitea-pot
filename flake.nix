@@ -135,7 +135,7 @@
     };
   };
 
-  outputs = inputs @ { self, agenix, terranix, ... }:
+  outputs = inputs @ { self, ... }:
     let
       # Extending lib
       mkLib = nixpkgs: (import ./lib {
