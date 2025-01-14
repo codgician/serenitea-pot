@@ -11,6 +11,9 @@ on:
     types: [ build ]
   workflow_dispatch:
 
+# Limit one run for each branch for saving resources
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
 jobs:
   validate:
     runs-on: ubuntu-24.04

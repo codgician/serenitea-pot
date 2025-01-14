@@ -5,13 +5,15 @@ on:
   - cron: '0 10 * * *'
   workflow_dispatch:
 
-concurrency: evergreen
+# Limit one run for each branch to avoid hazards
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 permissions:
   contents: write
  
 jobs:
   evergreen:
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

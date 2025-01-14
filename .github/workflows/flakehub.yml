@@ -1,4 +1,4 @@
-name: "Publish every Git push to main to FlakeHub"
+name: "flakehub"
 
 on:
   push:
