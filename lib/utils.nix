@@ -1,4 +1,4 @@
-{ lib, inputs, outputs, ... }: rec {
+{ lib, stable, nixpkgs, inputs, outputs, ... }: rec {
   # Package overlays
   overlays = [
     (self: super: { inherit lib; })
@@ -9,14 +9,14 @@
     (with lib.codgician; getNixFilePaths overlaysDir));
 
   # Make package universe
-  mkPkgs = nixpkgs: system: (import nixpkgs {
+  mkPkgs = system: (import nixpkgs {
     inherit system overlays;
     config.allowUnfree = true;
     flake.source = nixpkgs.outPath;
   });
 
   # Make home-manager module
-  mkHomeManagerModules = with inputs; modulesName: stable: sharedModules:
+  mkHomeManagerModules = with inputs; modulesName: sharedModules:
     let homeManager = if stable then home-manager else home-manager-unstable;
     in [
       (homeManager.${modulesName}.home-manager)
@@ -30,8 +30,8 @@
     ];
 
   # All Darwin modules for building system
-  mkDarwinModules = stable: with inputs;
-    (mkHomeManagerModules "darwinModules" stable [
+  mkDarwinModules = with inputs;
+    (mkHomeManagerModules "darwinModules" [
       # Home Manager modules
     ]) ++ [
       # Darwin modules
@@ -40,8 +40,8 @@
     ];
 
   # All NixOS modules for building system
-  mkNixosModules = stable: with inputs;
-    (mkHomeManagerModules "nixosModules" stable [
+  mkNixosModules = with inputs;
+    (mkHomeManagerModules "nixosModules" [
       # Home Manager modules
       plasma-manager.homeManagerModules.plasma-manager
     ]) ++ [
@@ -62,7 +62,7 @@
     ];
 
   # Base configs for all platforms
-  mkBaseConfig = system: hostName: { config, lib, ... }: {
+  mkBaseConfig = system: hostName: { lib, ... }: {
     networking.hostName = hostName;
     nixpkgs = {
       config.allowUnfree = true;
@@ -75,11 +75,10 @@
     { hostName
     , modules ? [ ]
     , system
-    , stable ? true
-    }: inputs.darwin.lib.darwinSystem {
+    }: inputs."${if stable then "darwin" else "darwin-unstable"}".lib.darwinSystem {
       inherit system lib;
       specialArgs = { inherit inputs outputs lib system; };
-      modules = (lib.codgician.mkDarwinModules stable) ++ modules ++ [
+      modules = lib.codgician.mkDarwinModules ++ modules ++ [
         (mkBaseConfig system hostName)
       ];
     };
@@ -89,11 +88,10 @@
     { hostName
     , modules ? [ ]
     , system
-    , stable ? true
-    }: lib.nixosSystem {
+    }: inputs."${if stable then "nixpkgs" else "nixpkgs-unstable"}".lib.nixosSystem {
       inherit system lib;
       specialArgs = { inherit inputs outputs lib system; };
-      modules = (lib.codgician.mkNixosModules stable) ++ modules ++ [
+      modules = lib.codgician.mkNixosModules ++ modules ++ [
         (mkBaseConfig system hostName)
       ];
     };
@@ -106,7 +104,7 @@
   allSystems = darwinSystems ++ linuxSystems;
 
   # Generate attribution set for specified systems
-  forSystems = systems: func: lib.genAttrs systems (system: func (mkPkgs inputs.nixpkgs system));
+  forSystems = systems: func: lib.genAttrs systems (system: func (mkPkgs system));
   forAllSystems = forSystems allSystems;
   forDarwinSystems = forSystems darwinSystems;
   forLinuxSystems = forSystems linuxSystems;

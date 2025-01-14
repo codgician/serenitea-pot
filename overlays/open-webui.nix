@@ -4,7 +4,7 @@
 
 self: super:
 let
-  unstablePkgs = import inputs.nixpkgs-nixos-unstable {
+  unstablePkgs = import inputs.nixpkgs-unstable {
     inherit (super) system;
     config.allowUnfree = true;
   };

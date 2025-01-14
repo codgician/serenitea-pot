@@ -1,22 +1,11 @@
-{ inputs, mkLib, ... }:
+{ outputs, ... }:
 
 let
-  lib = mkLib inputs.nixpkgs;
-  libUnstable = mkLib inputs.nixpkgs-nixos-unstable;
+  inherit (outputs) lib libUnstable;
   configurations = lib.pipe (lib.codgician.getFolderNames ./.) [
-    (builtins.map (x: (import ./${x}) // { hostName = x; }))
-    (builtins.filter (x: !x?enable || x.enable))
-    (builtins.map (host: {
-      name = host.hostName;
-      value =
-        let
-          lib' = if (host?stable && !host.stable) then libUnstable else lib;
-          builder =
-            if (lib.codgician.isDarwinSystem host.system)
-            then lib'.codgician.mkDarwinSystem
-            else lib'.codgician.mkNixosSystem;
-        in
-        builder host;
+    (builtins.map (name: {
+      inherit name;
+      value = import ./${name} { inherit lib libUnstable; };
     }))
     builtins.listToAttrs
   ];

@@ -100,6 +100,27 @@
         ]
       },
       "locked": {
+        "lastModified": 1736820923,
+        "narHash": "sha256-SDuKLOWAh8VJRXlNWQn9QE99bjeEUAAbYXqrKGbsiyk=",
+        "owner": "lnl7",
+        "repo": "nix-darwin",
+        "rev": "944c2b181792ae7ae6b20c0df3f44879c11706c9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "lnl7",
+        "ref": "nix-darwin-24.11",
+        "repo": "nix-darwin",
+        "type": "github"
+      }
+    },
+    "darwin-unstable": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
         "lastModified": 1736819234,
         "narHash": "sha256-deQVtIH4UJueELJqluAICUtX7OosD9paTP+5FgbiSwI=",
         "owner": "lnl7",
@@ -252,7 +273,7 @@
     "home-manager-unstable": {
       "inputs": {
         "nixpkgs": [
-          "nixpkgs-nixos-unstable"
+          "nixpkgs-unstable"
         ]
       },
       "locked": {
@@ -417,11 +438,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1736804698,
-        "narHash": "sha256-GYapbeMpcPEhL7qMq0JjIdZ73slEcV4pGxFpYeK6q3A=",
+        "lastModified": 1736842851,
+        "narHash": "sha256-iAYIidDSvqRWMRQrCIn2X8edyrOg/uTBZc1M4bdpQjs=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "833f97aaa34f01c30d52c11d141757a7366d1147",
+        "rev": "a78c63a084314c55196488cf2252c5f6ea5c67a4",
         "type": "github"
       },
       "original": {
@@ -443,22 +464,6 @@
         "url": "https://github.com/NixOS/nixpkgs/archive/e9b51731911566bbf7e4895475a87fe06961de0b.tar.gz"
       }
     },
-    "nixpkgs-nixos-unstable": {
-      "locked": {
-        "lastModified": 1736830008,
-        "narHash": "sha256-zKNQWcNOIdPRJ1xQStVJoV2eWCacfbav5czd4X5879c=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "629ab9db28ab2b24e444472b6d3f512553843b42",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-unstable-small",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixpkgs-stable": {
       "locked": {
         "lastModified": 1730741070,
@@ -476,6 +481,22 @@
       }
     },
     "nixpkgs-unstable": {
+      "locked": {
+        "lastModified": 1736830008,
+        "narHash": "sha256-zKNQWcNOIdPRJ1xQStVJoV2eWCacfbav5czd4X5879c=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "629ab9db28ab2b24e444472b6d3f512553843b42",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-unstable-small",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-unstable_2": {
       "locked": {
         "lastModified": 1723637854,
         "narHash": "sha256-med8+5DSWa2UnOqtdICndjDAEjxr5D7zaIiK4pn0Q7c=",
@@ -549,11 +570,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1736845812,
-        "narHash": "sha256-4CDAer/Wp2Q0GAD0E6yAFULoF8b3OwURjUpb0uxPx10=",
+        "lastModified": 1736869623,
+        "narHash": "sha256-Z/0UvFI/ht2/QYrPK+d+ffZ+O64D5nT95O+L43/ftV0=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "39d635256b94b1afe11789e8a479e70d3ac14c14",
+        "rev": "b48f4234ff5426b253119a4fc9d5a7b90e011187",
         "type": "github"
       },
       "original": {
@@ -621,7 +642,7 @@
         "nixpkgs-stable": [
           "nixpkgs"
         ],
-        "nixpkgs-unstable": "nixpkgs-unstable",
+        "nixpkgs-unstable": "nixpkgs-unstable_2",
         "utils": [
           "flake-utils"
         ]
@@ -644,6 +665,7 @@
       "inputs": {
         "agenix": "agenix",
         "darwin": "darwin",
+        "darwin-unstable": "darwin-unstable",
         "disko": "disko",
         "flake-compat": "flake-compat",
         "flake-parts": "flake-parts",
@@ -657,7 +679,7 @@
         "nixos-generators": "nixos-generators",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs",
-        "nixpkgs-nixos-unstable": "nixpkgs-nixos-unstable",
+        "nixpkgs-unstable": "nixpkgs-unstable",
         "nixvirt": "nixvirt",
         "nur": "nur",
         "plasma-manager": "plasma-manager",

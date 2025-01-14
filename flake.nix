@@ -21,7 +21,7 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11-small";
-    nixpkgs-nixos-unstable.url = "github:NixOS/nixpkgs/nixos-unstable-small";
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable-small";
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -49,8 +49,13 @@
     };
 
     darwin = {
-      url = "github:lnl7/nix-darwin";
+      url = "github:lnl7/nix-darwin/nix-darwin-24.11";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    darwin-unstable = {
+      url = "github:lnl7/nix-darwin";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
     home-manager = {
@@ -60,7 +65,7 @@
 
     home-manager-unstable = {
       url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs-nixos-unstable";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
     plasma-manager = {
@@ -138,17 +143,17 @@
   outputs = inputs @ { self, ... }:
     let
       # Extending lib
-      mkLib = nixpkgs: (import ./lib {
-        lib = nixpkgs.lib;
-        inherit inputs;
+      mkLib = stable: (import ./lib {
+        inherit inputs stable;
         outputs = self;
       });
-      lib = mkLib inputs.nixpkgs;
+      lib = mkLib true;
+      libUnstable = mkLib false;
     in
     {
       # System configurations
       inherit (import ./hosts {
-        inherit inputs mkLib;
+        inherit inputs;
         outputs = self;
       }) darwinConfigurations nixosConfigurations;
 
@@ -156,7 +161,7 @@
       modules = import ./modules { inherit lib; };
 
       # Export custom library
-      inherit lib;
+      inherit lib libUnstable;
 
       # Apps: `nix run .#appName`
       apps = (import ./apps { inherit lib inputs; outputs = self; });

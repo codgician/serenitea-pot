@@ -12,12 +12,12 @@ lib.codgician.forLinuxSystems (pkgs: (
   in
   lib.codgician.mkNixosSystem {
     hostName = "nixos";
+    inherit system;
     modules = [
       ({ modulesPath, ... }: {
         imports = [ (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix") ];
         environment.systemPackages = hostDrvs;
       })
     ];
-    inherit system;
   }
 ).config.system.build.isoImage)

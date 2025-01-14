@@ -6,7 +6,7 @@ self: super:
 let
   isAttr = x: lib.hasPrefix "python" x && lib.hasSuffix "Packages" x;
   attrs = builtins.filter isAttr (builtins.attrNames super);
-  unstablePkgs = import inputs.nixpkgs-nixos-unstable {
+  unstablePkgs = import inputs.nixpkgs-unstable {
     inherit (super) system;
     config.allowUnfree = true;
   };
