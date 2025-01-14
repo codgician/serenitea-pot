@@ -3,7 +3,14 @@
 { lib, ... }:
 let
   names = lib.codgician.getFolderNames ./.;
-  mkModule = paths: ({ ... }: { imports = paths; });
+  mkModule =
+    paths:
+    (
+      { ... }:
+      {
+        imports = paths;
+      }
+    );
   hmPaths = user: rec {
     generic = lib.codgician.getFolderPaths ./${user}/generic;
     darwin = generic ++ (lib.codgician.getFolderPaths ./${user}/darwin);

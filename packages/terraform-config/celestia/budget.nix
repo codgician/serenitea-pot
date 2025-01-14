@@ -1,4 +1,5 @@
-{ config, ... }: {
+{ config, ... }:
+{
   resource = {
     azurerm_consumption_budget_resource_group.celestia = {
       name = "celestia-budget";
@@ -11,14 +12,16 @@
         end_date = "9999-12-31T23:59:59Z";
       };
 
-      notification = [{
-        enabled = true;
-        threshold = "100.0";
-        threshold_type = "Forecasted";
-        operator = "GreaterThanOrEqualTo";
-        contact_emails = [ "i@codgician.me" ];
-        contact_roles = [ "Owner" ];
-      }];
+      notification = [
+        {
+          enabled = true;
+          threshold = "100.0";
+          threshold_type = "Forecasted";
+          operator = "GreaterThanOrEqualTo";
+          contact_emails = [ "i@codgician.me" ];
+          contact_roles = [ "Owner" ];
+        }
+      ];
     };
 
     azurerm_cost_anomaly_alert.celestia-cost-anomaly-alert = {

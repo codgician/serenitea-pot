@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.services.plasma;
   types = lib.types;
@@ -73,18 +78,23 @@ lib.optionalAttrs (lib.version >= "24.05") {
     services.fwupd.enable = true;
     environment = {
       sessionVariables.GTK2_RC_FILES = [ "$HOME/.config/gtk-2.0/gtkrc" ];
-      systemPackages = with pkgs; ([
-        breeze-gtk
-        pciutils
-        usbutils
-        clinfo
-        glxinfo
-        vulkan-tools
-        aha
-        kdePackages.kio-admin
-        kdePackages.kwallet-pam
-        qt6.qtvirtualkeyboard
-      ] ++ (lib.optionals cfg.wayland [ wayland-utils ]));
+      systemPackages =
+        with pkgs;
+        (
+          [
+            breeze-gtk
+            pciutils
+            usbutils
+            clinfo
+            glxinfo
+            vulkan-tools
+            aha
+            kdePackages.kio-admin
+            kdePackages.kwallet-pam
+            qt6.qtvirtualkeyboard
+          ]
+          ++ (lib.optionals cfg.wayland [ wayland-utils ])
+        );
     };
   };
 }

@@ -1,18 +1,26 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.services.mlx5-sriov;
   types = lib.types;
 
   # Make script for interface
   interfaceNames = builtins.attrNames cfg;
-  mkScriptForInterface = name: ''
-    echo ${builtins.toString cfg.${name}.vfNum} > /sys/class/net/${name}/device/mlx5_num_vfs
-  '' + (builtins.concatStringsSep "\n" (builtins.map
-    (x: ''
-      ip link set ${name} vf ${builtins.toString x.fst} mac ${x.snd}
-      echo "Up" > /sys/class/net/${name}/device/sriov/${builtins.toString x.fst}/link_state
-    '')
-    (lib.zipLists (lib.range 0 (cfg.${name}.vfNum - 1)) cfg.${name}.macs)));
+  mkScriptForInterface =
+    name:
+    ''
+      echo ${builtins.toString cfg.${name}.vfNum} > /sys/class/net/${name}/device/mlx5_num_vfs
+    ''
+    + (builtins.concatStringsSep "\n" (
+      builtins.map (x: ''
+        ip link set ${name} vf ${builtins.toString x.fst} mac ${x.snd}
+        echo "Up" > /sys/class/net/${name}/device/sriov/${builtins.toString x.fst}/link_state
+      '') (lib.zipLists (lib.range 0 (cfg.${name}.vfNum - 1)) cfg.${name}.macs)
+    ));
   script = pkgs.writeShellApplication {
     name = "mlx5-sriov";
     runtimeInputs = with pkgs; [ iproute2 ];
@@ -21,22 +29,24 @@ let
 in
 {
   options.codgician.services.mlx5-sriov = lib.mkOption {
-    type = types.attrsOf (types.submodule {
-      options = {
-        vfNum = lib.mkOption {
-          type = types.int;
-          default = 0;
-          description = "Number of VFs to create.";
-        };
+    type = types.attrsOf (
+      types.submodule {
+        options = {
+          vfNum = lib.mkOption {
+            type = types.int;
+            default = 0;
+            description = "Number of VFs to create.";
+          };
 
-        macs = lib.mkOption {
-          type = types.listOf types.str;
-          example = [ "aa:bb:cc:dd:ee:ff" ];
-          default = [ ];
-          description = "List of MAC addresses that are assigned to created VFs in order.";
+          macs = lib.mkOption {
+            type = types.listOf types.str;
+            example = [ "aa:bb:cc:dd:ee:ff" ];
+            default = [ ];
+            description = "List of MAC addresses that are assigned to created VFs in order.";
+          };
         };
-      };
-    });
+      }
+    );
     default = { };
     example = lib.literalExpression ''
       {

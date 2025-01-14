@@ -1,9 +1,10 @@
 { lib, pkgs, ... }:
 let
-  wallpaper = (pkgs.fetchurl {
-    url = "https://web.archive.org/web/20240727142306if_/https://cdn.dynamicwallpaper.club/wallpapers/zt6aeujg1pn/Furina.heic";
-    sha256 = "1n8ckyhkbsadilwx171kyw44ivp0z7dhz837p1f5jy3zh811bab6";
-  }).outPath;
+  wallpaper =
+    (pkgs.fetchurl {
+      url = "https://web.archive.org/web/20240727142306if_/https://cdn.dynamicwallpaper.club/wallpapers/zt6aeujg1pn/Furina.heic";
+      sha256 = "1n8ckyhkbsadilwx171kyw44ivp0z7dhz837p1f5jy3zh811bab6";
+    }).outPath;
 in
 {
   # My settings
@@ -27,44 +28,46 @@ in
   };
 
   # Home manager
-  home-manager.users.codgi = { ... }: {
-    codgician.codgi = {
-      dev = {
-        haskell.enable = true;
-        nix.enable = true;
-        rust.enable = true;
+  home-manager.users.codgi =
+    { ... }:
+    {
+      codgician.codgi = {
+        dev = {
+          haskell.enable = true;
+          nix.enable = true;
+          rust.enable = true;
+        };
+
+        git.enable = true;
+        pwsh.enable = true;
+        ssh.enable = true;
+        vscode.enable = true;
+        zsh.enable = true;
       };
 
-      git.enable = true;
-      pwsh.enable = true;
-      ssh.enable = true;
-      vscode.enable = true;
-      zsh.enable = true;
-    };
-
-    programs.plasma = {
-      workspace = { inherit wallpaper; };
-      configFile = {
-        plasmarc.Wallpapers.usersWallpapers = wallpaper;
-        kdeglobals.KScreen.ScaleFactor = 2;
-        kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General" = {
-          Image = wallpaper;
-          PreviewImage = wallpaper;
-        };
-        kwinrc = {
-          Xwayland.Scale = 2;
-          Wayland."InputMethod[$e]" = "${pkgs.fcitx5}/share/applications/fcitx5-wayland-launcher.desktop";
+      programs.plasma = {
+        workspace = { inherit wallpaper; };
+        configFile = {
+          plasmarc.Wallpapers.usersWallpapers = wallpaper;
+          kdeglobals.KScreen.ScaleFactor = 2;
+          kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General" = {
+            Image = wallpaper;
+            PreviewImage = wallpaper;
+          };
+          kwinrc = {
+            Xwayland.Scale = 2;
+            Wayland."InputMethod[$e]" = "${pkgs.fcitx5}/share/applications/fcitx5-wayland-launcher.desktop";
+          };
         };
       };
-    };
 
-    home.stateVersion = "24.11";
-    home.packages = with pkgs; [
-      httplz
-      screen
-      binwalk
-    ];
-  };
+      home.stateVersion = "24.11";
+      home.packages = with pkgs; [
+        httplz
+        screen
+        binwalk
+      ];
+    };
 
   # Enable Network Manager
   networking.networkmanager.enable = true;
@@ -142,7 +145,10 @@ in
   # Security
   users.mutableUsers = false;
   users.users.root.hashedPassword = "!";
-  nix.settings.trusted-users = [ "root" "@wheel" ];
+  nix.settings.trusted-users = [
+    "root"
+    "@wheel"
+  ];
 
   # Global packages
   environment.systemPackages = with pkgs; [

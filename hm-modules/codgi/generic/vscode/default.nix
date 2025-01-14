@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.codgi.vscode;
 in
@@ -14,25 +19,28 @@ in
       enableExtensionUpdateCheck = false;
       mutableExtensionsDir = false;
 
-      extensions = with pkgs.vscode-marketplace; [
-        editorconfig.editorconfig
-        tamasfe.even-better-toml
-        ms-vscode.hexeditor
-        ms-vscode.vscode-copilot-vision
-        ms-vscode.vscode-diagnostic-tools
-        ms-vscode.remote-explorer
-        ms-vscode.remote-repositories
-        ms-vscode.azure-repos
-        github.remotehub
-        ms-vscode.remote-server
-        ms-vscode-remote.remote-ssh-edit
-        ms-vscode-remote.remote-containers
-      ] ++ (with pkgs.vscode-marketplace-release; [
-        github.copilot
-        github.copilot-chat
-        github.vscode-pull-request-github
-        ms-vscode-remote.remote-ssh
-      ]);
+      extensions =
+        with pkgs.vscode-marketplace;
+        [
+          editorconfig.editorconfig
+          tamasfe.even-better-toml
+          ms-vscode.hexeditor
+          ms-vscode.vscode-copilot-vision
+          ms-vscode.vscode-diagnostic-tools
+          ms-vscode.remote-explorer
+          ms-vscode.remote-repositories
+          ms-vscode.azure-repos
+          github.remotehub
+          ms-vscode.remote-server
+          ms-vscode-remote.remote-ssh-edit
+          ms-vscode-remote.remote-containers
+        ]
+        ++ (with pkgs.vscode-marketplace-release; [
+          github.copilot
+          github.copilot-chat
+          github.vscode-pull-request-github
+          ms-vscode-remote.remote-ssh
+        ]);
 
       userSettings = {
         editor = {
@@ -43,7 +51,9 @@ in
           fontFamily = "'Cascadia Mono PL', 'Cascadia Mono', monospace";
           fontSize = 14;
         };
-        remote.SSH.defaultExtensions = builtins.map (ext: ext.vscodeExtUniqueId) config.programs.vscode.extensions;
+        remote.SSH.defaultExtensions = builtins.map (
+          ext: ext.vscodeExtUniqueId
+        ) config.programs.vscode.extensions;
       };
     };
   };

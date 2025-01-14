@@ -1,5 +1,6 @@
-{ lib, pkgs, ... }: {
-  # libvirtd 
+{ lib, pkgs, ... }:
+{
+  # libvirtd
   virtualisation.libvirtd = {
     qemu.swtpm.enable = true;
     onBoot = "start";
@@ -7,27 +8,29 @@
     allowedBridges = [ "virbr0" ];
     startDelay = 3;
     hooks.qemu = {
-      "10-isolate-cpu" = lib.getExe (pkgs.writeShellApplication {
-        name = "qemu-hook";
-        runtimeInputs = with pkgs; [ systemd ];
-        text = ''
-          vm=$1
-          command=$2
-          if [ "$vm" != "openwrt" ]; then
-            exit 0
-          fi
+      "10-isolate-cpu" = lib.getExe (
+        pkgs.writeShellApplication {
+          name = "qemu-hook";
+          runtimeInputs = with pkgs; [ systemd ];
+          text = ''
+            vm=$1
+            command=$2
+            if [ "$vm" != "openwrt" ]; then
+              exit 0
+            fi
 
-          if [ "$command" = "started" ]; then
-            systemctl set-property --runtime -- system.slice AllowedCPUs=0,1,6,7
-            systemctl set-property --runtime -- user.slice AllowedCPUs=0,1,6,7
-            systemctl set-property --runtime -- init.scope AllowedCPUs=0,1,6,7
-          elif [ "$command" = "release" ]; then
-            systemctl set-property --runtime -- system.slice AllowedCPUs=0-7
-            systemctl set-property --runtime -- user.slice AllowedCPUs=0-7
-            systemctl set-property --runtime -- init.scope AllowedCPUs=0-7
-          fi
-        '';
-      });
+            if [ "$command" = "started" ]; then
+              systemctl set-property --runtime -- system.slice AllowedCPUs=0,1,6,7
+              systemctl set-property --runtime -- user.slice AllowedCPUs=0,1,6,7
+              systemctl set-property --runtime -- init.scope AllowedCPUs=0,1,6,7
+            elif [ "$command" = "release" ]; then
+              systemctl set-property --runtime -- system.slice AllowedCPUs=0-7
+              systemctl set-property --runtime -- user.slice AllowedCPUs=0-7
+              systemctl set-property --runtime -- init.scope AllowedCPUs=0-7
+            fi
+          '';
+        }
+      );
     };
   };
 
@@ -37,12 +40,28 @@
     swtpm.enable = true;
     connections."qemu:///system" = {
       domains = [
-        { definition = ./openwrt.xml; active = true; }
-        { definition = ./hass.xml; active = true; }
+        {
+          definition = ./openwrt.xml;
+          active = true;
+        }
+        {
+          definition = ./hass.xml;
+          active = true;
+        }
       ];
 
-      networks = [{ definition = ./virbr0.xml; active = true; }];
-      pools = [{ definition = ./zroot.xml; active = true; }];
+      networks = [
+        {
+          definition = ./virbr0.xml;
+          active = true;
+        }
+      ];
+      pools = [
+        {
+          definition = ./zroot.xml;
+          active = true;
+        }
+      ];
     };
   };
 

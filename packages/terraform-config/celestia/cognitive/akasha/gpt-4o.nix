@@ -1,4 +1,5 @@
-{ config, ... }: {
+{ config, ... }:
+{
   resource.azurerm_cognitive_deployment.akasha-gpt-4o = {
     name = "akasha-gpt-4o";
     cognitive_account_id = config.resource.azurerm_cognitive_account.akasha "id";

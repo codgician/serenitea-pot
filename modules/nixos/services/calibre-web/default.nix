@@ -38,7 +38,10 @@ in
 
       domains = lib.mkOption {
         type = types.listOf types.str;
-        example = [ "example.com" "example.org" ];
+        example = [
+          "example.com"
+          "example.org"
+        ];
         default = [ ];
         description = ''
           List of domains for the reverse proxy.
@@ -75,7 +78,7 @@ in
       };
 
       # Persist data
-      environment = lib.optionalAttrs (systemCfg?impermanence) {
+      environment = lib.optionalAttrs (systemCfg ? impermanence) {
         persistence.${systemCfg.impermanence.path}.directories = [ "/var/lib/calibre-web" ];
       };
     })

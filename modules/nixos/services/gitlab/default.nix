@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.services.gitlab;
   types = lib.types;
@@ -37,7 +42,10 @@ in
 
       domains = lib.mkOption {
         type = types.listOf types.str;
-        example = [ "example.com" "example.org" ];
+        example = [
+          "example.com"
+          "example.org"
+        ];
         default = [ cfg.host ];
         defaultText = ''[ config.codgician.services.gitlab.host ]'';
         description = ''
@@ -63,7 +71,12 @@ in
       services.gitlab = rec {
         enable = true;
         packages.gitlab = pkgs.gitlab;
-        inherit (cfg) statePath host user group;
+        inherit (cfg)
+          statePath
+          host
+          user
+          group
+          ;
         https = true;
         port = 443;
 
@@ -103,7 +116,9 @@ in
               name = "github";
               label = "GitHub";
               app_id = "3bc605d269d8117af816";
-              app_secret = { _secret = config.age.secrets.gitlabOmniAuthGitHub.path; };
+              app_secret = {
+                _secret = config.age.secrets.gitlabOmniAuthGitHub.path;
+              };
               args = {
                 scope = "user:email";
               };
@@ -112,20 +127,25 @@ in
         };
       };
 
-      # PostgreSQL 
+      # PostgreSQL
       codgician.services.postgresql.enable = true;
     })
 
     # Agenix secrets
-    (lib.mkIf cfg.enable (with lib.codgician; mkAgenixConfigs { owner = cfg.user; } (builtins.map getAgeSecretPathFromName [
-      "gitlabInitRootPasswd"
-      "gitlabDb"
-      "gitlabJws"
-      "gitlabOtp"
-      "gitlabSecret"
-      "gitlabSmtp"
-      "gitlabOmniAuthGitHub"
-    ])))
+    (lib.mkIf cfg.enable (
+      with lib.codgician;
+      mkAgenixConfigs { owner = cfg.user; } (
+        builtins.map getAgeSecretPathFromName [
+          "gitlabInitRootPasswd"
+          "gitlabDb"
+          "gitlabJws"
+          "gitlabOtp"
+          "gitlabSecret"
+          "gitlabSmtp"
+          "gitlabOmniAuthGitHub"
+        ]
+      )
+    ))
 
     # Reverse proxy profile
     (lib.mkIf cfg.reverseProxy.enable {

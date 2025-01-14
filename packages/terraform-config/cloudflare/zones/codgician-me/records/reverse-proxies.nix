@@ -1,11 +1,22 @@
 { config, ... }:
 let
   zone_id = config.resource.cloudflare_zone.codgician-me "id";
-  cnames = [ "akasha" "amt" "books" "bubbles" "fin" "git" "hass" "matrix" "pve" "saw" ];
+  cnames = [
+    "akasha"
+    "amt"
+    "books"
+    "bubbles"
+    "fin"
+    "git"
+    "hass"
+    "matrix"
+    "pve"
+    "saw"
+  ];
 in
 {
-  resource.cloudflare_record = builtins.listToAttrs (builtins.map
-    (name: {
+  resource.cloudflare_record = builtins.listToAttrs (
+    builtins.map (name: {
       name = "${name}-cname";
       value = {
         inherit name zone_id;
@@ -15,6 +26,6 @@ in
         type = "CNAME";
         content = "lumine.codgician.me";
       };
-    })
-    cnames);
+    }) cnames
+  );
 }

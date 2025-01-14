@@ -1,4 +1,9 @@
-{ domain, config, lib, ... }:
+{
+  domain,
+  config,
+  lib,
+  ...
+}:
 let
   credPath = lib.codgician.secretsDir + "/cloudflareCredential.age";
 in

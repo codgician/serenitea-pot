@@ -5,7 +5,7 @@ let
 in
 {
   resource = {
-    # Public IP prefixes 
+    # Public IP prefixes
     azurerm_public_ip_prefix = {
       lumine-ipv4-prefix = {
         name = "lumine-ipv4-prefix";
@@ -72,25 +72,30 @@ in
       name = "lumine-nsg";
       inherit location resource_group_name;
 
-      security_rule = builtins.map
-        (direction: {
-          name = "Allow-All-${direction}";
-          description = "Allow all ${direction}s.";
-          priority = 100;
-          inherit direction;
-          access = "Allow";
-          protocol = "*";
-          source_port_range = "*";
-          destination_port_range = "*";
-          source_address_prefix = "*";
-          destination_address_prefix = "*";
-          destination_address_prefixes = "\${null}";
-          destination_application_security_group_ids = "\${null}";
-          destination_port_ranges = "\${null}";
-          source_address_prefixes = "\${null}";
-          source_application_security_group_ids = "\${null}";
-          source_port_ranges = "\${null}";
-        }) [ "Inbound" "Outbound" ];
+      security_rule =
+        builtins.map
+          (direction: {
+            name = "Allow-All-${direction}";
+            description = "Allow all ${direction}s.";
+            priority = 100;
+            inherit direction;
+            access = "Allow";
+            protocol = "*";
+            source_port_range = "*";
+            destination_port_range = "*";
+            source_address_prefix = "*";
+            destination_address_prefix = "*";
+            destination_address_prefixes = "\${null}";
+            destination_application_security_group_ids = "\${null}";
+            destination_port_ranges = "\${null}";
+            source_address_prefixes = "\${null}";
+            source_application_security_group_ids = "\${null}";
+            source_port_ranges = "\${null}";
+          })
+          [
+            "Inbound"
+            "Outbound"
+          ];
     };
 
     # Network interface

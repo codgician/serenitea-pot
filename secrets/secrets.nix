@@ -1,7 +1,9 @@
 let
   pubKeys = import ./pubkeys.nix;
 in
-with pubKeys; with pubKeys.hosts; {
+with pubKeys;
+with pubKeys.hosts;
+{
   # Wireless credentials
   "wirelessEnv.age".publicKeys = someHosts [ sigewinne ];
 

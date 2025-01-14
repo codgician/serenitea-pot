@@ -1,4 +1,5 @@
-{ ... }: rec {
+{ ... }:
+rec {
   # Path to root
   rootDir = ../.;
 

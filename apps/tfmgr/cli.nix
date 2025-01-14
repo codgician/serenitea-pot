@@ -1,6 +1,12 @@
 # Script for managing terraform configurations
 
-{ lib, pkgs, inputs, outputs, ... }:
+{
+  lib,
+  pkgs,
+  inputs,
+  outputs,
+  ...
+}:
 
 let
   terraformAgeFileName = "terraformEnv.age";
@@ -9,7 +15,11 @@ in
 inputs.flake-utils.lib.mkApp {
   drv = pkgs.writeShellApplication rec {
     name = builtins.baseNameOf ./.;
-    runtimeInputs = with pkgs; [ coreutils terraform agenix ];
+    runtimeInputs = with pkgs; [
+      coreutils
+      terraform
+      agenix
+    ];
     text = ''
       function warn() {
         printf '%s\n' "$*" >&2
@@ -43,7 +53,7 @@ inputs.flake-utils.lib.mkApp {
       function init {
         dir=$(pwd)
         cd ${secretsDir}
-      
+
         [ -f "./${terraformAgeFileName}" ] || { 
           err "${terraformAgeFileName} not found under ${secretsDir}"; 
         }
@@ -65,7 +75,7 @@ inputs.flake-utils.lib.mkApp {
         show_help
         exit 1 
       fi
-    
+
       tfargs=""
       while test $# -gt 0; do
         case "$1" in

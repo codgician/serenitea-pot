@@ -1,4 +1,10 @@
-{ config, lib, pkgs, ... }: {
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+{
   boot = {
     initrd = {
       availableKernelModules = [
@@ -21,7 +27,10 @@
       ];
     };
 
-    kernelModules = [ "kvm-amd" "ast" ];
+    kernelModules = [
+      "kvm-amd"
+      "ast"
+    ];
     kernelParams = [
       "video=astdrmfb"
       "amd_pstate=active"

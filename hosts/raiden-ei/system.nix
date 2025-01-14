@@ -1,4 +1,5 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
 
   # My settings
   codgician = {
@@ -18,23 +19,25 @@
   };
 
   # Home manager
-  home-manager.users.codgi = { config, pkgs, ... }: {
-    codgician.codgi = {
-      dev.nix.enable = true;
-      git.enable = true;
-      pwsh.enable = true;
-      ssh.enable = true;
-      zsh.enable = true;
-    };
+  home-manager.users.codgi =
+    { config, pkgs, ... }:
+    {
+      codgician.codgi = {
+        dev.nix.enable = true;
+        git.enable = true;
+        pwsh.enable = true;
+        ssh.enable = true;
+        zsh.enable = true;
+      };
 
-    home.stateVersion = "24.11";
-    home.packages = with pkgs; [
-      httplz
-      iperf3
-      htop
-      aria2
-    ];
-  };
+      home.stateVersion = "24.11";
+      home.packages = with pkgs; [
+        httplz
+        iperf3
+        htop
+        aria2
+      ];
+    };
 
   environment = {
     # Disable ssh password authentication
@@ -43,7 +46,10 @@
     };
 
     # System packages
-    systemPackages = with pkgs; [ fastfetch openssl ];
+    systemPackages = with pkgs; [
+      fastfetch
+      openssl
+    ];
   };
 
   # zsh

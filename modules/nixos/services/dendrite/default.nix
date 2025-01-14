@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.services.dendrite;
   types = lib.types;
@@ -50,7 +55,10 @@ in
 
       domains = lib.mkOption {
         type = types.listOf types.str;
-        example = [ "example.com" "example.org" ];
+        example = [
+          "example.com"
+          "example.org"
+        ];
         default = [ cfg.domain ];
         defaultText = ''[ config.codgician.services.dendrite.domain ]'';
         description = ''
@@ -184,12 +192,15 @@ in
       # Allow R/W to media path
       systemd.services.dendrite.serviceConfig.ReadWritePaths = [ cfg.dataPath ];
 
-      # PostgreSQL 
+      # PostgreSQL
       codgician.services.postgresql.enable = true;
       services.postgresql = {
         ensureDatabases = [ dbName ];
         ensureUsers = [
-          { name = dbName; ensureDBOwnership = true; }
+          {
+            name = dbName;
+            ensureDBOwnership = true;
+          }
         ];
       };
     })
@@ -197,7 +208,10 @@ in
     # Agenix secrets
     (lib.mkIf cfg.enable (
       let
-        credFileNames = [ "matrixGlobalPrivateKey" "matrixEnv" ];
+        credFileNames = [
+          "matrixGlobalPrivateKey"
+          "matrixEnv"
+        ];
         credFiles = builtins.map (x: lib.codgician.secretsDir + "/${x}.age") credFileNames;
       in
       lib.codgician.mkAgenixConfigs { } credFiles
@@ -224,15 +238,16 @@ in
             https = true;
             locations = {
               "/" =
-                if cfg.reverseProxy.elementWeb
-                then {
-                  inherit (cfg.reverseProxy) lanOnly;
-                  root = import ./element-web.nix {
-                    inherit pkgs clientConfig;
-                    domains = cfg.reverseProxy.domains;
-                  };
-                }
-                else lib.mkIf cfg.reverseProxy.proxyAll { inherit (cfg.reverseProxy) proxyPass lanOnly; };
+                if cfg.reverseProxy.elementWeb then
+                  {
+                    inherit (cfg.reverseProxy) lanOnly;
+                    root = import ./element-web.nix {
+                      inherit pkgs clientConfig;
+                      domains = cfg.reverseProxy.domains;
+                    };
+                  }
+                else
+                  lib.mkIf cfg.reverseProxy.proxyAll { inherit (cfg.reverseProxy) proxyPass lanOnly; };
 
               # Matrix protocol
               "~ ^/(_matrix|_synapse)" = {

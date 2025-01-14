@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   domains = import ./domains.nix;
   domainNames = builtins.attrNames domains;
@@ -12,7 +17,10 @@ let
 
       extraDomainNames = lib.mkOption {
         type = types.listOf types.str;
-        example = [ "example.org" "example.net" ];
+        example = [
+          "example.org"
+          "example.net"
+        ];
         default = [ ];
         description = ''
           A list of extra domain names, which are included in the one certificate to be issued.
@@ -50,41 +58,53 @@ let
   };
 
   # Define configurations for each certificate
-  mkAcmeConfig = name: lib.mkIf cfg.${name}.enable (lib.mkMerge [
-    # Import domain-specific settings
-    (import domains.${name}.challengeProfile { domain = name; inherit config lib pkgs; })
+  mkAcmeConfig =
+    name:
+    lib.mkIf cfg.${name}.enable (
+      lib.mkMerge [
+        # Import domain-specific settings
+        (import domains.${name}.challengeProfile {
+          domain = name;
+          inherit config lib pkgs;
+        })
 
-    # Generic configs
-    {
-      security.acme.certs.${name} = {
-        domain = name;
-        extraDomainNames = lib.lists.unique cfg.${name}.extraDomainNames;
-        reloadServices = cfg.${name}.reloadServices;
-        postRun =
-          let
-            commands = builtins.map (x: "${lib.getExe pkgs.bash} -c '${x}'") cfg.${name}.postRunScripts;
-          in
-          builtins.concatStringsSep "\n" commands;
-      };
-    }
-  ]);
+        # Generic configs
+        {
+          security.acme.certs.${name} = {
+            domain = name;
+            extraDomainNames = lib.lists.unique cfg.${name}.extraDomainNames;
+            reloadServices = cfg.${name}.reloadServices;
+            postRun =
+              let
+                commands = builtins.map (x: "${lib.getExe pkgs.bash} -c '${x}'") cfg.${name}.postRunScripts;
+              in
+              builtins.concatStringsSep "\n" commands;
+          };
+        }
+      ]
+    );
 in
 {
   options.codgician.acme = lib.codgician.concatAttrs (builtins.map mkAcmeOptions domainNames);
-  config = lib.mkMerge ((builtins.map mkAcmeConfig domainNames) ++ [
-    # Accept terms
-    {
-      security.acme = {
-        acceptTerms = true;
-        useRoot = false;
-      };
-    }
+  config = lib.mkMerge (
+    (builtins.map mkAcmeConfig domainNames)
+    ++ [
+      # Accept terms
+      {
+        security.acme = {
+          acceptTerms = true;
+          useRoot = false;
+        };
+      }
 
-    # Agenix credentials
-    (lib.codgician.mkAgenixConfigs { } (lib.pipe domainNames [
-      (builtins.filter (name: cfg.${name}.enable && cfg.${name}.ageSecretFilePath != null))
-      (builtins.map (name: cfg.${name}.ageSecretFilePath))
-      lib.lists.unique
-    ]))
-  ]);
+      # Agenix credentials
+      (lib.codgician.mkAgenixConfigs { } (
+        lib.pipe domainNames [
+          (builtins.filter (name: cfg.${name}.enable && cfg.${name}.ageSecretFilePath != null))
+          (builtins.map (name: cfg.${name}.ageSecretFilePath))
+          lib.lists.unique
+        ]
+      ))
+    ]
+  );
 }

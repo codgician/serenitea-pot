@@ -1,4 +1,5 @@
-{ lib, pkgs, ... }: {
+{ lib, pkgs, ... }:
+{
 
   # My settings
   codgician = {
@@ -52,7 +53,10 @@
 
       samba = {
         enable = true;
-        users = [ "codgi" "smb" ];
+        users = [
+          "codgi"
+          "smb"
+        ];
         shares = {
           "media" = {
             path = "/mnt/nas/media";
@@ -112,18 +116,23 @@
   };
 
   # Home manager
-  home-manager.users.codgi = { config, ... }: {
-    codgician.codgi = {
-      dev.nix.enable = true;
-      git.enable = true;
-      pwsh.enable = true;
-      ssh.enable = true;
-      zsh.enable = true;
-    };
+  home-manager.users.codgi =
+    { config, ... }:
+    {
+      codgician.codgi = {
+        dev.nix.enable = true;
+        git.enable = true;
+        pwsh.enable = true;
+        ssh.enable = true;
+        zsh.enable = true;
+      };
 
-    home.stateVersion = "24.11";
-    home.packages = with pkgs; [ httplz screen ];
-  };
+      home.stateVersion = "24.11";
+      home.packages = with pkgs; [
+        httplz
+        screen
+      ];
+    };
 
   # Global packages
   environment.systemPackages = [ ];

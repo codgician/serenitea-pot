@@ -1,4 +1,5 @@
-{ config, ... }: {
+{ config, ... }:
+{
   imports = [
     ./gpt-4.nix
     ./gpt-4o.nix

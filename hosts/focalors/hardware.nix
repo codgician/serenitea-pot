@@ -1,5 +1,9 @@
-{ lib, ... }: {
-  boot.initrd.availableKernelModules = [ "xhci_pci" "sr_mod" ];
+{ lib, ... }:
+{
+  boot.initrd.availableKernelModules = [
+    "xhci_pci"
+    "sr_mod"
+  ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ ];
   boot.kernelParams = [ "video=Virtual-1:3024x1890@120" ];

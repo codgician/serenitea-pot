@@ -140,22 +140,29 @@
     };
   };
 
-  outputs = inputs @ { self, ... }:
+  outputs =
+    inputs@{ self, ... }:
     let
       # Extending lib
-      mkLib = stable: (import ./lib {
-        inherit inputs stable;
-        outputs = self;
-      });
+      mkLib =
+        stable:
+        (import ./lib {
+          inherit inputs stable;
+          outputs = self;
+        });
       lib = mkLib true;
       libUnstable = mkLib false;
     in
     {
       # System configurations
-      inherit (import ./hosts {
-        inherit inputs;
-        outputs = self;
-      }) darwinConfigurations nixosConfigurations;
+      inherit
+        (import ./hosts {
+          inherit inputs;
+          outputs = self;
+        })
+        darwinConfigurations
+        nixosConfigurations
+        ;
 
       # Modules
       modules = import ./modules { inherit lib; };
@@ -164,18 +171,41 @@
       inherit lib libUnstable;
 
       # Apps: `nix run .#appName`
-      apps = (import ./apps { inherit lib inputs; outputs = self; });
+      apps = (
+        import ./apps {
+          inherit lib inputs;
+          outputs = self;
+        }
+      );
 
       # Development shell: `nix develop .#name`
-      devShells = lib.codgician.forAllSystems (pkgs: import ./shells {
-        inherit lib pkgs inputs;
-        outputs = self;
-      });
+      devShells = lib.codgician.forAllSystems (
+        pkgs:
+        import ./shells {
+          inherit lib pkgs inputs;
+          outputs = self;
+        }
+      );
 
       # Formatter: `nix fmt`
-      formatter = lib.codgician.forAllSystems (pkgs: pkgs.nixpkgs-fmt);
+      formatter = lib.codgician.forAllSystems (
+        pkgs:
+        pkgs.writeShellApplication {
+          name = "formatter";
+          runtimeInputs = with pkgs; [
+            treefmt
+            nixfmt-rfc-style
+          ];
+          text = lib.getExe pkgs.treefmt;
+        }
+      );
 
       # Packages: `nix build .#pkgName`
-      packages = (import ./packages { inherit lib inputs; outputs = self; });
+      packages = (
+        import ./packages {
+          inherit lib inputs;
+          outputs = self;
+        }
+      );
     };
 }

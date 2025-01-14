@@ -1,6 +1,12 @@
 # Only OS disks are managed by disko
 
-{ disks ? [ "nvme8n1" "nvme9n1" ], ... }:
+{
+  disks ? [
+    "nvme8n1"
+    "nvme9n1"
+  ],
+  ...
+}:
 
 let
   mkDiskConfig = id: {

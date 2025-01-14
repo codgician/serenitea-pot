@@ -25,7 +25,7 @@ in
     virtualisation.oci-containers.backend = "podman";
 
     # Persist data
-    environment = lib.optionalAttrs (systemCfg?impermanence) {
+    environment = lib.optionalAttrs (systemCfg ? impermanence) {
       persistence.${systemCfg.impermanence.path}.directories = [
         "/var/lib/containers"
       ];

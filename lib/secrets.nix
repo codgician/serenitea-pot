@@ -1,4 +1,5 @@
-{ lib, ... }: rec {
+{ lib, ... }:
+rec {
   # Extract secret name from secret path
   getAgeSecretNameFromPath = path: lib.removeSuffix ".age" (builtins.baseNameOf path);
 
@@ -12,14 +13,27 @@
   });
 
   # Make agenix config for specified owner and age file paths
-  mkAgenixConfigs = { owner ? "root", group ? "root", mode ? "600" }: files: {
-    age.secrets = lib.pipe files [
-      (builtins.map (file: {
-        name = getAgeSecretNameFromPath file;
-        value = { inherit file owner group mode; };
-      }))
-      builtins.listToAttrs
-    ];
-    assertions = mkAgenixAssertions files;
-  };
+  mkAgenixConfigs =
+    {
+      owner ? "root",
+      group ? "root",
+      mode ? "600",
+    }:
+    files: {
+      age.secrets = lib.pipe files [
+        (builtins.map (file: {
+          name = getAgeSecretNameFromPath file;
+          value = {
+            inherit
+              file
+              owner
+              group
+              mode
+              ;
+          };
+        }))
+        builtins.listToAttrs
+      ];
+      assertions = mkAgenixAssertions files;
+    };
 }

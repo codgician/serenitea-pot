@@ -1,4 +1,5 @@
-{ ... }: {
+{ ... }:
+{
   config.nix = {
     gc = {
       persistent = true;

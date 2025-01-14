@@ -1,16 +1,28 @@
 # Script for creating disk images with predefined ssh keys
 
-{ lib, pkgs, inputs, outputs, ... }:
+{
+  lib,
+  pkgs,
+  inputs,
+  outputs,
+  ...
+}:
 
 let
-  hostNames = builtins.attrNames (lib.filterAttrs
-    (k: v: builtins.hasAttr "diskoImagesScript" v.config.system.build)
-    outputs.nixosConfigurations);
+  hostNames = builtins.attrNames (
+    lib.filterAttrs (
+      k: v: builtins.hasAttr "diskoImagesScript" v.config.system.build
+    ) outputs.nixosConfigurations
+  );
 in
 inputs.flake-utils.lib.mkApp {
   drv = pkgs.writeShellApplication rec {
     name = builtins.baseNameOf ./.;
-    runtimeInputs = with pkgs; [ coreutils qemu-utils openssh ];
+    runtimeInputs = with pkgs; [
+      coreutils
+      qemu-utils
+      openssh
+    ];
     text = ''
       # Map image format extension to qemu image type arg
       declare -A formats=( \
@@ -66,7 +78,7 @@ inputs.flake-utils.lib.mkApp {
         show_help
         exit 1 
       fi
-    
+
       imgfmt="raw"
       qemuimg_extra_args=""
       output_path=$(pwd)

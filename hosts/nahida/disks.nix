@@ -1,4 +1,12 @@
-{ disks ? [ "sda" "sdb" "sdc" ], ... }: {
+{
+  disks ? [
+    "sda"
+    "sdb"
+    "sdc"
+  ],
+  ...
+}:
+{
   disko.devices = {
     nodev.media9p = {
       device = "media9p";

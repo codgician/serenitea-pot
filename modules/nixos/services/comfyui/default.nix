@@ -29,7 +29,10 @@ in
 
       domains = lib.mkOption {
         type = types.listOf types.str;
-        example = [ "example.com" "example.org" ];
+        example = [
+          "example.com"
+          "example.org"
+        ];
         default = [ ];
         description = ''
           List of domains for the reverse proxy.
@@ -56,7 +59,9 @@ in
         image = "docker.io/yanwk/comfyui-boot:cu124-megapak";
         ports = [ "${builtins.toString cfg.port}:8188" ];
         volumes = [ "${cfg.dataDir}:/root" ];
-        extraOptions = [ "--log-level=debug" ] ++ lib.optionals config.hardware.nvidia-container-toolkit.enable [ "--device=nvidia.com/gpu=all" ];
+        extraOptions =
+          [ "--log-level=debug" ]
+          ++ lib.optionals config.hardware.nvidia-container-toolkit.enable [ "--device=nvidia.com/gpu=all" ];
       };
 
       virtualisation.podman.enable = true;

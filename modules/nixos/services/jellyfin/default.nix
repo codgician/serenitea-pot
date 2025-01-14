@@ -32,7 +32,10 @@ rec {
 
       domains = lib.mkOption {
         type = types.listOf types.str;
-        example = [ "example.com" "example.org" ];
+        example = [
+          "example.com"
+          "example.org"
+        ];
         default = [ ];
         description = ''
           List of domains for the reverse proxy.
@@ -62,13 +65,16 @@ rec {
       };
 
       # Persist data when dataDir is default value
-      environment = lib.optionalAttrs (systemCfg?impermanence) {
+      environment = lib.optionalAttrs (systemCfg ? impermanence) {
         persistence.${systemCfg.impermanence.path}.directories =
-          lib.mkIf (cfg.dataDir == options.codgician.services.jellyfin.dataDir.default) [{
-            directory = cfg.dataDir;
-            mode = "0750";
-            inherit (cfg) user group;
-          }];
+          lib.mkIf (cfg.dataDir == options.codgician.services.jellyfin.dataDir.default)
+            [
+              {
+                directory = cfg.dataDir;
+                mode = "0750";
+                inherit (cfg) user group;
+              }
+            ];
       };
     })
 

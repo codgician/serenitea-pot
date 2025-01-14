@@ -1,4 +1,8 @@
-args @ { inputs, stable ? true, ... }:
+args@{
+  inputs,
+  stable ? true,
+  ...
+}:
 
 let
   # Decide which nixpkgs input to use
@@ -8,12 +12,18 @@ let
   concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
 
   # Extend lib with custom functions
-  mkMyLib = { lib }: concatAttrs
-    (builtins.map (x: import x (args // { inherit lib stable nixpkgs; })) [
-      ./consts.nix
-      ./io.nix
-      ./secrets.nix
-      ./utils.nix
-    ]) // { inherit concatAttrs; };
+  mkMyLib =
+    { lib }:
+    concatAttrs (
+      builtins.map (x: import x (args // { inherit lib stable nixpkgs; })) [
+        ./consts.nix
+        ./io.nix
+        ./secrets.nix
+        ./utils.nix
+      ]
+    )
+    // {
+      inherit concatAttrs;
+    };
 in
 nixpkgs.lib.extend (self: super: { codgician = mkMyLib { lib = self; }; })

@@ -4,8 +4,8 @@ let
   cnames = [ "turn" ];
 in
 {
-  resource.cloudflare_record = builtins.listToAttrs (builtins.map
-    (name: {
+  resource.cloudflare_record = builtins.listToAttrs (
+    builtins.map (name: {
       name = "${name}-cname";
       value = {
         inherit name zone_id;
@@ -15,6 +15,6 @@ in
         type = "CNAME";
         content = "sz.codgician.me";
       };
-    })
-    cnames);
+    }) cnames
+  );
 }

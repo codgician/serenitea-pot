@@ -1,4 +1,5 @@
-{ config, lib, ... }: {
+{ config, lib, ... }:
+{
   imports = lib.codgician.getFolderPaths ./.;
 
   # Ensure encryption at host feature is enabled

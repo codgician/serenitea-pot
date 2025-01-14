@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.services.fastapi-dls;
   types = lib.types;
@@ -86,7 +91,10 @@ in
 
       domains = lib.mkOption {
         type = types.listOf types.str;
-        example = [ "example.com" "example.org" ];
+        example = [
+          "example.com"
+          "example.org"
+        ];
         default = [ cfg.acmeDomain ];
         defaultText = ''[ config.codgician.services.fastapi-dls.acmeDomain ]'';
         description = ''
@@ -142,7 +150,9 @@ in
                 --proxy-headers
             '';
           LoadCredential =
-            let certDir = config.security.acme.certs."${cfg.acmeDomain}".directory; in
+            let
+              certDir = config.security.acme.certs."${cfg.acmeDomain}".directory;
+            in
             [
               "cert.pem:${certDir}/cert.pem"
               "key.pem:${certDir}/key.pem"

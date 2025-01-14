@@ -11,7 +11,10 @@ let
 in
 pkgs.writeShellApplication {
   name = "upgrade-pg-cluster";
-  runtimeInputs = with pkgs; [ coreutils systemd ];
+  runtimeInputs = with pkgs; [
+    coreutils
+    systemd
+  ];
   text = ''
     set -eux
     # XXX it's perhaps advisable to stop all services that depend on postgresql

@@ -1,4 +1,8 @@
-{ disks ? [ "sda" ], ... }: {
+{
+  disks ? [ "sda" ],
+  ...
+}:
+{
   disko = {
     devices = {
       disk.sda = {

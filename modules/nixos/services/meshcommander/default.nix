@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.services.meshcommander;
   types = lib.types;
@@ -37,7 +42,10 @@ in
 
       domains = lib.mkOption {
         type = types.listOf types.str;
-        example = [ "example.com" "example.org" ];
+        example = [
+          "example.com"
+          "example.org"
+        ];
         default = [ ];
         description = ''
           List of domains for the reverse proxy.
@@ -68,7 +76,8 @@ in
 
         serviceConfig = {
           Type = "simple";
-          ExecStart = "${lib.getExe pkgs.nodejs} --tls-min-v1.1 ${lib.getExe pkgs.nodePackages.meshcommander} --port ${builtins.toString cfg.port}"
+          ExecStart =
+            "${lib.getExe pkgs.nodejs} --tls-min-v1.1 ${lib.getExe pkgs.nodePackages.meshcommander} --port ${builtins.toString cfg.port}"
             + (lib.optionalString (!cfg.localhostOnly) " --any");
           ExecStop = "${lib.getExe pkgs.killall} meshcommander";
           Restart = "always";

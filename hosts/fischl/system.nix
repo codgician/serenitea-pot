@@ -1,4 +1,5 @@
-{ lib, pkgs, ... }: {
+{ lib, pkgs, ... }:
+{
 
   # My settings
   codgician = {
@@ -20,18 +21,23 @@
   };
 
   # Home manager
-  home-manager.users.codgi = { ... }: {
-    codgician.codgi = {
-      dev.nix.enable = true;
-      git.enable = true;
-      pwsh.enable = true;
-      ssh.enable = true;
-      zsh.enable = true;
-    };
+  home-manager.users.codgi =
+    { ... }:
+    {
+      codgician.codgi = {
+        dev.nix.enable = true;
+        git.enable = true;
+        pwsh.enable = true;
+        ssh.enable = true;
+        zsh.enable = true;
+      };
 
-    home.stateVersion = "24.11";
-    home.packages = with pkgs; [ httplz screen ];
-  };
+      home.stateVersion = "24.11";
+      home.packages = with pkgs; [
+        httplz
+        screen
+      ];
+    };
 
   # Use systemd-boot boot loader.
   boot.loader.systemd-boot.enable = true;

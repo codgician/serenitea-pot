@@ -1,28 +1,42 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.services.nginx;
   types = lib.types;
   reverseProxyNames = builtins.attrNames cfg.reverseProxies;
 
   # Make location configuration
-  mkLocationConfig = host: location:
+  mkLocationConfig =
+    host: location:
     let
       locationCfg = cfg.reverseProxies.${host}.locations.${location};
     in
     {
-      inherit (locationCfg) proxyPass return root alias;
+      inherit (locationCfg)
+        proxyPass
+        return
+        root
+        alias
+        ;
       proxyWebsockets = true;
-      extraConfig = locationCfg.extraConfig + (lib.optionalString locationCfg.lanOnly ''
-        allow 10.0.0.0/8;
-        allow 172.16.0.0/12;
-        allow 192.168.0.0/16;
-        allow fc00::/7;
-        deny all;
-      '');
+      extraConfig =
+        locationCfg.extraConfig
+        + (lib.optionalString locationCfg.lanOnly ''
+          allow 10.0.0.0/8;
+          allow 172.16.0.0/12;
+          allow 192.168.0.0/16;
+          allow fc00::/7;
+          deny all;
+        '');
     };
 
   # Make virtual host configuration
-  mkVirtualHostConfig = host:
+  mkVirtualHostConfig =
+    host:
     let
       hostCfg = cfg.reverseProxies.${host};
     in
@@ -31,10 +45,11 @@ let
         inherit (hostCfg) default;
         serverName = builtins.head hostCfg.domains;
         serverAliases = builtins.tail hostCfg.domains;
-        locations = (builtins.mapAttrs (k: _: mkLocationConfig host k) hostCfg.locations)
+        locations =
+          (builtins.mapAttrs (k: _: mkLocationConfig host k) hostCfg.locations)
           // lib.optionalAttrs (hostCfg.robots != null) {
-          "/robots.txt".return = ''200 "${lib.replaceStrings [ "\n" ] [ "\\n" ] hostCfg.robots}"'';
-        };
+            "/robots.txt".return = ''200 "${lib.replaceStrings [ "\n" ] [ "\\n" ] hostCfg.robots}"'';
+          };
         forceSSL = hostCfg.https;
         useACMEHost = lib.mkIf hostCfg.https serverName;
         http2 = true;
@@ -47,7 +62,8 @@ let
     };
 
   # Make ACME configurations
-  mkAcmeConfig = host:
+  mkAcmeConfig =
+    host:
     let
       hostCfg = cfg.reverseProxies.${host};
     in
@@ -59,7 +75,8 @@ let
     };
 
   # Make reverse proxy assertions
-  mkAssertions = host:
+  mkAssertions =
+    host:
     let
       hostCfg = cfg.reverseProxies.${host};
     in
@@ -124,8 +141,14 @@ in
 
     # Open firewall
     networking.firewall = lib.mkIf cfg.openFirewall {
-      allowedTCPPorts = [ 80 443 ];
-      allowedUDPPorts = [ 80 443 ];
+      allowedTCPPorts = [
+        80
+        443
+      ];
+      allowedUDPPorts = [
+        80
+        443
+      ];
     };
 
     # Monitoring

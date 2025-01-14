@@ -1,4 +1,9 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 let
   cfg = config.codgician.power.ups;
   types = lib.types;
@@ -47,36 +52,44 @@ in
     };
   };
 
-  config = lib.mkIf ((builtins.length cfg.devices) > 0) (lib.mkMerge [
-    {
-      power.ups = {
-        enable = true;
-        mode = "standalone";
-        openFirewall = true;
-        users = {
-          "admin" = {
-            actions = [ "SET" ];
-            instcmds = [ "ALL" ];
-            passwordFile = config.age.secrets.nutPassword.path;
-          };
-          "upsmon".passwordFile = config.age.secrets.upsmonPassword.path;
-        };
-
-        upsd = {
+  config = lib.mkIf ((builtins.length cfg.devices) > 0) (
+    lib.mkMerge [
+      {
+        power.ups = {
           enable = true;
-          listen = [
-            { address = "::"; port = 3493; }
-          ];
+          mode = "standalone";
+          openFirewall = true;
+          users = {
+            "admin" = {
+              actions = [ "SET" ];
+              instcmds = [ "ALL" ];
+              passwordFile = config.age.secrets.nutPassword.path;
+            };
+            "upsmon".passwordFile = config.age.secrets.upsmonPassword.path;
+          };
+
+          upsd = {
+            enable = true;
+            listen = [
+              {
+                address = "::";
+                port = 3493;
+              }
+            ];
+          };
+
+          schedulerRules = (import ./sched.nix { inherit config pkgs lib; }).outPath;
         };
+      }
 
-        schedulerRules = (import ./sched.nix { inherit config pkgs lib; }).outPath;
-      };
-    }
-
-    # Agenix secrets
-    (with lib.codgician; mkAgenixConfigs { } [
-      (secretsDir + "/nutPassword.age")
-      (secretsDir + "/upsmonPassword.age")
-    ])
-  ]);
+      # Agenix secrets
+      (
+        with lib.codgician;
+        mkAgenixConfigs { } [
+          (secretsDir + "/nutPassword.age")
+          (secretsDir + "/upsmonPassword.age")
+        ]
+      )
+    ]
+  );
 }

@@ -13,11 +13,14 @@ let
 in
 {
   inherit (unstablePkgs) ollama ollama-cuda ollama-rocm;
-} // builtins.listToAttrs (builtins.map
-  (name: {
+}
+// builtins.listToAttrs (
+  builtins.map (name: {
     inherit name;
-    value = super.${name}.overrideScope (ppself: ppsuper: {
-      ollama = ppsuper.ollama;
-    });
-  })
-  attrs)
+    value = super.${name}.overrideScope (
+      ppself: ppsuper: {
+        ollama = ppsuper.ollama;
+      }
+    );
+  }) attrs
+)

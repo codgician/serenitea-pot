@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.system.common;
   networkConfig = {
@@ -12,7 +17,11 @@ in
     # Set flake for auto upgrade
     system.autoUpgrade = {
       flake = "github:codgician/serenitea-pot";
-      flags = [ "--refresh" "--no-write-lock-file" "-L" ];
+      flags = [
+        "--refresh"
+        "--no-write-lock-file"
+        "-L"
+      ];
     };
 
     # Enable sandboxed nix builds
@@ -80,14 +89,20 @@ in
     # Open firewall for iperf3 and mDNS
     networking.firewall = {
       allowedTCPPorts = [ 5201 ];
-      allowedUDPPorts = [ 5201 5353 ];
+      allowedUDPPorts = [
+        5201
+        5353
+      ];
     };
 
     # Security
     users.mutableUsers = false;
     users.users.root.hashedPassword = "!";
     security.sudo.wheelNeedsPassword = false;
-    nix.settings.trusted-users = [ "root" "@wheel" ];
+    nix.settings.trusted-users = [
+      "root"
+      "@wheel"
+    ];
 
     security = {
       audit.enable = !config.boot.isContainer;

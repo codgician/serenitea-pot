@@ -1,22 +1,32 @@
-{ config, lib, pkgs, outputs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  outputs,
+  ...
+}:
 let
   cfg = config.codgician.services.litellm;
   types = lib.types;
 
   terraformConf = builtins.fromJSON outputs.packages.${pkgs.system}.terraform-config.value;
   azureApiBase = "https://${terraformConf.resource.azurerm_cognitive_account.akasha.name}.openai.azure.com";
-  azureModels = builtins.map
-    (x: {
-      model_name = x.name;
-      litellm_params = {
-        model = "azure/${x.name}";
-        api_base = azureApiBase;
-        api_key = "os.environ/AZURE_AKASHA_API_KEY";
-        rpm = 6;
-      };
-    })
-    (builtins.filter (x: x.model.name != "gpt-4o-realtime-preview")
-      (builtins.attrValues terraformConf.resource.azurerm_cognitive_deployment));
+  azureModels =
+    builtins.map
+      (x: {
+        model_name = x.name;
+        litellm_params = {
+          model = "azure/${x.name}";
+          api_base = azureApiBase;
+          api_key = "os.environ/AZURE_AKASHA_API_KEY";
+          rpm = 6;
+        };
+      })
+      (
+        builtins.filter (x: x.model.name != "gpt-4o-realtime-preview") (
+          builtins.attrValues terraformConf.resource.azurerm_cognitive_deployment
+        )
+      );
 
   settingsFormat = pkgs.formats.yaml { };
   settings.model_list = azureModels ++ [
@@ -77,7 +87,10 @@ in
 
       domains = lib.mkOption {
         type = types.listOf types.str;
-        example = [ "example.com" "example.org" ];
+        example = [
+          "example.com"
+          "example.org"
+        ];
         default = [ ];
         description = ''
           List of domains for the reverse proxy.
@@ -146,8 +159,7 @@ in
         };
       })
 
-      (lib.mkIf cfg.enable
-        (with lib.codgician; mkAgenixConfigs { } [ (secretsDir + "/litellmEnv.age") ]))
+      (lib.mkIf cfg.enable (with lib.codgician; mkAgenixConfigs { } [ (secretsDir + "/litellmEnv.age") ]))
 
       # Reverse proxy profile
       (lib.mkIf cfg.reverseProxy.enable {

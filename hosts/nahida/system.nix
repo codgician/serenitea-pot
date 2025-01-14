@@ -1,4 +1,5 @@
-{ lib, pkgs, ... }: {
+{ lib, pkgs, ... }:
+{
   # My settings
   codgician = {
     services = {
@@ -53,30 +54,38 @@
     users.codgi = with lib.codgician; {
       enable = true;
       hashedPasswordAgeFile = secretsDir + "/codgiHashedPassword.age";
-      extraGroups = [ "wheel" "podman" ];
+      extraGroups = [
+        "wheel"
+        "podman"
+      ];
     };
 
     virtualization.podman.enable = true;
   };
 
   # Home manager
-  home-manager.users.codgi = { ... }: {
-    codgician.codgi = {
-      dev = {
-        haskell.enable = true;
-        nix.enable = true;
-        rust.enable = true;
+  home-manager.users.codgi =
+    { ... }:
+    {
+      codgician.codgi = {
+        dev = {
+          haskell.enable = true;
+          nix.enable = true;
+          rust.enable = true;
+        };
+
+        git.enable = true;
+        pwsh.enable = true;
+        ssh.enable = true;
+        zsh.enable = true;
       };
 
-      git.enable = true;
-      pwsh.enable = true;
-      ssh.enable = true;
-      zsh.enable = true;
+      home.stateVersion = "24.11";
+      home.packages = with pkgs; [
+        httplz
+        screen
+      ];
     };
-
-    home.stateVersion = "24.11";
-    home.packages = with pkgs; [ httplz screen ];
-  };
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;

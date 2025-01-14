@@ -7,7 +7,9 @@ let
   litellmEnable = config.codgician.services.litellm.enable;
   litellmHost = config.codgician.services.litellm.host;
   litellmPort = config.codgician.services.litellm.port;
-  litellmBases = lib.optionals litellmEnable [ "http://${litellmHost}:${builtins.toString litellmPort}" ];
+  litellmBases = lib.optionals litellmEnable [
+    "http://${litellmHost}:${builtins.toString litellmPort}"
+  ];
   litellmKeys = lib.optionals litellmEnable [ "dummy" ];
 in
 {
@@ -47,7 +49,10 @@ in
 
       domains = lib.mkOption {
         type = types.listOf types.str;
-        example = [ "example.com" "example.org" ];
+        example = [
+          "example.com"
+          "example.org"
+        ];
         default = [ ];
         description = ''
           List of domains for the reverse proxy.
@@ -77,9 +82,10 @@ in
           WEBUI_AUTH = "True";
           WEBUI_NAME = "Akasha";
           WEBUI_URL =
-            if cfg.reverseProxy.enable
-            then builtins.head cfg.reverseProxy.domains
-            else "${cfg.host}:${builtins.toString cfg.port}";
+            if cfg.reverseProxy.enable then
+              builtins.head cfg.reverseProxy.domains
+            else
+              "${cfg.host}:${builtins.toString cfg.port}";
           ENABLE_SIGNUP = "False";
           ENABLE_LOGIN_FORM = "True";
           DEFAULT_USER_ROLE = "pending";
@@ -102,8 +108,9 @@ in
       };
     })
 
-    (lib.mkIf cfg.enable
-      (with lib.codgician; mkAgenixConfigs { } [ (secretsDir + "/openWebuiEnv.age") ]))
+    (lib.mkIf cfg.enable (
+      with lib.codgician; mkAgenixConfigs { } [ (secretsDir + "/openWebuiEnv.age") ]
+    ))
 
     # Reverse proxy profile
     (lib.mkIf cfg.reverseProxy.enable {
@@ -115,7 +122,9 @@ in
           locations."/" = {
             inherit (cfg.reverseProxy) proxyPass lanOnly;
           };
-          locations."=/static/favicon.png" = with cfg.reverseProxy; lib.mkIf (favicon != null) { alias = favicon; };
+          locations."=/static/favicon.png" =
+            with cfg.reverseProxy;
+            lib.mkIf (favicon != null) { alias = favicon; };
         };
       };
     })

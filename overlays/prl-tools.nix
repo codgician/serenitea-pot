@@ -10,9 +10,13 @@ let
   };
 in
 {
-  linuxPackages = super.linuxPackages.extend (lpself: lpsuper: {
-    prl-tools = (unstablePkgs.linuxPackages.prl-tools.override {
-      inherit (lpsuper) kernel;
-    });
-  });
+  linuxPackages = super.linuxPackages.extend (
+    lpself: lpsuper: {
+      prl-tools = (
+        unstablePkgs.linuxPackages.prl-tools.override {
+          inherit (lpsuper) kernel;
+        }
+      );
+    }
+  );
 }

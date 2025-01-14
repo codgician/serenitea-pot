@@ -1,4 +1,12 @@
-{ disks ? [ "sda" "sdb" "sdc" ], ... }: {
+{
+  disks ? [
+    "sda"
+    "sdb"
+    "sdc"
+  ],
+  ...
+}:
+{
   disko.devices.disk = {
     nixos = {
       device = "/dev/${builtins.elemAt disks 0}";

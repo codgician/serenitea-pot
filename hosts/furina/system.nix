@@ -1,4 +1,5 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
 
   # My settings
   codgician = {
@@ -16,49 +17,54 @@
   };
 
   # Home manager
-  home-manager.users.codgi = { pkgs, ... }: {
-    codgician.codgi = {
-      dev = {
-        haskell.enable = true;
-        nix.enable = true;
-        rust.enable = true;
+  home-manager.users.codgi =
+    { pkgs, ... }:
+    {
+      codgician.codgi = {
+        dev = {
+          haskell.enable = true;
+          nix.enable = true;
+          rust.enable = true;
+        };
+
+        git.enable = true;
+        pwsh.enable = true;
+        ssh.enable = true;
+        vscode.enable = true;
+        zsh.enable = true;
       };
 
-      git.enable = true;
-      pwsh.enable = true;
-      ssh.enable = true;
-      vscode.enable = true;
-      zsh.enable = true;
-    };
+      home = {
+        stateVersion = "24.11";
+        packages =
+          with pkgs;
+          [
+            httplz
+            iperf3
+            htop
+            aria2
+            android-tools
+            pandoc
+            acpica-tools
+            terraform
+            smartmontools
+            pciutils
+            ffmpeg-full
+            virt-manager
+            tcping-go
+            github-copilot-cli
+            binwalk
+          ]
+          ++ (with pkgs.nur.repos.codgician; [
+            mtk_uartboot
+          ]);
 
-    home = {
-      stateVersion = "24.11";
-      packages = with pkgs; [
-        httplz
-        iperf3
-        htop
-        aria2
-        android-tools
-        pandoc
-        acpica-tools
-        terraform
-        smartmontools
-        pciutils
-        ffmpeg-full
-        virt-manager
-        tcping-go
-        github-copilot-cli
-        binwalk
-      ] ++ (with pkgs.nur.repos.codgician; [
-        mtk_uartboot
-      ]);
-
-      # symlinks to binaries
-      file = {
-        ".local/bin/jdk8".source = pkgs.zulu8;
+        # symlinks to binaries
+        file = {
+          ".local/bin/jdk8".source = pkgs.zulu8;
+        };
       };
     };
-  };
 
   # System packages
   environment.systemPackages = with pkgs; [

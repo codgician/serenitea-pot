@@ -1,4 +1,5 @@
-{ pkgs, ... }: {
+{ pkgs, ... }:
+{
   codgician.services = {
     dendrite = {
       domain = "matrix.codgician.me";
@@ -85,7 +86,10 @@
           enable = true;
           https = true;
           default = true;
-          domains = [ "codgician.me" "*.codgician.me" ];
+          domains = [
+            "codgician.me"
+            "*.codgician.me"
+          ];
           locations."/".root = import ./lumine-web.nix { inherit pkgs; };
         };
       };

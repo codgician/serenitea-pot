@@ -12,7 +12,10 @@ in
 
     domains = lib.mkOption {
       type = types.listOf types.str;
-      example = [ "example.com" "example.org" ];
+      example = [
+        "example.com"
+        "example.org"
+      ];
       default = [ ];
       description = "List of domains for the reverse proxy.";
     };

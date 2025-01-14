@@ -1,4 +1,10 @@
-{ disks ? [ "nvme0n1" "nvme1n1" ], ... }:
+{
+  disks ? [
+    "nvme0n1"
+    "nvme1n1"
+  ],
+  ...
+}:
 
 let
   mkDiskConfig = id: {

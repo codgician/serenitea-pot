@@ -11,12 +11,14 @@ in
       inherit location resource_group_name;
       hyper_v_generation = "V2";
 
-      os_disk = with config.resource; [{
-        os_type = "Linux";
-        os_state = "Generalized";
-        blob_uri = "${azurerm_storage_account.constellation "primary_blob_endpoint"}${azurerm_storage_container.constellation-lumine.name}/sda.vhd";
-        size_gb = 64;
-      }];
+      os_disk = with config.resource; [
+        {
+          os_type = "Linux";
+          os_state = "Generalized";
+          blob_uri = "${azurerm_storage_account.constellation "primary_blob_endpoint"}${azurerm_storage_container.constellation-lumine.name}/sda.vhd";
+          size_gb = 64;
+        }
+      ];
 
       depends_on = [ "azurerm_storage_container.constellation-lumine" ];
     };

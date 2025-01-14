@@ -13,7 +13,10 @@ in
       openFirewall = true;
       signal = {
         enable = true;
-        relayHosts = [ "0.0.0.0" "::" ];
+        relayHosts = [
+          "0.0.0.0"
+          "::"
+        ];
       };
       relay.enable = true;
     };

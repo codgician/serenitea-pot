@@ -1,4 +1,10 @@
-{ config, lib, pkgs, ... }: {
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+{
 
   # My settings
   codgician = {
@@ -45,62 +51,69 @@
 
   # Home manager
   home-manager.users = {
-    codgi = { pkgs, ... }: {
-      codgician.codgi = {
-        dev.nix.enable = true;
-        git.enable = true;
-        pwsh.enable = true;
-        ssh.enable = true;
-        zsh.enable = true;
-      };
-
-      home.stateVersion = "24.11";
-      home.packages = with pkgs; [ httplz screen ];
-    };
-
-    kiosk = { osConfig, pkgs, ... }: {
-      home.stateVersion = "24.11";
-
-      # Plasma settings
-      programs.plasma = {
-        enable = osConfig.codgician.services.plasma.enable;
-
-        powerdevil.AC = {
-          powerButtonAction = "showLogoutScreen";
-          autoSuspend.action = "nothing";
-          turnOffDisplay.idleTimeout = "never";
+    codgi =
+      { pkgs, ... }:
+      {
+        codgician.codgi = {
+          dev.nix.enable = true;
+          git.enable = true;
+          pwsh.enable = true;
+          ssh.enable = true;
+          zsh.enable = true;
         };
 
-        configFile = {
-          kscreenlockerrc.Daemon = {
-            Autolock = false;
-            LockGrace = 0;
-            LockOnResume = false;
+        home.stateVersion = "24.11";
+        home.packages = with pkgs; [
+          httplz
+          screen
+        ];
+      };
+
+    kiosk =
+      { osConfig, pkgs, ... }:
+      {
+        home.stateVersion = "24.11";
+
+        # Plasma settings
+        programs.plasma = {
+          enable = osConfig.codgician.services.plasma.enable;
+
+          powerdevil.AC = {
+            powerButtonAction = "showLogoutScreen";
+            autoSuspend.action = "nothing";
+            turnOffDisplay.idleTimeout = "never";
           };
 
-          kwinrc = {
-            Wayland = {
-              "InputMethod[$e]" = "${pkgs.maliit-keyboard}/share/applications/com.github.maliit.keyboard.desktop";
-              VirtualKeyboardEnabled = true;
+          configFile = {
+            kscreenlockerrc.Daemon = {
+              Autolock = false;
+              LockGrace = 0;
+              LockOnResume = false;
             };
-            XWayland.Scale = 1.75;
+
+            kwinrc = {
+              Wayland = {
+                "InputMethod[$e]" = "${pkgs.maliit-keyboard}/share/applications/com.github.maliit.keyboard.desktop";
+                VirtualKeyboardEnabled = true;
+              };
+              XWayland.Scale = 1.75;
+            };
           };
         };
-      };
 
-      # Autostart
-      home.file.".config/autostart/kiosk.desktop".text =
-        lib.mkIf osConfig.codgician.services.plasma.enable ''
-          [Desktop Entry]
-          Exec=firefox --kiosk https://hass.codgician.me
-          Icon=firefox
-          Name=Kiosk
-          StartupNotify=true
-          StartupWMClass=firefox
-          Terminal=false
-          Type=Application
-        '';
-    };
+        # Autostart
+        home.file.".config/autostart/kiosk.desktop".text =
+          lib.mkIf osConfig.codgician.services.plasma.enable ''
+            [Desktop Entry]
+            Exec=firefox --kiosk https://hass.codgician.me
+            Icon=firefox
+            Name=Kiosk
+            StartupNotify=true
+            StartupWMClass=firefox
+            Terminal=false
+            Type=Application
+          '';
+      };
   };
 
   # Global packages

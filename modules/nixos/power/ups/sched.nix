@@ -1,10 +1,18 @@
-{ config, pkgs, lib, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   cfg = config.codgician.power.ups;
   upssched-cmd = pkgs.writeShellApplication {
     name = "upssched-cmd";
-    runtimeInputs = with pkgs; [ nut util-linux ];
+    runtimeInputs = with pkgs; [
+      nut
+      util-linux
+    ];
     text = ''
       log_event () {
         logger -t upssched-cmd "$1"

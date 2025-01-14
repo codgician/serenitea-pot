@@ -14,7 +14,8 @@ in
 
   # Workaround impermanence
   config.age.identityPaths =
-    if impermanenceCfg.enable
-    then builtins.map (x: impermanenceCfg.path + x) cfg.hostIdentityPaths
-    else cfg.hostIdentityPaths;
+    if impermanenceCfg.enable then
+      builtins.map (x: impermanenceCfg.path + x) cfg.hostIdentityPaths
+    else
+      cfg.hostIdentityPaths;
 }

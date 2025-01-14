@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.system.wsl;
   types = lib.types;
@@ -34,7 +39,10 @@ in
     };
 
     # Enable OpenGL
-    environment.systemPackages = with pkgs; [ glxinfo vulkan-tools ];
+    environment.systemPackages = with pkgs; [
+      glxinfo
+      vulkan-tools
+    ];
     hardware.graphics = {
       enable = true;
       extraPackages = with pkgs; [
