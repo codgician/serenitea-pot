@@ -1,11 +1,13 @@
 {
   lib,
-  stable,
   nixpkgs,
   inputs,
   outputs,
   ...
 }:
+let
+  inherit (lib.codgician) stable;
+in
 rec {
   # Package overlays
   overlays =

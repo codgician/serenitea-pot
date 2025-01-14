@@ -5,6 +5,9 @@ args@{
 }:
 
 let
+  # Whether the lib is stable variant
+  inherit stable;
+
   # Decide which nixpkgs input to use
   nixpkgs = if stable then inputs.nixpkgs else inputs.nixpkgs-unstable;
 
@@ -23,7 +26,7 @@ let
       ]
     )
     // {
-      inherit concatAttrs;
+      inherit concatAttrs stable;
     };
 in
 nixpkgs.lib.extend (self: super: { codgician = mkMyLib { lib = self; }; })
