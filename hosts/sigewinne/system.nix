@@ -101,11 +101,20 @@
           };
         };
 
-        # Autostart
+        # Firefox kiosk configurations
+        programs.firefox = {
+          enable = true;
+          profiles.kiosk.settings = {
+            "browser.sessionstore.resume_session_once" = false;
+            "browser.sessionstore.resume_from_crash" = false;
+          };
+        };
+
+        # Autostart kiosk
         home.file.".config/autostart/kiosk.desktop".text =
           lib.mkIf osConfig.codgician.services.plasma.enable ''
             [Desktop Entry]
-            Exec=firefox --kiosk https://hass.codgician.me
+            Exec=firefox -P kiosk --kiosk https://hass.codgician.me
             Icon=firefox
             Name=Kiosk
             StartupNotify=true
@@ -118,7 +127,6 @@
 
   # Global packages
   environment.systemPackages = with pkgs; [
-    firefox
     maliit-framework
     maliit-keyboard
   ];
@@ -154,7 +162,7 @@
   # Enable zram swap
   zramSwap = {
     enable = true;
-    memoryPercent = 80;
+    memoryPercent = 60;
   };
 
   # Use networkd

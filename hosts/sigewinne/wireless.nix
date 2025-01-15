@@ -5,8 +5,18 @@ lib.mkMerge [
     # Wireless
     networking.wireless = {
       enable = true;
+      scanOnLowSignal = true;
       secretsFile = config.age.secrets.wirelessEnv.path;
-      networks.codgician.pskRaw = "ext:CODGI_PASS";
+      networks = {
+        codgician = {
+          priority = 100;
+          pskRaw = "ext:CODGI_PASS";
+        };
+        codgacy = {
+          priority = 10;
+          pskRaw = "ext:CODGI_PASS";
+        };
+      };
     };
   }
 

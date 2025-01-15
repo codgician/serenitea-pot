@@ -28,6 +28,7 @@ in
     nix.settings.sandbox = true;
 
     # Enable redistributable firmware
+    hardware.enableAllFirmware = true;
     hardware.enableRedistributableFirmware = true;
 
     # Enable resolved
