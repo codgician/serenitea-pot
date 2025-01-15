@@ -152,7 +152,10 @@
   powerManagement.enable = true;
 
   # Enable zram swap
-  zramSwap.enable = true;
+  zramSwap = {
+    enable = true;
+    memoryPercent = 80;
+  };
 
   # Use networkd
   networking.useNetworkd = true;
