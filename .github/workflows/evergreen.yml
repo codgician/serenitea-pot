@@ -1,16 +1,12 @@
 name: evergreen
-
 on:
   schedule:
-  - cron: '0 10 * * *'
+    - cron: '0 10 * * *'
   workflow_dispatch:
-
 # Limit one run for each branch to avoid hazards
 concurrency: ${{ github.workflow }}-${{ github.ref }}
-
 permissions:
   contents: write
- 
 jobs:
   evergreen:
     if: ${{ github.ref == 'refs/heads/main' }}

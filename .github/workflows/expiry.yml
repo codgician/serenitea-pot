@@ -1,12 +1,9 @@
 name: expiry
-
 on:
   schedule:
-  - cron: '0 9 * * *'
+    - cron: '0 9 * * *'
   workflow_dispatch:
-
 concurrency: expiry
- 
 jobs:
   expiry:
     runs-on: ubuntu-latest

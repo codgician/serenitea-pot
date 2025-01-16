@@ -195,6 +195,7 @@
           runtimeInputs = with pkgs; [
             treefmt
             nixfmt-rfc-style
+            yamlfmt
           ];
           text = lib.getExe pkgs.treefmt;
         }

@@ -1,19 +1,16 @@
 name: build
-
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [main]
     paths-ignore:
-    - '**.md'
-    - '.gitignore'
+      - '**.md'
+      - '.gitignore'
   repository_dispatch:
-    types: [ build ]
+    types: [build]
   workflow_dispatch:
-
 # Limit one run for each branch for saving resources
 concurrency: ${{ github.workflow }}-${{ github.ref }}
-
 jobs:
   validate:
     runs-on: ubuntu-24.04
@@ -38,11 +35,10 @@ jobs:
             --apply "x: builtins.toJSON (map (y: { name = y; system = x.\${y}.pkgs.system; }) (builtins.attrNames x))")
           echo "linux=$linux" >> $GITHUB_OUTPUT
           echo "darwin=$darwin" >> $GITHUB_OUTPUT
-
   build-linux:
     needs: validate
     strategy:
-      matrix: 
+      matrix:
         host: ${{ fromJson(needs.validate.outputs.linux) }}
       fail-fast: false
     runs-on: ubuntu-24.04
@@ -78,12 +74,11 @@ jobs:
       - name: Build
         run: |
           nix build .#nixosConfigurations.${{ matrix.host.name }}.config.system.build.toplevel
-
   build-darwin:
     needs: validate
     runs-on: macos-latest
     strategy:
-      matrix: 
+      matrix:
         host: ${{ fromJson(needs.validate.outputs.darwin) }}
       fail-fast: false
     steps:

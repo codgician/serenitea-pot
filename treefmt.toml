@@ -5,3 +5,7 @@ command = "nixfmt"
 options = []
 includes = [ "*.nix" ]
 excludes = []
+
+[formatter.yaml]
+command = "yamlfmt"
+includes = [ "*.yaml", "*.yml" ]

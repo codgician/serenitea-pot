@@ -1,4 +1,4 @@
 builds:
   exclude:
-  # Cannot fix macOS sandbox limitation for the time being
-  - 'darwinConfigurations.*'
+    # Cannot fix macOS sandbox limitation for the time being
+    - 'darwinConfigurations.*'

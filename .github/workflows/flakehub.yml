@@ -1,10 +1,8 @@
 name: "flakehub"
-
 on:
   push:
     branches:
       - "main"
-      
 jobs:
   flakehub-publish:
     runs-on: "ubuntu-latest"
