@@ -31,5 +31,10 @@ in
       enable = true;
       promptInit = "";
     };
+
+    # Unlock country-specific restrictions
+    system.defaults.CustomSystemPreferences = {
+      "/Library/Preferences/.GlobalPreferences.plist".Country = "US";
+    };
   };
 }
