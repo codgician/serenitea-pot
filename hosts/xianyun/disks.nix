@@ -5,7 +5,7 @@
 {
   disko = {
     devices = {
-      disk.sda = {
+      disk.vda = {
         imageSize = "8G";
         device = "/dev/${builtins.elemAt disks 0}";
         type = "disk";
@@ -15,16 +15,6 @@
             boot = {
               size = "1M";
               type = "EF02";
-            };
-            esp = {
-              end = "512M";
-              type = "EF00";
-              content = {
-                type = "filesystem";
-                format = "vfat";
-                mountpoint = "/boot";
-                mountOptions = [ "umask=0077" ];
-              };
             };
             zroot = {
               size = "100%";

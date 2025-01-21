@@ -49,7 +49,6 @@
   # Use grub bootloader
   boot.loader.grub = {
     enable = true;
-    efiSupport = true;
     zfsSupport = true;
   };
 
