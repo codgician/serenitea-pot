@@ -10,7 +10,7 @@ rec {
     raiden-ei = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIB0g+aVDhTxpSHq7XnLLZvK2Lm9nxLdBNggzyqrD2Hf" ];
     sigewinne = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILL9hl37txex438IfgZQ57uyLgf/WwDxypk9JoUT2Mya" ];
     wanderer = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPip23VXc7cxTRexddjDPpi90cBvQoxjNGPqSCVG1fvr" ];
-    xianyun = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB4Jm7dt4y0vGyzaEavG24Ex/qzb4Ig4UFf2yOijM9u0" ];
+    xianyun = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKJSwHj0+zTOtna6q23TZTuxsgp1unU9zaMi3Mj/mwsA" ];
   };
 
   users = {
