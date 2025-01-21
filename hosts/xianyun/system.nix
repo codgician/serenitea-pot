@@ -47,7 +47,11 @@
     };
 
   # Use grub bootloader
-  boot.loader.grub.enable = true;
+  boot.loader.grub = {
+    enable = true;
+    efiSupport = true;
+    zfsSupport = true;
+  };
 
   # ZFS configurations
   services.zfs = {
