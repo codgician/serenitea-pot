@@ -13,7 +13,7 @@
             "lumidouce"
             "lumine"
           ];
-          allowedIPsAsRoutes = true;
+          allowedIpsAsRoutes = true;
         };
       };
     };

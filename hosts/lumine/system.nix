@@ -14,7 +14,7 @@
             "lumidouce"
             "xianyun"
           ];
-          allowedIPsAsRoutes = true;
+          allowedIpsAsRoutes = true;
         };
       };
     };
