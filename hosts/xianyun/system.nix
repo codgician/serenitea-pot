@@ -49,6 +49,14 @@
   # Use grub bootloader
   boot.loader.grub.enable = true;
 
+  # ZFS configurations
+  services.zfs = {
+    autoScrub.enable = true;
+    autoSnapshot.enable = false;
+    expandOnBoot = "all";
+    trim.enable = true;
+  };
+
   # ZFS boot configs
   boot.supportedFilesystems = [ "zfs" ];
   fileSystems."/nix/persist".neededForBoot = true;
