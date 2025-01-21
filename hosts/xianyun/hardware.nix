@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   modulesPath,
   ...
@@ -30,6 +31,13 @@
   services.cloud-init.enable = true;
   systemd.services.cloud-config.serviceConfig.Restart = "on-failure";
   services.cloud-init.network.enable = true;
+
+  # Override distro in cloud-init
+  services.cloud-init.settings.system_info = {
+    distro = "nixos";
+    preserve_hostname = true;
+    network.renderers = lib.optionals config.networking.useNetworkd [ "networkd" ];
+  };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }
