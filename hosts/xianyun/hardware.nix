@@ -1,9 +1,16 @@
 {
   config,
   lib,
+  pkgs,
   modulesPath,
+  outputs,
   ...
 }:
+let
+  inherit (config.networking) hostName;
+  terraformConf = builtins.fromJSON outputs.packages.${pkgs.system}.terraform-config.value;
+  publicIpv6 = terraformConf.resource.cloudflare_record."${hostName}-aaaa".content;
+in
 {
   imports = [
     (modulesPath + "/profiles/qemu-guest.nix")
@@ -30,7 +37,24 @@
   # Enable cloud-init
   services.cloud-init.enable = true;
   systemd.services.cloud-config.serviceConfig.Restart = "on-failure";
-  services.cloud-init.network.enable = true;
+
+  # Manually configure ipv6 network on Tencent Cloud
+  services.cloud-init.network.enable = false;
+  networking.interfaces.eth0.ipv6 = {
+    addresses = [
+      {
+        address = publicIpv6;
+        prefixLength = 128;
+      }
+    ];
+    routes = [
+      {
+        address = "::";
+        prefixLength = 0;
+        via = "fe80::feee:ffff:feff:ffff";
+      }
+    ];
+  };
 
   # Override distro in cloud-init
   services.cloud-init.settings = {
@@ -39,7 +63,9 @@
       distro = "nixos";
       network.renderers = lib.optionals config.networking.useNetworkd [ "networkd" ];
     };
-    cloud_final_modules = [ 
+    
+    # Remove failing final modules
+    cloud_final_modules = [
       "rightscale_userdata"
       "keys-to-console"
       "phone-home"
