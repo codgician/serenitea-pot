@@ -1,5 +1,5 @@
 {
-  disks ? [ "sda" ],
+  disks ? [ "vda" ],
   ...
 }:
 {

@@ -1,6 +1,5 @@
 { lib, pkgs, ... }:
 {
-
   # My settings
   codgician = {
     services = {
@@ -9,7 +8,7 @@
         enable = true;
         openFirewall = true;
         interfaces.wg0 = {
-          host = "lumine";
+          host = "xianyun";
           peers = [ "lumidouce" ];
           allowedIPsAsRoutes = true;
         };
@@ -47,22 +46,13 @@
       ];
     };
 
-  # Use the systemd-boot EFI boot loader
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
-  # ZFS configurations
-  services.zfs = {
-    autoScrub.enable = true;
-    autoSnapshot.enable = false;
-    expandOnBoot = "all";
-    trim.enable = true;
-  };
+  # Use grub bootloader
+  boot.loader.grub.enable = true;
 
   # ZFS boot configs
   boot.supportedFilesystems = [ "zfs" ];
   fileSystems."/nix/persist".neededForBoot = true;
-  networking.hostId = "2b4cf168";
+  networking.hostId = "f52ce96f";
 
   # Enable zram swap
   zramSwap.enable = true;

@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.services.wireguard;
   types = lib.types;
@@ -51,6 +56,10 @@ in
     lib.mkMerge [
       # WireGuard configuration
       {
+        environment.systemPackages = with pkgs; [
+          wireguard-tools
+        ];
+
         networking = {
           wireguard.interfaces = builtins.mapAttrs (name: value: {
             inherit (hostOptions.${value.host}) privateKeyFile ips listenPort;
