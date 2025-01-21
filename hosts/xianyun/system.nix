@@ -47,23 +47,7 @@
     };
 
   # Use grub bootloader
-  boot.loader.grub = {
-    enable = true;
-    zfsSupport = true;
-  };
-
-  # ZFS configurations
-  services.zfs = {
-    autoScrub.enable = true;
-    autoSnapshot.enable = false;
-    expandOnBoot = "all";
-    trim.enable = true;
-  };
-
-  # ZFS boot configs
-  boot.supportedFilesystems = [ "zfs" ];
-  fileSystems."/nix/persist".neededForBoot = true;
-  networking.hostId = "f52ce96f";
+  boot.loader.grub.enable = true;
 
   # Enable zram swap
   zramSwap.enable = true;
