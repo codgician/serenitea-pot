@@ -10,7 +10,10 @@
         openFirewall = true;
         interfaces.wg0 = {
           host = "lumine";
-          peers = [ "lumidouce" ];
+          peers = [
+            "lumidouce"
+            "xianyun"
+          ];
           allowedIPsAsRoutes = true;
         };
       };

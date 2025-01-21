@@ -39,13 +39,13 @@ in
           hostname = "lumine.codgician.me";
           user = "codgi";
         };
+        "xianyun" = {
+          hostname = "xianyun.codgician.me";
+          user = "codgi";
+        };
         "nahida" = {
           hostname = "nahida.lan";
           user = "codgi";
-        };
-        "nanopi" = {
-          hostname = "nanopi.cdu";
-          user = "root";
         };
         "openwrt" = {
           hostname = "openwrt.lan";
