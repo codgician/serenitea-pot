@@ -8,7 +8,7 @@ with lib.codgician;
     "192.168.254.1/23"
     "fd00:c0d9:1cff::1/48"
   ];
-  allowedIps = [
+  allowedIPs = [
     "192.168.254.1/32"
     "fd00:c0d9:1cff::1/128"
     "192.168.0.0/24"

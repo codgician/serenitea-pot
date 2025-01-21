@@ -42,7 +42,7 @@ in
               description = "List of enabled peer configuration names.";
             };
 
-            allowedIpsAsRoutes = lib.mkEnableOption ''
+            allowedIPsAsRoutes = lib.mkEnableOption ''
               Whether to add allowed IPs as routes or not.
             '';
           };
@@ -63,14 +63,14 @@ in
         networking = {
           wireguard.interfaces = builtins.mapAttrs (name: value: {
             inherit (hostOptions.${value.host}) privateKeyFile ips listenPort;
-            inherit (value) allowedIpsAsRoutes;
+            inherit (value) allowedIPsAsRoutes;
             peers = builtins.map (name: {
               inherit (hostOptions.${name})
                 name
                 endpoint
                 publicKey
                 presharedKeyFile
-                allowedIps
+                allowedIPs
                 ;
               dynamicEndpointRefreshSeconds = 10;
               dynamicEndpointRefreshRestartSeconds = 60;
