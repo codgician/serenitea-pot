@@ -33,10 +33,19 @@
   services.cloud-init.network.enable = true;
 
   # Override distro in cloud-init
-  services.cloud-init.settings.system_info = {
-    distro = "nixos";
+  services.cloud-init.settings = {
     preserve_hostname = true;
-    network.renderers = lib.optionals config.networking.useNetworkd [ "networkd" ];
+    system_info = {
+      distro = "nixos";
+      network.renderers = lib.optionals config.networking.useNetworkd [ "networkd" ];
+    };
+    cloud_final_modules = [ 
+      "rightscale_userdata"
+      "keys-to-console"
+      "phone-home"
+      "final-message"
+      "power-state-change"
+    ];
   };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
