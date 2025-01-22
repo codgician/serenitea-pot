@@ -12,6 +12,7 @@
           peers = [
             "lumidouce"
             "lumine"
+            "qiaoying"
           ];
           allowedIPsAsRoutes = true;
         };
