@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  modulesPath,
   outputs,
   ...
 }:
@@ -12,10 +11,6 @@ let
   publicIpv6 = terraformConf.resource.cloudflare_record."${hostName}-aaaa".content;
 in
 {
-  imports = [
-    (modulesPath + "/profiles/qemu-guest.nix")
-  ];
-
   boot.initrd.availableKernelModules = [
     "uhci_hcd"
     "ehci_pci"
@@ -30,9 +25,6 @@ in
   boot.extraModulePackages = [ ];
 
   networking.useDHCP = lib.mkDefault true;
-
-  # Enable QEMU guest agent
-  services.qemuGuest.enable = true;
 
   # Enable cloud-init
   services.cloud-init.enable = true;
@@ -63,7 +55,7 @@ in
       distro = "nixos";
       network.renderers = lib.optionals config.networking.useNetworkd [ "networkd" ];
     };
-    
+
     # Remove failing final modules
     cloud_final_modules = [
       "rightscale_userdata"
