@@ -2,8 +2,6 @@
 
 Azure VM (Gen 2) running NixOS, being the reverse proxy to almost every self-hosted service.
 
-This virtual machine has impermenance enabled, and has os and data on separate disks.
-
 ## Build VHD
 
 To build system disk `.vhd` for uploading, run:
