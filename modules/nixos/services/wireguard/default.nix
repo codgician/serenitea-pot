@@ -42,6 +42,12 @@ in
               description = "List of enabled peer configuration names.";
             };
 
+            mtu = lib.mkOption {
+              type = types.int;
+              default = 1412;
+              description = "MTU for the interface.";
+            };
+
             allowedIPsAsRoutes = lib.mkEnableOption ''
               Whether to add allowed IPs as routes or not.
             '';
@@ -63,7 +69,7 @@ in
         networking = {
           wireguard.interfaces = builtins.mapAttrs (name: value: {
             inherit (hostOptions.${value.host}) privateKeyFile ips listenPort;
-            inherit (value) allowedIPsAsRoutes;
+            inherit (value) mtu allowedIPsAsRoutes;
             peers = builtins.map (name: {
               inherit (hostOptions.${name})
                 name
