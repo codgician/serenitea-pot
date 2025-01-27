@@ -5,7 +5,7 @@
 {
   disko.devices = {
     disk.vda = {
-      imageSize = "12G";
+      imageSize = "16G";
       device = "/dev/${builtins.elemAt disks 0}";
       type = "disk";
       content = {
@@ -15,20 +15,20 @@
             size = "1M";
             type = "EF02"; # for grub MBR
           };
+          root = {
+            size = "12G";
+            content = {
+              type = "filesystem";
+              format = "ext4";
+              mountpoint = "/";
+            };
+          };
           swap = {
             size = "2G";
             content = {
               type = "swap";
               discardPolicy = "both";
               resumeDevice = false;
-            };
-          };
-          root = {
-            size = "8G";
-            content = {
-              type = "filesystem";
-              format = "ext4";
-              mountpoint = "/";
             };
           };
           nix = {
