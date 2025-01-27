@@ -62,6 +62,14 @@
   # Firewall
   networking.firewall.enable = true;
 
+  # Enable forwarding and BBR
+  boot.kernel.sysctl = {
+    "net.core.default_qdisc" = "fq";
+    "net.ipv4.tcp_congestion_control" = "bbr";
+    "net.ipv4.ip_forward" = "1";
+    "net.ipv4.conf.all.proxy_arp" = "1";
+  };
+
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken. It's perfectly fine and recommended to leave

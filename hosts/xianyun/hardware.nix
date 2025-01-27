@@ -12,12 +12,12 @@ let
 in
 {
   boot.initrd.availableKernelModules = [
-    "ata_piix" 
-    "xhci_pci" 
+    "ata_piix"
+    "xhci_pci"
     "virtio_blk"
     "virtio_pci"
-    "virtio_scsi" 
-    "sd_mod" 
+    "virtio_scsi"
+    "sd_mod"
     "sr_mod"
   ];
   boot.initrd.kernelModules = [ ];
