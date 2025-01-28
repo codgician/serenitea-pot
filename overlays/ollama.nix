@@ -20,6 +20,7 @@ in
     value = super.${name}.overrideScope (
       ppself: ppsuper: {
         ollama = ppsuper.ollama;
+        litellm = ppsuper.litellm;
       }
     );
   }) attrs

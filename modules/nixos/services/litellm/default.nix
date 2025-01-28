@@ -37,6 +37,13 @@ let
         api_key = "os.environ/GEMINI_API_KEY";
       };
     }
+    {
+      model_name = "deepseek-r1";
+      litellm_params = {
+        model = "deepseek/deepseek-reasoner";
+        api_key = "os.environ/DEEPSEEK_API_KEY";
+      };
+    }
   ];
 in
 {
