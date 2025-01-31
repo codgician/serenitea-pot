@@ -10,7 +10,7 @@ let
   types = lib.types;
 
   terraformConf = builtins.fromJSON outputs.packages.${pkgs.system}.terraform-config.value;
-  azureApiBase = "https://${terraformConf.resource.azurerm_cognitive_account.akasha.name}.openai.azure.com";
+  azureApiBase = "https://${terraformConf.resource.azurerm_ai_services.akasha.custom_subdomain_name}.openai.azure.com";
   azureModels =
     builtins.map
       (x: {

@@ -31,14 +31,14 @@ in
       # Bootstrap images for lumine
       constellation-lumine = {
         name = "lumine";
-        storage_account_name = azurerm_storage_account.constellation.name;
+        storage_account_id = azurerm_storage_account.constellation "id";
         container_access_type = "private";
       };
 
       # Binary cache for serenitea pot
       serenitea-pot = {
         name = "serenitea-pot";
-        storage_account_name = azurerm_storage_account.primogems.name;
+        storage_account_id = azurerm_storage_account.primogems "id";
         container_access_type = "blob";
       };
     };

@@ -17,6 +17,7 @@ in
           os_state = "Generalized";
           blob_uri = "${azurerm_storage_account.constellation "primary_blob_endpoint"}${azurerm_storage_container.constellation-lumine.name}/sda.vhd";
           size_gb = 64;
+          storage_type = "Standard_LRS";
         }
       ];
 
