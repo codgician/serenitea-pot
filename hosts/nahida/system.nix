@@ -16,9 +16,7 @@
         enable = true;
         acceleration = "cuda";
         loadModels = [
-          "deepseek-r1:14b"
           "deepseek-r1:32b"
-          "qwen2.5:32b"
           "qwen2.5-coder:32b"
           "qwq:32b"
           "llama3.2-vision:11b"
