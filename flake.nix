@@ -4,7 +4,6 @@
   nixConfig = {
     allow-import-from-derivation = "true";
     extra-substituters = [
-      "https://mirror.nju.edu.cn/nix-channels/store"
       "https://nix-community.cachix.org"
       "https://cache.saumon.network/proxmox-nixos"
       "https://codgician.cachix.org"
