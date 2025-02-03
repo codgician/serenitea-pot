@@ -23,9 +23,16 @@ jobs:
         with:
           fetch-depth: 1
       - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            accept-flake-config = true
+            system-features = kvm big-parallel
+            experimental-features = nix-command flakes
+            builders-use-substitutes = true
+            max-jobs = auto
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Check flake
-        run: nix flake check --all-systems --accept-flake-config
+        run: nix flake check --all-systems
       - name: Calculate strategy matrix
         id: get_matrix
         run: |
@@ -48,8 +55,9 @@ jobs:
         with:
           fetch-depth: 1
       - name: Free disk space
+        continue-on-error: true
         run: |
-          curl -fsSL https://raw.githubusercontent.com/apache/arrow/e49d8ae15583ceff03237571569099a6ad62be32/ci/scripts/util_free_space.sh | bash
+          curl -fsSL https://raw.githubusercontent.com/apache/arrow/6305c6e7f756360364a3e6e6ca404c3f57efbc10/ci/scripts/util_free_space.sh | bash
           sudo docker image prune --all --force || true
       - uses: cachix/install-nix-action@v30
         with:
