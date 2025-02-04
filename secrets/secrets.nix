@@ -50,7 +50,7 @@ with pubKeys.hosts;
   "terraformEnv.age" = {
     publicKeys = users.codgi;
     expiryDates = [
-      "2025-03-06" # Azure: caribert
+      "2027-02-04" # ARM_CLIENT_SECRET: caribert
     ];
   };
 
