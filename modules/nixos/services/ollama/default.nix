@@ -112,7 +112,10 @@ in
           ;
         home = cfg.dataDir;
         models = "${cfg.dataDir}/models";
-        environmentVariables.OLLAMA_FLASH_ATTENTION = lib.mkIf (cfg.acceleration == "cuda") "1";
+        environmentVariables = {
+          OLLAMA_FLASH_ATTENTION = lib.mkIf (cfg.acceleration != false) "1";
+          OLLAMA_KV_CACHE_TYPE = "q8_0";
+        };
 
         # Override package to save build time
         package =
