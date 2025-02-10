@@ -39,6 +39,7 @@
         packages =
           with pkgs;
           [
+            inetutils
             httplz
             iperf3
             htop
