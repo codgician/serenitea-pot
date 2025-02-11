@@ -23,7 +23,7 @@
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
   boot.kernelPackages = pkgs.linuxPackages_6_12;
-  boot.kernelParams = [ "console=ttyS0,115200" ];
+  boot.kernelParams = [ "console=ttyS0,115200" "iomem=relaxed" ];
 
   networking.useDHCP = lib.mkDefault true;
 
