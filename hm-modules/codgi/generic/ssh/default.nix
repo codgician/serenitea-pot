@@ -47,8 +47,12 @@ in
           hostname = "nahida.lan";
           user = "codgi";
         };
-        "openwrt" = {
-          hostname = "openwrt.lan";
+        "lumidouce" = {
+          hostname = "lumidouce.lan";
+          user = "root";
+        };
+        "qiaoying" = {
+          hostname = "qiaoying.lan";
           user = "root";
         };
         "paimon" = {
