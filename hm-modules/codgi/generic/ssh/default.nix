@@ -52,7 +52,7 @@ in
           user = "root";
         };
         "qiaoying" = {
-          hostname = "qiaoying.lan";
+          hostname = "qiaoying.cdu";
           user = "root";
         };
         "paimon" = {
