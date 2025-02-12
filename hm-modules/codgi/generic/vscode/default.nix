@@ -55,6 +55,21 @@ in
         remote.SSH.defaultExtensions = builtins.map (
           ext: ext.vscodeExtUniqueId
         ) config.programs.vscode.extensions;
+        github.copilot = {
+          nextEditSuggestions.enabled = true;
+          chat = {
+            temporalContext.enabled = true;
+            scopeSelection = true;
+            edits = {
+              codesearch.enabled = true;
+              temporalContext.enabled = true;
+            };
+            editor.temporalContext.enabled = true;
+            generateTests.codeLens = true;
+            languageContext.typescript.enabled = true;
+            search.semanticTextResults = true;
+          };
+        };
       };
     };
   };
