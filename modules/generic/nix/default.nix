@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   flakePath = lib.codgician.rootDir + "/flake.nix";
   substituters = (import flakePath).nixConfig.extra-substituters;
@@ -8,6 +13,9 @@ in
   config = lib.mkMerge [
     {
       nix = {
+        # Use latest nix
+        package = pkgs.nixVersions.latest;
+
         # Nix garbage collection
         gc = {
           automatic = true;
