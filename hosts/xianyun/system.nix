@@ -70,6 +70,9 @@
     "net.ipv4.conf.all.proxy_arp" = "1";
   };
 
+  # Add China CDN for nixpkgs binary cache
+  nix.settings.substituters = [ "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store" ];
+
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken. It's perfectly fine and recommended to leave
