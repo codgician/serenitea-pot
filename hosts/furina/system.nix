@@ -67,9 +67,6 @@
       };
     };
 
-  # Disable nix-darwin management due to conflicting with determinate
-  nix.enable = false;
-  
   # System packages
   environment.systemPackages = with pkgs; [
     fastfetch
