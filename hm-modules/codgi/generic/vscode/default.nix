@@ -55,6 +55,7 @@ in
         remote.SSH.defaultExtensions = builtins.map (
           ext: ext.vscodeExtUniqueId
         ) config.programs.vscode.extensions;
+        "github.copilot.chat.editor.temporalContext.enabled" = true;
         github.copilot = {
           nextEditSuggestions.enabled = true;
           chat = {
@@ -64,7 +65,6 @@ in
               codesearch.enabled = true;
               temporalContext.enabled = true;
             };
-            editor.temporalContext.enabled = true;
             generateTests.codeLens = true;
             languageContext.typescript.enabled = true;
             search.semanticTextResults = true;
