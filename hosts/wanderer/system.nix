@@ -24,7 +24,7 @@
 
   # Home manager
   home-manager.users.codgi =
-    { config, ... }:
+    { ... }:
     {
       codgician.codgi = {
         dev.nix.enable = true;

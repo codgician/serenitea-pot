@@ -23,7 +23,6 @@ in
     wsl = {
       inherit (cfg) enable defaultUser;
       useWindowsDriver = true;
-      nativeSystemd = true;
       wslConf.network.generateResolvConf = !config.services.resolved.enable;
     };
 
