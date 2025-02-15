@@ -53,20 +53,31 @@
   };
 
   # Limit TDP for nvidia card
-  systemd.services.nvidia-power-limit = {
-    description = "Limit NVIDIA GPU Power Limit";
+  systemd.services.nvidia-gpu-config = {
+    description = "Configure NVIDIA GPU";
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
-      ExecStart = "${config.hardware.nvidia.package.bin}/bin/nvidia-smi -pl 300";
+      ExecStart = [
+        "${pkgs.coreutils}/bin/echo 'Limiting NVIDIA GPU TDP to 300W...'"
+        "${config.hardware.nvidia.package.bin}/bin/nvidia-smi -pl 300"
+        "${pkgs.coreutils}/bin/echo 'Disabling RGB effects...'"
+        "${lib.getExe pkgs.openrgb} --mode static --color 000000"
+      ];
       Type = "oneshot";
     };
   };
 
-  # Start ollama after limiting TDP
-  systemd.services.ollama.after = [ "nvidia-power-limit.service" ];
+  # Start ollama after configuring GPU
+  systemd.services.ollama.after = [ "nvidia-gpu-config.service" ];
 
   # Enable use of nvidia card in containers
   hardware.nvidia-container-toolkit.enable = true;
+
+  # Disable RGB for graphic
+  services.hardware.openrgb = {
+    enable = true;
+    motherboard = "amd";
+  };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }
