@@ -6,7 +6,6 @@ let
 in
 {
   imports = [
-    ./gpt-4.nix
     ./gpt-4o.nix
     ./gpt-4o-realtime.nix
   ];
