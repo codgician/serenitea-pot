@@ -53,5 +53,12 @@ in
       key_vault_id = config.resource.azurerm_key_vault.akasha-kv "id";
       identity.type = "SystemAssigned";
     };
+
+    azurerm_ai_foundry_project.akasha-ai-project = {
+      name = "akasha-ai-project";
+      inherit location;
+      ai_services_hub_id = config.resource.azurerm_ai_foundry.akasha "id";
+      identity.type = "SystemAssigned";
+    };
   };
 }
