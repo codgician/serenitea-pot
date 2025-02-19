@@ -12,6 +12,8 @@ let
   };
 in
 {
+  inherit (unstablePkgs) open-webui;
+  inherit (unstablePkgs) llama-cpp;
   inherit (unstablePkgs) ollama ollama-cuda ollama-rocm;
 }
 // builtins.listToAttrs (
@@ -19,8 +21,7 @@ in
     inherit name;
     value = super.${name}.overrideScope (
       ppself: ppsuper: {
-        ollama = ppsuper.ollama;
-        litellm = ppsuper.litellm;
+        inherit (ppsuper) ollama litellm vllm;
       }
     );
   }) attrs
