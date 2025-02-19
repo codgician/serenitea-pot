@@ -88,6 +88,7 @@
             "force user" = "codgi";
             "fruit:aapl" = "yes";
             "fruit:time machine" = "yes";
+            "fruit:time machine max size" = "1TB";
             "vfs objects" = "catia fruit streams_xattr";
           };
         };

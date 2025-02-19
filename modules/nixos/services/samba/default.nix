@@ -55,6 +55,7 @@ in
           "security" = "user";
           "vfs objects" = "acl_xattr fruit streams_xattr aio_pthread";
           "fruit:aapl" = "yes";
+          "fruit:model" = "MacSamba";
           "fruit:posix_rename" = "yes";
           "fruit:metadata" = "stream";
           "fruit:nfs_aces" = "no";
