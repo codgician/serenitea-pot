@@ -83,6 +83,10 @@ in
             }) value.peers;
           }) cfg.interfaces;
 
+          interfaces = builtins.mapAttrs (name: value: {
+            proxyARP = true;
+          }) cfg.interfaces;
+
           # Open firewall
           firewall.allowedUDPPorts = lib.mkIf cfg.openFirewall ports;
         };
