@@ -8,6 +8,7 @@ let
   flakePath = lib.codgician.rootDir + "/flake.nix";
   substituters = (import flakePath).nixConfig.extra-substituters;
   trusted-public-keys = (import flakePath).nixConfig.extra-trusted-public-keys;
+  cfg = config.codgician.system.nix;
 in
 {
   options.codgician.system.nix = {
@@ -36,7 +37,7 @@ in
           {
             inherit trusted-public-keys;
             substituters =
-              (lib.optionals config.codgician.system.nix.useCnMirror [
+              (lib.optionals cfg.useCnMirror [
                 "https://mirror.nju.edu.cn/nix-channels/store"
                 "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
               ])
