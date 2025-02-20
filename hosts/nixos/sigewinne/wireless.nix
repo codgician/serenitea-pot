@@ -17,6 +17,13 @@ lib.mkMerge [
           pskRaw = "ext:CODGI_PASS";
         };
       };
+
+      # Make wpa_supplicant try to periodically reconnect on connection lost
+      extraConfig = ''
+        ap_scan=1
+        autoscan=periodic:10
+        disable_scan_offload=1
+      '';
     };
   }
 
