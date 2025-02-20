@@ -35,6 +35,11 @@ in
           }
         ];
       };
+
+      environment.systemPackages = with pkgs; [
+        nix-eval-jobs
+        nix-fast-build
+      ];
     }
 
     # Agenix secrets
