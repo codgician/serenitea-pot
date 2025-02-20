@@ -1,15 +1,20 @@
-{ lib, inputs, ... }:
+{ lib, pkgs, ... }:
+{
+  type = "app";
+  meta = {
+    description = "REPL environment for debugging this flake";
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ codgician ];
+  };
 
-# nix repl for debugging
-lib.codgician.forAllSystems (
-  pkgs:
-  inputs.flake-utils.lib.mkApp {
-    drv = pkgs.writeShellApplication {
+  program = lib.getExe (
+    pkgs.writeShellApplication {
       name = builtins.baseNameOf ./.;
       runtimeInputs = with pkgs; [ git ];
+
       text = ''
         nix repl --expr "builtins.getFlake (builtins.toString $(git rev-parse --show-toplevel))"
       '';
-    };
-  }
-)
+    }
+  );
+}

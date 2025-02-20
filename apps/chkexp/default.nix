@@ -1,4 +1,4 @@
-{ lib, inputs, ... }:
+{ lib, pkgs, ... }:
 
 let
   thresholdInDays = 30;
@@ -10,12 +10,19 @@ let
   ];
 in
 # Check expiry for secrets
-lib.codgician.forAllSystems (
-  pkgs:
-  inputs.flake-utils.lib.mkApp {
-    drv = pkgs.writeShellApplication {
+{
+  type = "app";
+  meta = {
+    description = "Utility that checks expiry for secrets";
+    license = lib.licenses.mit;
+    maintainers = with lib.maintainers; [ codgician ];
+  };
+
+  program = lib.getExe (
+    pkgs.writeShellApplication {
       name = builtins.baseNameOf ./.;
       runtimeInputs = with pkgs; [ coreutils ];
+
       text = ''
         current_time=$(date +%s)
         nearest_expiry_time=$(date -d "${nearestExpiryDate} 00:00:00" +%s)
@@ -30,6 +37,6 @@ lib.codgician.forAllSystems (
           exit 1
         fi
       '';
-    };
-  }
-)
+    }
+  );
+}
