@@ -18,6 +18,7 @@ in
       auto-upgrade.enable = true;
       impermanence.enable = true;
       secure-boot.enable = true;
+      nix.useCnMirror = true;
     };
 
     users.codgi = with lib.codgician; {

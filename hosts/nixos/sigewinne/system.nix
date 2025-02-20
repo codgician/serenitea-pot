@@ -18,6 +18,7 @@
 
     system = {
       auto-upgrade.enable = true;
+      nix.useCnMirror = true;
     };
 
     users = with lib.codgician; {

@@ -13,6 +13,7 @@
         masApps = { };
       };
       common.enable = true;
+      nix.useCnMirror = true;
     };
 
     users.codgi.enable = true;

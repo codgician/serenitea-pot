@@ -10,6 +10,10 @@ let
   trusted-public-keys = (import flakePath).nixConfig.extra-trusted-public-keys;
 in
 {
+  options.codgician.system.nix = {
+    useCnMirror = lib.mkEnableOption "China mainland mirror for nix binary cache";
+  };
+
   config = lib.mkMerge [
     {
       nix = {
@@ -30,7 +34,13 @@ in
         optimise.automatic = true;
         settings = lib.mkMerge [
           {
-            inherit substituters trusted-public-keys;
+            inherit trusted-public-keys;
+            substituters =
+              (lib.optionals config.codgician.system.nix.useCnMirror [
+                "https://mirror.nju.edu.cn/nix-channels/store"
+                "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
+              ])
+              ++ substituters;
             extra-nix-path = "nixpkgs=flake:nixpkgs";
           }
         ];

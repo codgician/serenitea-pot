@@ -98,6 +98,7 @@
     system = {
       auto-upgrade.enable = true;
       impermanence.enable = true;
+      nix.useCnMirror = true;
     };
 
     users = with lib.codgician; {
