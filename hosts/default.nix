@@ -2,19 +2,16 @@
 
 let
   inherit (outputs) lib libUnstable;
-  configurations = lib.pipe (lib.codgician.getFolderNames ./.) [
+  getConfigurations = path: lib.pipe path [
+    (lib.codgician.getFolderNames)
     (builtins.map (name: {
       inherit name;
-      value = import ./${name} { inherit lib libUnstable; };
+      value = import (path + "/${name}") { inherit lib libUnstable; };
     }))
     builtins.listToAttrs
-  ];
+  ]; 
 in
 {
-  darwinConfigurations = lib.filterAttrs (
-    k: v: lib.codgician.isDarwinSystem v.pkgs.system
-  ) configurations;
-  nixosConfigurations = lib.filterAttrs (
-    k: v: lib.codgician.isLinuxSystem v.pkgs.system
-  ) configurations;
+  darwinConfigurations = getConfigurations ./darwin;
+  nixosConfigurations = getConfigurations ./nixos;
 }
