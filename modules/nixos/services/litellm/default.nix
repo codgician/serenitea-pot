@@ -83,18 +83,6 @@ in
       '';
     };
 
-    user = lib.mkOption {
-      type = types.str;
-      default = "litellm";
-      description = "User under which LiteLLM runs.";
-    };
-
-    group = lib.mkOption {
-      type = types.str;
-      default = "litellm";
-      description = "Group under which LiteLLM runs.";
-    };
-
     # Reverse proxy profile for nginx
     reverseProxy = {
       enable = lib.mkEnableOption "Enable reverse proxy for LiteLLM.";

@@ -24,7 +24,7 @@
           "phi4:14b"
         ];
       };
-
+      
       litellm.enable = true;
       open-webui = {
         enable = true;
