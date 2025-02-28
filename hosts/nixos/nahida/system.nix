@@ -17,9 +17,8 @@
         acceleration = "cuda";
         loadModels = [
           "deepseek-r1:32b"
-          "huihui_ai/deepseek-r1-abliterated:32b"
+          "openthinker:32b"
           "qwen2.5-coder:32b"
-          "qwq:32b"
           "llama3.2-vision:11b"
           "phi4:14b"
         ];
