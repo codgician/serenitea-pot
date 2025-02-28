@@ -6,6 +6,11 @@ options = []
 includes = [ "*.nix" ]
 excludes = []
 
+[formatter.md]
+command = "mdformat"
+includes = [ "*.md" ]
+excludes = [ "LICENSE.md" ]
+
 [formatter.yaml]
 command = "yamlfmt"
 includes = [ "*.yaml", "*.yml" ]
