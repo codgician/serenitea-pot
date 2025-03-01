@@ -13,7 +13,7 @@ let
 in
 {
   inherit (unstablePkgs) open-webui;
-  inherit (unstablePkgs) llama-cpp;
+  inherit (unstablePkgs) llama-cpp vllm;
   inherit (unstablePkgs) ollama ollama-cuda ollama-rocm;
 }
 // builtins.listToAttrs (

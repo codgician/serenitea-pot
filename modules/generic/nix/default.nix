@@ -38,7 +38,7 @@ in
             inherit trusted-public-keys;
             substituters =
               (lib.optionals cfg.useCnMirror [
-                "https://mirror.nju.edu.cn/nix-channels/store"
+                "https://mirrors.ustc.edu.cn/nix-channels/store"
                 "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store"
               ])
               ++ substituters;

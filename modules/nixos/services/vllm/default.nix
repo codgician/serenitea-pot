@@ -23,6 +23,7 @@ let
         description = "vLLM instance: ${instance}";
         wantedBy = [ "multi-user.target" ];
         after = [ "network.target" ];
+        environment = instanceCfg.environmentVariables;
 
         serviceConfig = {
           ExecStart = builtins.concatStringsSep " " (
@@ -36,7 +37,7 @@ let
             ++ instanceCfg.extraArgs
           );
 
-          WorkingDirectory = cfg.dataDir;
+          WorkingDirectory = cfg.downloadDir;
           StateDirectory = "vllm";
           RuntimeDirectory = "vllm";
           RuntimeDirectoryMode = "0755";
@@ -89,64 +90,76 @@ in
           submodule (
             { config, ... }:
             {
-              host = lib.mkOption {
-                type = types.str;
-                default = "127.0.0.1";
-                description = ''
-                  Host for vLLM to listen on.
-                '';
-              };
-
-              port = lib.mkOption {
-                type = types.port;
-                default = 8000;
-                description = ''
-                  Port for vLLM to listen on.
-                '';
-              };
-
-              model = lib.mkOption {
-                type = types.str;
-                description = "Model for vLLM to serve.";
-                example = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B";
-              };
-
-              extraArgs = lib.mkOption {
-                type = with types; listOf str;
-                description = "Additional args passed to vLLM serve.";
-                default = [ ];
-                example = [
-                  "--enable-reasoning"
-                  "--reasoning-parser deepseek_r1"
-                ];
-              };
-
-              # Reverse proxy profile for nginx
-              reverseProxy = {
-                enable = lib.mkEnableOption "Reverse proxy for vLLM.";
-
-                domains = lib.mkOption {
-                  type = types.listOf types.str;
-                  example = [
-                    "example.com"
-                    "example.org"
-                  ];
-                  default = [ ];
-                  description = ''
-                    List of domains for the reverse proxy.
-                  '';
-                };
-
-                proxyPass = lib.mkOption {
+              options = {
+                host = lib.mkOption {
                   type = types.str;
-                  default = "http://${config.host}:${builtins.toString config.port}";
-                  defaultText = ''http://$\{config.codgician.services.vllm.instances.{instanceName}.host\}:$\{toString config.codgician.services.vllm.instances.{instanceName}.port\}'';
+                  default = "127.0.0.1";
                   description = ''
-                    Source URI for the reverse proxy.
+                    Host for vLLM to listen on.
                   '';
                 };
 
-                lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
+                port = lib.mkOption {
+                  type = types.port;
+                  default = 8000;
+                  description = ''
+                    Port for vLLM to listen on.
+                  '';
+                };
+
+                model = lib.mkOption {
+                  type = types.str;
+                  description = "Model for vLLM to serve.";
+                  example = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B";
+                };
+
+                environmentVariables = lib.mkOption {
+                  type = types.attrsOf types.str;
+                  default = { };
+                  description = "Environment variables for vLLM.";
+                  example = {
+                    VLLM_ATTENTION_BACKEND = "FLASH_ATTN";
+                    VLLM_FLASH_ATTN_VERSION = "3";
+                  };
+                };
+
+                extraArgs = lib.mkOption {
+                  type = with types; listOf str;
+                  description = "Additional args passed to vLLM serve.";
+                  default = [ ];
+                  example = [
+                    "--enable-reasoning"
+                    "--reasoning-parser deepseek_r1"
+                  ];
+                };
+
+                # Reverse proxy profile for nginx
+                reverseProxy = {
+                  enable = lib.mkEnableOption "Reverse proxy for vLLM.";
+
+                  domains = lib.mkOption {
+                    type = types.listOf types.str;
+                    example = [
+                      "example.com"
+                      "example.org"
+                    ];
+                    default = [ ];
+                    description = ''
+                      List of domains for the reverse proxy.
+                    '';
+                  };
+
+                  proxyPass = lib.mkOption {
+                    type = types.str;
+                    default = "http://${config.host}:${builtins.toString config.port}";
+                    defaultText = ''http://$\{config.codgician.services.vllm.instances.{instanceName}.host\}:$\{toString config.codgician.services.vllm.instances.{instanceName}.port\}'';
+                    description = ''
+                      Source URI for the reverse proxy.
+                    '';
+                  };
+
+                  lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
+                };
               };
             }
           )
