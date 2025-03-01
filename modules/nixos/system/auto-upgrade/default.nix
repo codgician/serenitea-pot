@@ -4,7 +4,7 @@ let
 in
 {
   options.codgician.system.auto-upgrade = {
-    enable = lib.mkEnableOption "Enable system auto upgrading.";
+    enable = lib.mkEnableOption "System auto upgrading.";
   };
 
   config = lib.mkIf cfg.enable {

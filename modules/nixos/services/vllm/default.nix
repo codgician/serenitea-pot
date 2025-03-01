@@ -78,7 +78,7 @@ let
 in
 {
   options.codgician.services.vllm = {
-    enable = lib.mkEnableOption "Enable vLLM.";
+    enable = lib.mkEnableOption "vLLM.";
 
     package = lib.mkPackageOption pkgs "vllm" { };
 
@@ -123,7 +123,7 @@ in
 
               # Reverse proxy profile for nginx
               reverseProxy = {
-                enable = lib.mkEnableOption "Enable reverse proxy for vLLM.";
+                enable = lib.mkEnableOption "Reverse proxy for vLLM.";
 
                 domains = lib.mkOption {
                   type = types.listOf types.str;

@@ -11,7 +11,7 @@ let
 in
 {
   options.codgician.system.wsl = {
-    enable = lib.mkEnableOption "Enable NixOS WSL.";
+    enable = lib.mkEnableOption "NixOS WSL.";
 
     defaultUser = lib.mkOption {
       type = types.str;

@@ -9,7 +9,7 @@ let
   cfg = config.codgician.codgi.zsh;
 in
 {
-  options.codgician.codgi.zsh.enable = lib.mkEnableOption "Enable zsh user profiles.";
+  options.codgician.codgi.zsh.enable = lib.mkEnableOption "Zsh user profiles.";
 
   config = lib.mkIf cfg.enable {
     programs.zsh = {

@@ -4,7 +4,7 @@ let
 in
 {
   options.codgician.system.impermanence = {
-    enable = lib.mkEnableOption "Enable impermanence.";
+    enable = lib.mkEnableOption "Impermanence.";
 
     path = lib.mkOption {
       type = lib.types.path;

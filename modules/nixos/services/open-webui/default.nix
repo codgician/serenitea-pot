@@ -14,7 +14,7 @@ let
 in
 {
   options.codgician.services.open-webui = {
-    enable = lib.mkEnableOption "Enable open-webui.";
+    enable = lib.mkEnableOption "Open-webui.";
 
     host = lib.mkOption {
       type = types.str;
@@ -36,7 +36,7 @@ in
 
     # Reverse proxy profile for nginx
     reverseProxy = {
-      enable = lib.mkEnableOption "Enable reverse proxy for open-webui.";
+      enable = lib.mkEnableOption "Reverse proxy for open-webui.";
 
       favicon = lib.mkOption {
         type = types.nullOr types.path;

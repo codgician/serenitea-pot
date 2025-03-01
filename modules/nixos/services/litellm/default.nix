@@ -55,7 +55,7 @@ let
 in
 {
   options.codgician.services.litellm = {
-    enable = lib.mkEnableOption "Enable LiteLLM Proxy.";
+    enable = lib.mkEnableOption "LiteLLM Proxy.";
 
     host = lib.mkOption {
       type = types.str;
@@ -85,7 +85,7 @@ in
 
     # Reverse proxy profile for nginx
     reverseProxy = {
-      enable = lib.mkEnableOption "Enable reverse proxy for LiteLLM.";
+      enable = lib.mkEnableOption "Reverse proxy for LiteLLM.";
 
       domains = lib.mkOption {
         type = types.listOf types.str;

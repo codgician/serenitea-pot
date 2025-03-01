@@ -9,7 +9,7 @@ let
 in
 {
   options.codgician.codgi.dev.nix = {
-    enable = lib.mkEnableOption "Enable nix dev environment.";
+    enable = lib.mkEnableOption "Nix dev environment.";
   };
 
   config = lib.mkIf cfg.enable {

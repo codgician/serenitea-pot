@@ -10,9 +10,9 @@ let
 in
 lib.optionalAttrs (lib.version >= "24.05") {
   options.codgician.services.plasma = {
-    enable = lib.mkEnableOption "Enable Plasma Desktop.";
+    enable = lib.mkEnableOption "Plasma Desktop.";
 
-    hidpi = lib.mkEnableOption "Enable Hi-DPI support.";
+    hidpi = lib.mkEnableOption "Hi-DPI support.";
 
     wayland = lib.mkOption {
       type = types.bool;

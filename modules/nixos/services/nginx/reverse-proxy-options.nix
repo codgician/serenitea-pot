@@ -4,7 +4,7 @@ let
 in
 {
   options = {
-    enable = lib.mkEnableOption "Enable nginx reverse proxy profile for this service.";
+    enable = lib.mkEnableOption "Nginx reverse proxy profile for this service.";
 
     default = lib.mkEnableOption "Make this profile the default virtual host.";
 

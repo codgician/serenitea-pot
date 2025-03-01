@@ -12,7 +12,7 @@ let
 in
 {
   options.codgician.services.samba = {
-    enable = lib.mkEnableOption "Enable samba server.";
+    enable = lib.mkEnableOption "Samba server.";
 
     users = lib.mkOption {
       type = types.listOf types.str;

@@ -4,7 +4,7 @@ let
 in
 {
   options.codgician.services.rustdesk-server = {
-    enable = lib.mkEnableOption "Enable RustDesk.";
+    enable = lib.mkEnableOption "RustDesk.";
   };
 
   config = lib.mkIf cfg.enable {

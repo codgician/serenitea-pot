@@ -9,7 +9,7 @@ let
 in
 {
   options.codgician.codgi.dev.rust = {
-    enable = lib.mkEnableOption "Enable rust dev environment.";
+    enable = lib.mkEnableOption "Rust dev environment.";
   };
 
   config = lib.mkIf cfg.enable {

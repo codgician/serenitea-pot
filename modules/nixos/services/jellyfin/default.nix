@@ -6,7 +6,7 @@ let
 in
 rec {
   options.codgician.services.jellyfin = {
-    enable = lib.mkEnableOption "Enable Jellyfin.";
+    enable = lib.mkEnableOption "Jellyfin.";
 
     user = lib.mkOption {
       type = types.str;
@@ -28,7 +28,7 @@ rec {
 
     # Reverse proxy profile for nginx
     reverseProxy = {
-      enable = lib.mkEnableOption "Enable reverse proxy for Jellyfin.";
+      enable = lib.mkEnableOption "Reverse proxy for Jellyfin.";
 
       domains = lib.mkOption {
         type = types.listOf types.str;

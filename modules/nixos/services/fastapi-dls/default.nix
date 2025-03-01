@@ -10,7 +10,7 @@ let
 in
 {
   options.codgician.services.fastapi-dls = {
-    enable = lib.mkEnableOption "Enable fastapi-dls.";
+    enable = lib.mkEnableOption "fastapi-dls.";
 
     acmeDomain = lib.mkOption {
       type = types.str;
@@ -87,7 +87,7 @@ in
 
     # Reverse proxy profile for nginx
     reverseProxy = {
-      enable = lib.mkEnableOption "Enable reverse proxy for fastapi-dls.";
+      enable = lib.mkEnableOption "Reverse proxy for fastapi-dls.";
 
       domains = lib.mkOption {
         type = types.listOf types.str;

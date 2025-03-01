@@ -10,7 +10,7 @@ let
 in
 {
   options.codgician.services.gitlab = {
-    enable = lib.mkEnableOption "Enable GitLab server.";
+    enable = lib.mkEnableOption "GitLab server.";
 
     statePath = lib.mkOption {
       type = types.str;
@@ -38,7 +38,7 @@ in
 
     # Reverse proxy profile for nginx
     reverseProxy = {
-      enable = lib.mkEnableOption "Enable reverse proxy for GitLab.";
+      enable = lib.mkEnableOption "Reverse proxy for GitLab.";
 
       domains = lib.mkOption {
         type = types.listOf types.str;

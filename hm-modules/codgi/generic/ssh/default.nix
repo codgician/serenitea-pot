@@ -8,7 +8,7 @@ let
   cfg = config.codgician.codgi.ssh;
 in
 {
-  options.codgician.codgi.ssh.enable = lib.mkEnableOption "Enable ssh user configurations.";
+  options.codgician.codgi.ssh.enable = lib.mkEnableOption "Ssh user configurations.";
 
   config = lib.mkIf cfg.enable {
     programs.ssh = {

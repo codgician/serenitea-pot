@@ -9,7 +9,7 @@ let
 in
 {
   options.codgician.codgi.vscode = {
-    enable = lib.mkEnableOption "Enable Visual Studio Code.";
+    enable = lib.mkEnableOption "Visual Studio Code.";
   };
 
   config = lib.mkIf cfg.enable {

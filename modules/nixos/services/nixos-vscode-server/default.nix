@@ -4,7 +4,7 @@ let
 in
 {
   options.codgician.services.nixos-vscode-server = {
-    enable = lib.mkEnableOption "Enable NixOS VSCode Server support.";
+    enable = lib.mkEnableOption "NixOS VSCode Server support.";
   };
 
   config = lib.mkIf cfg.enable {

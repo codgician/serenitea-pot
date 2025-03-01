@@ -10,7 +10,7 @@ let
 in
 {
   options.codgician.codgi.git = {
-    enable = lib.mkEnableOption "Enable git user configurations.";
+    enable = lib.mkEnableOption "Git user configurations.";
   };
 
   config = lib.mkIf cfg.enable {

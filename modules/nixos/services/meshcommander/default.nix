@@ -10,7 +10,7 @@ let
 in
 {
   options.codgician.services.meshcommander = {
-    enable = lib.mkEnableOption "Enable MeshCommander.";
+    enable = lib.mkEnableOption "MeshCommander.";
 
     port = lib.mkOption {
       type = types.port;
@@ -38,7 +38,7 @@ in
 
     # Reverse proxy profile for nginx
     reverseProxy = {
-      enable = lib.mkEnableOption "Enable reverse proxy for MeshCommander.";
+      enable = lib.mkEnableOption "Reverse proxy for MeshCommander.";
 
       domains = lib.mkOption {
         type = types.listOf types.str;

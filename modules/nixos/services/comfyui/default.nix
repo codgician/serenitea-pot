@@ -5,7 +5,7 @@ let
 in
 {
   options.codgician.services.comfyui = {
-    enable = lib.mkEnableOption "Enable comfyui container.";
+    enable = lib.mkEnableOption "Comfyui container.";
 
     port = lib.mkOption {
       type = types.port;
@@ -25,7 +25,7 @@ in
 
     # Reverse proxy profile for nginx
     reverseProxy = {
-      enable = lib.mkEnableOption "Enable reverse proxy for comfyui.";
+      enable = lib.mkEnableOption "Reverse proxy for comfyui.";
 
       domains = lib.mkOption {
         type = types.listOf types.str;

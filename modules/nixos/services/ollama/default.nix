@@ -10,7 +10,7 @@ let
 in
 {
   options.codgician.services.ollama = {
-    enable = lib.mkEnableOption "Enable Ollama.";
+    enable = lib.mkEnableOption "Ollama.";
 
     host = lib.mkOption {
       type = types.str;
@@ -71,7 +71,7 @@ in
 
     # Reverse proxy profile for nginx
     reverseProxy = {
-      enable = lib.mkEnableOption "Enable reverse proxy for ollama.";
+      enable = lib.mkEnableOption "Reverse proxy for ollama.";
 
       domains = lib.mkOption {
         type = types.listOf types.str;

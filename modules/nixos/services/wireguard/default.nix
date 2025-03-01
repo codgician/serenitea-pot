@@ -23,7 +23,7 @@ let
 in
 {
   options.codgician.services.wireguard = {
-    enable = lib.mkEnableOption "Enable WireGuard.";
+    enable = lib.mkEnableOption "WireGuard.";
 
     openFirewall = lib.mkEnableOption "Open firewall for WireGuard ports.";
 

@@ -6,7 +6,7 @@ let
 in
 {
   options.codgician.services.calibre-web = {
-    enable = lib.mkEnableOption "Enable Calibre Web.";
+    enable = lib.mkEnableOption "Calibre Web.";
 
     ip = lib.mkOption {
       type = types.str;
@@ -34,7 +34,7 @@ in
 
     # Reverse proxy profile for nginx
     reverseProxy = {
-      enable = lib.mkEnableOption "Enable reverse proxy for Calibre Web.";
+      enable = lib.mkEnableOption "Reverse proxy for Calibre Web.";
 
       domains = lib.mkOption {
         type = types.listOf types.str;

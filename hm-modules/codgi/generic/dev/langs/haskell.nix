@@ -9,7 +9,7 @@ let
 in
 {
   options.codgician.codgi.dev.haskell = {
-    enable = lib.mkEnableOption "Enable Haskell dev environment.";
+    enable = lib.mkEnableOption "Haskell dev environment.";
   };
 
   config = lib.mkIf cfg.enable {

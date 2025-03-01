@@ -19,7 +19,7 @@ let
 in
 {
   options.codgician.services.dendrite = {
-    enable = lib.mkEnableOption "Enable Dendrite Matrix server.";
+    enable = lib.mkEnableOption "Dendrite Matrix server.";
 
     httpPort = lib.mkOption {
       type = types.port;
@@ -41,7 +41,7 @@ in
 
     # Reverse proxy profile for nginx
     reverseProxy = {
-      enable = lib.mkEnableOption "Enable reverse proxy for Dendrite server.";
+      enable = lib.mkEnableOption "Reverse proxy for Dendrite server.";
 
       proxyAll = lib.mkEnableOption ''
         Proxy everything under `/`.
