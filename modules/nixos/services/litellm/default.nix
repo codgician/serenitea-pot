@@ -10,23 +10,20 @@ let
   types = lib.types;
 
   terraformConf = builtins.fromJSON outputs.packages.${pkgs.system}.terraform-config.value;
-  azureApiBase = "https://${terraformConf.resource.azurerm_ai_services.akasha.custom_subdomain_name}.openai.azure.com";
-  azureModels =
-    builtins.map
-      (x: {
-        model_name = x.name;
-        litellm_params = {
-          model = "azure/${x.name}";
-          api_base = azureApiBase;
-          api_key = "os.environ/AZURE_AKASHA_API_KEY";
-          rpm = 6;
-        };
-      })
-      (
-        builtins.filter (x: x.model.name != "gpt-4o-realtime-preview") (
-          builtins.attrValues terraformConf.resource.azurerm_cognitive_deployment
-        )
-      );
+  azureSubdomain = terraformConf.resource.azurerm_ai_services.akasha.custom_subdomain_name;
+  azureModels = lib.pipe terraformConf.resource.azurerm_cognitive_deployment [
+    builtins.attrValues
+    # Filter out unsupported models
+    (builtins.filter (x: x.model.name != "gpt-4o-realtime-preview"))
+    (builtins.map (x: {
+      model_name = x.name;
+      litellm_params = {
+        model = "azure_ai/${x.name}";
+        api_base = "https://${azureSubdomain}.cognitiveservices.azure.com";
+        api_key = "os.environ/AZURE_AKASHA_API_KEY";
+      };
+    }))
+  ];
 
   settingsFormat = pkgs.formats.yaml { };
   settings.model_list = azureModels ++ [
@@ -42,6 +39,14 @@ let
       litellm_params = {
         model = "gemini/gemini-2.0-flash-thinking-exp";
         api_key = "os.environ/GEMINI_API_KEY";
+      };
+    }
+    {
+      model_name = "akasha-deepseek-r1";
+      litellm_params = {
+        model = "azure_ai/akasha-deepseek-r1";
+        api_base = "os.environ/AZURE_AKASHA_DEEPSEEK_R1_API_BASE";
+        api_key = "os.environ/AZURE_AKASHA_DEEPSEEK_R1_API_KEY";
       };
     }
     {
