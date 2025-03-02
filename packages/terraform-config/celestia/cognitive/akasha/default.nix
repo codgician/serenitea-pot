@@ -8,6 +8,7 @@ in
   imports = [
     ./gpt-4o.nix
     ./gpt-4o-realtime.nix
+    ./deepseek-r1.nix
   ];
 
   resource = {

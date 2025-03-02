@@ -4,7 +4,7 @@ let
 in
 {
   options.codgician.system.brew = {
-    enable = lib.mkEnableOption "Enable homebrew packages.";
+    enable = lib.mkEnableOption "Homebrew packages";
 
     casks = lib.mkOption {
       type = lib.types.listOf lib.types.str;

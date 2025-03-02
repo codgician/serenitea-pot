@@ -14,7 +14,7 @@ in
 
       azapi = {
         source = "azure/azapi";
-        version = "~>1.0";
+        version = "~>2.2";
       };
     };
 
