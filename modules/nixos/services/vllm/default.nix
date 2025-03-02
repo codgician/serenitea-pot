@@ -37,7 +37,7 @@ let
             ++ instanceCfg.extraArgs
           );
 
-          WorkingDirectory = cfg.downloadDir;
+          WorkingDirectory = "/var/lib/vllm";
           StateDirectory = "vllm";
           RuntimeDirectory = "vllm";
           RuntimeDirectoryMode = "0755";

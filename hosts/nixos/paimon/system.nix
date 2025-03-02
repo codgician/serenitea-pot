@@ -38,7 +38,7 @@
         reverseProxy.enable = true;
       };
 
-      meshcommander = {
+      meshcentral = {
         enable = true;
         port = 3001;
         reverseProxy = {
