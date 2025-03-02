@@ -54,6 +54,6 @@ in
     }
 
     # Agenix secrets
-    (with lib.codgician; mkAgenixConfigs { } [ (secretsDir + "/nixAccessTokens.age") ])
+    (with lib.codgician; mkAgenixConfigs { mode = "644"; } [ (secretsDir + "/nixAccessTokens.age") ])
   ];
 }
