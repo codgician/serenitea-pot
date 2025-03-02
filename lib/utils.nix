@@ -14,6 +14,7 @@ rec {
     [
       (self: super: { inherit lib; })
       inputs.nur.overlays.default
+      inputs.nix-vscode-extensions.overlays.default
     ]
     ++ (builtins.map (x: import x { inherit inputs lib; }) (
       with lib.codgician; getNixFilePaths overlaysDir

@@ -7,7 +7,6 @@ let
     config.allowUnfree = true;
   };
 in
-with inputs.nix-vscode-extensions.extensions.${super.system};
 {
   inherit (unstablePkgs)
     vscode
@@ -15,11 +14,5 @@ with inputs.nix-vscode-extensions.extensions.${super.system};
     vscode-with-extensions
     vscodium
     vscodium-fhs
-    ;
-  inherit
-    vscode-marketplace
-    vscode-marketplace-release
-    open-vsx
-    open-vsx-release
     ;
 }
