@@ -5,10 +5,12 @@
   ];
 
   proxmoxLXC = {
+    enable = true;
     privileged = false;
-    manageNetwork = false;
-    manageHostName = false;
+    manageNetwork = true;
+    manageHostName = true;
   };
 
+  networking.useHostResolvConf = false;
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }
