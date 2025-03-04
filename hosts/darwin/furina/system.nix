@@ -56,6 +56,7 @@
             tcping-go
             github-copilot-cli
             binwalk
+            imhex
           ]
           ++ (with pkgs.nur.repos.codgician; [
             mtk_uartboot
