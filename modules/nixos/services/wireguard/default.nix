@@ -78,9 +78,8 @@ in
                 presharedKeyFile
                 allowedIPs
                 ;
-              dynamicEndpointRefreshSeconds = 10;
-              dynamicEndpointRefreshRestartSeconds = 60;
             }) value.peers;
+            dynamicEndpointRefreshSeconds = 10;
           }) cfg.interfaces;
 
           interfaces = builtins.mapAttrs (name: value: {
