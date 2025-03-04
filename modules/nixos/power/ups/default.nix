@@ -78,6 +78,49 @@ in
             ];
           };
 
+          upsmon.settings.NOTIFYFLAG = [
+            [
+              "ONLINE"
+              "SYSLOG+WALL+EXEC"
+            ]
+            [
+              "ONBATT"
+              "SYSLOG+WALL+EXEC"
+            ]
+            [
+              "LOWBATT"
+              "SYSLOG+WALL+EXEC"
+            ]
+            [
+              "FSD"
+              "SYSLOG+WALL+EXEC"
+            ]
+            [
+              "COMMBAD"
+              "SYSLOG+EXEC"
+            ]
+            [
+              "COMMOK"
+              "SYSLOG+EXEC"
+            ]
+            [
+              "REPLBATT"
+              "SYSLOG+EXEC"
+            ]
+            [
+              "NOCOMM"
+              "SYSLOG+EXEC"
+            ]
+            [
+              "SHUTDOWN"
+              "SYSLOG+EXEC"
+            ]
+            [
+              "NOPARENT"
+              "SYSLOG+EXEC"
+            ]
+          ];
+
           schedulerRules = (import ./sched.nix { inherit config pkgs lib; }).outPath;
         };
       }
