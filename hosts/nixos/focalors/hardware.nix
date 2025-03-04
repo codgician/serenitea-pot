@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 {
   boot.initrd.availableKernelModules = [
     "xhci_pci"
@@ -7,6 +7,7 @@
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ ];
   boot.kernelParams = [ "video=Virtual-1:3024x1890@120" ];
+  boot.kernelPackages = pkgs.linuxPackages_6_12;
   boot.extraModulePackages = [ ];
 
   networking.useDHCP = lib.mkDefault true;

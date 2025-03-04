@@ -1,6 +1,6 @@
-{ lib, ... }:
+{ libUnstable, ... }:
 
-lib.codgician.mkNixosSystem {
+libUnstable.codgician.mkNixosSystem {
   hostName = builtins.baseNameOf ./.;
   system = "aarch64-linux";
   modules = [
