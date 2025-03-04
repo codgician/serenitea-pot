@@ -50,7 +50,7 @@ let
   };
 in
 pkgs.writeText "upssched.conf" ''
-  CMDSCRIPT ${upssched-cmd}
+  CMDSCRIPT ${lib.getExe upssched-cmd}
   PIPEFN /var/lib/nut/upssched.pipe
   LOCKFN /var/lib/nut/upssched.lock
   AT ONBATT * EXECUTE onbatt
