@@ -1,9 +1,6 @@
 { modulesPath, ... }:
 {
-  imports = [
-    (modulesPath + "/virtualisation/azure-common.nix")
-    ./disks.nix
-  ];
+  imports = [ (modulesPath + "/virtualisation/azure-common.nix") ];
 
   # Enable Accelerated Networking
   virtualisation.azure.acceleratedNetworking = true;
