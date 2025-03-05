@@ -53,14 +53,16 @@ in
         cleanup = "zap";
       };
 
-      taps = cfg.taps;
+      inherit (cfg) masApps taps;
       casks = builtins.map (name: {
         inherit name;
         greedy = true;
       }) cfg.casks;
-      masApps = cfg.masApps;
 
-      global.brewfile = true;
+      global = {
+        autoUpdate = true;
+        brewfile = true;
+      };
     };
   };
 }

@@ -61,8 +61,6 @@
     "motrix"
     "zoom"
     "discord"
-    "prismlauncher"
-    "ghidra"
     "firefox"
     "balenaetcher"
     "altserver"

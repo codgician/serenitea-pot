@@ -57,6 +57,8 @@
             github-copilot-cli
             binwalk
             imhex
+            ghidra
+            prismlauncher-unwrapped
           ]
           ++ (with pkgs.nur.repos.codgician; [
             mtk_uartboot
