@@ -1,6 +1,6 @@
 {
   lib,
-  description ? "APC Back-UPS RS 1500G",
+  description ? null,
   port ? null,
   product ? null,
   serial ? null,
