@@ -1,11 +1,10 @@
-args@{ lib, pkgs, ... }:
+args@{ lib, ... }:
 let
-  basePkgs = with pkgs; [ agenix ];
   shellNames = lib.codgician.getFolderNames ./.;
 in
 builtins.listToAttrs (
   builtins.map (name: {
     inherit name;
-    value = import ./${name} (args // { inherit basePkgs; });
+    value = import ./${name} args;
   }) shellNames
 )
