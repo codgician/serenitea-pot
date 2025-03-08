@@ -34,6 +34,7 @@
 
       jupyter = {
         enable = true;
+        notebookDir = "/mnt/media/jupyter";
         reverseProxy = {
           enable = true;
           domains = [ "aranyaka.codgician.me" ];

@@ -75,6 +75,9 @@ in
           ;
         # Use auth token
         password = "";
+        notebookConfig = lib.optionalString cfg.reverseProxy.enable ''
+          c.ServerApp.allow_remote_access = True
+        '';
       };
     })
 
