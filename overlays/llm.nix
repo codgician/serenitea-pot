@@ -26,14 +26,15 @@ in
           vllm
           ;
 
-        # Temporary: override litellm to a newer version
-        litellm = unstablePkgs.${name}.litellm.overrideAttrs (old: rec {
-          version = "1.61.7";
-          src = unstablePkgs.fetchFromGitHub {
-            owner = "BerriAI";
-            repo = "litellm";
-            tag = "v${version}";
-            hash = "sha256-kXCkei2f0GNm/XEOTcJ5WtZIwWaLNGYsN6fwvtHJiFo=";
+        # Temporary: fix missing dependencies
+        litellm = unstablePkgs.${name}.litellm.overridePythonAttrs (old: {
+          optional-dependencies = old.optional-dependencies // {
+            proxy =
+              old.optional-dependencies.proxy
+              ++ (with unstablePkgs.${name}; [
+                email-validator
+                uvloop
+              ]);
           };
         });
       }

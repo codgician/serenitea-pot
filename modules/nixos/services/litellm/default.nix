@@ -21,6 +21,7 @@ let
         model = "azure_ai/${x.name}";
         api_base = "https://${azureSubdomain}.cognitiveservices.azure.com";
         api_key = "os.environ/AZURE_AKASHA_API_KEY";
+        api_version = "2024-12-01-preview";
       };
     }))
   ];
