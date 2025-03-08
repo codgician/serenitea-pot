@@ -3,6 +3,7 @@ let
   zone_id = config.resource.cloudflare_zone.codgician-me "id";
   cnames = [
     "akasha"
+    "aranyaka"
     "amt"
     "books"
     "bubbles"

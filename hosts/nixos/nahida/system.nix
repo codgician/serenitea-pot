@@ -41,6 +41,14 @@
         };
       };
 
+      jupyter = {
+        enable = true;
+        reverseProxy = {
+          enable = true;
+          domains = [ "aranyaka.codgician.me" ];
+        };
+      };
+
       nixos-vscode-server.enable = true;
       nginx.openFirewall = true;
     };

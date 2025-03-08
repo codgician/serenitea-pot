@@ -1,11 +1,11 @@
 { config, lib, ... }:
 let
-  cfg = config.codgician.services.comfyui;
+  cfg = config.codgician.containers.comfyui;
   types = lib.types;
 in
 {
-  options.codgician.services.comfyui = {
-    enable = lib.mkEnableOption "Comfyui container.";
+  options.codgician.containers.comfyui = {
+    enable = lib.mkEnableOption "ComfyUI container.";
 
     port = lib.mkOption {
       type = types.port;
