@@ -128,7 +128,10 @@ in
   config =
     let
       litellmProxyPkg = cfg.package.overridePythonAttrs (prev: {
-        dependencies = prev.dependencies ++ cfg.package.optional-dependencies.proxy;
+        dependencies =
+          prev.dependencies
+          ++ cfg.package.optional-dependencies.proxy
+          ++ cfg.package.optional-dependencies.extra_proxy;
       });
     in
     lib.mkMerge [
