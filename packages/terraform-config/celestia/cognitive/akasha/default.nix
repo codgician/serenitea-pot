@@ -10,7 +10,9 @@ in
     ./deepseek-v3.nix
     ./gpt-4o.nix
     ./gpt-4o-realtime.nix
-    ./o3-mini.nix
+    
+    # No quota
+    #./o3-mini.nix
   ];
 
   resource = {

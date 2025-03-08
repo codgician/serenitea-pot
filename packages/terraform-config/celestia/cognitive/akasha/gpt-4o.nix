@@ -13,8 +13,8 @@
     };
 
     sku = {
-      name = "GlobalBatch";
-      capacity = 90;
+      name = "GlobalStandard";
+      capacity = 8;
     };
   };
 }
