@@ -73,6 +73,8 @@ in
           group
           notebookDir
           ;
+        # Use auth token
+        password = "";
       };
     })
 
