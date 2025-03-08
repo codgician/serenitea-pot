@@ -1,3 +1,5 @@
+# Always use LLM packages from unstable
+
 { inputs, lib, ... }:
 
 self: super:
@@ -10,15 +12,21 @@ let
   };
 in
 {
-  # Always use LLM related packages from unstable
   inherit (unstablePkgs) open-webui;
   inherit (unstablePkgs) llama-cpp vllm;
   inherit (unstablePkgs) ollama ollama-cuda ollama-rocm;
 }
 // builtins.listToAttrs (
-  # Always python package universe from unstable
   builtins.map (name: {
     inherit name;
-    value = unstablePkgs.${name};
+    value = super.${name}.overrideScope (
+      ppself: ppsuper: {
+        inherit (unstablePkgs.${name})
+          ollama
+          litellm
+          vllm
+          ;
+      }
+    );
   }) attrs
 )
