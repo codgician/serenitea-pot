@@ -32,7 +32,7 @@ in
     };
 
     notebookDir = lib.mkOption {
-      type = types.path;
+      type = types.str;
       default = "~/";
       description = "Root directory for notebooks.";
     };
@@ -80,7 +80,7 @@ in
     (lib.mkIf cfg.reverseProxy.enable {
       codgician.services.nginx = {
         enable = true;
-        reverseProxies.jellyfin = {
+        reverseProxies.jupyter = {
           inherit (cfg.reverseProxy) enable domains;
           https = true;
           locations."/" = {

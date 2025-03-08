@@ -42,7 +42,7 @@ in
       proxyPass = lib.mkOption {
         type = types.str;
         default = "http://127.0.0.1:${builtins.toString cfg.port}";
-        defaultText = ''http://127.0.0.1:$\{toString config.codgician.services.comfyui.port}'';
+        defaultText = ''http://127.0.0.1:$\{toString config.codgician.containers.comfyui.port}'';
         description = ''
           Source URI for the reverse proxy.
         '';

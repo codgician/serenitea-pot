@@ -3,15 +3,6 @@
   # My settings
   codgician = {
     services = {
-      comfyui = {
-        enable = false;
-        dataDir = "/nix/persist/comfyui";
-        reverseProxy = {
-          enable = true;
-          domains = [ "comfy.codgician.me" ];
-        };
-      };
-
       ollama = {
         enable = true;
         acceleration = "cuda";
