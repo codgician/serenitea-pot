@@ -6,9 +6,11 @@ let
 in
 {
   imports = [
+    ./deepseek-r1.nix
+    ./deepseek-v3.nix
     ./gpt-4o.nix
     ./gpt-4o-realtime.nix
-    ./deepseek-r1.nix
+    ./o3-mini.nix
   ];
 
   resource = {

@@ -50,6 +50,14 @@ let
       };
     }
     {
+      model_name = "akasha-deepseek-v3";
+      litellm_params = {
+        model = "azure_ai/akasha-deepseek-v3";
+        api_base = "os.environ/AZURE_AKASHA_DEEPSEEK_V3_API_BASE";
+        api_key = "os.environ/AZURE_AKASHA_DEEPSEEK_V3_API_KEY";
+      };
+    }
+    {
       model_name = "deepseek-r1";
       litellm_params = {
         model = "deepseek/deepseek-reasoner";
