@@ -23,9 +23,19 @@ in
       ppself: ppsuper: {
         inherit (unstablePkgs.${name})
           ollama
-          litellm
           vllm
           ;
+
+        # Temporary: override litellm to a newer version
+        litellm = unstablePkgs.${name}.litellm.overrideAttrs (old: rec {
+          version = "1.61.7";
+          src = unstablePkgs.fetchFromGitHub {
+            owner = "BerriAI";
+            repo = "litellm";
+            tag = "v${version}";
+            hash = "sha256-kXCkei2f0GNm/XEOTcJ5WtZIwWaLNGYsN6fwvtHJiFo=";
+          };
+        });
       }
     );
   }) attrs
