@@ -4,13 +4,13 @@ let
   types = lib.types;
   listToStr = lib.strings.concatStringsSep ";";
 
-  litellmEnable = config.codgician.services.litellm.enable;
-  litellmHost = config.codgician.services.litellm.host;
-  litellmPort = config.codgician.services.litellm.port;
-  litellmBases = lib.optionals litellmEnable [
-    "http://${litellmHost}:${builtins.toString litellmPort}"
+  litellmCfg = config.codgician.services.litellm;
+  litellmBases = lib.optionals litellmCfg.enable [
+    "http://${litellmCfg.host}:${builtins.toString litellmCfg.port}"
   ];
-  litellmKeys = lib.optionals litellmEnable [ "dummy" ];
+  litellmKeys = lib.optionals litellmCfg.enable [ "dummy" ];
+
+  ollamaCfg = config.codgician.services.ollama;
 in
 {
   options.codgician.services.open-webui = {
@@ -79,6 +79,7 @@ in
         inherit (cfg) host port openFirewall;
         environmentFile = config.age.secrets.openWebuiEnv.path;
         environment = {
+          ENV = "prod";
           WEBUI_AUTH = "True";
           WEBUI_NAME = "Akasha";
           WEBUI_URL =
@@ -86,24 +87,41 @@ in
               builtins.head cfg.reverseProxy.domains
             else
               "${cfg.host}:${builtins.toString cfg.port}";
+          # Features
           ENABLE_SIGNUP = "False";
           ENABLE_LOGIN_FORM = "True";
           DEFAULT_USER_ROLE = "pending";
+          ENABLE_CHANNELS = "True";
+          ENABLE_AUTOCOMPLETE_GENERATION = "True";
+          AUTOCOMPLETE_GENERATION_INPUT_MAX_LENGTH = "-1";
+          ENABLE_EVALUATION_ARENA_MODELS = "True";
+          ENABLE_MESSAGE_RATING = "True";
+          ENABLE_COMMUNITY_SHARING = "True";
+          ENABLE_TAGS_GENERATION = "True";
+          # Ollama
           ENABLE_OLLAMA_API = if config.services.ollama.enable then "True" else "False";
-          OLLAMA_BASE_URL = lib.mkIf config.services.ollama.enable (
-            let
-              ollamaHost = config.services.ollama.host;
-              ollamaPort = config.services.ollama.port;
-            in
-            "http://${ollamaHost}:${builtins.toString ollamaPort}"
-          );
-          ENABLE_OPENAI_API = "True";
+          OLLAMA_BASE_URL =
+            lib.mkIf ollamaCfg.enable "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
+          # OpenAI (LiteLLM)
+          ENABLE_OPENAI_API = if litellmCfg.enable then "True" else "False";
           OPENAI_API_BASE_URLS = listToStr litellmBases;
           OPENAI_API_KEYS = listToStr litellmKeys;
+          # TTS
+          TTS_ENGINE = "transformers";
+          WHISPER_MODEL = "small";
+          WHISPER_MODEL_AUTO_UPDATE = "True";
+          AUDIO_TTS_ENGINE = "transformers";
+          # Security
+          ENABLE_FORWARD_USER_INFO_HEADERS = "False";
+          ENABLE_RAG_LOCAL_WEB_FETCH = "True";
+          ENABLE_RAG_WEB_LOADER_SSL_VERIFICATION = "True";
+          WEBUI_SESSION_COOKIE_SAME_SITE = "lax";
+          # RAG
+          ENABLE_RAG_HYBRID_SEARCH = "True";
+          PDF_EXTRACT_IMAGES = "True";
           ENABLE_SEARCH_QUERY = "True";
           ENABLE_RAG_WEB_SEARCH = "True";
           RAG_WEB_SEARCH_ENGINE = "google_pse";
-          TTS_ENGINE = "transformers";
         };
       };
     })

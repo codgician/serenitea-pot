@@ -1,6 +1,6 @@
 # Always use LLM packages from unstable
 
-{ inputs, lib, ... }:
+{ inputs, ... }:
 
 self: super:
 let
