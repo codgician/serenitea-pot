@@ -4,8 +4,8 @@ let
   resource_group_name = config.resource.azurerm_resource_group.celestia.name;
 in
 {
-  resource.azurerm_cognitive_account.cacucu = rec {
-    name = "cacucu";
+  resource.azurerm_cognitive_account.kapatcir = rec {
+    name = "kapatcir";
     inherit location resource_group_name;
     kind = "SpeechServices";
     public_network_access_enabled = true;
