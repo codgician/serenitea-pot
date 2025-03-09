@@ -4,40 +4,46 @@
 
 self: super:
 let
-  isAttr = x: lib.hasPrefix "python" x && lib.hasSuffix "Packages" x;
-  attrs = builtins.filter isAttr (builtins.attrNames super);
   unstablePkgs = import inputs.nixpkgs-unstable {
     inherit (super) system;
     config.allowUnfree = true;
   };
+
+  pythonNames = builtins.filter (x: builtins.match "(^python[0-9]*(Full)?$)" x != null) (
+    builtins.attrNames super
+  );
+  pythonPackagesNames = builtins.filter (x: builtins.match "(^python[0-9]*Packages$)" x != null) (
+    builtins.attrNames super
+  );
+
+  mkPackageOverride =
+    pythonPackagesName:
+    (ppself: ppsuper: {
+      inherit (unstablePkgs.${pythonPackagesName})
+        ollama
+        litellm
+        vllm
+        ;
+    });
 in
 {
   inherit (unstablePkgs) open-webui;
   inherit (unstablePkgs) llama-cpp vllm;
   inherit (unstablePkgs) ollama ollama-cuda ollama-rocm;
 }
+# Override python.withPackages
 // builtins.listToAttrs (
-  builtins.map (name: {
-    inherit name;
-    value = super.${name}.overrideScope (
-      ppself: ppsuper: {
-        inherit (unstablePkgs.${name})
-          ollama
-          vllm
-          ;
-
-        # Temporary: fix missing dependencies
-        litellm = unstablePkgs.${name}.litellm.overridePythonAttrs (old: {
-          optional-dependencies = old.optional-dependencies // {
-            proxy =
-              old.optional-dependencies.proxy
-              ++ (with unstablePkgs.${name}; [
-                email-validator
-                uvloop
-              ]);
-          };
-        });
-      }
-    );
-  }) attrs
+  builtins.map (pythonName: {
+    name = pythonName;
+    value = super.${pythonName}.override {
+      packageOverrides = mkPackageOverride (super.${pythonName}.pythonAttr + "Packages");
+    };
+  }) pythonNames
+)
+# Override pythonPackages
+// builtins.listToAttrs (
+  builtins.map (pythonPackagesName: {
+    name = pythonPackagesName;
+    value = super.${pythonPackagesName}.overrideScope (mkPackageOverride pythonPackagesName);
+  }) pythonPackagesNames
 )
