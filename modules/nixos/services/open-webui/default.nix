@@ -121,8 +121,23 @@ in
           ENABLE_SEARCH_QUERY = "True";
           ENABLE_RAG_WEB_SEARCH = "True";
           RAG_WEB_SEARCH_ENGINE = "google_pse";
+          # Redis
+          ENABLE_WEBSOCKET_SUPPORT = "True";
+          WEBSOCKET_MANAGER = "redis";
+          WEBSOCKET_REDIS_URL = "unix://${config.services.redis.servers.open-webui.unixSocket}";
         };
       };
+
+      # Set up Redis
+      services.redis.servers.open-webui = {
+        enable = true;
+        unixSocketPerm = 660;
+      };
+
+      # Ensure access to Redis
+      systemd.services.open-webui.serviceConfig.SupplementaryGroups = [ 
+        config.services.redis.servers.open-webui.group
+      ];
     })
 
     (lib.mkIf cfg.enable (

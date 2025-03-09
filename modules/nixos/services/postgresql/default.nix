@@ -10,7 +10,7 @@ let
 in
 {
   options.codgician.services.postgresql = {
-    enable = lib.mkEnableOption "PostgreSQL.";
+    enable = lib.mkEnableOption "PostgreSQL";
 
     dataDir = lib.mkOption {
       type = types.str;
