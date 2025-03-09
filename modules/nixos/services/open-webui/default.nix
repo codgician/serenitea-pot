@@ -100,8 +100,7 @@ in
           ENABLE_TAGS_GENERATION = "True";
           # Ollama
           ENABLE_OLLAMA_API = if config.services.ollama.enable then "True" else "False";
-          OLLAMA_BASE_URL =
-            lib.mkIf ollamaCfg.enable "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
+          OLLAMA_BASE_URL = lib.mkIf ollamaCfg.enable "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
           # OpenAI (LiteLLM)
           ENABLE_OPENAI_API = if litellmCfg.enable then "True" else "False";
           OPENAI_API_BASE_URLS = listToStr litellmBases;
