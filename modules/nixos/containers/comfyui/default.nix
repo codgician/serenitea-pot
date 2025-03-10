@@ -2,6 +2,7 @@
 let
   cfg = config.codgician.containers.comfyui;
   types = lib.types;
+  uid = 2024;
 in
 {
   options.codgician.containers.comfyui = {
@@ -56,22 +57,37 @@ in
     (lib.mkIf cfg.enable {
       virtualisation.oci-containers.containers.comfyui = {
         autoStart = true;
-        image = "docker.io/yanwk/comfyui-boot:cu124-megapak";
+        image = "docker.io/mmartial/comfyui-nvidia-docker:latest";
         ports = [ "${builtins.toString cfg.port}:8188" ];
-        volumes = [ "${cfg.dataDir}:/root" ];
+        volumes = [
+          "${cfg.dataDir}/basedir:/basedir"
+          "${cfg.dataDir}/run:/comfy/mnt"
+        ];
         extraOptions =
           [
             "--pull=newer"
             "--log-level=debug"
-            "--security-opt"
-            "label=disable"
             "-e"
-            "CLI_ARGS=\"--fast\""
+            "SECURITY_LEVEL=normal"
+            "-e"
+            "WANTED_UID=${builtins.toString uid}"
+            "-e"
+            "WANTED_GID=${builtins.toString uid}"
           ]
           ++ lib.optionals config.hardware.nvidia-container-toolkit.enable [ "--device=nvidia.com/gpu=all" ];
       };
 
       virtualisation.podman.enable = true;
+
+      # Create user and group
+      users.users.comfyui = {
+        inherit uid;
+        isSystemUser = true;
+        group = "comfyui";
+      };
+      users.groups.comfyui = {
+        gid = uid;
+      };
     })
 
     # Reverse proxy profile
