@@ -121,12 +121,21 @@ in
           ENABLE_SEARCH_QUERY = "True";
           ENABLE_RAG_WEB_SEARCH = "True";
           RAG_WEB_SEARCH_ENGINE = "google_pse";
+          RAG_EMBEDDING_ENGINE = lib.mkIf ollamaCfg.enable "ollama";
+          RAG_EMBEDDING_MODEL = lib.mkIf ollamaCfg.enable "bge-m3";
+          RAG_OLLAMA_BASE_URL = lib.mkIf ollamaCfg.enable "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
+          RAG_RERANKING_MODEL = "BAAI/bge-reranker-v2-m3";
           # Redis
           ENABLE_WEBSOCKET_SUPPORT = "True";
           WEBSOCKET_MANAGER = "redis";
           WEBSOCKET_REDIS_URL = "unix://${config.services.redis.servers.open-webui.unixSocket}";
         };
       };
+
+      # Add embedding model to ollama
+      codgician.services.ollama.loadModels = [
+        "bge-m3"
+      ];
 
       # Set up Redis
       services.redis.servers.open-webui = {
