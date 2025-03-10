@@ -6,18 +6,25 @@
 }:
 let
   cfg = config.codgician.codgi.vscode;
+  inherit (lib) types;
 in
 {
   options.codgician.codgi.vscode = {
-    enable = lib.mkEnableOption "Visual Studio Code.";
+    enable = lib.mkEnableOption "Visual Studio Code";
+
+    immutableExtensions = lib.mkOption {
+      type = types.bool;
+      default = true;
+      description = "Make extensions immutable.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
     programs.vscode = {
       enable = true;
       enableUpdateCheck = false;
-      enableExtensionUpdateCheck = false;
-      mutableExtensionsDir = false;
+      enableExtensionUpdateCheck = !cfg.immutableExtensions;
+      mutableExtensionsDir = !cfg.immutableExtensions;
 
       extensions =
         with pkgs.vscode-marketplace;

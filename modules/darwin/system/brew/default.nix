@@ -56,7 +56,6 @@ in
       inherit (cfg) masApps taps;
       casks = builtins.map (name: {
         inherit name;
-        greedy = true;
       }) cfg.casks;
 
       global = {

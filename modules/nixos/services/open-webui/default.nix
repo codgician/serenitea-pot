@@ -135,7 +135,7 @@ in
       };
 
       # Ensure access to Redis
-      systemd.services.open-webui.serviceConfig.SupplementaryGroups = [ 
+      systemd.services.open-webui.serviceConfig.SupplementaryGroups = [
         config.services.redis.servers.open-webui.group
       ];
     })

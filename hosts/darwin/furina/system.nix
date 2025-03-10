@@ -8,7 +8,8 @@
         enable = true;
         taps = [ "playcover/playcover" ];
         casks = (import ./brew.nix).casks;
-        masApps = (import ./brew.nix).masApps;
+        # Wait for https://github.com/mas-cli/mas/issues/724
+        # masApps = (import ./brew.nix).masApps;
       };
       common.enable = true;
       nix.useCnMirror = true;
@@ -31,7 +32,11 @@
         git.enable = true;
         pwsh.enable = true;
         ssh.enable = true;
-        vscode.enable = true;
+        vscode = {
+          enable = true;
+          # Workaround remote ssh issue
+          immutableExtensions = false;
+        };
         zsh.enable = true;
       };
 
