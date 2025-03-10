@@ -60,7 +60,14 @@ in
         ports = [ "${builtins.toString cfg.port}:8188" ];
         volumes = [ "${cfg.dataDir}:/root" ];
         extraOptions =
-          [ "--log-level=debug" ]
+          [
+            "--pull=newer"
+            "--log-level=debug"
+            "--security-opt"
+            "label=disable"
+            "-e"
+            "CLI_ARGS=\"--fast\""
+          ]
           ++ lib.optionals config.hardware.nvidia-container-toolkit.enable [ "--device=nvidia.com/gpu=all" ];
       };
 

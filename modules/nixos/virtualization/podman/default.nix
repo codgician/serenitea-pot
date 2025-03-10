@@ -1,12 +1,15 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.virtualization.podman;
   systemCfg = config.codgician.system;
 in
 {
-  options.codgician.virtualization.podman.enable = lib.mkEnableOption ''
-    Enable podman.
-  '';
+  options.codgician.virtualization.podman.enable = lib.mkEnableOption "podman";
 
   config = lib.mkIf cfg.enable {
     # Podman configurations
@@ -24,9 +27,16 @@ in
     # Set podman as oci-container backend
     virtualisation.oci-containers.backend = "podman";
 
+    # Mount executables for nvidia
+    hardware.nvidia-container-toolkit = {
+      mount-nvidia-executables = true;
+      mount-nvidia-docker-1-directories = true;
+    };
+
     # Persist data
-    environment = lib.optionalAttrs (systemCfg ? impermanence) {
-      persistence.${systemCfg.impermanence.path}.directories = [
+    environment = {
+      systemPackages = with pkgs; [ podman-tui ];
+      persistence.${systemCfg.impermanence.path}.directories = lib.mkIf (systemCfg ? impermanence) [
         "/var/lib/containers"
       ];
     };
