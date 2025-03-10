@@ -2,6 +2,15 @@
 {
   # My settings
   codgician = {
+    containers.comfyui = {
+      enable = true;
+      dataDir = "/nix/persist/comfyui";
+      reverseProxy = {
+        enable = true;
+        domains = [ "comfy.codgician.me" ];
+      };
+    };
+
     services = {
       ollama = {
         enable = true;
