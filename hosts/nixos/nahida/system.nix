@@ -7,7 +7,7 @@
       dataDir = "/nix/persist/comfyui";
       reverseProxy = {
         enable = true;
-        domains = [ "comfy.codgician.me" ];
+        domains = [ "vanarana.codgician.me" ];
       };
     };
 

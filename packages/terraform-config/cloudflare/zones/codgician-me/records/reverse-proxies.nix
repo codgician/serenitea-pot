@@ -12,7 +12,7 @@ let
     "hass"
     "matrix"
     "pve"
-    "saw"
+    "vanarana"
   ];
 in
 {
