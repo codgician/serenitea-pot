@@ -6,6 +6,8 @@
 }:
 let
   cfg = config.codgician.system.common;
+  configureNetworking =
+    !(config ? proxmoxLXC) || !config.proxmoxLXC.enable || config.proxmoxLXC.manageNetwork;
   networkConfig = {
     MulticastDNS = true;
     LLMNR = true;
@@ -42,7 +44,7 @@ in
     };
 
     # Enable mDNS
-    systemd.network.networks = {
+    systemd.network.networks = lib.mkIf configureNetworking {
       "99-ethernet-default-dhcp" = { inherit networkConfig; };
       "99-wireless-client-dhcp" = { inherit networkConfig; };
     };
