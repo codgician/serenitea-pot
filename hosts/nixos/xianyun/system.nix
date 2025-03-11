@@ -63,12 +63,15 @@
   # Firewall
   networking.firewall.enable = true;
 
-  # Enable forwarding and BBR
   boot.kernel.sysctl = {
     "net.core.default_qdisc" = "fq";
     "net.ipv4.tcp_congestion_control" = "bbr";
+
+    # Enable forwarding for WireGuard
     "net.ipv4.conf.all.forwarding" = "1";
+    "net.ipv4.conf.all.proxy_arp" = "1";
     "net.ipv6.conf.all.forwarding" = "1";
+    "net.ipv6.conf.all.proxy_ndp" = "1";
   };
 
   # This value determines the NixOS release from which the default
