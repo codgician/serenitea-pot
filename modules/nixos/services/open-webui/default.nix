@@ -122,7 +122,7 @@ in
           ENABLE_RAG_WEB_SEARCH = "True";
           RAG_WEB_SEARCH_ENGINE = "google_pse";
           RAG_EMBEDDING_ENGINE = lib.mkIf ollamaCfg.enable "ollama";
-          RAG_EMBEDDING_MODEL = lib.mkIf ollamaCfg.enable "bge-m3";
+          RAG_EMBEDDING_MODEL = lib.mkIf ollamaCfg.enable "qllama/bge-m3:latest";
           RAG_OLLAMA_BASE_URL = lib.mkIf ollamaCfg.enable "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
           RAG_RERANKING_MODEL = "BAAI/bge-reranker-v2-m3";
           # Redis
@@ -134,7 +134,7 @@ in
 
       # Add embedding model to ollama
       codgician.services.ollama.loadModels = [
-        "bge-m3"
+        "qllama/bge-m3:latest"
       ];
 
       # Set up Redis
