@@ -17,9 +17,8 @@
         acceleration = "cuda";
         loadModels = [
           "deepseek-r1:32b"
-          "openthinker:32b"
           "qwq:32b"
-          "llama3.2-vision:11b"
+          "gemma3:27b"
           "phi4:14b"
         ];
       };
