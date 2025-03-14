@@ -113,6 +113,9 @@ in
       apparmor.enable = !config.boot.isContainer;
     };
 
+    # Enable fail2ban
+    services.fail2ban.enable = true;
+
     # OpenSSH
     services.openssh = {
       enable = true;
