@@ -11,6 +11,7 @@
   "matrix.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "pve.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "saw.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
+  "gardemek.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "vanarana.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "codgician.me".challengeProfile = ./profiles/codgician-me.nix;
 }

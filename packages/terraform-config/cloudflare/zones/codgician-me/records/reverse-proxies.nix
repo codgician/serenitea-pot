@@ -12,6 +12,7 @@ let
     "hass"
     "matrix"
     "pve"
+    "gardemek"
     "vanarana"
   ];
 in

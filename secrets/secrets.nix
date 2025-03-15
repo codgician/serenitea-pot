@@ -36,6 +36,11 @@ with pubKeys.hosts;
   "gitlabSmtp.age".publicKeys = someHosts [ paimon ];
   "gitlabOmniAuthGitHub.age".publicKeys = someHosts [ paimon ];
 
+  # Grafana secrets
+  "grafanaAdminPassword.age".publicKeys = someHosts [ lumine ];
+  "grafanaSecretKey.age".publicKeys = someHosts [ lumine ];
+  "grafanaSmtp.age".publicKeys = someHosts [ lumine ];
+
   # Matrix secrets
   "matrixGlobalPrivateKey.age".publicKeys = someHosts [ paimon ];
   "matrixEnv.age".publicKeys = someHosts [ paimon ];

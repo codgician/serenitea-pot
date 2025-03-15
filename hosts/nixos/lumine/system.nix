@@ -4,6 +4,13 @@
   # My settings
   codgician = {
     services = {
+      grafana = {
+        enable = true;
+        reverseProxy = {
+          enable = true;
+          domains = [ "gardemek.codgician.me" ];
+        };
+      };
       nixos-vscode-server.enable = true;
       wireguard = {
         enable = true;
