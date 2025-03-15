@@ -11,6 +11,7 @@
           domains = [ "gardemek.codgician.me" ];
         };
       };
+      postgresql.zfsOptimizations = true;
       nixos-vscode-server.enable = true;
       wireguard = {
         enable = true;
