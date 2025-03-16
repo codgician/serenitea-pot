@@ -334,6 +334,26 @@
         "type": "github"
       }
     },
+    "mlnx-ofed-nixos": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1742127543,
+        "narHash": "sha256-MPfzy97eBnULImb0MRXIClI5isZTlD7Fm3v4DzOwBDg=",
+        "owner": "codgician",
+        "repo": "mlnx-ofed-nixos",
+        "rev": "1243069fa973e6b0f3d7750f90e8f37e98410330",
+        "type": "github"
+      },
+      "original": {
+        "owner": "codgician",
+        "repo": "mlnx-ofed-nixos",
+        "type": "github"
+      }
+    },
     "mobile-nixos": {
       "flake": false,
       "locked": {
@@ -539,11 +559,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1742117454,
-        "narHash": "sha256-7ysDN+xm5OclG4okWCH/gxJUEUrPhibbNhEp9Fu6sHY=",
+        "lastModified": 1742125445,
+        "narHash": "sha256-pOOV+e0MDR9EJW8SS/l93Au8w97LXwDDENxWX/1xI84=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "51e3a16c8aa6985c0b4426fae43eb5d782ee58fb",
+        "rev": "fcbc0243a01b537b4ea2e8190d3e79cbc6343e4d",
         "type": "github"
       },
       "original": {
@@ -644,6 +664,7 @@
         "home-manager-unstable": "home-manager-unstable",
         "impermanence": "impermanence",
         "lanzaboote": "lanzaboote",
+        "mlnx-ofed-nixos": "mlnx-ofed-nixos",
         "mobile-nixos": "mobile-nixos",
         "nix-vscode-extensions": "nix-vscode-extensions",
         "nixos-generators": "nixos-generators",

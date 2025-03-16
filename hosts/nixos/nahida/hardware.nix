@@ -20,8 +20,18 @@
     "sr_mod"
   ];
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-amd" ];
-  boot.extraModulePackages = [ ];
+
+  # Selfhost mlnx-ofed-nixos
+  boot.extraModulePackages = with config.boot.kernelPackages; [
+    mlnx-ofed-kernel
+    fwctl
+  ];
+  boot.kernelModules = [ 
+    "kvm-amd" 
+    "mlx5_core" 
+    "mlx5_ib" 
+    "fwctl"
+  ];
   boot.kernelPackages = pkgs.linuxPackages_6_12;
   boot.kernelParams = [
     "console=ttyS0,115200"

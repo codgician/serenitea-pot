@@ -34,6 +34,11 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     flake-utils.url = "github:numtide/flake-utils";
 
+    mlnx-ofed-nixos = {
+      url = "github:codgician/mlnx-ofed-nixos";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     proxmox-nixos = {
       url = "github:SaumonNet/proxmox-nixos";
       inputs = {
