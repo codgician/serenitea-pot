@@ -41,7 +41,7 @@ nix fmt
 To inspect evaluated values or do experiments, you may run REPL using:
 
 ```bash
-nix run .#repl
+nix develop .#repl
 ```
 
 ## Documentation
