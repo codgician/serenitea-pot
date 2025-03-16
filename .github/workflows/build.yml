@@ -13,11 +13,19 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       darwin: ${{ steps.get_matrix.outputs.darwin }}
       linux: ${{ steps.get_matrix.outputs.linux }}
     steps:
+      - uses: thiagokokada/free-disk-space@main
+        continue-on-error: true
+        with:
+          tool-cache: true
+          usrlocal: true
+          usrmisc: true
+          opt: true
+          varcache: true
       - name: Checkout new change
         uses: actions/checkout@v4
         with:
@@ -50,10 +58,6 @@ jobs:
       fail-fast: false
     runs-on: ${{ matrix.host.system == 'aarch64-linux' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     steps:
-      - name: Checkout new change
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
       - uses: thiagokokada/free-disk-space@main
         continue-on-error: true
         with:
@@ -62,6 +66,10 @@ jobs:
           usrmisc: true
           opt: true
           varcache: true
+      - name: Checkout new change
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
       - uses: cachix/install-nix-action@v31
         with:
           nix_path: 'nixpkgs=https://github.com/NixOS/nixpkgs/archive/refs/heads/nixos-unstable.tar.gz'
