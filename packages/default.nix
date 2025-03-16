@@ -1,10 +1,16 @@
 args@{ lib, ... }:
-let
-  attrs = builtins.map (name: builtins.mapAttrs (k: v: { "${name}" = v; }) (import ./${name} args)) (
-    lib.codgician.getFolderNames ./.
-  );
-  limit =
-    path: lhs: rhs:
-    (builtins.length path) >= 2;
-in
-builtins.foldl' (lib.attrsets.recursiveUpdateUntil limit) { } attrs
+
+lib.codgician.forAllSystems (
+  pkgs:
+  let
+    attrs = lib.pipe ./. [
+      lib.codgician.getFolderNames
+      (builtins.map (name: {
+        inherit name;
+        value = import ./${name} (args // { inherit pkgs; });
+      }))
+      builtins.listToAttrs
+    ];
+  in
+  lib.filterAttrs (k: v: !(v.meta ? platforms) || (builtins.elem pkgs.system v.meta.platforms)) attrs
+)
