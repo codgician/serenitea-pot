@@ -114,7 +114,7 @@ in
     };
 
     # Enable fail2ban
-    services.fail2ban.enable = true;
+    services.fail2ban.enable = config.networking.firewall.enable;
 
     # OpenSSH
     services.openssh = {

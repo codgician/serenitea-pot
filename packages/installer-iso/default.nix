@@ -1,4 +1,9 @@
-{ lib, outputs, ... }:
+{
+  lib,
+  outputs,
+  includeHostDrvs ? false,
+  ...
+}:
 
 # Caution: produced iso should NEVER contain any secrets
 lib.codgician.forLinuxSystems (
@@ -25,7 +30,33 @@ lib.codgician.forLinuxSystems (
           { modulesPath, ... }:
           {
             imports = [ (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix") ];
-            environment.systemPackages = hostDrvs;
+
+            # Add common utilities
+            environment.systemPackages =
+              with pkgs;
+              [
+                inetutils
+                htop
+                httplz
+                pciutils
+                iperf3
+                screen
+                aria2
+                agenix
+                disko
+                smartmontools
+                acpica-tools
+                terraform
+              ]
+              ++ (lib.optional includeHostDrvs hostDrvs);
+
+            # Symlink to source in nixos user home
+            home-manager.users.nixos = { ... }: {
+              home = {
+                stateVersion = "24.11";
+                file."serenitea-pot".source = lib.codgician.rootDir;
+              };
+            };
           }
         )
       ];
