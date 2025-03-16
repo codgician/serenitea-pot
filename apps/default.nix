@@ -3,7 +3,8 @@ args@{ lib, ... }:
 lib.codgician.forAllSystems (
   pkgs:
   let
-    attrs = lib.pipe (lib.codgician.getFolderNames ./.) [
+    attrs = lib.pipe ./. [
+      lib.codgician.getFolderNames
       (builtins.map (name: {
         inherit name;
         value = import ./${name} (args // { inherit pkgs; });

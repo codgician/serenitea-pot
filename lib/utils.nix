@@ -105,8 +105,9 @@ rec {
       hostName,
       modules ? [ ],
       system,
+      nix-darwin ? inputs."${if stable then "darwin" else "darwin-unstable"}",
     }:
-    inputs."${if stable then "darwin" else "darwin-unstable"}".lib.darwinSystem {
+    nix-darwin.lib.darwinSystem {
       inherit system lib;
       specialArgs = {
         inherit
@@ -130,8 +131,9 @@ rec {
       hostName,
       modules ? [ ],
       system,
+      nixpkgs ? inputs."${if stable then "nixpkgs" else "nixpkgs-unstable"}",
     }:
-    inputs."${if stable then "nixpkgs" else "nixpkgs-unstable"}".lib.nixosSystem {
+    nixpkgs.lib.nixosSystem {
       inherit system lib;
       specialArgs = {
         inherit

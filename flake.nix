@@ -208,9 +208,10 @@
       );
 
       # Packages: `nix build .#pkgName`
-      packages = (
+      packages = lib.codgician.forAllSystems (
+        pkgs:
         import ./packages {
-          inherit lib inputs;
+          inherit lib pkgs inputs;
           outputs = self;
         }
       );
