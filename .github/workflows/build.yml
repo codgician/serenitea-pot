@@ -13,7 +13,7 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
   validate:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     outputs:
       darwin: ${{ steps.get_matrix.outputs.darwin }}
       linux: ${{ steps.get_matrix.outputs.linux }}
