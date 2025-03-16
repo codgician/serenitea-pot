@@ -13,7 +13,7 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
   validate:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-24.04
     outputs:
       darwin: ${{ steps.get_matrix.outputs.darwin }}
       linux: ${{ steps.get_matrix.outputs.linux }}
@@ -40,7 +40,7 @@ jobs:
             max-jobs = auto
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Check flake
-        run: nix flake check --all-systems
+        run: nix flake check --all-systems --debug
       - name: Calculate strategy matrix
         id: get_matrix
         run: |
