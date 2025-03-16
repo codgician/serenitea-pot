@@ -40,7 +40,7 @@ jobs:
             max-jobs = auto
       - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Check flake
-        run: nix flake check --all-systems --debug
+        run: nix flake check --all-systems
       - name: Calculate strategy matrix
         id: get_matrix
         run: |
