@@ -24,13 +24,17 @@
   # Selfhost mlnx-ofed-nixos
   boot.extraModulePackages = with config.boot.kernelPackages; [
     mlnx-ofed-kernel
+    mlnx-nvme
     fwctl
+    kernel-mft
   ];
   boot.kernelModules = [
     "kvm-amd"
     "mlx5_core"
     "mlx5_ib"
     "fwctl"
+    "mst_pci"
+    "mst_pciconf"
   ];
   boot.kernelPackages = pkgs.linuxPackages_6_12;
   boot.kernelParams = [
