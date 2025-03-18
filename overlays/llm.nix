@@ -9,10 +9,7 @@ let
     config.allowUnfree = true;
   };
 
-  pythonNames = builtins.filter (x: builtins.match "(^python[0-9]*(Full)?$)" x != null) (
-    builtins.attrNames super
-  );
-  pythonPackagesNames = builtins.filter (x: builtins.match "(^python[0-9]*Packages$)" x != null) (
+  pythonNames = builtins.filter (x: builtins.match "(^python[0-9]*$)" x != null) (
     builtins.attrNames super
   );
 
@@ -31,7 +28,7 @@ in
   inherit (unstablePkgs) llama-cpp vllm;
   inherit (unstablePkgs) ollama ollama-cuda ollama-rocm;
 }
-# Override python.withPackages
+# Override python packages
 // builtins.listToAttrs (
   builtins.map (pythonName: {
     name = pythonName;
@@ -39,11 +36,4 @@ in
       packageOverrides = mkPackageOverride (super.${pythonName}.pythonAttr + "Packages");
     };
   }) pythonNames
-)
-# Override pythonPackages
-// builtins.listToAttrs (
-  builtins.map (pythonPackagesName: {
-    name = pythonPackagesName;
-    value = super.${pythonPackagesName}.overrideScope (mkPackageOverride pythonPackagesName);
-  }) pythonPackagesNames
 )
