@@ -34,11 +34,8 @@ jobs:
         with:
           extra-conf: |
             accept-flake-config = true
-            system-features = kvm big-parallel
             experimental-features = nix-command flakes
             builders-use-substitutes = true
-            max-jobs = auto
-      - uses: DeterminateSystems/magic-nix-cache-action@main
       - name: Check flake
         run: nix flake check --all-systems
       - name: Calculate strategy matrix
@@ -75,10 +72,8 @@ jobs:
           nix_path: 'nixpkgs=https://github.com/NixOS/nixpkgs/archive/refs/heads/nixos-unstable.tar.gz'
           extra_nix_config: |
             accept-flake-config = true
-            system-features = kvm big-parallel
             experimental-features = nix-command flakes
             builders-use-substitutes = true
-            max-jobs = auto
       - uses: cachix/cachix-action@v16
         with:
           name: codgician
@@ -105,10 +100,8 @@ jobs:
           nix_path: 'nixpkgs=https://github.com/NixOS/nixpkgs/archive/refs/heads/nixos-unstable.tar.gz'
           extra_nix_config: |
             accept-flake-config = true
-            system-features = big-parallel
             experimental-features = nix-command flakes
             builders-use-substitutes = true
-            max-jobs = auto
             extra-platforms = x86_64-darwin
       - uses: cachix/cachix-action@v16
         with:
