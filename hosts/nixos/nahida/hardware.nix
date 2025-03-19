@@ -21,21 +21,7 @@
   ];
   boot.initrd.kernelModules = [ ];
 
-  # Selfhost mlnx-ofed-nixos
-  boot.extraModulePackages = with config.boot.kernelPackages; [
-    mlnx-ofed-kernel
-    mlnx-nvme
-    fwctl
-    kernel-mft
-  ];
-  boot.kernelModules = [
-    "kvm-amd"
-    "mlx5_core"
-    "mlx5_ib"
-    "fwctl"
-    "mst_pci"
-    "mst_pciconf"
-  ];
+  boot.kernelModules = [ "kvm-amd" ];
   boot.kernelPackages = pkgs.linuxPackages_6_12;
   boot.kernelParams = [
     "console=ttyS0,115200"
@@ -43,6 +29,13 @@
   ];
 
   networking.useDHCP = lib.mkDefault true;
+
+  # Selfhost mlnx-ofed-nixos
+  hardware.mlnx-ofed = {
+    enable = true;
+    fwctl.enable = true;
+    kernel-mft.enable = true;
+  };
 
   # Enable QEMU guest agent
   services.qemuGuest.enable = true;

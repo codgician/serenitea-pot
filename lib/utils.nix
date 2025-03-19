@@ -77,6 +77,7 @@ rec {
       nixos-generators.nixosModules.all-formats
       nixos-wsl.nixosModules.wsl
       nixvirt.nixosModules.default
+      mlnx-ofed-nixos.nixosModules.default
       vscode-server.nixosModules.default
       proxmox-nixos.nixosModules.proxmox-ve
       (

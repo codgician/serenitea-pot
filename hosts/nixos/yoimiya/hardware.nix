@@ -51,6 +51,15 @@
     '';
   };
 
+  # Selfhost mlnx-ofed-nixos
+  hardware.mlnx-ofed = {
+    enable = true;
+    fwctl.enable = true;
+    kernel-mft.enable = true;
+    nfsrdma.enable = true;
+    nvme.enable = true;
+  };
+
   # Specify boot-0 as the primary ESP partition
   boot.loader.efi.efiSysMountPoint = "/boot-0";
 
