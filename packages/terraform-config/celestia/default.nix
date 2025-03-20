@@ -2,11 +2,11 @@
 {
   imports = [
     ./cognitive
+    ./storages
     ./vms
     ./budget.nix
     ./networks.nix
     ./providers.nix
-    ./storages.nix
     ./gallery.nix
   ];
 
