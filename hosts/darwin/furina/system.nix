@@ -45,7 +45,8 @@
         packages =
           with pkgs;
           [
-            inetutils
+            jq
+            dnsutils
             httplz
             iperf3
             htop

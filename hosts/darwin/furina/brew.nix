@@ -53,7 +53,6 @@
     "calibre"
     "microsoft-edge"
     "microsoft-teams"
-    "logi-options-plus"
     "playcover-nightly"
     "parallels"
     "iina"
