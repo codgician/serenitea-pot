@@ -115,6 +115,7 @@ in
       };
       iconTheme.name = "breeze-dark";
       theme.name = "Breeze";
+      gtk2.configLocation = "${config.home.homeDirectory}/.config/.gtkrc-2.0";
     };
   };
 }

@@ -77,7 +77,6 @@ lib.optionalAttrs (lib.version >= "24.05") {
     # Install optional dependencies
     services.fwupd.enable = true;
     environment = {
-      sessionVariables.GTK2_RC_FILES = [ "$HOME/.config/gtk-2.0/gtkrc" ];
       systemPackages =
         with pkgs;
         (
