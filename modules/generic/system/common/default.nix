@@ -22,5 +22,8 @@ in
       noto-fonts-emoji
       cascadia-code
     ];
+
+    # Set up nix-direnv
+    programs.direnv.nix-direnv.enable = true;
   };
 }

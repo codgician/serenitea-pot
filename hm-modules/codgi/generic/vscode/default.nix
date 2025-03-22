@@ -42,6 +42,7 @@ in
           ms-vscode-remote.remote-ssh-edit
           ms-vscode-remote.remote-containers
           dnicolson.binary-plist
+          mkhl.direnv
         ]
         ++ (with pkgs.vscode-marketplace-release; [
           github.copilot

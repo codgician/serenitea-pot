@@ -115,3 +115,6 @@ terraform.rc
 
 # Ignore terraform output as it is managed by terranix
 config.tf.json
+
+# Direnv
+.direnv/

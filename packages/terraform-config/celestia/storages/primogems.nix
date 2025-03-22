@@ -5,7 +5,7 @@ let
 in
 {
   resource = {
-    # Binary cache
+    # Binary cache storage account
     azurerm_storage_account.primogems = {
       name = "primogems";
       inherit resource_group_name location;
@@ -15,6 +15,7 @@ in
       blob_properties.last_access_time_enabled = true;
     };
 
+    # Containers
     azurerm_storage_container = with config.resource; {
       # Binary cache for serenitea pot
       serenitea-pot = {
@@ -24,6 +25,7 @@ in
       };
     };
 
+    # Garbage collection policy
     azurerm_storage_management_policy.primogems-gc = with config.resource; {
       storage_account_id = azurerm_storage_account.primogems "id";
       rule = [

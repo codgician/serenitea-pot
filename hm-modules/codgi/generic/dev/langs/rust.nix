@@ -16,6 +16,7 @@ in
     programs.vscode = {
       extensions = with pkgs.vscode-marketplace; [
         rust-lang.rust-analyzer
+        vadimcn.vscode-lldb
       ];
 
       userSettings.rust-analyzer.server.path = "rust-analyzer";
