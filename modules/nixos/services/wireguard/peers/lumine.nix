@@ -21,4 +21,5 @@ with lib.codgician;
     "wgLuminePrivateKey"
     "wgPresharedKey"
   ];
+  persistentKeepalive = 25;
 }

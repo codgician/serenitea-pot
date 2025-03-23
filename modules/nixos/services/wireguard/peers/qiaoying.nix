@@ -21,4 +21,5 @@ with lib.codgician;
     "wgQiaoyingPrivateKey"
     "wgPresharedKey"
   ];
+  persistentKeepalive = 25;
 }
