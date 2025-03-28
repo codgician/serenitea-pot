@@ -29,16 +29,16 @@ let
   settingsFormat = pkgs.formats.yaml { };
   settings.model_list = azureModels ++ [
     {
-      model_name = "gemini-2.0-pro";
+      model_name = "gemini-2.5-pro";
       litellm_params = {
-        model = "gemini/gemini-2.0-pro-exp-02-05";
+        model = "gemini/gemini-2.5-pro-exp-03-25";
         api_key = "os.environ/GEMINI_API_KEY";
       };
     }
     {
       model_name = "gemini-2.0-flash";
       litellm_params = {
-        model = "gemini/gemini-2.0-flash-thinking-exp";
+        model = "gemini/gemini-2.0-flash";
         api_key = "os.environ/GEMINI_API_KEY";
       };
     }
@@ -56,13 +56,6 @@ let
         model = "azure_ai/akasha-deepseek-v3";
         api_base = "os.environ/AZURE_AKASHA_DEEPSEEK_V3_API_BASE";
         api_key = "os.environ/AZURE_AKASHA_DEEPSEEK_V3_API_KEY";
-      };
-    }
-    {
-      model_name = "deepseek-r1";
-      litellm_params = {
-        model = "deepseek/deepseek-reasoner";
-        api_key = "os.environ/DEEPSEEK_API_KEY";
       };
     }
   ];
