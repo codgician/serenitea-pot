@@ -40,18 +40,10 @@
       ];
     };
 
-  environment = {
-    # Disable ssh password authentication
-    etc."ssh/sshd_config.d/110-no-password-authentication.conf" = {
-      text = "PasswordAuthentication no";
-    };
-
-    # System packages
-    systemPackages = with pkgs; [
-      fastfetch
-      openssl
-    ];
-  };
+  environment.systemPackages = with pkgs; [
+    fastfetch
+    openssl
+  ];
 
   # zsh
   programs.zsh = {

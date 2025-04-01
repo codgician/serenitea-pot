@@ -18,9 +18,10 @@ in
 
     environment = {
       # Disable ssh password authentication
-      etc."ssh/sshd_config.d/110-no-password-authentication.conf" = {
-        text = "PasswordAuthentication no";
-      };
+      etc."ssh/sshd_config.d/110-no-password-authentication.conf".text = ''
+        PasswordAuthentication no
+        KbdInteractiveAuthentication no
+      '';
 
       # Workaround lack of dbus
       variables."GSETTINGS_BACKEND" = "keyfile";
