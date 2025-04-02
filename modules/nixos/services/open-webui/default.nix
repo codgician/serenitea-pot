@@ -107,7 +107,7 @@ in
           OPENAI_API_KEYS = listToStr litellmKeys;
           # TTS
           TTS_ENGINE = "transformers";
-          WHISPER_MODEL = "small";
+          WHISPER_MODEL = "large-v3-turbo";
           WHISPER_MODEL_AUTO_UPDATE = "True";
           AUDIO_TTS_ENGINE = "transformers";
           # Security
