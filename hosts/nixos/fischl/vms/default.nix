@@ -5,7 +5,7 @@
     qemu.swtpm.enable = true;
     onBoot = "start";
     onShutdown = "shutdown";
-    allowedBridges = [ "virbr0" ];
+    allowedBridges = [ "vs0" ];
     startDelay = 3;
     hooks.qemu = {
       "10-isolate-cpu" = lib.getExe (
@@ -52,7 +52,7 @@
 
       networks = [
         {
-          definition = ./virbr0.xml;
+          definition = ./vs0.xml;
           active = true;
         }
       ];
@@ -69,11 +69,16 @@
   codgician.users.codgi.extraGroups = [ "libvirtd" ];
 
   # Bridge network for virtual machines
+  virtualisation.vswitch.package = pkgs.openvswitch-dpdk;
   networking = {
-    bridges.virbr0.interfaces = [ "enp4s0" ];
-    interfaces.virbr0 = {
+    vswitches.vs0 = {
+      interfaces.enp4s0 = { };
+      extraOvsctlCmds = ''
+        set bridge vs0 other-config:hwaddr=ac:79:26:f1:5c:81
+      '';
+    };
+    interfaces.vs0 = {
       useDHCP = true;
-      macAddress = "ac:79:26:f1:5c:81";
     };
   };
 }
