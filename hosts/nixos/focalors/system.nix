@@ -23,7 +23,7 @@ in
 
     users.codgi = with lib.codgician; {
       enable = true;
-      hashedPasswordAgeFile = secretsDir + "/codgi-hashed-password.age";
+      hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
       extraGroups = [ "wheel" ];
     };
   };

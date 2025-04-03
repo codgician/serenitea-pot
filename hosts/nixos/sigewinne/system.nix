@@ -24,7 +24,7 @@
     users = with lib.codgician; {
       codgi = {
         enable = true;
-        hashedPasswordAgeFile = secretsDir + "/codgi-hashed-password.age";
+        hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
         extraGroups = [
           "dialout"
           "feedbackd"
@@ -36,7 +36,7 @@
 
       kiosk = {
         enable = true;
-        hashedPasswordAgeFile = secretsDir + "/kiosk-hashed-password.age";
+        hashedPasswordAgeFile = getAgeSecretPathFromName "kiosk-hashed-password";
       };
     };
   };

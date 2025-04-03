@@ -5,7 +5,7 @@
   ...
 }:
 let
-  credPath = lib.codgician.secretsDir + "/cloudflare-credential.age";
+  credPath = with lib.codgician; getAgeSecretPathFromName "cloudflare-credential";
 in
 {
   security.acme.certs."${domain}" = {

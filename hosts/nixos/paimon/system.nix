@@ -104,15 +104,15 @@
     users = with lib.codgician; {
       codgi = {
         enable = true;
-        hashedPasswordAgeFile = secretsDir + "/codgi-hashed-password.age";
-        passwordAgeFile = secretsDir + "/codgi-password.age";
+        hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
+        passwordAgeFile = getAgeSecretPathFromName "codgi-password";
         extraGroups = [ "wheel" ];
       };
       smb = {
         enable = true;
         createHome = false;
-        hashedPasswordAgeFile = secretsDir + "/smb-hashed-password.age";
-        passwordAgeFile = secretsDir + "/smb-password.age";
+        hashedPasswordAgeFile = getAgeSecretPathFromName "smb-hashed-password";
+        passwordAgeFile = getAgeSecretPathFromName "smb-password";
       };
     };
   };
