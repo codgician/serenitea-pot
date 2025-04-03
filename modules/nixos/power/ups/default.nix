@@ -111,9 +111,9 @@ in
             "admin" = {
               actions = [ "SET" ];
               instcmds = [ "ALL" ];
-              passwordFile = config.age.secrets.nutPassword.path;
+              passwordFile = config.age.secrets.nut-password.path;
             };
-            "upsmon".passwordFile = config.age.secrets.upsmonPassword.path;
+            "upsmon".passwordFile = config.age.secrets.upsmon-password.path;
           };
 
           # Devices
@@ -127,7 +127,7 @@ in
               user = "admin";
               powerValue = 1;
               type = "master";
-              passwordFile = config.age.secrets.nutPassword.path;
+              passwordFile = config.age.secrets.nut-password.path;
               system = name;
             }) cfg.devices;
 
@@ -196,8 +196,8 @@ in
       (
         with lib.codgician;
         mkAgenixConfigs { } [
-          (secretsDir + "/nutPassword.age")
-          (secretsDir + "/upsmonPassword.age")
+          (secretsDir + "/nut-password.age")
+          (secretsDir + "/upsmon-password.age")
         ]
       )
     ]

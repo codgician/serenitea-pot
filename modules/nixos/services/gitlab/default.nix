@@ -81,12 +81,12 @@ in
         port = 443;
 
         # Secrets
-        initialRootPasswordFile = config.age.secrets.gitlabInitRootPasswd.path;
+        initialRootPasswordFile = config.age.secrets.gitlab-init-root-password.path;
         secrets = {
-          dbFile = config.age.secrets.gitlabDb.path;
-          jwsFile = config.age.secrets.gitlabJws.path;
-          otpFile = config.age.secrets.gitlabOtp.path;
-          secretFile = config.age.secrets.gitlabSecret.path;
+          dbFile = config.age.secrets.gitlab-db.path;
+          jwsFile = config.age.secrets.gitlab-jws.path;
+          otpFile = config.age.secrets.gitlab-otp.path;
+          secretFile = config.age.secrets.gitlab-secret.path;
         };
 
         # Mail settings
@@ -98,7 +98,7 @@ in
           address = "smtp.office365.com";
           port = 587;
           username = "bot@codgician.me";
-          passwordFile = config.age.secrets.gitlabSmtp.path;
+          passwordFile = config.age.secrets.gitlab-smtp.path;
           domain = "codgician.me";
         };
         extraConfig.gitlab = {
@@ -117,7 +117,7 @@ in
               label = "GitHub";
               app_id = "3bc605d269d8117af816";
               app_secret = {
-                _secret = config.age.secrets.gitlabOmniAuthGitHub.path;
+                _secret = config.age.secrets.gitlab-omniauth-github.path;
               };
               args = {
                 scope = "user:email";
@@ -139,9 +139,9 @@ in
           "gitlabInitRootPasswd"
           "gitlabDb"
           "gitlabJws"
-          "gitlabOtp"
-          "gitlabSecret"
-          "gitlabSmtp"
+          "gitlab-otp"
+          "gitlab-secret"
+          "gitlab-smtp"
           "gitlabOmniAuthGitHub"
         ]
       )

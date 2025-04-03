@@ -77,7 +77,7 @@ in
       services.open-webui = {
         enable = true;
         inherit (cfg) host port openFirewall;
-        environmentFile = config.age.secrets.openWebuiEnv.path;
+        environmentFile = config.age.secrets.open-webui-env.path;
         environment = {
           ENV = "prod";
           WEBUI_AUTH = "True";
@@ -150,7 +150,7 @@ in
     })
 
     (lib.mkIf cfg.enable (
-      with lib.codgician; mkAgenixConfigs { } [ (secretsDir + "/openWebuiEnv.age") ]
+      with lib.codgician; mkAgenixConfigs { } [ (secretsDir + "/open-webui-env.age") ]
     ))
 
     # Reverse proxy profile

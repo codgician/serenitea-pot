@@ -6,7 +6,7 @@
 }:
 
 let
-  terraformAgeFileName = "terraformEnv.age";
+  terraformAgeFileName = "terraform-env.age";
   secretsDir = lib.codgician.secretsDir;
 in
 {
@@ -64,7 +64,7 @@ in
             err "${terraformAgeFileName} not found under ${secretsDir}"; 
           }
 
-          envs=$(agenix -d terraformEnv.age)
+          envs=$(agenix -d terraform-env.age)
           [ -n "$envs" ] || { 
             err "Terraform envs should not be empty. Decryption failure?"; 
           }

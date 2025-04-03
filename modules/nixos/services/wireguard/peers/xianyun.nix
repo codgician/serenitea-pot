@@ -14,12 +14,12 @@ with lib.codgician;
     "192.168.72.0/24"
     "fd00:c0d9:1c72::/48"
   ];
-  privateKeyFile = config.age.secrets.wgXianyunPrivateKey.path;
-  presharedKeyFile = config.age.secrets.wgPresharedKey.path;
+  privateKeyFile = config.age.secrets.wg-private-key-xianyun.path;
+  presharedKeyFile = config.age.secrets.wg-preshared-key.path;
   publicKey = "Uw99L+A6C9/cEzPmowLT8vC+cELdhcXAs61rjHb1hyY=";
   ageFilePaths = builtins.map getAgeSecretPathFromName [
-    "wgXianyunPrivateKey"
-    "wgPresharedKey"
+    "wg-private-key-xianyun"
+    "wg-preshared-key"
   ];
   persistentKeepalive = 25;
 }

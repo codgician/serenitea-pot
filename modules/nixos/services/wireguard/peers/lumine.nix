@@ -14,12 +14,12 @@ with lib.codgician;
     "192.168.64.0/24"
     "fd00:c0d9:1c64::/48"
   ];
-  privateKeyFile = config.age.secrets.wgLuminePrivateKey.path;
-  presharedKeyFile = config.age.secrets.wgPresharedKey.path;
+  privateKeyFile = config.age.secrets.wg-private-key-lumine.path;
+  presharedKeyFile = config.age.secrets.wg-preshared-key.path;
   publicKey = "bbtSDKEOb2Odofwwv215lllLckAOkdI0Mh9ZxuiQQUw=";
   ageFilePaths = builtins.map getAgeSecretPathFromName [
-    "wgLuminePrivateKey"
-    "wgPresharedKey"
+    "wg-private-key-lumine"
+    "wg-preshared-key"
   ];
   persistentKeepalive = 25;
 }

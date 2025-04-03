@@ -85,7 +85,7 @@ in
       services.dendrite = {
         enable = true;
         openRegistration = false;
-        environmentFile = config.age.secrets.matrixEnv.path;
+        environmentFile = config.age.secrets.matrix-env.path;
         settings = {
           global = {
             server_name = cfg.domain;
@@ -186,7 +186,7 @@ in
             prefer_direct_fetch = false;
           };
         };
-        loadCredential = [ "private_key:${config.age.secrets.matrixGlobalPrivateKey.path}" ];
+        loadCredential = [ "private_key:${config.age.secrets.matrix-global-private-key.path}" ];
       };
 
       # Allow R/W to media path
@@ -209,8 +209,8 @@ in
     (lib.mkIf cfg.enable (
       let
         credFileNames = [
-          "matrixGlobalPrivateKey"
-          "matrixEnv"
+          "matrix-global-private-key"
+          "matrix-env"
         ];
         credFiles = builtins.map (x: lib.codgician.secretsDir + "/${x}.age") credFileNames;
       in

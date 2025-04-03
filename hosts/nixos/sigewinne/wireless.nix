@@ -6,7 +6,7 @@ lib.mkMerge [
     networking.wireless = {
       enable = true;
       scanOnLowSignal = true;
-      secretsFile = config.age.secrets.wirelessEnv.path;
+      secretsFile = config.age.secrets.wireless-env.path;
       networks = {
         codgician = {
           priority = 100;
@@ -27,5 +27,5 @@ lib.mkMerge [
     };
   }
 
-  (lib.codgician.mkAgenixConfigs { } [ (lib.codgician.secretsDir + "/wirelessEnv.age") ])
+  (lib.codgician.mkAgenixConfigs { } [ (lib.codgician.secretsDir + "/wireless-env.age") ])
 ]

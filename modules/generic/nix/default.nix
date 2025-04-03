@@ -30,7 +30,7 @@ in
         extraOptions = ''
           experimental-features = nix-command flakes
           accept-flake-config = true
-          !include ${config.age.secrets.nixAccessTokens.path}
+          !include ${config.age.secrets.nix-access-tokens.path}
         '';
         optimise.automatic = true;
         settings = lib.mkMerge [
@@ -54,6 +54,6 @@ in
     }
 
     # Agenix secrets
-    (with lib.codgician; mkAgenixConfigs { mode = "644"; } [ (secretsDir + "/nixAccessTokens.age") ])
+    (with lib.codgician; mkAgenixConfigs { mode = "644"; } [ (secretsDir + "/nix-access-tokens.age") ])
   ];
 }

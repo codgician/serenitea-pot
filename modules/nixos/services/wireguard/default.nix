@@ -91,6 +91,11 @@ in
           # Open firewall
           firewall.allowedUDPPorts = lib.mkIf cfg.openFirewall ports;
         };
+
+        assertions = builtins.map (intCfg: {
+          assertion = lib.all (x: x != intCfg.host) (intCfg.peers);
+          message = "WireGuard: Host ${intCfg.host} should not be in peers list.";
+        }) (builtins.attrValues cfg.interfaces);
       }
 
       # Agenix credentials

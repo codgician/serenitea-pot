@@ -148,7 +148,7 @@ in
                 --telemetry False
             '';
 
-            EnvironmentFile = config.age.secrets.litellmEnv.path;
+            EnvironmentFile = config.age.secrets.litellm-env.path;
             WorkingDirectory = cfg.dataDir;
             StateDirectory = "litellm";
             RuntimeDirectory = "litellm";
@@ -172,7 +172,9 @@ in
         };
       })
 
-      (lib.mkIf cfg.enable (with lib.codgician; mkAgenixConfigs { } [ (secretsDir + "/litellmEnv.age") ]))
+      (lib.mkIf cfg.enable (
+        with lib.codgician; mkAgenixConfigs { } [ (secretsDir + "/litellm-env.age") ]
+      ))
 
       # Reverse proxy profile
       (lib.mkIf cfg.reverseProxy.enable {

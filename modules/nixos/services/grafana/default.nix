@@ -60,9 +60,9 @@ in
           };
 
           security = {
-            secret_key = "$__file{${config.age.secrets.grafanaSecretKey.path}}";
+            secret_key = "$__file{${config.age.secrets.grafana-secret-key.path}}";
             strict_transport_security = cfg.reverseProxy.enable;
-            admin_password = "$__file{${config.age.secrets.grafanaAdminPassword.path}}";
+            admin_password = "$__file{${config.age.secrets.grafana-admin-password.path}}";
           };
 
           server = {
@@ -76,7 +76,7 @@ in
           smtp = rec {
             enabled = true;
             user = "bot@codgician.me";
-            password = "$__file{${config.age.secrets.grafanaSmtp.path}}";
+            password = "$__file{${config.age.secrets.grafana-smtp.path}}";
             host = "smtp.office365.com:587";
             startTLS_policy = "MandatoryStartTLS";
             from_name = "Grafana";
@@ -125,9 +125,9 @@ in
       with lib.codgician;
       mkAgenixConfigs { owner = "grafana"; } (
         builtins.map getAgeSecretPathFromName [
-          "grafanaAdminPassword"
-          "grafanaSecretKey"
-          "grafanaSmtp"
+          "grafana-admin-password"
+          "grafana-secret-key"
+          "grafana-smtp"
         ]
       )
     ))
