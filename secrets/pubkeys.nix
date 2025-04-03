@@ -19,15 +19,6 @@ rec {
 
   # Aliases
   someHosts = xs: (builtins.concatLists xs) ++ users.codgi;
-  wgHosts = builtins.concatLists (
-    with hosts;
-    with users;
-    [
-      lumine
-      xianyun
-      codgi
-    ]
-  );
   allServers = builtins.concatLists (
     with hosts;
     with users;

@@ -150,7 +150,7 @@ in
     })
 
     (lib.mkIf cfg.enable (
-      with lib.codgician; mkAgenixConfigs { } [ (secretsDir + "/open-webui-env.age") ]
+      with lib.codgician; mkAgenixConfigs { } [ (getAgeSecretPathFromName "open-webui-env") ]
     ))
 
     # Reverse proxy profile

@@ -212,7 +212,7 @@ in
           "matrix-global-private-key"
           "matrix-env"
         ];
-        credFiles = builtins.map (x: lib.codgician.secretsDir + "/${x}.age") credFileNames;
+        credFiles = builtins.map (lib.codgician.getAgeSecretPathFromName) credFileNames;
       in
       lib.codgician.mkAgenixConfigs { } credFiles
     ))

@@ -195,10 +195,12 @@ in
       # Agenix secrets
       (
         with lib.codgician;
-        mkAgenixConfigs { } [
-          (secretsDir + "/nut-password.age")
-          (secretsDir + "/upsmon-password.age")
-        ]
+        mkAgenixConfigs { } (
+          builtins.map getAgeSecretPathFromName [
+            "nut-password"
+            "upsmon-password"
+          ]
+        )
       )
     ]
   );

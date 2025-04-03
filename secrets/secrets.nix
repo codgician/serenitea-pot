@@ -59,10 +59,19 @@ with pubKeys.hosts;
     ];
   };
 
-  # WireGuard secrets
-  "wg-private-key-lumine.age".publicKeys = wgHosts;
-  "wg-private-key-lumidouce.age".publicKeys = wgHosts;
-  "wg-private-key-qiaoying.age".publicKeys = wgHosts;
-  "wg-private-key-xianyun.age".publicKeys = wgHosts;
-  "wg-preshared-key.age".publicKeys = wgHosts;
+  # WireGuard private keys
+  "wg-private-key-lumine.age".publicKeys = someHosts [ lumine ];
+  "wg-private-key-lumidouce.age".publicKeys = someHosts [ ];
+  "wg-private-key-qiaoying.age".publicKeys = someHosts [ ];
+  "wg-private-key-xianyun.age".publicKeys = someHosts [ xianyun ];
+
+  # WireGuard preshared keys
+  "wg-preshared-key-lumidouce-lumine.age".publicKeys = someHosts [ lumine ];
+  "wg-preshared-key-lumidouce-xianyun.age".publicKeys = someHosts [ xianyun ];
+  "wg-preshared-key-lumine-qiaoying.age".publicKeys = someHosts [ lumine ];
+  "wg-preshared-key-lumine-xianyun.age".publicKeys = someHosts [
+    lumine
+    xianyun
+  ];
+  "wg-preshared-key-qiaoying-xianyun.age".publicKeys = someHosts [ xianyun ];
 }

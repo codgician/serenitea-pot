@@ -8,13 +8,21 @@ let
   cfg = config.codgician.services.wireguard;
   types = lib.types;
   hosts = lib.codgician.getNixFileNamesWithoutExt ./peers;
+
+  # Get wireguard secret file names without extension
+  getPrivateKeyName = x: "wg-private-key-${x}";
+  getPresharedKeyName = x: y: "wg-preshared-key-${if x < y then "${x}-${y}" else "${y}-${x}"}";
+
+  # All host options
   hostOptions = lib.pipe hosts [
     (builtins.map (name: {
       inherit name;
-      value = import (./peers + "/${name}.nix") { inherit config lib; };
+      value = import (./peers + "/${name}.nix") { inherit config; };
     }))
     builtins.listToAttrs
   ];
+
+  # All referenced ports
   ports = lib.pipe hostOptions [
     builtins.attrValues
     (builtins.map (x: x.listenPort))
@@ -69,19 +77,19 @@ in
         networking = {
           wireguard =
             {
-              interfaces = builtins.mapAttrs (name: value: {
-                inherit (hostOptions.${value.host}) privateKeyFile ips listenPort;
-                inherit (value) mtu allowedIPsAsRoutes;
-                peers = builtins.map (name: {
-                  inherit (hostOptions.${name})
+              interfaces = builtins.mapAttrs (_: intCfg: {
+                inherit (hostOptions.${intCfg.host}) privateKeyFile ips listenPort;
+                inherit (intCfg) mtu allowedIPsAsRoutes;
+                peers = builtins.map (peer: {
+                  inherit (hostOptions.${peer})
                     name
                     endpoint
                     publicKey
-                    presharedKeyFile
                     allowedIPs
                     ;
+                  presharedKeyFile = config.age.secrets.${getPresharedKeyName intCfg.host peer}.path;
                   dynamicEndpointRefreshSeconds = 5;
-                }) value.peers;
+                }) intCfg.peers;
               }) cfg.interfaces;
             }
             // (lib.optionalAttrs (lib.versionAtLeast lib.version "25.05") {
@@ -99,14 +107,26 @@ in
       }
 
       # Agenix credentials
-      (
-        let
-          hosts = builtins.map (x: x.host) (builtins.attrValues (cfg.interfaces));
-          peers = builtins.concatMap (x: x.peers) (builtins.attrValues (cfg.interfaces));
-          secrets = builtins.concatMap (x: hostOptions.${x}.ageFilePaths) (lib.lists.unique (hosts ++ peers));
-        in
-        lib.codgician.mkAgenixConfigs { } secrets
-      )
+      (lib.codgician.mkAgenixConfigs { } (
+        lib.pipe cfg.interfaces [
+          builtins.attrValues
+
+          # Get key names
+          (builtins.concatMap (
+            intCfg:
+            with lib.codgician;
+            let
+              privateKeys = [ (getAgeSecretPathFromName (getPrivateKeyName intCfg.host)) ];
+              presharedKeys = builtins.map (
+                peer: getAgeSecretPathFromName (getPresharedKeyName intCfg.host peer)
+              ) intCfg.peers;
+            in
+            privateKeys ++ presharedKeys
+          ))
+
+          lib.unique
+        ]
+      ))
     ]
   );
 }

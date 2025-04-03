@@ -27,5 +27,5 @@ lib.mkMerge [
     };
   }
 
-  (lib.codgician.mkAgenixConfigs { } [ (lib.codgician.secretsDir + "/wireless-env.age") ])
+  (with lib.codgician; mkAgenixConfigs { } [ (getAgeSecretPathFromName "wireless-env") ])
 ]

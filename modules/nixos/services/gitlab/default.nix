@@ -136,13 +136,13 @@ in
       with lib.codgician;
       mkAgenixConfigs { owner = cfg.user; } (
         builtins.map getAgeSecretPathFromName [
-          "gitlabInitRootPasswd"
-          "gitlabDb"
-          "gitlabJws"
+          "gitlab-init-root-password"
+          "gitlab-db"
+          "gitlab-jws"
           "gitlab-otp"
           "gitlab-secret"
           "gitlab-smtp"
-          "gitlabOmniAuthGitHub"
+          "gitlab-omniauth-github"
         ]
       )
     ))

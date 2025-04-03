@@ -1,5 +1,4 @@
-{ config, lib }:
-with lib.codgician;
+{ config }:
 {
   name = "xianyun";
   endpoint = "xianyun.codgician.me:51820";
@@ -15,11 +14,6 @@ with lib.codgician;
     "fd00:c0d9:1c72::/48"
   ];
   privateKeyFile = config.age.secrets.wg-private-key-xianyun.path;
-  presharedKeyFile = config.age.secrets.wg-preshared-key.path;
   publicKey = "Uw99L+A6C9/cEzPmowLT8vC+cELdhcXAs61rjHb1hyY=";
-  ageFilePaths = builtins.map getAgeSecretPathFromName [
-    "wg-private-key-xianyun"
-    "wg-preshared-key"
-  ];
   persistentKeepalive = 25;
 }

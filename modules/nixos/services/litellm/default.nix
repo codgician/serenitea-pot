@@ -173,7 +173,7 @@ in
       })
 
       (lib.mkIf cfg.enable (
-        with lib.codgician; mkAgenixConfigs { } [ (secretsDir + "/litellm-env.age") ]
+        with lib.codgician; mkAgenixConfigs { } [ (getAgeSecretPathFromName "litellm-env") ]
       ))
 
       # Reverse proxy profile

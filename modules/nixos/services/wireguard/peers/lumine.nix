@@ -1,5 +1,4 @@
-{ config, lib }:
-with lib.codgician;
+{ config }:
 {
   name = "lumine";
   endpoint = "lumine.codgician.me:51820";
@@ -15,11 +14,6 @@ with lib.codgician;
     "fd00:c0d9:1c64::/48"
   ];
   privateKeyFile = config.age.secrets.wg-private-key-lumine.path;
-  presharedKeyFile = config.age.secrets.wg-preshared-key.path;
   publicKey = "bbtSDKEOb2Odofwwv215lllLckAOkdI0Mh9ZxuiQQUw=";
-  ageFilePaths = builtins.map getAgeSecretPathFromName [
-    "wg-private-key-lumine"
-    "wg-preshared-key"
-  ];
   persistentKeepalive = 25;
 }

@@ -1,5 +1,4 @@
-{ config, lib }:
-with lib.codgician;
+{ config }:
 {
   name = "lumidouce";
   endpoint = "sz.codgician.me:51820";
@@ -15,11 +14,6 @@ with lib.codgician;
     "fd00:c0d9:1c00::/48"
   ];
   privateKeyFile = config.age.secrets.wg-private-key-lumidouce.path;
-  presharedKeyFile = config.age.secrets.wg-preshared-key.path;
   publicKey = "1QYPFw1YL0Px4+41YvBLX4qgXH4KTz9JOqzNbMnlgR8=";
-  ageFilePaths = builtins.map getAgeSecretPathFromName [
-    "wg-private-key-lumidouce"
-    "wg-preshared-key"
-  ];
   persistentKeepalive = 25;
 }
