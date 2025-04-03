@@ -71,7 +71,7 @@
   };
 
   # ZFS boot configs
-  boot.supportedFilesystems = [ "zfs" ];
+  boot.supportedFilesystems = [ "vfat" "zfs" ];
   fileSystems."/nix/persist".neededForBoot = true;
   networking.hostId = "2b4cf168";
 

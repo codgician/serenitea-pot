@@ -72,7 +72,7 @@
   };
 
   # ZFS on root boot configs
-  boot.supportedFilesystems = [ "zfs" ];
+  boot.supportedFilesystems = [ "vfat" "zfs" ];
   boot.zfs.requestEncryptionCredentials = true;
   fileSystems."/nix/persist".neededForBoot = true;
   boot.plymouth.enable = false;
