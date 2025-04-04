@@ -38,7 +38,7 @@
       "iommu=pt"
       "hugepagesz=1G"
       "default_hugepagesz=2M"
-      "kvm_amd.sev=1"
+      "kvm_amd.npt=1"
       "kvm_amd.avic=1"
       "kvm_amd.force_avic=1"
     ];
@@ -95,6 +95,9 @@
     jose
     tpm2-tools
   ];
+
+  # CUDA support for nixpkgs
+  nixpkgs.config.cudaSupport = true;
 
   # Connected to UPS
   codgician.power.ups.devices.br1500g = {

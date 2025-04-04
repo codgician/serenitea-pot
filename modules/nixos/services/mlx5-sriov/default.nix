@@ -21,11 +21,6 @@ let
         echo "Up" > /sys/class/net/${name}/device/sriov/${builtins.toString x.fst}/link_state
       '') (lib.zipLists (lib.range 0 (cfg.${name}.vfNum - 1)) cfg.${name}.macs)
     ));
-  script = pkgs.writeShellApplication {
-    name = "mlx5-sriov";
-    runtimeInputs = with pkgs; [ iproute2 ];
-    text = builtins.concatStringsSep "\n" (builtins.map mkScriptForInterface interfaceNames);
-  };
 in
 {
   options.codgician.services.mlx5-sriov = lib.mkOption {
@@ -68,9 +63,10 @@ in
       description = "Create VFs for Mellanox ConnectX-4/5 NICs.";
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
+      path = with pkgs; [ iproute2 ];
+      script = builtins.concatStringsSep "\n" (builtins.map mkScriptForInterface interfaceNames);
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = "${lib.getExe pkgs.bash} ${script}/bin/${script.name}";
         RemainAfterExit = true;
       };
     };

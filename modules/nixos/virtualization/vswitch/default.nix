@@ -91,7 +91,7 @@ in
         ) "set bridge ${switchName} other-config:hwaddr=${switchCfg.macAddress}")
         # Add dpdk configurations for each dpdk interface
         ++ (lib.pipe interfaces [
-          (lib.filterAttrs (_: intCfg: intCfg.type == "dpdk"))
+          (lib.filterAttrs (_: intCfg: intCfg.type == "dpdk" && intCfg.dev != null))
           (lib.mapAttrs (
             intName: intCfg: "set Interface ${intName} type=dpdk options:dpdk-devargs=${intCfg.dev}"
           ))
