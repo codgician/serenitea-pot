@@ -72,7 +72,7 @@
   codgician.virtualization.vswitch = {
     enable = true;
     switches.vs0 = {
-      interfaces.enp4s0 = {};
+      interfaces.enp4s0 = { };
       macAddress = "ac:79:26:f1:5c:81";
     };
   };

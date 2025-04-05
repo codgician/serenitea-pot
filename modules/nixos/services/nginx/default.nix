@@ -133,10 +133,18 @@ in
         ];
       };
 
-      virtualHosts = lib.pipe reverseProxyNames [
-        (builtins.map mkVirtualHostConfig)
-        lib.codgician.concatAttrs
-      ];
+      virtualHosts =
+        (lib.pipe reverseProxyNames [
+          (builtins.map mkVirtualHostConfig)
+          lib.codgician.concatAttrs
+        ])
+        // {
+          _ = {
+            default = true;
+            locations."~ .*".return = "404";
+            rejectSSL = true;
+          };
+        };
     };
 
     # Open firewall
