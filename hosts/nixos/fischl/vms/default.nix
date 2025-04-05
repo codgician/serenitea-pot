@@ -75,6 +75,11 @@
       interfaces.enp4s0 = {
         type = "dpdk";
         device = "0000:04:00.0";
+        extraOptions = [
+          "options:n_rxq=2"
+          "options:rx-steering=rss+lacp"
+          "options:flow-ctrl-autoneg=true"
+        ];
       };
       macAddress = "ac:79:26:f1:5c:81";
     };

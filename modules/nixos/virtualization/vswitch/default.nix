@@ -50,6 +50,16 @@ in
                       default = null;
                       example = "0000:01:00.0";
                     };
+
+                    extraOptions = lib.mkOption {
+                      type = with types; listOf str;
+                      description = "Extra options to pass to `ovctl set Interface`.";
+                      default = [ ];
+                      example = [
+                        "options:n_rxq=4"
+                        "options:rx-steering=rss+lacp"
+                      ];
+                    };
                   };
                 });
               description = "The physical network interfaces connected by the vSwitch.";
@@ -95,11 +105,19 @@ in
         ++ lib.optional (
           getVswitchDpdkDevs switchCfg != [ ]
         ) "set bridge ${switchName} datapath_type=netdev"
-        # Add dpdk configurations for each dpdk interface
+        # Apply extra options for each interface
         ++ (lib.pipe switchCfg.interfaces [
-          (lib.filterAttrs (_: intCfg: intCfg.type == "dpdk" && intCfg.device != null))
-          (lib.mapAttrs (intName: intCfg: "set Interface ${intName} options:dpdk-devargs=${intCfg.device}"))
-          builtins.attrValues
+          (lib.mapAttrs (
+            intName: intCfg:
+            (lib.optional (
+              intCfg.type == "dpdk" && intCfg.device != null
+            ) "options:dpdk-devargs=${intCfg.device}")
+            ++ intCfg.extraOptions
+          ))
+          (lib.filterAttrs (_: options: options != [ ]))
+          (lib.mapAttrsToList (
+            intName: options: "set Interface ${intName} ${builtins.concatStringsSep " " options}"
+          ))
         ])
       );
     }) cfg.switches;
@@ -130,6 +148,7 @@ in
           + ''
             ovs-vsctl --no-wait set Open_vSwitch . "other_config:dpdk-init=true"
             ovs-vsctl --no-wait set Open_vSwitch . "other_config:vhost-iommu-support=true"
+            ovs-vsctl --no-wait set Open_vSwitch . "other_config:userspace-tso-enable=true"
             ovs-vsctl --no-wait set Open_vSwitch . "other_config:dpdk-extra=${
               builtins.concatStringsSep " " (builtins.map (d: "-a ${d}") dpdkDevs)
             }"

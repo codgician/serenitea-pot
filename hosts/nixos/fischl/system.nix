@@ -99,6 +99,7 @@
     lm_sensors
     smartmontools
     linuxPackages.turbostat
+    ethtool
   ];
 
   # Enable zram swap
