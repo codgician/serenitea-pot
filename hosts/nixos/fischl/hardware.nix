@@ -30,7 +30,8 @@
       "intel_iommu=on"
       "iommu=pt"
       "hugepagesz=1G"
-      "default_hugepagesz=2M"
+      "default_hugepagesz=1G"
+      "hugepages=4"
       "pcie_aspm=off"
       "isolcpus=2-5"
       "nohz_full=2-5"
@@ -82,6 +83,7 @@
 
   # Hardware-specific global packages
   environment.systemPackages = with pkgs; [
+    libhugetlbfs
     intel-gpu-tools
     virglrenderer
     lm_sensors
