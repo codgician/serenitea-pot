@@ -27,6 +27,16 @@ in
   options.codgician.virtualization.vswitch = {
     enable = lib.mkEnableOption "Open vSwitch";
 
+    extraGlobalOptions = lib.mkOption {
+      type = with types; listOf str;
+      description = "Extra options to pass to `ovs-vsctl set Open_vSwitch .`.";
+      default = [ ];
+      example = [
+        "other_config:dpdk-socket-mem=2048"
+        "other_config:dpdk-socket-limit=2048"
+      ];
+    };
+
     switches = lib.mkOption {
       type =
         with types;
@@ -134,25 +144,27 @@ in
           iproute2
         ];
 
-        preStart =
-          builtins.concatStringsSep "\n" (
-            builtins.map (dev: ''
-              if lspci -s ${dev} | grep Mellanox; then
-                echo "Skip binding vfio-pci driver for Mellanox NICs"
-              else
-                echo "Binding ${dev} to vfio-pci driver ..."
-                dpdk-devbind.py -b vfio-pci ${dev} --force
-              fi
-            '') dpdkDevs
+        preStart = builtins.concatStringsSep "\n" (
+          (builtins.map (dev: ''
+            if lspci -s ${dev} | grep Mellanox; then
+              echo "Skip binding vfio-pci driver for Mellanox NICs"
+            else
+              echo "Binding ${dev} to vfio-pci driver ..."
+              dpdk-devbind.py -b vfio-pci ${dev} --force
+            fi
+          '') dpdkDevs)
+          ++ builtins.map (option: "ovs-vsctl --no-wait set Open_vSwitch . ${option}") (
+            [
+              "other_config:dpdk-init=true"
+              "other_config:vhost-iommu-support=true"
+              "other_config:userspace-tso-enable=true"
+              "other_config:dpdk-extra=\"${
+                builtins.concatStringsSep " " (builtins.map (d: "-a ${d}") dpdkDevs)
+              }\""
+            ]
+            ++ cfg.extraGlobalOptions
           )
-          + ''
-            ovs-vsctl --no-wait set Open_vSwitch . "other_config:dpdk-init=true"
-            ovs-vsctl --no-wait set Open_vSwitch . "other_config:vhost-iommu-support=true"
-            ovs-vsctl --no-wait set Open_vSwitch . "other_config:userspace-tso-enable=true"
-            ovs-vsctl --no-wait set Open_vSwitch . "other_config:dpdk-extra=${
-              builtins.concatStringsSep " " (builtins.map (d: "-a ${d}") dpdkDevs)
-            }"
-          '';
+        );
       };
     };
   };
