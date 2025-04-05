@@ -6,8 +6,6 @@ in
   options = {
     enable = lib.mkEnableOption "Nginx reverse proxy profile for this service.";
 
-    default = lib.mkEnableOption "Make this profile the default virtual host.";
-
     https = lib.mkEnableOption "Use https and auto-renew certificates.";
 
     domains = lib.mkOption {

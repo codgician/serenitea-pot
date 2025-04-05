@@ -92,7 +92,6 @@
           "codgician.me" = {
             enable = true;
             https = true;
-            default = true;
             domains = [
               "codgician.me"
               "*.codgician.me"

@@ -42,7 +42,6 @@ let
     in
     {
       "${host}" = rec {
-        inherit (hostCfg) default;
         serverName = builtins.head hostCfg.domains;
         serverAliases = builtins.tail hostCfg.domains;
         locations =
