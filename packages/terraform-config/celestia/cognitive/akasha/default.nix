@@ -8,6 +8,7 @@ in
   imports = [
     ./deepseek-r1.nix
     ./deepseek-v3.nix
+    ./gpt-4.5.nix
     ./gpt-4o.nix
     ./gpt-4o-realtime.nix
 
