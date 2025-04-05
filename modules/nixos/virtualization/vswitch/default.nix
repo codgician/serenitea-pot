@@ -8,17 +8,17 @@ let
   cfg = config.codgician.virtualization.vswitch;
   types = lib.types;
   dpdkDevs = lib.pipe cfg.switches [
-    builtins.attrValues
-    (builtins.concatMap (switchCfg: switchCfg.interfaces))
+    (lib.mapAttrsToList (_: switchCfg: switchCfg.interfaces))
+    (builtins.concatMap (builtins.attrValues))
     (builtins.filter (intCfg: intCfg.type == "dpdk"))
-    (builtins.concatMap (intCfg: intCfg.dev))
+    (builtins.map (intCfg: intCfg.device))
     lib.unique
   ];
+  enableDpdk = dpdkDevs != [];
 in
 {
   options.codgician.virtualization.vswitch = {
     enable = lib.mkEnableOption "Open vSwitch";
-    dpdk.enable = lib.mkEnableOption "Enable DPDK";
 
     switches = lib.mkOption {
       type =
@@ -37,7 +37,7 @@ in
                       example = "dpdk";
                     };
 
-                    dev = lib.mkOption {
+                    device = lib.mkOption {
                       type = with types; nullOr str;
                       description = "PCIe device address, only needed for dpdk type.";
                       default = null;
@@ -67,19 +67,19 @@ in
 
   config = lib.mkIf cfg.enable {
     # Add dpdk kmod if enabled
-    boot.extraModulePackages = lib.mkIf cfg.dpdk.enable [
+    boot.extraModulePackages = lib.mkIf enableDpdk [
       config.boot.kernelPackages.dpdk-kmods
     ];
 
     # Open vSwitch configuration
     virtualisation.vswitch = {
       enable = true;
-      package = with pkgs; if cfg.dpdk.enable then openvswitch-dpdk else openvswitch;
+      package = with pkgs; if enableDpdk then openvswitch-dpdk else openvswitch;
       resetOnStart = true;
     };
 
     # Switch configurations
-    networking.vswitches = lib.mapAttrs (switchName: switchCfg: rec {
+    networking.vswitches = lib.mapAttrs (switchName: switchCfg: {
       interfaces = lib.mapAttrs (name: intCfg: {
         inherit name;
         inherit (intCfg) type;
@@ -90,10 +90,10 @@ in
           switchCfg.macAddress != null
         ) "set bridge ${switchName} other-config:hwaddr=${switchCfg.macAddress}")
         # Add dpdk configurations for each dpdk interface
-        ++ (lib.pipe interfaces [
-          (lib.filterAttrs (_: intCfg: intCfg.type == "dpdk" && intCfg.dev != null))
+        ++ (lib.pipe switchCfg.interfaces [
+          (lib.filterAttrs (_: intCfg: intCfg.type == "dpdk" && intCfg.device != null))
           (lib.mapAttrs (
-            intName: intCfg: "set Interface ${intName} type=dpdk options:dpdk-devargs=${intCfg.dev}"
+            intName: intCfg: "set Interface ${intName} type=dpdk options:dpdk-devargs=${intCfg.device}"
           ))
           builtins.attrValues
         ])
@@ -101,8 +101,8 @@ in
     }) cfg.switches;
 
     # Enable dpdk if configured
-    environment.systemPackages = lib.mkIf cfg.dpdk.enable [ pkgs.dpdk ];
-    systemd.services = lib.mkIf cfg.dpdk.enable {
+    environment.systemPackages = lib.mkIf enableDpdk [ pkgs.dpdk ];
+    systemd.services = lib.mkIf enableDpdk {
       # Bind correct driver before starting ovs-vswitchd
       ovs-vswitchd = {
         path = with pkgs; [
