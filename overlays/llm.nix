@@ -24,7 +24,7 @@ let
     });
 in
 {
-  inherit (unstablePkgs) open-webui;
+  inherit (unstablePkgs) litellm open-webui;
   inherit (unstablePkgs) llama-cpp vllm;
   inherit (unstablePkgs) ollama ollama-cuda ollama-rocm;
 }
