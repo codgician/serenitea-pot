@@ -2,11 +2,12 @@
 let
   ttl = 3600;
   zone_id = config.resource.cloudflare_zone.codgician-me "id";
+  zone_name = config.resource.cloudflare_zone.codgician-me.name;
 in
 {
-  resource.cloudflare_record = {
+  resource.cloudflare_dns_record = {
     autodiscover-cname = {
-      name = "autodiscover";
+      name = "autodiscover.${zone_name}";
       proxied = false;
       comment = "Microsoft Exchange Auto-discovery";
       type = "CNAME";
@@ -15,7 +16,7 @@ in
     };
 
     enterpriseenrollment-cname = {
-      name = "enterpriseenrollment";
+      name = "enterpriseenrollment.${zone_name}";
       proxied = false;
       comment = "Intune MDM";
       type = "CNAME";
@@ -24,7 +25,7 @@ in
     };
 
     enterpriseregistration-cname = {
-      name = "enterpriseregistration";
+      name = "enterpriseregistration.${zone_name}";
       proxied = false;
       comment = "Intune MDM";
       type = "CNAME";
@@ -33,7 +34,7 @@ in
     };
 
     exchange-txt = {
-      name = "@";
+      name = zone_name;
       comment = "SFP TXT record for Microsoft Exchange";
       type = "TXT";
       content = "v=spf1 include:spf.protection.outlook.com -all";
@@ -41,7 +42,7 @@ in
     };
 
     exchange-mx = {
-      name = "@";
+      name = zone_name;
       comment = "MX record for Microsoft Exchange";
       type = "MX";
       content = "codgician-me.mail.protection.outlook.com";

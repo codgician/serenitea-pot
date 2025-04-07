@@ -8,7 +8,7 @@
 let
   inherit (config.networking) hostName;
   terraformConf = builtins.fromJSON outputs.packages.${pkgs.system}.terraform-config.value;
-  publicIpv6 = terraformConf.resource.cloudflare_record."${hostName}-aaaa".content;
+  publicIpv6 = terraformConf.resource.cloudflare_dns_record."${hostName}-aaaa".content;
 in
 {
   boot.initrd.availableKernelModules = [

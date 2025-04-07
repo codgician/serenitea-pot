@@ -58,6 +58,12 @@ in
       storage_account_id = config.resource.azurerm_storage_account.akashastorage "id";
       key_vault_id = config.resource.azurerm_key_vault.akasha-kv "id";
       identity.type = "SystemAssigned";
+
+      # Hack: Adding automatically generated tags to exclude them from diff
+      tags = with config.resource; {
+        "__SYSTEM__AIServices_akasha" = azurerm_ai_services.akasha "id";
+        "__SYSTEM__AzureOpenAI_akasha_aoai" = azurerm_ai_services.akasha "id";
+      };
     };
 
     azurerm_ai_foundry_project.akasha-ai-project = {

@@ -1,11 +1,12 @@
 { config, ... }:
 let
   zone_id = config.resource.cloudflare_zone.codgician-me "id";
+  zone_name = config.resource.cloudflare_zone.codgician-me.name;
 in
 {
-  resource.cloudflare_record = {
+  resource.cloudflare_dns_record = {
     lumine-a = {
-      name = "lumine";
+      name = "lumine.${zone_name}";
       proxied = false;
       ttl = 120;
       comment = "Lumine, on celestia";
@@ -15,7 +16,7 @@ in
     };
 
     lumine-aaaa = {
-      name = "lumine";
+      name = "lumine.${zone_name}";
       proxied = false;
       ttl = 120;
       comment = "Lumine, on celestia";

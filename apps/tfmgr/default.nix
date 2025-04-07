@@ -47,6 +47,7 @@ in
           echo '  validate    Check whether generated config.tf.json is valid'
           echo '  plan        Show infrastructure changes from new configuration'
           echo '  apply       Apply infrastructure changes from new configuration'
+          echo '  shell       Open a shell with terraform-env variables' 
           echo ' '
           echo 'Options:'
           echo ' '
@@ -108,6 +109,10 @@ in
                   break
                 fi
               done
+              ;;
+            shell)
+              init
+              $SHELL
               ;;
             *)
               warn "Unrecognized command: $1"
