@@ -7,86 +7,53 @@
 let
   cfg = config.codgician.services.nginx;
   types = lib.types;
-  reverseProxyNames = builtins.attrNames cfg.reverseProxies;
 
   # Make location configuration
-  mkLocationConfig =
-    host: location:
-    let
-      locationCfg = cfg.reverseProxies.${host}.locations.${location};
-    in
-    {
-      inherit (locationCfg)
-        proxyPass
-        return
-        root
-        alias
-        ;
-      proxyWebsockets = true;
-      extraConfig =
-        locationCfg.extraConfig
-        + (lib.optionalString locationCfg.lanOnly ''
-          allow 10.0.0.0/8;
-          allow 172.16.0.0/12;
-          allow 192.168.0.0/16;
-          allow fc00::/7;
-          deny all;
-        '');
-    };
+  mkLocationConfig = serverName: locationName: locationCfg: {
+    inherit (locationCfg)
+      proxyPass
+      return
+      root
+      alias
+      ;
+    proxyWebsockets = true;
+    extraConfig =
+      locationCfg.extraConfig
+      # Enhance https reverse proxy security
+      + (lib.optionalString (with locationCfg; proxyPass != null && lib.hasPrefix "https://" proxyPass) ''
+        proxy_ssl_server_name on;
+        proxy_ssl_name ${serverName};
+        proxy_ssl_verify on;
+        proxy_ssl_trusted_certificate ${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt;
+      '')
+      # If only allow connections from lan
+      + (lib.optionalString locationCfg.lanOnly ''
+        allow 10.0.0.0/8;
+        allow 172.16.0.0/12;
+        allow 192.168.0.0/16;
+        allow fc00::/7;
+        deny all;
+      '');
+  };
 
   # Make virtual host configuration
-  mkVirtualHostConfig =
-    host:
-    let
-      hostCfg = cfg.reverseProxies.${host};
-    in
-    {
-      "${host}" = rec {
-        serverName = builtins.head hostCfg.domains;
-        serverAliases = builtins.tail hostCfg.domains;
-        locations =
-          (builtins.mapAttrs (k: _: mkLocationConfig host k) hostCfg.locations)
-          // lib.optionalAttrs (hostCfg.robots != null) {
-            "/robots.txt".return = ''200 "${lib.replaceStrings [ "\n" ] [ "\\n" ] hostCfg.robots}"'';
-          };
-        forceSSL = hostCfg.https;
-        useACMEHost = lib.mkIf hostCfg.https serverName;
-        http2 = true;
-        http3 = true;
-        http3_hq = true;
-        quic = true;
-        kTLS = true;
-        acmeRoot = null;
+  mkVirtualHostConfig = _: hostCfg: rec {
+    serverName = builtins.head hostCfg.domains;
+    serverAliases = builtins.tail hostCfg.domains;
+    locations =
+      (builtins.mapAttrs (mkLocationConfig serverName) hostCfg.locations)
+      // lib.optionalAttrs (hostCfg.robots != null) {
+        "/robots.txt".return = ''200 "${lib.replaceStrings [ "\n" ] [ "\\n" ] hostCfg.robots}"'';
       };
-    };
-
-  # Make ACME configurations
-  mkAcmeConfig =
-    host:
-    let
-      hostCfg = cfg.reverseProxies.${host};
-    in
-    lib.optionalAttrs hostCfg.https {
-      "${builtins.head hostCfg.domains}" = {
-        enable = true;
-        extraDomainNames = builtins.tail hostCfg.domains;
-      };
-    };
-
-  # Make reverse proxy assertions
-  mkAssertions =
-    host:
-    let
-      hostCfg = cfg.reverseProxies.${host};
-    in
-    [
-      {
-        assertion = !hostCfg.enable || hostCfg.domains != [ ];
-        message = ''
-          You have to provide at least one domain for nginx reverse proxy virtual host "${hostCfg}".
-        '';
-      }
-    ];
+    forceSSL = hostCfg.https;
+    useACMEHost = lib.mkIf hostCfg.https serverName;
+    http2 = true;
+    http3 = true;
+    http3_hq = true;
+    quic = true;
+    kTLS = true;
+    acmeRoot = null;
+  };
 in
 {
   options.codgician.services.nginx = {
@@ -132,18 +99,13 @@ in
         ];
       };
 
-      virtualHosts =
-        (lib.pipe reverseProxyNames [
-          (builtins.map mkVirtualHostConfig)
-          lib.codgician.concatAttrs
-        ])
-        // {
-          _ = {
-            default = true;
-            locations."~ .*".return = "404";
-            rejectSSL = true;
-          };
+      virtualHosts = (builtins.mapAttrs mkVirtualHostConfig cfg.reverseProxies) // {
+        _ = {
+          default = true;
+          locations."~ .*".return = "404";
+          rejectSSL = true;
         };
+      };
     };
 
     # Open firewall
@@ -165,15 +127,22 @@ in
     };
 
     # ACME settings
-    codgician.acme = lib.pipe reverseProxyNames [
-      (builtins.map mkAcmeConfig)
-      lib.codgician.concatAttrs
-    ];
+    codgician.acme =
+      with lib;
+      mapAttrs' (
+        _: hostCfg:
+        nameValuePair (builtins.head hostCfg.domains) {
+          enable = true;
+          extraDomainNames = builtins.tail hostCfg.domains;
+        }
+      ) cfg.reverseProxies;
 
     # Assertions
-    assertions = lib.pipe reverseProxyNames [
-      (builtins.map mkAssertions)
-      builtins.concatLists
-    ];
+    assertions = lib.mapAttrsToList (hostName: hostCfg: {
+      assertion = !hostCfg.enable || hostCfg.domains != [ ];
+      message = ''
+        nginx: You have to provide at least one domain for nginx reverse proxy virtual host "${hostName}".
+      '';
+    }) cfg.reverseProxies;
   };
 }
