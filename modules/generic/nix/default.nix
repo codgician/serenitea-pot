@@ -38,8 +38,7 @@ in
             inherit trusted-public-keys;
             substituters =
               (lib.optionals cfg.useCnMirror [
-                "https://mirrors.ustc.edu.cn/nix-channels/store?priority=10"
-                "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store?priority=11"
+                "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store?priority=10"
               ])
               ++ substituters;
             extra-nix-path = "nixpkgs=flake:nixpkgs";
