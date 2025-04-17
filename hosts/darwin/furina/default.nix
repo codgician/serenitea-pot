@@ -1,6 +1,6 @@
-{ lib, ... }:
+{ libUnstable, ... }:
 
-lib.codgician.mkDarwinSystem {
+libUnstable.codgician.mkDarwinSystem {
   hostName = builtins.baseNameOf ./.;
   system = "aarch64-darwin";
   modules = [
