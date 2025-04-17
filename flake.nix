@@ -5,7 +5,6 @@
     allow-import-from-derivation = "true";
     extra-substituters = [
       "https://nix-community.cachix.org"
-      "https://cache.saumon.network/proxmox-nixos"
       "https://codgician.cachix.org"
       "https://mlnx-ofed-nixos.cachix.org"
       "https://cuda-maintainers.cachix.org"
@@ -13,7 +12,6 @@
     ];
     extra-trusted-public-keys = [
       "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-      "proxmox-nixos:nveXDuVVhFDRFx8Dn19f1WDEaNRJjPrF2CPD2D+m1ys="
       "codgician.cachix.org-1:v4RtwkbJZJwfDxH5hac1lHehIX6JoSL726vk1ZctN8Y="
       "mlnx-ofed-nixos.cachix.org-1:jL/cqleOzhPw87etuHMeIIdAgFDKX8WnTBYMSBx3toI="
       "cuda-maintainers.cachix.org-1:0dq3bujKpuEPMCX6U4WylrUDZ9JyUG0VpVZa7CNfq5E="

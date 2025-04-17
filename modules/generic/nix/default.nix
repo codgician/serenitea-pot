@@ -28,6 +28,7 @@ in
         };
 
         extraOptions = ''
+          fallback = true
           experimental-features = nix-command flakes
           accept-flake-config = true
           !include ${config.age.secrets.nix-access-tokens.path}
