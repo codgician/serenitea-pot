@@ -8,12 +8,10 @@ in
   imports = [
     ./deepseek-r1.nix
     ./deepseek-v3.nix
-    ./gpt-4.5.nix
+    ./gpt-4.1.nix
     ./gpt-4o.nix
     ./gpt-4o-realtime.nix
-
-    # No quota
-    #./o3-mini.nix
+    ./o4-mini.nix
   ];
 
   resource = {
