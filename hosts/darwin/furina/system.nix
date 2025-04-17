@@ -8,8 +8,7 @@
         enable = true;
         taps = [ "playcover/playcover" ];
         casks = (import ./brew.nix).casks;
-        # Wait for https://github.com/mas-cli/mas/issues/724
-        # masApps = (import ./brew.nix).masApps;
+        masApps = (import ./brew.nix).masApps;
       };
       common.enable = true;
       nix.useCnMirror = true;
