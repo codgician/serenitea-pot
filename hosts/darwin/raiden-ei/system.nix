@@ -1,6 +1,5 @@
 { pkgs, ... }:
 {
-
   # My settings
   codgician = {
     system = {
