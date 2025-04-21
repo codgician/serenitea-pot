@@ -25,6 +25,8 @@
   boot.kernelPackages = pkgs.linuxPackages_6_12;
   boot.kernelParams = [
     "console=ttyS0,115200"
+    "nvidia_drm.fbdev=0"
+    "nvidia_drm.modeset=1"
     "iomem=relaxed"
   ];
 
@@ -81,10 +83,10 @@
   hardware.nvidia-container-toolkit.enable = true;
 
   # Disable RGB for graphic
-  services.hardware.openrgb = {
-    enable = true;
-    motherboard = "amd";
-  };
+  # services.hardware.openrgb = {
+  #   enable = true;
+  #   motherboard = "amd";
+  # };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }
