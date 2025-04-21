@@ -10,7 +10,6 @@ in
     ./deepseek-v3.nix
     ./gpt-4.1.nix
     ./gpt-4o.nix
-    ./gpt-4o-realtime.nix
     ./o4-mini.nix
   ];
 

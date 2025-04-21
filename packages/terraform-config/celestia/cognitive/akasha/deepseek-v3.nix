@@ -10,7 +10,7 @@
       properties = {
         authMode = "Key";
         contentSafety.contentSafetyStatus = "Disabled";
-        modelSettings.modelId = "azureml://registries/azureml-deepseek/models/DeepSeek-V3";
+        modelSettings.modelId = "azureml://registries/azureml-deepseek/models/DeepSeek-V3-0324";
       };
 
       sku.name = "Consumption";

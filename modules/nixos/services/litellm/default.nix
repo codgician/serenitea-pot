@@ -13,8 +13,6 @@ let
   azureSubdomain = terraformConf.resource.azurerm_ai_services.akasha.custom_subdomain_name;
   azureModels = lib.pipe terraformConf.resource.azurerm_cognitive_deployment [
     builtins.attrValues
-    # Filter out unsupported models
-    (builtins.filter (x: x.model.name != "gpt-4o-realtime-preview"))
     (builtins.map (x: {
       model_name = x.name;
       litellm_params = {
