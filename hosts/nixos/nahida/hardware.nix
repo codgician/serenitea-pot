@@ -65,10 +65,10 @@
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       ExecStart = [
-        "${pkgs.coreutils}/bin/echo 'Limiting NVIDIA GPU TDP to 300W...'"
-        "${config.hardware.nvidia.package.bin}/bin/nvidia-smi -pl 300"
-        "${pkgs.coreutils}/bin/echo 'Disabling RGB effects...'"
-        "${lib.getExe pkgs.openrgb} --mode static --color 000000"
+        "${pkgs.coreutils}/bin/echo 'Limiting NVIDIA GPU TDP to 350W...'"
+        "${config.hardware.nvidia.package.bin}/bin/nvidia-smi -pl 350"
+        # "${pkgs.coreutils}/bin/echo 'Disabling RGB effects...'"
+        # "${lib.getExe pkgs.openrgb} --mode static --color 000000"
       ];
       Type = "oneshot";
     };
