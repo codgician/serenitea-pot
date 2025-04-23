@@ -25,8 +25,6 @@
   boot.kernelPackages = pkgs.linuxPackages_6_12;
   boot.kernelParams = [
     "console=ttyS0,115200"
-    "nvidia_drm.fbdev=0"
-    "nvidia_drm.modeset=1"
     "iomem=relaxed"
   ];
 
