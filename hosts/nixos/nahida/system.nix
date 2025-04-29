@@ -16,10 +16,9 @@
         enable = true;
         acceleration = "cuda";
         loadModels = [
-          "deepseek-r1:32b"
-          "qwq:32b"
+          "qwen3:30b"
+          "qwen3:32b"
           "gemma3:27b"
-          "phi4:14b"
         ];
       };
 
