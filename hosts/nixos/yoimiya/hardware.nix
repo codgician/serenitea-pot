@@ -14,8 +14,6 @@
         "usb_storage"
         "usbhid"
         "sd_mod"
-        "virtio_pci"
-        "virtio_scsi"
       ];
       kernelModules = [
         "tpm_crb"
@@ -27,6 +25,7 @@
       ];
     };
 
+    kernelPackages = pkgs.linuxPackages_6_12;
     kernelModules = [
       "kvm-amd"
       "ast"
@@ -41,11 +40,11 @@
       "kvm_amd.npt=1"
       "kvm_amd.avic=1"
       "kvm_amd.force_avic=1"
+      "iomem=relaxed"
     ];
 
     extraModprobeConfig = ''
-      blacklist nvidiafb
-      options vfio-pci ids=10de:2204,10de:1aef,10de:1cb6,10de:0fb9,10de:2882,10de:22be
+      options vfio-pci ids=10de:1cb6,10de:0fb9,10de:2882,10de:22be
       options kvm ignore_msrs=1
       options kvm report_ignored_msrs=0
     '';
@@ -82,7 +81,7 @@
   '';
 
   # The root partition decryption key encrypted with tpm
-  # `echo $PLAINTEXT | sudo clevis encrypt tpm2 '{"pcr_bank":"sha256","pcr_ids":"1,7,14"}'`
+  # `echo $PLAINTEXT | sudo clevis encrypt tpm2 '{"pcr_bank":"sha256","pcr_ids":"1,7,12,14"}'`
   # boot.initrd.clevis = {
   #   enable = true;
   #   devices."zroot".secretFile = ./zroot.jwe;
@@ -96,8 +95,45 @@
     tpm2-tools
   ];
 
+  # Enable OpenGL
+  hardware.graphics.enable = true;
+
+  # Load nvidia driver for Xorg and Wayland
+  services.xserver.videoDrivers = [ "nvidia" ];
+
   # CUDA support for nixpkgs
   nixpkgs.config.cudaSupport = true;
+
+  hardware.nvidia = {
+    modesetting.enable = true;
+    powerManagement.enable = true;
+    gsp.enable = true;
+    nvidiaPersistenced = true;
+    open = true;
+    nvidiaSettings = true;
+    package = config.boot.kernelPackages.nvidiaPackages.beta;
+  };
+
+  # Limit TDP and powersave for nvidia card
+  systemd.services = {
+    nvidia-gpu-config = {
+      description = "Configure NVIDIA GPU";
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        ExecStart = [
+          "${pkgs.coreutils}/bin/echo 'Limiting NVIDIA GPU TDP to 350W...'"
+          "${config.hardware.nvidia.package.bin}/bin/nvidia-smi -pl 350"
+        ];
+        Type = "oneshot";
+      };
+    };
+  };
+
+  # Start ollama after configuring GPU
+  # systemd.services.ollama.after = [ "nvidia-gpu-config.service" ];
+
+  # Enable use of nvidia card in containers
+  hardware.nvidia-container-toolkit.enable = true;
 
   # Connected to UPS
   codgician.power.ups.devices.br1500g = {

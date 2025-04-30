@@ -2,8 +2,8 @@
 
 {
   disks ? [
-    "nvme8n1"
-    "nvme9n1"
+    "disk/by-id/nvme-WD_Blue_SN5000_1TB_251222801711"
+    "disk/by-id/nvme-WD_Blue_SN5000_1TB_251222802843"
   ],
   ...
 }:
