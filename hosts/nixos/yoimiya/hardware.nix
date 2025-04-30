@@ -25,7 +25,6 @@
       ];
     };
 
-    kernelPackages = pkgs.linuxPackages_6_12;
     kernelModules = [
       "kvm-amd"
       "ast"
@@ -55,15 +54,18 @@
     ];
 
     zfs = {
+      extraPools = [
+        "fpool"
+        "opool"
+        "xpool"
+      ];
       forceImportAll = true;
-      requestEncryptionCredentials = true;
+      requestEncryptionCredentials = [ "zroot" ];
     };
-
-    postBootCommands = ''
-      ${lib.getExe pkgs.zfs} load-key -a
-      ${lib.getExe pkgs.zfs} mount -a
-    '';
   };
+
+  # ZFS load keys
+  systemd.services."zfs-mount".preStart = "${lib.getExe config.boot.zfs.package} load-key -a";
 
   # Selfhost mlnx-ofed-nixos
   hardware.mlnx-ofed = {
