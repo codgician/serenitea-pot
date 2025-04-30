@@ -36,7 +36,7 @@
 
     mlnx-ofed-nixos = {
       url = "github:codgician/mlnx-ofed-nixos";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     proxmox-nixos = {
@@ -104,7 +104,13 @@
       };
     };
 
-    nur.url = "github:nix-community/NUR";
+    nur = {
+      url = "github:nix-community/NUR";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-parts.follows = "flake-parts";
+      };
+    };
 
     lanzaboote = {
       url = "github:nix-community/lanzaboote";
