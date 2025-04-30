@@ -7,5 +7,6 @@ lib.codgician.mkNixosSystem {
     ./system.nix
     ./disks.nix
     ./hardware.nix
+    ./proxmox.nix
   ];
 }

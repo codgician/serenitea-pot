@@ -116,7 +116,7 @@ in
           OLLAMA_FLASH_ATTENTION = lib.mkIf (cfg.acceleration != false) "1";
           OLLAMA_KV_CACHE_TYPE = "q8_0";
           # Increase default context length to 8K
-          OLLAMA_CONTEXT_LENGTH = "8192"; 
+          OLLAMA_CONTEXT_LENGTH = "8192";
         };
 
         # Override package to save build time

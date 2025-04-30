@@ -59,6 +59,16 @@
     nvme.enable = true;
   };
 
+  services.udev = {
+    enable = true;
+    extraRules = ''
+      KERNELS=="0000:43:00.0", DRIVERS=="mlx5_core", SUBSYSTEMS=="pci", ACTION=="add", ATTR{sriov_totalvfs}=="?*", RUN+="${pkgs.mlnx-iproute2}/bin/devlink dev eswitch set pci/0000:43:00.0 mode switchdev"
+      KERNELS=="0000:43:00.1", DRIVERS=="mlx5_core", SUBSYSTEMS=="pci", ACTION=="add", ATTR{sriov_totalvfs}=="?*", RUN+="${pkgs.mlnx-iproute2}/bin/devlink dev eswitch set pci/0000:43:00.1 mode switchdev"
+      SUBSYSTEM=="net", ACTION=="add", ATTR{phys_switch_id}=="f46aec00039f59b8", ATTR{phys_port_name}=="p0", ATTR{device/sriov_totalvfs}=="?*", ATTR{device/sriov_numvfs}=="0", ATTR{device/sriov_numvfs}="8";
+      SUBSYSTEM=="net", ACTION=="add", ATTR{phys_switch_id}=="f46aec00039f59b8", ATTR{phys_port_name}=="p1", ATTR{device/sriov_totalvfs}=="?*", ATTR{device/sriov_numvfs}=="0", ATTR{device/sriov_numvfs}="8";
+    '';
+  };
+
   # Specify boot-0 as the primary ESP partition
   boot.loader.efi.efiSysMountPoint = "/boot-0";
 
