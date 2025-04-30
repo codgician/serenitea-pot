@@ -11,6 +11,7 @@ rec {
     sigewinne = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILL9hl37txex438IfgZQ57uyLgf/WwDxypk9JoUT2Mya" ];
     wanderer = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPip23VXc7cxTRexddjDPpi90cBvQoxjNGPqSCVG1fvr" ];
     xianyun = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDmOBQu1zv4bsSMw7uVvYkFhGz+jOUXwgJLOe8wAVz0P" ];
+    yoimiya = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFljYcA+U1awv/K4xHx9pr8+WVH/YDAN73nPlEhE3zJr" ];
   };
 
   users = {
@@ -28,6 +29,8 @@ rec {
       lumine
       raiden-ei
       fischl
+      xianyun
+      yoimiya
       codgi
     ]
   );
