@@ -9,7 +9,10 @@
 
     system = {
       auto-upgrade.enable = true;
-      impermanence.enable = true;
+      impermanence = {
+        enable = true;
+        path = "/persist";
+      };
       secure-boot.enable = true;
       nix.useCnMirror = true;
     };
