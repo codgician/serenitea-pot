@@ -7,6 +7,13 @@
 {
   boot = {
     initrd = {
+      # The root partition decryption key encrypted with tpm
+      # `nix run .#mkjwe`
+      clevis = {
+        enable = true;
+        devices."zroot".secretFile = ./zroot.jwe;
+      };
+
       availableKernelModules = [
         "xhci_pci"
         "ahci"
@@ -15,6 +22,7 @@
         "usbhid"
         "sd_mod"
       ];
+
       kernelModules = [
         "tpm_crb"
         "tpm_tis"
@@ -29,6 +37,7 @@
       "kvm-amd"
       "ast"
     ];
+
     kernelParams = [
       "video=astdrmfb"
       "amd_pstate=active"
@@ -96,13 +105,6 @@
       ${lib.getExe pkgs.rsync} -a --delete /boot-0/ /boot-1/
     fi
   '';
-
-  # The root partition decryption key encrypted with tpm
-  # `echo $PLAINTEXT | sudo clevis encrypt tpm2 '{"pcr_bank":"sha256","pcr_ids":"1,7,12,14"}'`
-  # boot.initrd.clevis = {
-  #   enable = true;
-  #   devices."zroot".secretFile = ./zroot.jwe;
-  # };
 
   # Hardware-specific global packages
   environment.systemPackages = with pkgs; [
