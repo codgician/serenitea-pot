@@ -87,6 +87,7 @@
     pciutils
     nvme-cli
     usbutils
+    ethtool
   ];
 
   # Use networkd

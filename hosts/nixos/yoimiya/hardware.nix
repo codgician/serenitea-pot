@@ -59,16 +59,6 @@
     nvme.enable = true;
   };
 
-  services.udev = {
-    enable = true;
-    extraRules = ''
-      SUBSYSTEM=="net", ACTION=="add", ATTR{phys_switch_id}=="f46aec00039f59b8", ATTR{phys_port_name}=="p0", ATTR{device/sriov_totalvfs}=="?*", ATTR{device/sriov_numvfs}=="0", ATTR{device/sriov_numvfs}="8";
-      SUBSYSTEM=="net", ACTION=="add", ATTR{phys_switch_id}=="f46aec00039f59b8", ATTR{phys_port_name}=="p1", ATTR{device/sriov_totalvfs}=="?*", ATTR{device/sriov_numvfs}=="0", ATTR{device/sriov_numvfs}="8";
-      KERNELS=="0000:43:00.0", DRIVERS=="mlx5_core", SUBSYSTEMS=="pci", ACTION=="add", ATTR{sriov_totalvfs}=="?*", RUN+="${pkgs.iproute2}/bin/devlink dev eswitch set pci/0000:43:00.0 mode switchdev"
-      KERNELS=="0000:43:00.1", DRIVERS=="mlx5_core", SUBSYSTEMS=="pci", ACTION=="add", ATTR{sriov_totalvfs}=="?*", RUN+="${pkgs.iproute2}/bin/devlink dev eswitch set pci/0000:43:00.1 mode switchdev"
-    '';
-  };
-
   # Specify boot-0 as the primary ESP partition
   boot.loader.efi.efiSysMountPoint = "/boot-0";
 
@@ -156,11 +146,16 @@
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   powerManagement = {
     cpuFreqGovernor = "powersave";
-    powerUpCommands = ''
-      for cpu_path in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; 
-        do echo "balance_performance" > "$cpu_path"; 
-      done
-    '';
+    powerUpCommands = lib.getExe (
+      pkgs.writeShellApplication {
+        name = "amd-set-energy-performance-preference";
+        text = ''
+          for cpu_path in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; 
+            do echo "balance_performance" > "$cpu_path"; 
+          done
+        '';
+      }
+    );
   };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
