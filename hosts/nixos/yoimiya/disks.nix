@@ -51,7 +51,8 @@ in
         mode = "mirror";
         mountpoint = "/zroot";
         rootFsOptions = {
-          compression = "on";
+          atime = "off";
+          compression = "off";
           encryption = "aes-256-gcm";
           keyformat = "passphrase";
           keylocation = "prompt";
