@@ -18,24 +18,29 @@
       DEV_PCIBASE=0000:43:00
 
       # Set number of VFs
+      echo "Creating 4 VFs for $DEV_NAME ..."
       echo 4 > /sys/class/net/$DEV_NAME/device/sriov_numvfs
 
       # Set MAC addresses for VFs
+      echo "Setting MAC addresses for VFs ..."
       ip link set $DEV_NAME vf 0 mac ac:79:86:90:31:9a
       ip link set $DEV_NAME vf 1 mac ac:79:86:2a:81:da
       ip link set $DEV_NAME vf 2 mac ac:79:86:28:02:91
       ip link set $DEV_NAME vf 3 mac ac:79:86:92:0b:af
 
       # Unbind VFs
+      echo "Unbinding VFs from driver ..."
       echo ''${DEV_PCIBASE}.2 > /sys/bus/pci/drivers/mlx5_core/unbind
       echo ''${DEV_PCIBASE}.3 > /sys/bus/pci/drivers/mlx5_core/unbind
       echo ''${DEV_PCIBASE}.4 > /sys/bus/pci/drivers/mlx5_core/unbind
       echo ''${DEV_PCIBASE}.5 > /sys/bus/pci/drivers/mlx5_core/unbind
 
       # Enable eSwitch
+      echo "Setting eSwitch mode to switchdev ..."
       devlink dev eswitch set pci/''${DEV_PCIBASE}.0 mode switchdev
 
       # Bind first VF to host
+      echo "Binding first VF to host ..."
       echo ''${DEV_PCIBASE}.2 > /sys/bus/pci/drivers/mlx5_core/bind
     '';
     serviceConfig.Type = "oneshot";

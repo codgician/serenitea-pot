@@ -48,6 +48,21 @@
       options kvm ignore_msrs=1
       options kvm report_ignored_msrs=0
     '';
+
+    supportedFilesystems = [
+      "vfat"
+      "zfs"
+    ];
+
+    zfs = {
+      forceImportAll = true;
+      requestEncryptionCredentials = true;
+    };
+
+    postBootCommands = ''
+      ${lib.getExe pkgs.zfs} load-key -a
+      ${lib.getExe pkgs.zfs} mount -a
+    '';
   };
 
   # Selfhost mlnx-ofed-nixos
