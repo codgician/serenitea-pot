@@ -15,8 +15,14 @@ with pubKeys.hosts;
   "kiosk-hashed-password.age".publicKeys = someHosts [ sigewinne ];
 
   # NUT password
-  "nut-password.age".publicKeys = someHosts [ fischl yoimiya ];
-  "upsmon-password.age".publicKeys = someHosts [ fischl yoimiya ];
+  "nut-password.age".publicKeys = someHosts [
+    fischl
+    yoimiya
+  ];
+  "upsmon-password.age".publicKeys = someHosts [
+    fischl
+    yoimiya
+  ];
 
   # Cloudflare token
   "cloudflare-credential.age".publicKeys = allServers;
