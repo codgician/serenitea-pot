@@ -1,6 +1,9 @@
 { pkgs, ... }: {
   # Enable proxmox VE
-  services.proxmox-ve.enable = true;
+  services.proxmox-ve = {
+    enable = true;
+    ipAddress = "192.168.0.21";
+  };
 
   # Make swtpm globally available
   environment.systemPackages = with pkgs; [ swtpm ];
