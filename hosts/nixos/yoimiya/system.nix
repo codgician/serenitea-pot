@@ -61,7 +61,7 @@
     trim.enable = true;
   };
 
-  fileSystems."/nix/persist".neededForBoot = true;
+  fileSystems."/persist".neededForBoot = true;
   networking.hostId = "a7f3fe2e";
 
   # TPM
