@@ -6,9 +6,6 @@
     ipAddress = "192.168.0.21";
   };
 
-  # Make swtpm globally available
-  environment.systemPackages = with pkgs; [ swtpm ];
-
   # Set up SRIOV VF before running openvswitch
   systemd.services.mlx5-sriov = {
     enable = true;
@@ -64,6 +61,8 @@
   };
 
   # swtpm setup
+  environment.systemPackages = with pkgs; [ swtpm ];
+  systemd.services.pvedaemon.path = with pkgs; [ swtpm ];
   environment.etc."swtpm_setup.conf".text = ''
     # Program invoked for creating certificates
     create_certs_tool= ${pkgs.swtpm}/share/swtpm/swtpm-localca

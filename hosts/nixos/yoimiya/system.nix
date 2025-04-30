@@ -10,7 +10,7 @@
     system = {
       auto-upgrade.enable = true;
       impermanence.enable = true;
-      #secure-boot.enable = true;
+      secure-boot.enable = true;
       nix.useCnMirror = true;
     };
 
