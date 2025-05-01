@@ -88,6 +88,8 @@ in
             in
             ''(cat ${passwordFile}; cat ${passwordFile};) | ${sambaPkg}/bin/smbpasswd -s -a "${user}"'';
           commands = [
+            # Create private folder if not exist
+            "[ -d /var/lib/samba/private ] || mkdir -p /var/lib/samba/private"
             ''echo -e "refreshing samba password for: ${sambaUsersString}"''
           ] ++ builtins.map mkCommand cfg.users;
           script = builtins.concatStringsSep "; " commands;
@@ -97,7 +99,14 @@ in
 
     # Persist data
     environment = lib.optionalAttrs (systemCfg ? impermanence) {
-      persistence.${systemCfg.impermanence.path}.directories = [ "/var/lib/samba" ];
+      persistence.${systemCfg.impermanence.path}.directories = [
+        {
+          directory = "/var/lib/samba";
+          user = "root";
+          group = "root";
+          mode = "u=rwx,g=rx,o=x";
+        }
+      ];
     };
 
     # Assertions

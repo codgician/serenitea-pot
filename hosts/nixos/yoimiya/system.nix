@@ -4,20 +4,72 @@
   # My settings
   codgician = {
     services = {
+      postgresql = {
+        enable = true;
+        dataDir = "/opool/postgres";
+        zfsOptimizations = true;
+      };
+
       nixos-vscode-server.enable = true;
+
+      samba = {
+        enable = true;
+        users = [
+          "codgi"
+          "smb"
+        ];
+        shares = {
+          "media" = {
+            path = "/fpool/media";
+            browsable = "yes";
+            writeable = "yes";
+            "force user" = "codgi";
+            "read only" = "no";
+            "guest ok" = "yes";
+            "create mask" = "0644";
+            "directory mask" = "0755";
+          };
+
+          "timac" = {
+            path = "/fpool/timac/";
+            "valid users" = "codgi";
+            public = "no";
+            writeable = "yes";
+            "force user" = "codgi";
+            "guest ok" = "no";
+            "fruit:aapl" = "yes";
+            "fruit:time machine" = "yes";
+            "fruit:time machine max size" = "1TB";
+            "vfs objects" = "catia fruit streams_xattr";
+          };
+        };
+      };
     };
 
     system = {
       auto-upgrade.enable = true;
-      impermanence.enable = true;
+      impermanence = {
+        enable = true;
+        path = "/persist";
+      };
       secure-boot.enable = true;
       nix.useCnMirror = true;
     };
 
-    users.codgi = with lib.codgician; {
-      enable = true;
-      hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
-      extraGroups = [ "wheel" ];
+    users = with lib.codgician; {
+      codgi = {
+        enable = true;
+        hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
+        passwordAgeFile = getAgeSecretPathFromName "codgi-password";
+        extraGroups = [ "wheel" ];
+      };
+
+      smb = {
+        enable = true;
+        createHome = false;
+        hashedPasswordAgeFile = getAgeSecretPathFromName "smb-hashed-password";
+        passwordAgeFile = getAgeSecretPathFromName "smb-password";
+      };
     };
   };
 
@@ -79,6 +131,7 @@
     nvme-cli
     usbutils
     ethtool
+    sysstat
   ];
 
   # Use networkd

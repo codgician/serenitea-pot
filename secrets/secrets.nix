@@ -8,10 +8,10 @@ with pubKeys.hosts;
   "wireless-env.age".publicKeys = someHosts [ sigewinne ];
 
   # User password
-  "codgi-password.age".publicKeys = someHosts [ paimon ];
+  "codgi-password.age".publicKeys = someHosts [ yoimiya ];
   "codgi-hashed-password.age".publicKeys = allHosts;
-  "smb-password.age".publicKeys = someHosts [ paimon ];
-  "smb-hashed-password.age".publicKeys = someHosts [ paimon ];
+  "smb-password.age".publicKeys = someHosts [ yoimiya ];
+  "smb-hashed-password.age".publicKeys = someHosts [ yoimiya ];
   "kiosk-hashed-password.age".publicKeys = someHosts [ sigewinne ];
 
   # NUT password
@@ -34,13 +34,34 @@ with pubKeys.hosts;
   };
 
   # GitLab secrets
-  "gitlab-init-root-password.age".publicKeys = someHosts [ paimon ];
-  "gitlab-db.age".publicKeys = someHosts [ paimon ];
-  "gitlab-jws.age".publicKeys = someHosts [ paimon ];
-  "gitlab-otp.age".publicKeys = someHosts [ paimon ];
-  "gitlab-secret.age".publicKeys = someHosts [ paimon ];
-  "gitlab-smtp.age".publicKeys = someHosts [ paimon ];
-  "gitlab-omniauth-github.age".publicKeys = someHosts [ paimon ];
+  "gitlab-init-root-password.age".publicKeys = someHosts [
+    paimon
+    yoimiya
+  ];
+  "gitlab-db.age".publicKeys = someHosts [
+    paimon
+    yoimiya
+  ];
+  "gitlab-jws.age".publicKeys = someHosts [
+    paimon
+    yoimiya
+  ];
+  "gitlab-otp.age".publicKeys = someHosts [
+    paimon
+    yoimiya
+  ];
+  "gitlab-secret.age".publicKeys = someHosts [
+    paimon
+    yoimiya
+  ];
+  "gitlab-smtp.age".publicKeys = someHosts [
+    paimon
+    yoimiya
+  ];
+  "gitlab-omniauth-github.age".publicKeys = someHosts [
+    paimon
+    yoimiya
+  ];
 
   # Grafana secrets
   "grafana-admin-password.age".publicKeys = someHosts [ lumine ];
@@ -48,8 +69,14 @@ with pubKeys.hosts;
   "grafana-smtp.age".publicKeys = someHosts [ lumine ];
 
   # Matrix secrets
-  "matrix-global-private-key.age".publicKeys = someHosts [ paimon ];
-  "matrix-env.age".publicKeys = someHosts [ paimon ];
+  "matrix-global-private-key.age".publicKeys = someHosts [
+    paimon
+    yoimiya
+  ];
+  "matrix-env.age".publicKeys = someHosts [
+    paimon
+    yoimiya
+  ];
 
   # Open-WebUI secrets
   "open-webui-env.age".publicKeys = someHosts [ nahida ];

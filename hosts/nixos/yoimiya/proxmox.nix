@@ -46,6 +46,26 @@
     serviceConfig.Type = "oneshot";
   };
 
+  # Set route metric
+  systemd.network.networks = {
+    "10-enp67s0f0v0" = {
+      name = "enp67s0f0v0";
+      networkConfig.DHCP = "yes";
+      networkConfig.IPv6PrivacyExtensions = "kernel";
+      dhcpV4Config.RouteMetric = 1024;
+      dhcpV6Config.RouteMetric = 1024;
+      linkConfig.RequiredForOnline = "no-carrier";
+    };
+    "11-eno1" = {
+      name = "eno1";
+      networkConfig.DHCP = "yes";
+      networkConfig.IPv6PrivacyExtensions = "kernel";
+      dhcpV4Config.RouteMetric = 2048;
+      dhcpV6Config.RouteMetric = 2048;
+      linkConfig.RequiredForOnline = "no-carrier";
+    };
+  };
+
   # Use openvswitch
   codgician.virtualization.vswitch = {
     enable = true;
