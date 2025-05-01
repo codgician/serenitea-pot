@@ -29,10 +29,7 @@
 
     system = {
       auto-upgrade.enable = true;
-      impermanence = {
-        enable = true;
-        path = "/persist";
-      };
+      impermanence.enable = true;
     };
 
     users.codgi = with lib.codgician; {

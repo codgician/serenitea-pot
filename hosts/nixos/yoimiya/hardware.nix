@@ -92,6 +92,7 @@
   fileSystems = {
     "/boot-0".neededForBoot = true;
     "/boot-1".neededForBoot = true;
+    "/persist".neededForBoot = true;
   };
 
   # Sync content to backup ESP partition on activation

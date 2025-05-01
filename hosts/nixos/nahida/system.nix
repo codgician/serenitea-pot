@@ -55,7 +55,10 @@
 
     system = {
       auto-upgrade.enable = true;
-      impermanence.enable = true;
+      impermanence = {
+        enable = true;
+        path = "/nix/persist";
+      };
       secure-boot.enable = true;
       nix.useCnMirror = true;
     };

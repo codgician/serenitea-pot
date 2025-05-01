@@ -76,7 +76,7 @@ in
 
           persist = {
             type = "zfs_fs";
-            mountpoint = "/nix/persist";
+            mountpoint = "/persist";
             options."com.sun:auto-snapshot" = "true";
           };
 

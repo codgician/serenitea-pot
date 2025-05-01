@@ -9,10 +9,7 @@
 
     system = {
       auto-upgrade.enable = true;
-      impermanence = {
-        enable = true;
-        path = "/persist";
-      };
+      impermanence.enable = true;
       secure-boot.enable = true;
       nix.useCnMirror = true;
     };
@@ -61,7 +58,6 @@
     trim.enable = true;
   };
 
-  fileSystems."/persist".neededForBoot = true;
   networking.hostId = "a7f3fe2e";
 
   # TPM

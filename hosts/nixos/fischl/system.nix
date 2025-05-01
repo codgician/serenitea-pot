@@ -66,13 +66,6 @@
     trim.enable = true;
   };
 
-  # ZFS on root boot configs
-  boot.supportedFilesystems = [
-    "vfat"
-    "zfs"
-  ];
-  boot.zfs.requestEncryptionCredentials = true;
-  fileSystems."/nix/persist".neededForBoot = true;
   boot.plymouth.enable = false;
 
   networking.hostId = "4b6c6565";

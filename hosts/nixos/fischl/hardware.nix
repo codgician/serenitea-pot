@@ -7,6 +7,13 @@
 {
   boot = {
     initrd = {
+      # The root partition decryption key encrypted with tpm
+      # `nix run .#mkjwe -- --pcr-bank sha384 --pcr-ids 7`
+      clevis = {
+        enable = true;
+        devices."zroot".secretFile = ./zroot.jwe;
+      };
+
       availableKernelModules = [
         "xhci_pci"
         "ahci"
@@ -35,6 +42,14 @@
       "isolcpus=2-5"
       "nohz_full=2-5"
     ];
+
+    # ZFS on root boot configs
+    supportedFilesystems = [
+      "vfat"
+      "zfs"
+    ];
+
+    zfs.requestEncryptionCredentials = true;
   };
 
   # Connected to UPS
@@ -47,6 +62,7 @@
   fileSystems = {
     "/boot-0".neededForBoot = true;
     "/boot-1".neededForBoot = true;
+    "/persist".neededForBoot = true;
   };
 
   # Bind first 3 ethernet cards to vfio for passthrough
@@ -69,13 +85,6 @@
       ${lib.getExe pkgs.rsync} -a --delete /boot-0/ /boot-1/
     fi
   '';
-
-  # The root partition decryption key encrypted with tpm
-  # `echo $PLAINTEXT | sudo clevis encrypt tpm2 '{"pcr_bank":"sha384","pcr_ids":"7"}'`
-  boot.initrd.clevis = {
-    enable = true;
-    devices."zroot".secretFile = ./zroot.jwe;
-  };
 
   # Enable graphics
   hardware.graphics.enable = true;

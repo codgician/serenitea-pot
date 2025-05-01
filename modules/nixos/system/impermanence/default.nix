@@ -8,7 +8,7 @@ in
 
     path = lib.mkOption {
       type = lib.types.path;
-      default = "/nix/persist";
+      default = "/persist";
       description = ''
         The path where all persistent files should be stored.
       '';
