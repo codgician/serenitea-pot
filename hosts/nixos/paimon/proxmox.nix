@@ -23,7 +23,7 @@
 
       # Set MAC addresses for VFs
       echo "Setting MAC addresses for VFs ..."
-      ip link set $DEV_NAME vf 0 mac ac:79:86:90:31:9a
+      ip link set $DEV_NAME vf 0 mac ac:79:86:9a:13:02
       ip link set $DEV_NAME vf 1 mac ac:79:86:2a:81:da
       ip link set $DEV_NAME vf 2 mac ac:79:86:28:02:91
       ip link set $DEV_NAME vf 3 mac ac:79:86:92:0b:af
