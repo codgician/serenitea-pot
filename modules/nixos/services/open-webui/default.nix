@@ -107,7 +107,7 @@ in
             else
               "${cfg.host}:${builtins.toString cfg.port}";
           # Logging
-          GLOBAL_LOG_LEVEL = "DEBUG";
+          # GLOBAL_LOG_LEVEL = "DEBUG";
           # Features
           ENABLE_SIGNUP = "False";
           ENABLE_LOGIN_FORM = "True";

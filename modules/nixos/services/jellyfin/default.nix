@@ -6,29 +6,35 @@ let
 in
 rec {
   options.codgician.services.jellyfin = {
-    enable = lib.mkEnableOption "Jellyfin.";
+    enable = lib.mkEnableOption "Jellyfin";
 
     user = lib.mkOption {
       type = types.str;
       default = "jellyfin";
-      description = "User under which jellyfin runs.";
+      description = "User under which jellyfin runs";
     };
 
     group = lib.mkOption {
       type = types.str;
       default = "jellyfin";
-      description = "Group under which jellyfin runs.";
+      description = "Group under which jellyfin runs";
+    };
+
+    cacheDir = lib.mkOption {
+      type = types.path;
+      default = "/var/cache/jellyfin";
+      description = "Cache directory for jellyfin";
     };
 
     dataDir = lib.mkOption {
       type = types.path;
       default = "/var/lib/jellyfin";
-      description = "Data directory for jellyfin.";
+      description = "Data directory for jellyfin";
     };
 
     # Reverse proxy profile for nginx
     reverseProxy = {
-      enable = lib.mkEnableOption "Reverse proxy for Jellyfin.";
+      enable = lib.mkEnableOption "Reverse proxy for Jellyfin";
 
       domains = lib.mkOption {
         type = types.listOf types.str;
@@ -37,20 +43,16 @@ rec {
           "example.org"
         ];
         default = [ ];
-        description = ''
-          List of domains for the reverse proxy.
-        '';
+        description = "List of domains for the reverse proxy";
       };
 
       proxyPass = lib.mkOption {
         type = types.str;
         default = "http://127.0.0.1:8096";
-        description = ''
-          Source URI for the reverse proxy.
-        '';
+        description = "Source URI for the reverse proxy";
       };
 
-      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
+      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients";
     };
   };
 
@@ -60,8 +62,12 @@ rec {
       services.jellyfin = {
         enable = true;
         openFirewall = true;
-        user = cfg.user;
-        group = cfg.group;
+        inherit (cfg)
+          user
+          group
+          cacheDir
+          dataDir
+          ;
       };
 
       # Persist data when dataDir is default value

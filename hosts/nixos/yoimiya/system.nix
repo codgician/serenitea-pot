@@ -79,6 +79,15 @@
           };
         };
       };
+
+      jellyfin = {
+        enable = true;
+        dataDir = "/xpool/appdata/jellyfin";
+        reverseProxy = {
+          enable = true;
+          domains = [ "fin.codgician.me" ];
+        };
+      };
     };
 
     system = {
