@@ -138,10 +138,7 @@
   systemd.services.nvidia-gpu-config = {
     description = "Configure NVIDIA GPU";
     wantedBy = [ "multi-user.target" ];
-    path = [
-      pkgs.coreutils
-      config.hardware.nvidia.package.bin
-    ];
+    path = [ config.hardware.nvidia.package.bin ];
     script = ''
       echo 'Limiting NVIDIA GPU TDP to 350W...'
       nvidia-smi -pl 350
@@ -166,7 +163,6 @@
     wants = [ "nvidia-gpu-config.service" ];
     after = [ "nvidia-gpu-config.service" ];
     path = [
-      pkgs.coreutils
       pkgs.gawk
       config.hardware.nvidia.package.bin
     ];
@@ -220,17 +216,27 @@
 
   networking.useDHCP = lib.mkDefault true;
 
-  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  hardware.cpu.amd = {
+    sev.enable = true;
+    sevGuest.enable = true;
+    updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  };
+
   powerManagement = {
     cpuFreqGovernor = "powersave";
     powertop.enable = true;
-    powerUpCommands = lib.pipe (lib.range 0 63) [
-      (builtins.map (
-        x:
-        "echo 'balance_performance' > /sys/devices/system/cpu/cpu${builtins.toString x}/cpufreq/energy_performance_preference"
-      ))
-      (builtins.concatStringsSep "\n")
-    ];
+  };
+
+  # Configure energy_performance_preference
+  systemd.services."amd-pstate-epp-init" = {
+    description = "Configure power policy for AMD P-State EPP";
+    wantedBy = [ "multi-user.target" ];
+    script = ''
+      for cpu_path in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; 
+        do echo "balance_performance" > "$cpu_path"; 
+      done
+    '';
+    serviceConfig.Type = "oneshot";
   };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
