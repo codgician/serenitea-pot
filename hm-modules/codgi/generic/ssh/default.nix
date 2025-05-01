@@ -43,10 +43,6 @@ in
           hostname = "xianyun.codgician.me";
           user = "codgi";
         };
-        "nahida" = {
-          hostname = "nahida.lan";
-          user = "codgi";
-        };
         "lumidouce" = {
           hostname = "lumidouce.lan";
           user = "root";
