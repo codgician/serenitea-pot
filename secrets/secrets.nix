@@ -34,34 +34,13 @@ with pubKeys.hosts;
   };
 
   # GitLab secrets
-  "gitlab-init-root-password.age".publicKeys = someHosts [
-    paimon
-    yoimiya
-  ];
-  "gitlab-db.age".publicKeys = someHosts [
-    paimon
-    yoimiya
-  ];
-  "gitlab-jws.age".publicKeys = someHosts [
-    paimon
-    yoimiya
-  ];
-  "gitlab-otp.age".publicKeys = someHosts [
-    paimon
-    yoimiya
-  ];
-  "gitlab-secret.age".publicKeys = someHosts [
-    paimon
-    yoimiya
-  ];
-  "gitlab-smtp.age".publicKeys = someHosts [
-    paimon
-    yoimiya
-  ];
-  "gitlab-omniauth-github.age".publicKeys = someHosts [
-    paimon
-    yoimiya
-  ];
+  "gitlab-init-root-password.age".publicKeys = someHosts [ yoimiya ];
+  "gitlab-db.age".publicKeys = someHosts [ yoimiya ];
+  "gitlab-jws.age".publicKeys = someHosts [ yoimiya ];
+  "gitlab-otp.age".publicKeys = someHosts [ yoimiya ];
+  "gitlab-secret.age".publicKeys = someHosts [ yoimiya ];
+  "gitlab-smtp.age".publicKeys = someHosts [ yoimiya ];
+  "gitlab-omniauth-github.age".publicKeys = someHosts [ yoimiya ];
 
   # Grafana secrets
   "grafana-admin-password.age".publicKeys = someHosts [ lumine ];
@@ -69,14 +48,8 @@ with pubKeys.hosts;
   "grafana-smtp.age".publicKeys = someHosts [ lumine ];
 
   # Matrix secrets
-  "matrix-global-private-key.age".publicKeys = someHosts [
-    paimon
-    yoimiya
-  ];
-  "matrix-env.age".publicKeys = someHosts [
-    paimon
-    yoimiya
-  ];
+  "matrix-global-private-key.age".publicKeys = someHosts [ yoimiya ];
+  "matrix-env.age".publicKeys = someHosts [ yoimiya ];
 
   # Open-WebUI secrets
   "open-webui-env.age".publicKeys = someHosts [ yoimiya ];
