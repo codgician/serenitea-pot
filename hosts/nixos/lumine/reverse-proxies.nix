@@ -28,7 +28,7 @@
       jellyfin.reverseProxy = {
         enable = true;
         domains = [ "fin.codgician.me" ];
-        proxyPass = "https://192.168.0.8";
+        proxyPass = "https://192.168.0.22";
       };
 
       open-webui.reverseProxy = {
