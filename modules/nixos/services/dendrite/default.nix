@@ -198,7 +198,7 @@ in
         ensureDatabases = [ dbName ];
         ensureUsers = [
           {
-            name = dbName;
+            name = "dendrite";
             ensureDBOwnership = true;
           }
         ];

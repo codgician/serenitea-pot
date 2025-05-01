@@ -150,7 +150,7 @@
   };
 
   # Start ollama after configuring GPU
-  # systemd.services.ollama.after = [ "nvidia-gpu-config.service" ];
+  systemd.services.ollama.after = [ "nvidia-gpu-config.service" ];
 
   # Enable use of nvidia card in containers
   hardware.nvidia-container-toolkit.enable = true;
@@ -166,16 +166,10 @@
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   powerManagement = {
     cpuFreqGovernor = "powersave";
-    powerUpCommands = lib.getExe (
-      pkgs.writeShellApplication {
-        name = "amd-set-energy-performance-preference";
-        text = ''
-          for cpu_path in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; 
-            do echo "balance_performance" > "$cpu_path"; 
-          done
-        '';
-      }
-    );
+    powerUpCommands = ''
+      ${lib.getExe pkgs.bash} -c \
+        'for cpu_path in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do echo "balance_performance" > "$cpu_path"; done'
+    '';
   };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";

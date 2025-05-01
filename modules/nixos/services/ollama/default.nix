@@ -31,9 +31,13 @@ in
     dataDir = lib.mkOption {
       type = types.str;
       default = "/var/lib/ollama";
-      description = ''
-        Directory for ollama to store data.
-      '';
+      description = "Directory for ollama to store data.";
+    };
+
+    modelDir = lib.mkOption {
+      type = types.str;
+      default = "${cfg.dataDir}/models";
+      description = "Directory for ollama to store models.";
     };
 
     user = lib.mkOption {
@@ -111,7 +115,7 @@ in
           acceleration
           ;
         home = cfg.dataDir;
-        models = "${cfg.dataDir}/models";
+        models = cfg.modelDir;
         environmentVariables = {
           OLLAMA_FLASH_ATTENTION = lib.mkIf (cfg.acceleration != false) "1";
           OLLAMA_KV_CACHE_TYPE = "q8_0";

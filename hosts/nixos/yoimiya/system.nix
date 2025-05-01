@@ -10,8 +10,33 @@
         zfsOptimizations = true;
       };
 
+      nginx.openFirewall = true;
       nixos-vscode-server.enable = true;
 
+      # LLM
+      litellm.enable = true;
+      ollama = {
+        enable = true;
+        acceleration = "cuda";
+        modelDir = "/xpool/llm/ollama/models";
+        loadModels = [
+          "qwen3:30b"
+          "qwen3:32b"
+          "hf.co/unsloth/Qwen3-30B-A3B-GGUF:Q5_K_M"
+          "gemma3:27b"
+        ];
+      };
+
+      open-webui = {
+        enable = true;
+        database = "postgresql";
+        reverseProxy = {
+          enable = true;
+          domains = [ "akasha.codgician.me" ];
+        };
+      };
+
+      # File server
       samba = {
         enable = true;
         users = [
@@ -138,7 +163,8 @@
   networking.useNetworkd = true;
 
   # Firewall
-  networking.firewall.enable = false;
+  networking.firewall.enable = true;
+  networking.firewall.allowedTCPPorts = [ 8006 ];
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

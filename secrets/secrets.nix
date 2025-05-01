@@ -79,10 +79,10 @@ with pubKeys.hosts;
   ];
 
   # Open-WebUI secrets
-  "open-webui-env.age".publicKeys = someHosts [ nahida ];
+  "open-webui-env.age".publicKeys = someHosts [ yoimiya ];
 
   # LiteLLM secrets
-  "litellm-env.age".publicKeys = someHosts [ nahida ];
+  "litellm-env.age".publicKeys = someHosts [ yoimiya ];
 
   # Terraform secrets
   "terraform-env.age" = {

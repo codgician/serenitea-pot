@@ -1,6 +1,12 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.services.open-webui;
+  systemCfg = config.codgician.system;
   types = lib.types;
   listToStr = lib.strings.concatStringsSep ";";
 
@@ -11,6 +17,9 @@ let
   litellmKeys = lib.optionals litellmCfg.enable [ "dummy" ];
 
   ollamaCfg = config.codgician.services.ollama;
+
+  pgDbHost = "/run/postgresql";
+  pgDbName = "open-webui";
 in
 {
   options.codgician.services.open-webui = {
@@ -30,6 +39,16 @@ in
       description = ''
         Port for open-webui to listen on.
       '';
+    };
+
+    database = lib.mkOption {
+      type = types.enum [
+        "sqlite"
+        "postgresql"
+      ];
+      default = "sqlite";
+      example = "postgresql";
+      description = "Database backend for open-webui.";
     };
 
     openFirewall = lib.mkEnableOption "Open firewall for open-webui.";
@@ -87,6 +106,8 @@ in
               builtins.head cfg.reverseProxy.domains
             else
               "${cfg.host}:${builtins.toString cfg.port}";
+          # Logging
+          GLOBAL_LOG_LEVEL = "DEBUG";
           # Features
           ENABLE_SIGNUP = "False";
           ENABLE_LOGIN_FORM = "True";
@@ -124,13 +145,24 @@ in
           RAG_EMBEDDING_ENGINE = lib.mkIf ollamaCfg.enable "ollama";
           RAG_EMBEDDING_MODEL = lib.mkIf ollamaCfg.enable "qllama/bge-m3:latest";
           RAG_OLLAMA_BASE_URL = lib.mkIf ollamaCfg.enable "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
-          RAG_RERANKING_MODEL = "BAAI/bge-reranker-v2-m3";
+          # RAG_RERANKING_MODEL = "BAAI/bge-reranker-v2-m3";
           # Redis
           ENABLE_WEBSOCKET_SUPPORT = "True";
           WEBSOCKET_MANAGER = "redis";
           WEBSOCKET_REDIS_URL = "unix://${config.services.redis.servers.open-webui.unixSocket}";
+          # Database
+          DATABASE_URL = lib.mkIf (cfg.database == "postgresql") "postgresql:///${pgDbName}?host=${pgDbHost}";
+          # Vector Database
+          VECTOR_DB = lib.mkIf (cfg.database == "postgresql") "pgvector";
         };
       };
+
+      # Create user
+      users.users.open-webui = {
+        group = "open-webui";
+        isSystemUser = true;
+      };
+      users.groups.open-webui = { };
 
       # Add embedding model to ollama
       codgician.services.ollama.loadModels = [
@@ -143,10 +175,56 @@ in
         unixSocketPerm = 660;
       };
 
-      # Ensure access to Redis
-      systemd.services.open-webui.serviceConfig.SupplementaryGroups = [
-        config.services.redis.servers.open-webui.group
-      ];
+      systemd.services.open-webui.serviceConfig = {
+        # Ensure access to Redis
+        SupplementaryGroups = [
+          config.services.redis.servers.open-webui.group
+        ];
+
+        # Disable dynamic user
+        DynamicUser = lib.mkForce false;
+        User = "open-webui";
+        Group = "open-webui";
+      };
+
+      # Persist data when dataDir is default value
+      environment = lib.optionalAttrs (systemCfg ? impermanence) {
+        persistence.${systemCfg.impermanence.path}.directories = [
+          {
+            directory = "/var/lib/open-webui";
+            mode = "0750";
+            user = "open-webui";
+            group = "open-webui";
+          }
+        ];
+      };
+    })
+
+    # PostgreSQL
+    (lib.mkIf (cfg.enable && cfg.database == "postgresql") {
+      # PostgreSQL
+      codgician.services.postgresql.enable = true;
+      services.postgresql = {
+        extensions = ps: with ps; [ pgvector ];
+        ensureDatabases = [ pgDbName ];
+        ensureUsers = [
+          {
+            name = "open-webui";
+            ensureDBOwnership = true;
+          }
+        ];
+      };
+
+      # PostgreSQL: enable pgvector
+      systemd.services.postgresql.serviceConfig.ExecStartPost =
+        let
+          sqlFile = pkgs.writeText "open-webui-pgvector-init.sql" ''
+            CREATE EXTENSION IF NOT EXISTS vector;
+          '';
+        in
+        ''
+          ${lib.getExe' config.services.postgresql.package "psql"} -d "${pgDbName}" -f "${sqlFile}"  
+        '';
     })
 
     (lib.mkIf cfg.enable (
