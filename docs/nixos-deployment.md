@@ -23,8 +23,8 @@ After running disko, the newly created partitions should be already mounted at `
 For hosts with [impermanence](https://github.com/nix-community/impermanence) enabled, run following command to generate new ssh key pair:
 
 ```bash
-sudo mkdir -p /mnt/nix/persist/etc/ssh/
-sudo ssh-keygen -t ed25519 -f /mnt/nix/persist/etc/ssh/ssh_host_ed25519_key -C ""
+sudo mkdir -p /mnt/persist/etc/ssh/
+sudo ssh-keygen -t ed25519 -f /mnt/persist/etc/ssh/ssh_host_ed25519_key -C ""
 ```
 
 Add generated public key to `/secrets/pubkeys.nix`, then navigate to `/secrets` and run following command to rekey all credentials:

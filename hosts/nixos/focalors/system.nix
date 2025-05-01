@@ -16,10 +16,7 @@ in
 
     system = {
       auto-upgrade.enable = true;
-      impermanence = {
-        enable = true;
-        path = "/nix/persist";
-      };
+      impermanence.enable = true;
       secure-boot.enable = true;
       nix.useCnMirror = true;
     };
@@ -88,8 +85,6 @@ in
     enable = true;
     theme = "breeze";
   };
-
-  fileSystems."/nix/persist".neededForBoot = true;
 
   # Select internationalisation properties.
   i18n = {

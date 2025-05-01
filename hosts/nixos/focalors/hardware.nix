@@ -1,14 +1,21 @@
 { lib, pkgs, ... }:
 {
-  boot.initrd.availableKernelModules = [
-    "xhci_pci"
-    "sr_mod"
-  ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ ];
-  boot.kernelParams = [ "video=Virtual-1:3024x1890@120" ];
-  boot.kernelPackages = pkgs.linuxPackages_6_12;
-  boot.extraModulePackages = [ ];
+  boot = {
+    initrd = {
+      availableKernelModules = [
+        "xhci_pci"
+        "sr_mod"
+      ];
+      kernelModules = [ ];
+    };
+
+    kernelModules = [ ];
+    kernelParams = [ "video=Virtual-1:3024x1890@120" ];
+    kernelPackages = pkgs.linuxPackages_6_12;
+    extraModulePackages = [ ];
+  };
+
+  fileSystems."/persist".neededForBoot = true;
 
   networking.useDHCP = lib.mkDefault true;
 

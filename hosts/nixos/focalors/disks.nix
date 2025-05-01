@@ -50,7 +50,7 @@
           content = {
             type = "filesystem";
             format = "ext4";
-            mountpoint = "/nix/persist";
+            mountpoint = "/persist";
           };
         };
       };
