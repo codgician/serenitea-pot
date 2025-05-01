@@ -7,7 +7,7 @@ Azure VM (Gen 2) running NixOS, being the reverse proxy to almost every self-hos
 To build system disk `.vhd` for uploading, run:
 
 ```bash
-nix run .#mkimg -- -priv /path/to/host/ssh/privkey --ssh-dir /nix/persist/etc/ssh -f vhd --fixed-size lumine
+nix run .#mkimg -- -priv /path/to/host/ssh/privkey --ssh-dir /persist/etc/ssh -f vhd --fixed-size lumine
 ```
 
 ## Upload built VHD to Azure

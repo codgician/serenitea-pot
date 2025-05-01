@@ -2,6 +2,13 @@
 {
   imports = [ (modulesPath + "/virtualisation/azure-common.nix") ];
 
+  # ZFS boot configs
+  boot.supportedFilesystems = [
+    "vfat"
+    "zfs"
+  ];
+  fileSystems."/persist".neededForBoot = true;
+
   # Enable Accelerated Networking
   virtualisation.azure.acceleratedNetworking = true;
 

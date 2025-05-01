@@ -29,7 +29,10 @@
 
     system = {
       auto-upgrade.enable = true;
-      impermanence.enable = true;
+      impermanence = {
+        enable = true;
+        path = "/persist";
+      };
     };
 
     users.codgi = with lib.codgician; {
@@ -70,12 +73,6 @@
     trim.enable = true;
   };
 
-  # ZFS boot configs
-  boot.supportedFilesystems = [
-    "vfat"
-    "zfs"
-  ];
-  fileSystems."/nix/persist".neededForBoot = true;
   networking.hostId = "2b4cf168";
 
   # Enable zram swap

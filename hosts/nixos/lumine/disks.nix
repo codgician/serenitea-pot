@@ -67,7 +67,7 @@
 
           persist = {
             type = "zfs_fs";
-            mountpoint = "/nix/persist";
+            mountpoint = "/persist";
           };
         };
       };
