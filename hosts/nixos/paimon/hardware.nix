@@ -217,8 +217,8 @@
   networking.useDHCP = lib.mkDefault true;
 
   hardware.cpu.amd = {
-    sev.enable = true;
-    sevGuest.enable = true;
+    # sev.enable = true;
+    # sevGuest.enable = true;
     updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   };
 
