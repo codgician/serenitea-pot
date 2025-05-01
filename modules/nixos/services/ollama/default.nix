@@ -29,13 +29,13 @@ in
     };
 
     dataDir = lib.mkOption {
-      type = types.str;
+      type = types.path;
       default = "/var/lib/ollama";
       description = "Directory for ollama to store data.";
     };
 
     modelDir = lib.mkOption {
-      type = types.str;
+      type = types.path;
       default = "${cfg.dataDir}/models";
       description = "Directory for ollama to store models.";
     };

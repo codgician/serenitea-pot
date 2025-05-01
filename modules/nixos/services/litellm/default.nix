@@ -81,7 +81,7 @@ in
     package = lib.mkPackageOption pkgs "litellm" { };
 
     dataDir = lib.mkOption {
-      type = types.str;
+      type = types.path;
       default = "/var/lib/litellm";
       description = ''
         Directory for LiteLLM to store data.

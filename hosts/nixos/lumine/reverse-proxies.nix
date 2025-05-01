@@ -4,7 +4,7 @@
     containers.comfyui.reverseProxy = {
       enable = true;
       domains = [ "vanarana.codgician.me" ];
-      proxyPass = "https://192.168.0.8";
+      proxyPass = "https://192.168.0.22";
     };
 
     services = {

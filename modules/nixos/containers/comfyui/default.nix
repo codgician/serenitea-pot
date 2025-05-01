@@ -11,17 +11,19 @@ in
     port = lib.mkOption {
       type = types.port;
       default = 8188;
-      description = ''
-        Port for comfyui to listen on.
-      '';
+      description = "Port for ComfyUI to listen on.";
     };
 
     dataDir = lib.mkOption {
       type = types.path;
       default = "/var/lib/comfyui";
-      description = ''
-        Data directory for comfyui.
-      '';
+      description = "Data directory for ComfyUI.";
+    };
+
+    modelDir = lib.mkOption {
+      type = types.nullOr types.path;
+      default = null;
+      description = "Model directory for ComfyUI.";
     };
 
     # Reverse proxy profile for nginx
@@ -62,7 +64,7 @@ in
         volumes = [
           "${cfg.dataDir}/basedir:/basedir"
           "${cfg.dataDir}/run:/comfy/mnt"
-        ];
+        ] ++ (lib.optional (cfg.modelDir != null) "${cfg.modelDir}:/comfy/mnt/ComfyUI/models");
         extraOptions =
           [
             "--pull=newer"

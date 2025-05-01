@@ -3,6 +3,16 @@
 
   # My settings
   codgician = {
+    containers.comfyui = {
+      enable = true;
+      dataDir = "/xpool/appdata/comfyui";
+      modelDir = "/xpool/llm/comfyui";
+      reverseProxy = {
+        enable = true;
+        domains = [ "vanarana.codgician.me" ];
+      };
+    };
+
     services = {
       postgresql = {
         enable = true;
@@ -81,12 +91,17 @@
       nix.useCnMirror = true;
     };
 
+    virtualization.podman.enable = true;
+
     users = with lib.codgician; {
       codgi = {
         enable = true;
         hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
         passwordAgeFile = getAgeSecretPathFromName "codgi-password";
-        extraGroups = [ "wheel" ];
+        extraGroups = [
+          "wheel"
+          "podman"
+        ];
       };
 
       smb = {

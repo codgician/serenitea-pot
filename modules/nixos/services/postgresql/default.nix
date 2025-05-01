@@ -13,7 +13,7 @@ in
     enable = lib.mkEnableOption "PostgreSQL";
 
     dataDir = lib.mkOption {
-      type = types.str;
+      type = types.path;
       default = "/var/lib/postgresql";
       description = "The directory where PostgreSQL stores its data.";
     };
