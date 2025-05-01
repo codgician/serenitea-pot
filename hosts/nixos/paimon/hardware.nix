@@ -134,19 +134,76 @@
     package = config.boot.kernelPackages.nvidiaPackages.beta;
   };
 
-  # Limit TDP and powersave for nvidia card
-  systemd.services = {
-    nvidia-gpu-config = {
-      description = "Configure NVIDIA GPU";
-      wantedBy = [ "multi-user.target" ];
-      serviceConfig = {
-        ExecStart = [
-          "${pkgs.coreutils}/bin/echo 'Limiting NVIDIA GPU TDP to 350W...'"
-          "${config.hardware.nvidia.package.bin}/bin/nvidia-smi -pl 350"
-        ];
-        Type = "oneshot";
-      };
+  # Limit nvidia GPU TDP
+  systemd.services.nvidia-gpu-config = {
+    description = "Configure NVIDIA GPU";
+    wantedBy = [ "multi-user.target" ];
+    path = [
+      pkgs.coreutils
+      config.hardware.nvidia.package.bin
+    ];
+    script = ''
+      echo 'Limiting NVIDIA GPU TDP to 350W...'
+      nvidia-smi -pl 350
+      nvidia-smi -rmc
+    '';
+    serviceConfig.Type = "oneshot";
+  };
+
+  # Hack: quirk to force GPU into P8 on idle
+  systemd.timers.nvidia-gpu-idle-quirk = {
+    description = "NVIDIA GPU idle quirk timer";
+    wants = [ "nvidia-gpu-idle-quirk.service" ];
+    wantedBy = [ "timers.target" ];
+    timerConfig = {
+      OnBootSec = "1min";
+      OnUnitActiveSec = "10min";
+      AccuracySec = "1min";
     };
+  };
+  systemd.services.nvidia-gpu-idle-quirk = {
+    description = "NVIDIA GPU idle quirk";
+    wants = [ "nvidia-gpu-config.service" ];
+    after = [ "nvidia-gpu-config.service" ];
+    path = [
+      pkgs.coreutils
+      pkgs.gawk
+      config.hardware.nvidia.package.bin
+    ];
+    script = ''
+      perf_state=$(
+        nvidia-smi -q -d PERFORMANCE \
+          | awk -F: '/^\s*Performance State/ {
+              gsub(/^[ \t]+|[ \t]+$/, "", $2)
+              print $2
+              exit
+            }'
+      )
+
+      if [ "$perf_state" != "P0" ]; then
+        echo "Performance State is $perf_state, skipping idle quirk."
+        exit 0
+      fi
+
+      idle_status=$(
+        nvidia-smi -q -d PERFORMANCE \
+          | awk -F: '/^\s*Idle\s*:/ {
+              gsub(/^[ \t]+|[ \t]+$/, "", $2)
+              print $2
+              exit
+            }'
+      )
+
+      if [ "$idle_status" == "Active" ]; then
+        echo "Idle is Active, running idle quirk..."
+        nvidia-smi -lmc 405
+        sleep 1
+        nvidia-smi -rmc
+      else
+        echo "Idle is $idle_status, skipping idle quirk."
+      fi
+    '';
+    serviceConfig.Type = "oneshot";
   };
 
   # Start ollama after configuring GPU
@@ -166,10 +223,14 @@
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
   powerManagement = {
     cpuFreqGovernor = "powersave";
-    powerUpCommands = ''
-      ${lib.getExe pkgs.bash} -c \
-        'for cpu_path in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do echo "balance_performance" > "$cpu_path"; done'
-    '';
+    powertop.enable = true;
+    powerUpCommands = lib.pipe (lib.range 0 63) [
+      (builtins.map (
+        x:
+        "echo 'balance_performance' > /sys/devices/system/cpu/cpu${builtins.toString x}/cpufreq/energy_performance_preference"
+      ))
+      (builtins.concatStringsSep "\n")
+    ];
   };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";

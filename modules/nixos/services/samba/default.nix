@@ -74,28 +74,28 @@ in
     };
 
     # Make sure user passwords are updated
-    system.activationScripts.sambaPasswordRefresh = {
-      supportsDryActivation = false;
-      text =
-        let
-          sambaPkg = config.services.samba.package;
-          sambaUsersString = builtins.concatStringsSep "," cfg.users;
-          mkCommand =
-            user:
-            let
-              passwordFile =
-                config.age.secrets."${lib.codgician.getAgeSecretNameFromPath userCfg.${user}.passwordAgeFile}".path;
-            in
-            ''(cat ${passwordFile}; cat ${passwordFile};) | ${sambaPkg}/bin/smbpasswd -s -a "${user}"'';
-          commands = [
-            # Create private folder if not exist
-            "[ -d /var/lib/samba/private ] || mkdir -p /var/lib/samba/private"
-            ''echo -e "refreshing samba password for: ${sambaUsersString}"''
-          ] ++ builtins.map mkCommand cfg.users;
-          script = builtins.concatStringsSep "; " commands;
-        in
-        "${lib.getExe pkgs.sudo} ${lib.getExe pkgs.bash} -c '${script}'";
-    };
+    systemd.services.samba-smbd.serviceConfig.ExecStartPre = lib.getExe (
+      pkgs.writeShellApplication {
+        name = "samba-password-refresh";
+        text =
+          let
+            mkCommand =
+              user:
+              let
+                passwordFile =
+                  config.age.secrets."${lib.codgician.getAgeSecretNameFromPath userCfg.${user}.passwordAgeFile}".path;
+              in
+              ''
+                echo "Refreshing samba password for: ${user}"
+                (cat ${passwordFile}; cat ${passwordFile};) | ${config.services.samba.package}/bin/smbpasswd -s -a "${user}"
+              '';
+          in
+          lib.pipe cfg.users [
+            (builtins.map mkCommand)
+            (builtins.concatStringsSep "\n")
+          ];
+      }
+    );
 
     # Persist data
     environment = lib.optionalAttrs (systemCfg ? impermanence) {
