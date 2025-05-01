@@ -23,6 +23,16 @@
       nginx.openFirewall = true;
       nixos-vscode-server.enable = true;
 
+      # Chat
+      dendrite = {
+        enable = true;
+        domain = "matrix.codgician.me";
+        reverseProxy = {
+          enable = true;
+          elementWeb = true;
+        };
+      };
+
       # LLM
       litellm.enable = true;
       ollama = {

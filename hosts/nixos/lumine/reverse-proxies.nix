@@ -13,7 +13,7 @@
         reverseProxy = {
           enable = true;
           elementWeb = true;
-          proxyPass = "https://192.168.0.7";
+          proxyPass = "https://192.168.0.22";
         };
       };
 
