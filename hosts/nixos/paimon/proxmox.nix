@@ -30,7 +30,8 @@ in
       };
     };
     acme."pve.codgician.me".postRun = ''
-      cp -f chain.pem /etc/pve/local/pveproxy-ssl.pem
+      cp -f cert.pem /etc/pve/local/pveproxy-ssl.pem
+      cp -f key.pem /etc/pve/local/pveproxy-ssl.key
       systemctl restart pveproxy.service
     '';
   };
