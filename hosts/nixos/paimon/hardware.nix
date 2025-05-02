@@ -50,6 +50,7 @@
       "iommu=pt"
       "amd_iommu_intr=vapic"
       "iomem=relaxed"
+      "zfs.zfs_compressed_arc_enabled=0"
     ];
 
     extraModprobeConfig = ''
