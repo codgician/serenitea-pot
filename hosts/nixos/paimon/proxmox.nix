@@ -1,10 +1,21 @@
-{ pkgs, ... }:
+{ config, lib, pkgs, ... }:
+let
+  impermanenceCfg = config.codgician.system.impermanence;
+in
 {
   # Enable proxmox VE
   services.proxmox-ve = {
     enable = true;
     ipAddress = "192.168.0.21";
   };
+
+  # Impermenance
+  environment.persistence.${impermanenceCfg.path}.directories = lib.mkIf impermanenceCfg.enable [
+    "/var/lib/pve-cluster"
+    "/var/lib/pve-firewall"
+    "/var/lib/pve-manager"
+    "/etc/pve"
+  ];
 
   # Set up SRIOV VF before running openvswitch
   systemd.services.mlx5-sriov = {

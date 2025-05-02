@@ -148,6 +148,7 @@
       home.packages = with pkgs; [
         httplz
         screen
+        nur.repos.codgician.gddr6
       ];
     };
 
