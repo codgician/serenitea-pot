@@ -87,18 +87,30 @@ in
   systemd.network.networks = {
     "10-enp67s0f0v0" = {
       name = "enp67s0f0v0";
-      networkConfig.DHCP = "yes";
-      networkConfig.IPv6PrivacyExtensions = "kernel";
+      networkConfig = {
+        DHCP = "yes";
+        IPv6PrivacyExtensions = "kernel";
+      };
       dhcpV4Config.RouteMetric = 1024;
-      dhcpV6Config.RouteMetric = 1024;
+      dhcpV6Config = {
+        RouteMetric = 1024;
+        DUIDType = "vendor";
+        DUIDRawData = "00:00:ab:11:75:d9:96:0e:f8:35:fe:2f";
+      };
       linkConfig.RequiredForOnline = "no-carrier";
     };
     "11-eno1" = {
       name = "eno1";
-      networkConfig.DHCP = "yes";
-      networkConfig.IPv6PrivacyExtensions = "kernel";
+      networkConfig = {
+        DHCP = "yes";
+        IPv6PrivacyExtensions = "kernel";
+      };
       dhcpV4Config.RouteMetric = 2048;
-      dhcpV6Config.RouteMetric = 2048;
+      dhcpV6Config = {
+        RouteMetric = 2048;
+        DUIDType = "vendor";
+        DUIDRawData = "00:00:ab:11:75:d9:96:0e:f8:35:fe:0f";
+      };
       linkConfig.RequiredForOnline = "no-carrier";
     };
   };
