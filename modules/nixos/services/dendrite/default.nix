@@ -84,6 +84,7 @@ in
       # Dendrite
       services.dendrite = {
         enable = true;
+        inherit (cfg) httpPort;
         openRegistration = false;
         environmentFile = config.age.secrets.matrix-env.path;
         settings = {

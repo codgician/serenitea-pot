@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 let
   types = lib.types;
 in
@@ -19,7 +19,7 @@ in
     };
 
     locations = lib.mkOption {
-      type = types.attrsOf (types.submodule (import ./location-options.nix { inherit lib; }));
+      type = types.attrsOf (types.submodule (import ./location-options.nix { inherit lib pkgs; }));
       default = { };
       example = lib.literalExpression ''
         {

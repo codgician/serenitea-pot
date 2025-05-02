@@ -41,13 +41,14 @@
     kernelParams = [
       "video=astdrmfb"
       "amd_pstate=active"
-      "amd_iommu=on"
-      "iommu=pt"
       "hugepagesz=1G"
       "default_hugepagesz=2M"
       "kvm_amd.npt=1"
       "kvm_amd.avic=1"
       "kvm_amd.force_avic=1"
+      "amd_iommu=on"
+      "iommu=pt"
+      "amd_iommu_intr=vapic"
       "iomem=relaxed"
     ];
 
@@ -231,9 +232,10 @@
   systemd.services."amd-pstate-epp-init" = {
     description = "Configure power policy for AMD P-State EPP";
     wantedBy = [ "multi-user.target" ];
+    after = [ "cpufreq.service" ];
     script = ''
       for cpu_path in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; 
-        do echo "balance_performance" > "$cpu_path"; 
+        do echo "balance_power" > "$cpu_path"; 
       done
     '';
     serviceConfig.Type = "oneshot";

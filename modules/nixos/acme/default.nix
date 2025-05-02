@@ -36,12 +36,12 @@ let
         '';
       };
 
-      postRunScripts = lib.mkOption {
-        type = types.listOf types.lines;
-        example = [ "cp full.pem backup.pem" ];
-        default = [ ];
+      postRun = lib.mkOption {
+        type = with types; nullOr lines;
+        example = "cp full.pem backup.pem";
+        default = null;
         description = ''
-          List of commands to run after certificate is renewed. Each command is run in a separate bash shell.
+          Command run after certificate is renewed.
         '';
       };
 
@@ -72,13 +72,9 @@ let
         {
           security.acme.certs.${name} = {
             domain = name;
+            inherit (cfg.${name}) reloadServices;
             extraDomainNames = lib.lists.unique cfg.${name}.extraDomainNames;
-            reloadServices = cfg.${name}.reloadServices;
-            postRun =
-              let
-                commands = builtins.map (x: "${lib.getExe pkgs.bash} -c '${x}'") cfg.${name}.postRunScripts;
-              in
-              builtins.concatStringsSep "\n" commands;
+            postRun = with cfg.${name}; lib.mkIf (postRun != null) postRun;
           };
         }
       ]

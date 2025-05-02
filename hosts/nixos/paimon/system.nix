@@ -20,7 +20,6 @@
         zfsOptimizations = true;
       };
 
-      nginx.openFirewall = true;
       nixos-vscode-server.enable = true;
 
       # Chat
@@ -199,7 +198,6 @@
 
   # Firewall
   networking.firewall.enable = true;
-  networking.firewall.allowedTCPPorts = [ 8006 ];
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

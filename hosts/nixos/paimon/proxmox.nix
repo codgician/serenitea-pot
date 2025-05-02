@@ -1,20 +1,45 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   impermanenceCfg = config.codgician.system.impermanence;
 in
 {
-  # Enable proxmox VE
+  # Enable Proxmox VE
+  networking.firewall.allowedTCPPorts = [ 8006 ];
   services.proxmox-ve = {
     enable = true;
     ipAddress = "192.168.0.21";
   };
 
-  # Impermenance
+  # Reverse proxy
+  codgician = {
+    services.nginx = {
+      enable = true;
+      openFirewall = true;
+      reverseProxies = {
+        "pve.codgician.me" = {
+          enable = true;
+          https = true;
+          domains = [ "pve.codgician.me" ];
+          locations."/".proxyPass = "https://127.0.0.1:8006";
+        };
+      };
+    };
+    acme."pve.codgician.me".postRun = ''
+      cp -f chain.pem /etc/pve/local/pveproxy-ssl.pem
+      systemctl restart pveproxy.service
+    '';
+  };
+
+  # Impermenance for Proxmox VE
   environment.persistence.${impermanenceCfg.path}.directories = lib.mkIf impermanenceCfg.enable [
     "/var/lib/pve-cluster"
     "/var/lib/pve-firewall"
     "/var/lib/pve-manager"
-    "/etc/pve"
   ];
 
   # Set up SRIOV VF before running openvswitch
@@ -98,7 +123,10 @@ in
 
   # swtpm setup
   environment.systemPackages = with pkgs; [ swtpm ];
-  systemd.services.pvedaemon.path = with pkgs; [ swtpm ];
+  systemd.services = {
+    pvedaemon.path = with pkgs; [ swtpm ];
+    pve-guests.path = with pkgs; [ swtpm ];
+  };
   environment.etc."swtpm_setup.conf".text = ''
     # Program invoked for creating certificates
     create_certs_tool= ${pkgs.swtpm}/share/swtpm/swtpm-localca

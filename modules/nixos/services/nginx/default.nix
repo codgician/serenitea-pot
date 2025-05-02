@@ -20,12 +20,15 @@ let
     extraConfig =
       locationCfg.extraConfig
       # Enhance https reverse proxy security
-      + (lib.optionalString (with locationCfg; proxyPass != null && lib.hasPrefix "https://" proxyPass) ''
-        proxy_ssl_server_name on;
-        proxy_ssl_name ${serverName};
-        proxy_ssl_verify on;
-        proxy_ssl_trusted_certificate ${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt;
-      '')
+      + (
+        with locationCfg;
+        lib.optionalString (sslVerify.enable && proxyPass != null && lib.hasPrefix "https://" proxyPass) ''
+          proxy_ssl_server_name on;
+          proxy_ssl_name ${if sslVerify.sslName == null then serverName else sslVerify.sslName};
+          proxy_ssl_verify on;
+          proxy_ssl_trusted_certificate ${sslVerify.trustedCertificate};
+        ''
+      )
       # If only allow connections from lan
       + (lib.optionalString locationCfg.lanOnly ''
         allow 10.0.0.0/8;
@@ -64,7 +67,7 @@ in
     openFirewall = lib.mkEnableOption "Open port 80 and 443 in firewall configuration.";
 
     reverseProxies = lib.mkOption {
-      type = types.attrsOf (types.submodule (import ./reverse-proxy-options.nix { inherit lib; }));
+      type = types.attrsOf (types.submodule (import ./reverse-proxy-options.nix { inherit lib pkgs; }));
       default = { };
       example = lib.literalExpression ''
         {
@@ -136,6 +139,9 @@ in
           extraDomainNames = builtins.tail hostCfg.domains;
         }
       ) cfg.reverseProxies;
+
+    # Add nginx user to www-data group
+    users.groups."www-data".members = [ "nginx" ];
 
     # Assertions
     assertions = lib.mapAttrsToList (hostName: hostCfg: {
