@@ -18,8 +18,9 @@
       ];
 
       text = ''
+        VERBOSE=0
         function log_verbose() {
-          [ "$VERBOSE" ] && echo "[VERBOSE] $*"
+          if [ "$VERBOSE" -eq 1 ]; then echo "[VERBOSE] $*"; fi
         }
 
         function warn() {
@@ -73,6 +74,8 @@
               ;;
           esac
         done
+
+        log_verbose "Hello!"
 
         read -s -r -p "Enter password: " password
         echo  # Move to a new line after password input

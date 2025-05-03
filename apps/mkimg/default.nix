@@ -41,8 +41,9 @@ in
           ["qcow2"]="qcow2" \
         )
 
+        VERBOSE=0
         function log_verbose() {
-          [ "$VERBOSE" ] && echo "[VERBOSE] $*"
+          if [ "$VERBOSE" -eq 1 ]; then echo "[VERBOSE] $*"; fi
         }
 
         function warn() {
