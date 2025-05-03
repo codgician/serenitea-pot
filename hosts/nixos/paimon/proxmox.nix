@@ -79,12 +79,18 @@ in
       # Bind first VF to host
       echo "Binding first VF to host ..."
       echo ''${DEV_PCIBASE}.2 > /sys/bus/pci/drivers/mlx5_core/bind
+
+      # Bind second VF for container nahida
+      echo "Binding second VF to host ..."
+      echo ''${DEV_PCIBASE}.3 > /sys/bus/pci/drivers/mlx5_core/bind
+
     '';
     serviceConfig.Type = "oneshot";
   };
 
   # Set route metric
   systemd.network.networks = {
+    # High speed NIC (first VF for host)
     "10-enp67s0f0v0" = {
       name = "enp67s0f0v0";
       networkConfig = {
@@ -99,7 +105,15 @@ in
       };
       linkConfig.RequiredForOnline = "no-carrier";
     };
-    "11-eno1" = {
+
+    # Leave second VF unconfigured for container
+    "11-enp67s0f0v1" = {
+      name = "enp67s0f0v1";
+      linkConfig.Unmanaged = "yes";
+    };
+
+    # Fallback NIC
+    "12-eno1" = {
       name = "eno1";
       networkConfig = {
         DHCP = "yes";
