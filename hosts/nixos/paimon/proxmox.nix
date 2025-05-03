@@ -183,11 +183,11 @@ in
         case "''${phase}" in
           pre-start)  
             echo "''${vmid} is starting, running pre-start hookscripts..."
-            systemctl set-property --runtime -- system.slice AllowedCPUs=8-31,40-63
-            systemctl set-property --runtime -- user.slice AllowedCPUs=8-31,40-63
-            systemctl set-property --runtime -- init.scope AllowedCPUs=8-31,40-63
+            systemctl set-property --runtime -- system.slice AllowedCPUs=0-7,16-39,48-63
+            systemctl set-property --runtime -- user.slice AllowedCPUs=0-7,16-39,48-63
+            systemctl set-property --runtime -- init.scope AllowedCPUs=0-7,16-39,48-63
             ;;
-          post-stop)
+          pre-stop)
             echo "''${vmid} stopped, running post-stop hookscripts..."
             systemctl set-property --runtime -- system.slice AllowedCPUs=0-63
             systemctl set-property --runtime -- user.slice AllowedCPUs=0-63

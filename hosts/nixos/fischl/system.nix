@@ -1,4 +1,9 @@
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
 
   # My settings
@@ -88,12 +93,15 @@
   services.fwupd.enable = true;
 
   # Global packages
-  environment.systemPackages = with pkgs; [
-    lm_sensors
-    smartmontools
-    linuxPackages.turbostat
-    ethtool
-  ];
+  environment.systemPackages =
+    (with pkgs; [
+      lm_sensors
+      smartmontools
+      ethtool
+    ])
+    ++ (with config.boot.kernelPackages; [
+      turbostat
+    ]);
 
   # Enable zram swap
   zramSwap.enable = true;

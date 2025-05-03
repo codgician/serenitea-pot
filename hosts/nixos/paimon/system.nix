@@ -1,4 +1,9 @@
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
 
   # My settings
@@ -182,16 +187,20 @@
   services.fwupd.enable = true;
 
   # Global packages
-  environment.systemPackages = with pkgs; [
-    lm_sensors
-    smartmontools
-    linuxPackages.turbostat
-    pciutils
-    nvme-cli
-    usbutils
-    ethtool
-    sysstat
-  ];
+  environment.systemPackages =
+    (with pkgs; [
+      lm_sensors
+      smartmontools
+      pciutils
+      nvme-cli
+      usbutils
+      ethtool
+      sysstat
+      powertop
+    ])
+    ++ (with config.boot.kernelPackages; [
+      turbostat
+    ]);
 
   # Use networkd
   networking.useNetworkd = true;
