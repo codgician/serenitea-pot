@@ -24,7 +24,10 @@ in
 
     supportedFilesystems = [ "vfat" "zfs" ];
 
-    zfs.package = pkgs.zfs_2_3;
+    zfs = {
+      package = pkgs.zfs_2_3;
+      devNodes = "/dev/disk/by-path";  # /dev/by-id is empty in VM
+    };
   };
 
   fileSystems."/persist".neededForBoot = true;
