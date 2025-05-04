@@ -42,7 +42,8 @@
       "video=astdrmfb"
       "amd_pstate=active"
       "hugepagesz=1G"
-      "default_hugepagesz=2M"
+      "default_hugepagesz=1G"
+      "hugepages=16"
       "kvm_amd.npt=1"
       "kvm_amd.avic=1"
       "kvm_amd.force_avic=1"
@@ -50,7 +51,6 @@
       "iommu=pt"
       "amd_iommu_intr=vapic"
       "iomem=relaxed"
-      "zfs.zfs_compressed_arc_enabled=0"
     ];
 
     extraModprobeConfig = ''

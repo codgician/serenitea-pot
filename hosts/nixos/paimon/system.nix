@@ -197,6 +197,7 @@
       ethtool
       sysstat
       powertop
+      libhugetlbfs
     ])
     ++ (with config.boot.kernelPackages; [
       turbostat
