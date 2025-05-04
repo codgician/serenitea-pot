@@ -11,18 +11,21 @@ let
   publicIpv6 = terraformConf.resource.cloudflare_dns_record."${hostName}-aaaa".content;
 in
 {
-  boot.initrd.availableKernelModules = [
-    "ata_piix"
-    "xhci_pci"
-    "virtio_blk"
-    "virtio_pci"
-    "virtio_scsi"
-    "sd_mod"
-    "sr_mod"
-  ];
-  boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ ];
-  boot.extraModulePackages = [ ];
+  boot = {
+    initrd.availableKernelModules = [
+      "ata_piix"
+      "xhci_pci"
+      "virtio_blk"
+      "virtio_pci"
+      "virtio_scsi"
+      "sd_mod"
+      "sr_mod"
+    ];
+    
+    supportedFilesystems = [ "vfat" "zfs" ];
+  };
+
+  fileSystems."/persist".neededForBoot = true;
 
   networking.useDHCP = lib.mkDefault true;
 

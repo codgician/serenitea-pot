@@ -3,41 +3,71 @@
   ...
 }:
 {
-  disko.devices = {
-    disk.vda = {
-      imageSize = "16G";
-      device = "/dev/${builtins.elemAt disks 0}";
-      type = "disk";
-      content = {
-        type = "gpt";
-        partitions = {
-          boot = {
-            size = "1M";
-            type = "EF02"; # for grub MBR
+  disko = {
+    devices = {
+      disk.vda = {
+        imageSize = "8G";
+        device = "/dev/${builtins.elemAt disks 0}";
+        type = "disk";
+        content = {
+          type = "gpt";
+          partitions = {
+            boot = {
+              size = "1M";
+              type = "EF02";
+            };
+            esp = {
+              end = "512M";
+              type = "EF00";
+              content = {
+                type = "filesystem";
+                format = "vfat";
+                mountpoint = "/boot";
+                mountOptions = [ "umask=0077" ];
+              };
+            };
+            zroot = {
+              size = "100%";
+              content = {
+                type = "zfs";
+                pool = "zroot";
+              };
+            };
           };
+        };
+      };
+
+      # zpool
+      zpool.zroot = {
+        type = "zpool";
+        mountpoint = "/zroot";
+        rootFsOptions = {
+          atime = "off";
+          compression = "on";
+          "com.sun:auto-snapshot" = "false";
+        };
+
+        options = {
+          ashift = "12";
+          autotrim = "on";
+          autoexpand = "on";
+        };
+
+        datasets = {
           root = {
-            size = "12G";
-            content = {
-              type = "filesystem";
-              format = "ext4";
-              mountpoint = "/";
-            };
+            type = "zfs_fs";
+            mountpoint = "/";
           };
-          swap = {
-            size = "2G";
-            content = {
-              type = "swap";
-              discardPolicy = "both";
-              resumeDevice = false;
-            };
-          };
+
           nix = {
-            size = "100%";
-            content = {
-              type = "filesystem";
-              format = "ext4";
-              mountpoint = "/nix";
-            };
+            type = "zfs_fs";
+            mountpoint = "/nix";
+            options."com.sun:auto-snapshot" = "false";
+          };
+
+          persist = {
+            type = "zfs_fs";
+            mountpoint = "/persist";
           };
         };
       };

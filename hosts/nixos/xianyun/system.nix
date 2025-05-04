@@ -51,8 +51,22 @@
       ];
     };
 
+  # ZFS configurations
+  services.zfs = {
+    autoScrub.enable = true;
+    autoSnapshot.enable = false;
+    expandOnBoot = "all";
+    trim.enable = true;
+  };
+
+  networking.hostId = "f52ce96f";
+
   # Use grub bootloader
-  boot.loader.grub.enable = true;
+  boot.loader.grub = {
+    enable = true;
+    efiSupport = true;
+    zfsSupport = true;
+  };
 
   # Enable zram swap
   zramSwap.enable = true;
