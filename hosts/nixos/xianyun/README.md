@@ -6,7 +6,9 @@ Tencent Cloud VM running NixOS.
 
 ```bash
 nix run github:nix-community/nixos-anywhere -- \
-  --copy-host-keys \
+  --copy-host-keys --disko-mode disko \
   --flake .#xianyun \
   root@<ip> -p <port> 
 ```
+
+If local build is having issues during deployment, consider passing `--build-on-remote`.

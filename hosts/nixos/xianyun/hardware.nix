@@ -21,8 +21,10 @@ in
       "sd_mod"
       "sr_mod"
     ];
-    
+
     supportedFilesystems = [ "vfat" "zfs" ];
+
+    zfs.package = pkgs.zfs_2_3;
   };
 
   fileSystems."/persist".neededForBoot = true;
