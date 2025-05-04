@@ -26,7 +26,8 @@ in
 
     zfs = {
       package = pkgs.zfs_2_3;
-      devNodes = "/dev/disk/by-path";  # /dev/by-id is empty in VM
+      # The default /dev/disk/by-id is empty in Tencent CVM
+      devNodes = "/dev/disk/by-path";
     };
   };
 
