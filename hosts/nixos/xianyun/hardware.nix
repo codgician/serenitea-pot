@@ -40,20 +40,23 @@ in
   systemd.services.cloud-config.serviceConfig.Restart = "on-failure";
 
   # Manually configure ipv6 network on Tencent Cloud
-  networking.interfaces.eth0.ipv6 = {
-    addresses = [
-      {
-        address = publicIpv6;
-        prefixLength = 128;
-      }
-    ];
-    routes = [
-      {
-        address = "::";
-        prefixLength = 0;
-        via = "fe80::feee:ffff:feff:ffff";
-      }
-    ];
+  networking = {
+    usePredictableInterfaceNames = false;
+    interfaces.eth0.ipv6 = {
+      addresses = [
+        {
+          address = publicIpv6;
+          prefixLength = 128;
+        }
+      ];
+      routes = [
+        {
+          address = "::";
+          prefixLength = 0;
+          via = "fe80::feee:ffff:feff:ffff";
+        }
+      ];
+    };
   };
 
   # Override distro in cloud-init
