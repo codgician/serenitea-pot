@@ -40,7 +40,6 @@ in
   systemd.services.cloud-config.serviceConfig.Restart = "on-failure";
 
   # Manually configure ipv6 network on Tencent Cloud
-  services.cloud-init.network.enable = false;
   networking.interfaces.eth0.ipv6 = {
     addresses = [
       {
@@ -60,10 +59,8 @@ in
   # Override distro in cloud-init
   services.cloud-init.settings = {
     preserve_hostname = true;
-    system_info = {
-      distro = "nixos";
-      network.renderers = lib.optionals config.networking.useNetworkd [ "networkd" ];
-    };
+    network.config = "disabled";
+    system_info.distro = "nixos";
 
     # Remove failing final modules
     cloud_final_modules = [
