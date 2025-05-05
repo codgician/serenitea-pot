@@ -22,7 +22,10 @@ in
       "sr_mod"
     ];
 
-    supportedFilesystems = [ "vfat" "zfs" ];
+    supportedFilesystems = [
+      "vfat"
+      "zfs"
+    ];
 
     zfs = {
       package = pkgs.zfs_2_3;
