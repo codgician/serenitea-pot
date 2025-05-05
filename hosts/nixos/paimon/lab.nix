@@ -1,4 +1,4 @@
-{ ... }:
+{ outputs, lib, ... }:
 let
   gpuDevs = [
     # GPU
@@ -19,20 +19,19 @@ in
     }) gpuDevs;
 
     autoStart = true;
+    ephemeral = true;
+    privateNetwork = true;
     interfaces = [ "enp67s0f0v1" ];
 
-    config = { lib, ... }: { 
-      boot.isContainer = true; 
-      networking = {
-        hostName = "nahida";
-        # Use systemd-resolved inside the container
-        # Workaround for bug https://github.com/NixOS/nixpkgs/issues/162686
-        useHostResolvConf = lib.mkForce false;
-        useNetworkd = true;
+    path = outputs.nixosConfigurations.nahida.config.system.build.toplevel;
+    bindMounts = {
+      "/persist" = {
+        hostPath = "/zroot/lab";
+        isReadOnly = false;
       };
-      services.resolved.enable = true;
-      system.stateVersion = "24.11";
-      nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-    };
+    } // (lib.genAttrs gpuDevs (node: {
+      hostPath = node;
+      isReadOnly = false;
+    }));
   };
 }

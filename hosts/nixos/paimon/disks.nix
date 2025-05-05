@@ -82,6 +82,15 @@ in
             mountpoint = "/persist";
             options."com.sun:auto-snapshot" = "true";
           };
+
+          lab = {
+            type = "zfs_fs";
+            mountpoint = "/zroot/lab";
+            options = {
+              direct = "always";
+              "com.sun:auto-snapshot" = "false";
+            };
+          };
         };
       };
     };
