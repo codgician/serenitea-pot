@@ -34,9 +34,9 @@ let
       };
     }
     {
-      model_name = "gemini-2.0-flash";
+      model_name = "gemini-2.5-flash";
       litellm_params = {
-        model = "gemini/gemini-2.0-flash";
+        model = "gemini/gemini-2.5-flash-preview-04-17";
         api_key = "os.environ/GEMINI_API_KEY";
       };
     }

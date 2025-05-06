@@ -45,7 +45,7 @@
             enable = true;
             https = true;
             domains = [ "amt.codgician.me" ];
-            locations."/".proxyPass = "https://192.168.0.7";
+            locations."/".proxyPass = "https://192.168.0.10";
           };
 
           "books.codgician.me" = {

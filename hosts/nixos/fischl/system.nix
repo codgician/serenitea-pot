@@ -9,6 +9,20 @@
   # My settings
   codgician = {
     services = {
+      meshcentral = {
+        enable = true;
+        port = 3001;
+        reverseProxy = {
+          enable = true;
+          domains = [ "amt.codgician.me" ];
+        };
+      };
+      
+      nginx = {
+        enable = true;
+        openFirewall = true;
+      };
+
       nixos-vscode-server.enable = true;
     };
 
