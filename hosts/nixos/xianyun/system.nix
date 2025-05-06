@@ -10,6 +10,7 @@
         interfaces.wg0 = {
           host = "xianyun";
           peers = [
+            "furina"
             "lumidouce"
             "lumine"
             "qiaoying"

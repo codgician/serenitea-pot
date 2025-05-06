@@ -77,6 +77,10 @@ with pubKeys.hosts;
     furina
     lumine
   ];
+  "wg-preshared-key-furina-xianyun.age".publicKeys = someHosts [
+    furina
+    xianyun
+  ];
   "wg-preshared-key-lumidouce-lumine.age".publicKeys = someHosts [ lumine ];
   "wg-preshared-key-lumidouce-xianyun.age".publicKeys = someHosts [ xianyun ];
   "wg-preshared-key-lumine-qiaoying.age".publicKeys = someHosts [ lumine ];
