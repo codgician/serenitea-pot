@@ -44,22 +44,17 @@ in
       Only allow requests from LAN clients.
     '';
 
-    sslVerify = {
-      enable = lib.mkOption {
+    ssl = {
+      verify = lib.mkOption {
         type = types.bool;
         default = true;
-        description = ''
-          Enable SSL verification for the reverse proxy.
-        '';
+        description = "Enable SSL verification for the reverse proxy.";
       };
 
-      sslName = lib.mkOption {
-        type = with types; nullOr str;
-        default = null;
-        example = "example.com";
-        description = ''
-          The name of the SSL certificate for verification.
-        '';
+      proxySslName = lib.mkOption {
+        type = types.bool;
+        default = true;
+        description = "Enable Proxy ssl server name.";
       };
 
       trustedCertificate = lib.mkOption {
@@ -67,9 +62,7 @@ in
         default = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
         defaultText = "\${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
         example = "/etc/ssl/certs/mycert.pem";
-        description = ''
-          Path to the trusted certificate for SSL verification.
-        '';
+        description = "Path to the trusted certificate for SSL verification.";
       };
     };
 

@@ -22,12 +22,16 @@ let
       # Enhance https reverse proxy security
       + (
         with locationCfg;
-        lib.optionalString (sslVerify.enable && proxyPass != null && lib.hasPrefix "https://" proxyPass) ''
-          proxy_ssl_server_name on;
-          proxy_ssl_name ${if sslVerify.sslName == null then serverName else sslVerify.sslName};
-          proxy_ssl_verify on;
-          proxy_ssl_trusted_certificate ${sslVerify.trustedCertificate};
-        ''
+        lib.optionalString (proxyPass != null && lib.hasPrefix "https://" proxyPass) (
+          lib.optionalString ssl.proxySslName ''
+            proxy_ssl_server_name on;
+            proxy_ssl_name $host;
+          ''
+          + lib.optionalString ssl.verify ''
+            proxy_ssl_verify on;
+            proxy_ssl_trusted_certificate ${ssl.trustedCertificate};
+          ''
+        )
       )
       # If only allow connections from lan
       + (lib.optionalString locationCfg.lanOnly ''
@@ -88,6 +92,7 @@ in
     services.nginx = {
       enable = true;
       package = pkgs.nginxQuic;
+      logError = "stderr debug";
       recommendedProxySettings = true;
       statusPage = true;
 
@@ -105,7 +110,7 @@ in
       virtualHosts = (builtins.mapAttrs mkVirtualHostConfig cfg.reverseProxies) // {
         _ = {
           default = true;
-          locations."~ .*".return = "404";
+          locations."/".return = "404";
           rejectSSL = true;
         };
       };
