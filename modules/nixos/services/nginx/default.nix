@@ -30,6 +30,7 @@ let
           + lib.optionalString ssl.verify ''
             proxy_ssl_verify on;
             proxy_ssl_trusted_certificate ${ssl.trustedCertificate};
+            proxy_ssl_certificate_cache max=1000;
           ''
         )
       )
@@ -92,7 +93,6 @@ in
     services.nginx = {
       enable = true;
       package = pkgs.nginxQuic;
-      logError = "stderr debug";
       recommendedProxySettings = true;
       statusPage = true;
 

@@ -47,7 +47,7 @@ in
     ssl = {
       verify = lib.mkOption {
         type = types.bool;
-        default = true;
+        default = false;
         description = "Enable SSL verification for the reverse proxy.";
       };
 
@@ -59,8 +59,7 @@ in
 
       trustedCertificate = lib.mkOption {
         type = types.path;
-        default = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
-        defaultText = "\${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+        default = "/etc/ssl/certs/ca-certificates.crt";
         example = "/etc/ssl/certs/mycert.pem";
         description = "Path to the trusted certificate for SSL verification.";
       };
