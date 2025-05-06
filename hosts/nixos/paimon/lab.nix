@@ -24,14 +24,16 @@ in
     interfaces = [ "enp67s0f0v1" ];
 
     path = outputs.nixosConfigurations.nahida.config.system.build.toplevel;
-    bindMounts = {
-      "/persist" = {
-        hostPath = "/zroot/lab";
+    bindMounts =
+      {
+        "/persist" = {
+          hostPath = "/zroot/lab";
+          isReadOnly = false;
+        };
+      }
+      // (lib.genAttrs gpuDevs (node: {
+        hostPath = node;
         isReadOnly = false;
-      };
-    } // (lib.genAttrs gpuDevs (node: {
-      hostPath = node;
-      isReadOnly = false;
-    }));
+      }));
   };
 }

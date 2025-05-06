@@ -22,10 +22,10 @@ let
     builtins.listToAttrs
   ];
 
-  # All referenced ports
-  ports = lib.pipe hostOptions [
+  # Ports of all wireguard interfaces
+  ports = lib.pipe cfg.interfaces [
     builtins.attrValues
-    (builtins.map (x: x.listenPort))
+    (builtins.map (intCfg: hostOptions.${intCfg.host}.listenPort))
     lib.unique
   ];
 in

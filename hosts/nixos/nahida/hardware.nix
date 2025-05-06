@@ -12,8 +12,8 @@
   };
 
   # Ensure to use the same driver version as paimon
-  environment.systemPackages = [ 
-    outputs.nixosConfigurations.paimon.config.hardware.nvidia.package.bin 
+  environment.systemPackages = [
+    outputs.nixosConfigurations.paimon.config.hardware.nvidia.package.bin
   ];
 
   services.resolved.enable = true;

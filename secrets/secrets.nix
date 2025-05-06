@@ -66,12 +66,17 @@ with pubKeys.hosts;
   };
 
   # WireGuard private keys
+  "wg-private-key-furina.age".publicKeys = someHosts [ furina ];
   "wg-private-key-lumine.age".publicKeys = someHosts [ lumine ];
   "wg-private-key-lumidouce.age".publicKeys = someHosts [ ];
   "wg-private-key-qiaoying.age".publicKeys = someHosts [ ];
   "wg-private-key-xianyun.age".publicKeys = someHosts [ xianyun ];
 
   # WireGuard preshared keys
+  "wg-preshared-key-furina-lumine.age".publicKeys = someHosts [
+    furina
+    lumine
+  ];
   "wg-preshared-key-lumidouce-lumine.age".publicKeys = someHosts [ lumine ];
   "wg-preshared-key-lumidouce-xianyun.age".publicKeys = someHosts [ xianyun ];
   "wg-preshared-key-lumine-qiaoying.age".publicKeys = someHosts [ lumine ];

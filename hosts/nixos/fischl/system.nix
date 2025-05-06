@@ -17,7 +17,7 @@
           domains = [ "amt.codgician.me" ];
         };
       };
-      
+
       nginx = {
         enable = true;
         openFirewall = true;
