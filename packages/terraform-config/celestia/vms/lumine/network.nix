@@ -108,7 +108,7 @@ in
         {
           name = "ipv4cfg-1";
           subnet_id = config.resource.azurerm_subnet.celestia-subnet "id";
-          public_ip_address_id = config.resource.azurerm_public_ip.lumine-ipv4-2 "id";
+          public_ip_address_id = config.resource.azurerm_public_ip.lumine-ipv4-1 "id";
           primary = true;
           private_ip_address_allocation = "Dynamic";
           private_ip_address_version = "IPv4";
@@ -116,7 +116,7 @@ in
         {
           name = "ipv6cfg-1";
           subnet_id = config.resource.azurerm_subnet.celestia-subnet "id";
-          public_ip_address_id = config.resource.azurerm_public_ip.lumine-ipv6-2 "id";
+          public_ip_address_id = config.resource.azurerm_public_ip.lumine-ipv6-1 "id";
           private_ip_address_allocation = "Dynamic";
           private_ip_address_version = "IPv6";
         }
