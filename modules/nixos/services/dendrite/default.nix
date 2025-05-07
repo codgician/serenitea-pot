@@ -225,7 +225,6 @@ in
           # Metadata for matrix server and client
           clientConfig = {
             "m.homeserver".base_url = "https://${cfg.domain}";
-            "org.matrix.msc3575.proxy".url = "https://${cfg.domain}";
             "m.identity_server".base_url = "https://vector.im";
           };
           serverConfig = {
@@ -255,7 +254,7 @@ in
                 inherit (cfg.reverseProxy) proxyPass lanOnly;
                 extraConfig = ''
                   client_max_body_size 128M;
-                  proxy_buffering off;
+                  proxy_read_timeout 120;
                 '';
               };
 
