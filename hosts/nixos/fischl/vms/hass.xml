@@ -8,6 +8,9 @@
   </metadata>
   <memory unit="KiB">4194304</memory>
   <currentMemory unit="KiB">4194304</currentMemory>
+  <memoryBacking>
+    <hugepages/>
+  </memoryBacking>
   <vcpu placement="static">2</vcpu>
   <cputune>
     <vcpupin vcpu="0" cpuset="6"/>

@@ -112,6 +112,7 @@
       lm_sensors
       smartmontools
       ethtool
+      libhugetlbfs
     ])
     ++ (with config.boot.kernelPackages; [
       turbostat
