@@ -15,6 +15,14 @@ in
     ipAddress = "192.168.0.21";
   };
 
+  # Hack: let pve-manager know the existence of vs0
+  # We don't use ifupdown2 to manage network interface so this has no effect
+  environment.etc."/network/interfaces".text = ''
+    allow-ovs vs0
+    iface vs0 inet manual
+      ovs_type OVSBridge
+  '';
+
   # Reverse proxy
   codgician = {
     services.nginx = {
