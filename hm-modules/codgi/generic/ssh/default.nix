@@ -39,10 +39,6 @@ in
           hostname = "lumine.codgician.me";
           user = "codgi";
         };
-        "xianyun" = {
-          hostname = "xianyun.codgician.me";
-          user = "codgi";
-        };
         "lumidouce" = {
           hostname = "lumidouce.lan";
           user = "root";
@@ -50,6 +46,10 @@ in
         "qiaoying" = {
           hostname = "qiaoying.cdu";
           user = "root";
+        };
+        "nahida" = {
+          hostname = "nahida.lan";
+          user = "codgi";
         };
         "paimon" = {
           hostname = "paimon.lan";
@@ -61,6 +61,10 @@ in
         };
         "sigewinne" = {
           hostname = "sigewinne.lan";
+          user = "codgi";
+        };
+        "xianyun" = {
+          hostname = "xianyun.codgician.me";
           user = "codgi";
         };
       };
