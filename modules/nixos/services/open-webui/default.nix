@@ -5,6 +5,7 @@
   ...
 }:
 let
+  serviceName = "open-webui";
   cfg = config.codgician.services.open-webui;
   systemCfg = config.codgician.system;
   types = lib.types;
@@ -19,7 +20,7 @@ let
   ollamaCfg = config.codgician.services.ollama;
 
   pgDbHost = "/run/postgresql";
-  pgDbName = "open-webui";
+  pgDbName = serviceName;
 in
 {
   options.codgician.services.open-webui = {
@@ -54,40 +55,10 @@ in
     openFirewall = lib.mkEnableOption "Open firewall for open-webui.";
 
     # Reverse proxy profile for nginx
-    reverseProxy = {
-      enable = lib.mkEnableOption "Reverse proxy for open-webui.";
-
-      favicon = lib.mkOption {
-        type = types.nullOr types.path;
-        example = "/path/to/favicon.png";
-        default = null;
-        description = ''
-          Path to the customized favicon.png file.
-        '';
-      };
-
-      domains = lib.mkOption {
-        type = types.listOf types.str;
-        example = [
-          "example.com"
-          "example.org"
-        ];
-        default = [ ];
-        description = ''
-          List of domains for the reverse proxy.
-        '';
-      };
-
-      proxyPass = lib.mkOption {
-        type = types.str;
-        default = "http://${cfg.host}:${builtins.toString cfg.port}";
-        defaultText = ''http://$\{config.codgician.services.open-webui.host\}:$\{toString config.codgician.services.open-webui.port\}'';
-        description = ''
-          Source URI for the reverse proxy.
-        '';
-      };
-
-      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
+    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
+      inherit serviceName;
+      defaultProxyPass = "http://${cfg.host}:${builtins.toString cfg.port}";
+      defaultProxyPassText = ''with config.codgician.services.open-webui; http://$\{host}:$\{toString port}'';
     };
   };
 
@@ -232,20 +203,8 @@ in
     ))
 
     # Reverse proxy profile
-    (lib.mkIf cfg.reverseProxy.enable {
-      codgician.services.nginx = {
-        enable = true;
-        reverseProxies.open-webui = {
-          inherit (cfg.reverseProxy) enable domains;
-          https = true;
-          locations."/" = {
-            inherit (cfg.reverseProxy) proxyPass lanOnly;
-          };
-          locations."=/static/favicon.png" =
-            with cfg.reverseProxy;
-            lib.mkIf (favicon != null) { alias = favicon; };
-        };
-      };
+    (lib.codgician.mkServiceReverseProxyConfig {
+      inherit serviceName cfg;
     })
   ];
 }

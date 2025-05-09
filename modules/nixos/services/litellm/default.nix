@@ -6,6 +6,7 @@
   ...
 }:
 let
+  serviceName = "litellm";
   cfg = config.codgician.services.litellm;
   types = lib.types;
 
@@ -89,31 +90,10 @@ in
     };
 
     # Reverse proxy profile for nginx
-    reverseProxy = {
-      enable = lib.mkEnableOption "Reverse proxy for LiteLLM.";
-
-      domains = lib.mkOption {
-        type = types.listOf types.str;
-        example = [
-          "example.com"
-          "example.org"
-        ];
-        default = [ ];
-        description = ''
-          List of domains for the reverse proxy.
-        '';
-      };
-
-      proxyPass = lib.mkOption {
-        type = types.str;
-        default = "http://${cfg.host}:${builtins.toString cfg.port}";
-        defaultText = ''http://$\{config.codgician.services.litellm.host\}:$\{toString config.codgician.services.litellm.port\}'';
-        description = ''
-          Source URI for the reverse proxy.
-        '';
-      };
-
-      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
+    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
+      inherit serviceName;
+      defaultProxyPass = "http://${cfg.host}:${builtins.toString cfg.port}";
+      defaultProxyPassText = ''with config.codgician.services.litellm; http://$\{host}:$\{builtins.toString port}'';
     };
   };
 
@@ -165,17 +145,8 @@ in
     ))
 
     # Reverse proxy profile
-    (lib.mkIf cfg.reverseProxy.enable {
-      codgician.services.nginx = {
-        enable = true;
-        reverseProxies.ollama = {
-          inherit (cfg.reverseProxy) enable domains;
-          https = true;
-          locations."/" = {
-            inherit (cfg.reverseProxy) proxyPass lanOnly;
-          };
-        };
-      };
+    (lib.codgician.mkServiceReverseProxyConfig {
+      inherit serviceName cfg;
     })
   ];
 }

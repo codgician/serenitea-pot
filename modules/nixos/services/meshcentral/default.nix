@@ -5,6 +5,7 @@
   ...
 }:
 let
+  serviceName = "meshcentral";
   cfg = config.codgician.services.meshcentral;
   types = lib.types;
 in
@@ -29,31 +30,10 @@ in
     };
 
     # Reverse proxy profile for nginx
-    reverseProxy = {
-      enable = lib.mkEnableOption "Reverse proxy for meshcentral.";
-
-      domains = lib.mkOption {
-        type = types.listOf types.str;
-        example = [
-          "example.com"
-          "example.org"
-        ];
-        default = [ ];
-        description = ''
-          List of domains for the reverse proxy.
-        '';
-      };
-
-      proxyPass = lib.mkOption {
-        type = types.str;
-        default = "http://127.0.0.1:${toString cfg.port}";
-        defaultText = ''http://127.0.0.1:$\{toString config.codgician.services.meshcentral.port}'';
-        description = ''
-          Source URI for the reverse proxy.
-        '';
-      };
-
-      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
+    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
+      inherit serviceName;
+      defaultProxyPass = "http://${cfg.host}:${toString cfg.port}";
+      defaultProxyPassText = ''with config.codgician.services.meshcentral; http://$\{host}:$\{toString port}'';
     };
   };
 
@@ -74,19 +54,13 @@ in
     })
 
     # Reverse proxy profiles
-    (lib.mkIf cfg.reverseProxy.enable {
-      codgician.services.nginx = {
-        enable = true;
-        reverseProxies.meshcentral = {
-          inherit (cfg.reverseProxy) enable domains;
-          https = true;
-          locations."/" = {
-            inherit (cfg.reverseProxy) proxyPass lanOnly;
-            extraConfig = ''
-              proxy_buffering off;
-            '';
-          };
-        };
+    (lib.codgician.mkServiceReverseProxyConfig {
+      inherit serviceName cfg;
+      overrideVhostConfig.locations."/" = {
+        inherit (cfg.reverseProxy) proxyPass lanOnly;
+        extraConfig = ''
+          proxy_buffering off;
+        '';
       };
     })
   ];

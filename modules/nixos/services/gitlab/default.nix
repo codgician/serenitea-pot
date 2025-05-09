@@ -5,6 +5,7 @@
   ...
 }:
 let
+  serviceName = "gitlab";
   cfg = config.codgician.services.gitlab;
   types = lib.types;
 in
@@ -26,42 +27,22 @@ in
 
     user = lib.mkOption {
       type = types.str;
-      default = "gitlab";
+      default = serviceName;
       description = "User under which GitLab runs.";
     };
 
     group = lib.mkOption {
       type = types.str;
-      default = "gitlab";
+      default = serviceName;
       description = "Group under which GitLab runs.";
     };
 
     # Reverse proxy profile for nginx
-    reverseProxy = {
-      enable = lib.mkEnableOption "Reverse proxy for GitLab.";
-
-      domains = lib.mkOption {
-        type = types.listOf types.str;
-        example = [
-          "example.com"
-          "example.org"
-        ];
-        default = [ cfg.host ];
-        defaultText = ''[ config.codgician.services.gitlab.host ]'';
-        description = ''
-          List of domains for the reverse proxy.
-        '';
-      };
-
-      proxyPass = lib.mkOption {
-        type = types.str;
-        default = "http://unix:/run/gitlab/gitlab-workhorse.socket";
-        description = ''
-          Source URI for the reverse proxy.
-        '';
-      };
-
-      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
+    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
+      inherit serviceName;
+      defaultDomains = [ cfg.host ];
+      defaultDomainsText = "[ config.codgician.services.gitlab.host ]";
+      defaultProxyPass = "http://unix:/run/gitlab/gitlab-workhorse.socket";
     };
   };
 
@@ -148,17 +129,8 @@ in
     ))
 
     # Reverse proxy profile
-    (lib.mkIf cfg.reverseProxy.enable {
-      codgician.services.nginx = {
-        enable = true;
-        reverseProxies.gitlab = {
-          inherit (cfg.reverseProxy) enable domains;
-          https = true;
-          locations."/" = {
-            inherit (cfg.reverseProxy) proxyPass lanOnly;
-          };
-        };
-      };
+    (lib.codgician.mkServiceReverseProxyConfig {
+      inherit serviceName cfg;
     })
   ];
 }

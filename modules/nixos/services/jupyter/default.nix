@@ -1,5 +1,6 @@
 { config, lib, ... }:
 let
+  serviceName = "jupyter";
   cfg = config.codgician.services.jupyter;
   types = lib.types;
 in
@@ -21,13 +22,13 @@ in
 
     user = lib.mkOption {
       type = types.str;
-      default = "jupyter";
+      default = serviceName;
       description = "User under which Jupyter runs.";
     };
 
     group = lib.mkOption {
       type = types.str;
-      default = "jupyter";
+      default = serviceName;
       description = "Group under which Jupyter runs.";
     };
 
@@ -38,26 +39,10 @@ in
     };
 
     # Reverse proxy profile for nginx
-    reverseProxy = {
-      enable = lib.mkEnableOption "Reverse proxy for Jupyter.";
-
-      domains = lib.mkOption {
-        type = types.listOf types.str;
-        example = [
-          "example.com"
-          "example.org"
-        ];
-        default = [ ];
-        description = "List of domains for the reverse proxy.";
-      };
-
-      proxyPass = lib.mkOption {
-        type = types.str;
-        default = "http://${cfg.ip}:${builtins.toString cfg.port}";
-        description = "Source URI for the reverse proxy.";
-      };
-
-      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
+    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
+      inherit serviceName;
+      defaultProxyPass = "http://${cfg.ip}:${builtins.toString cfg.port}";
+      defaultProxyPassText = ''with config.codgician.services.jupyter; http://$\{ip}:$\{builtins.toString port}'';
     };
   };
 
@@ -82,17 +67,8 @@ in
     })
 
     # Reverse proxy profile
-    (lib.mkIf cfg.reverseProxy.enable {
-      codgician.services.nginx = {
-        enable = true;
-        reverseProxies.jupyter = {
-          inherit (cfg.reverseProxy) enable domains;
-          https = true;
-          locations."/" = {
-            inherit (cfg.reverseProxy) proxyPass lanOnly;
-          };
-        };
-      };
+    (lib.codgician.mkServiceReverseProxyConfig {
+      inherit serviceName cfg;
     })
   ];
 }

@@ -5,11 +5,12 @@
   ...
 }:
 let
+  serviceName = "dendrite";
   cfg = config.codgician.services.dendrite;
   types = lib.types;
 
   dbHost = "/run/postgresql";
-  dbName = "dendrite";
+  dbName = serviceName;
   database = {
     connection_string = "postgres:///${dbName}?host=${dbHost}";
     max_open_conns = 80;
@@ -40,42 +41,22 @@ in
     };
 
     # Reverse proxy profile for nginx
-    reverseProxy = {
-      enable = lib.mkEnableOption "Reverse proxy for Dendrite server.";
-
-      proxyAll = lib.mkEnableOption ''
-        Proxy everything under `/`.
-        Otherwise, only `/_matrix` and `/_synapse` will be proxied.
-      '';
-
-      elementWeb = lib.mkEnableOption ''
-        Host Element web client at `/`.
-        To enable this option, `codgician.services.dendrite.reverseProxy.proxyAll` must be disabled.
-      '';
-
-      domains = lib.mkOption {
-        type = types.listOf types.str;
-        example = [
-          "example.com"
-          "example.org"
-        ];
-        default = [ cfg.domain ];
-        defaultText = ''[ config.codgician.services.dendrite.domain ]'';
-        description = ''
-          List of domains for the reverse proxy.
+    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
+      inherit serviceName;
+      defaultDomains = [ cfg.domain ];
+      defaultDomainsText = "[ config.codgician.services.dendrite.domain ]";
+      defaultProxyPass = "http://127.0.0.1:${builtins.toString cfg.httpPort}";
+      defaultProxyPassText = ''with config.codgician.services.dendrite; http://127.0.0.1:$\{builtins.toString httpPort}'';
+      extraOptions = {
+        proxyAll = lib.mkEnableOption ''
+          Proxy everything under `/`.
+          Otherwise, only `/_matrix` and `/_synapse` will be proxied.
+        '';
+        elementWeb = lib.mkEnableOption ''
+          Host Element web client at `/`.
+          To enable this option, `codgician.services.dendrite.reverseProxy.proxyAll` must be disabled.
         '';
       };
-
-      proxyPass = lib.mkOption {
-        type = types.str;
-        default = "http://127.0.0.1:${builtins.toString cfg.httpPort}";
-        defaultText = ''http://127.0.0.1:$\{builtins.toString config.codgician.services.dendrite.httpPort}'';
-        description = ''
-          Source URI for the reverse proxy.
-        '';
-      };
-
-      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
     };
   };
 
@@ -190,7 +171,6 @@ in
         loadCredential = [ "private_key:${config.age.secrets.matrix-global-private-key.path}" ];
       };
 
-      
       systemd.services.dendrite.serviceConfig = {
         # Allow R/W to media path
         ReadWritePaths = [ cfg.dataPath ];
@@ -234,8 +214,9 @@ in
     ))
 
     # Reverse proxy profile
-    (lib.mkIf cfg.reverseProxy.enable {
-      codgician.services.nginx =
+    (lib.codgician.mkServiceReverseProxyConfig {
+      inherit serviceName cfg;
+      overrideVhostConfig =
         let
           # Metadata for matrix server and client
           clientConfig = {
@@ -247,60 +228,57 @@ in
           };
         in
         {
-          enable = true;
-          reverseProxies.dendrite = {
-            inherit (cfg.reverseProxy) enable domains;
-            https = true;
-            locations = {
-              "/" =
-                if cfg.reverseProxy.elementWeb then
-                  {
-                    inherit (cfg.reverseProxy) lanOnly;
-                    root = import ./element-web.nix {
-                      inherit pkgs clientConfig;
-                      domains = cfg.reverseProxy.domains;
-                    };
-                  }
-                else
-                  lib.mkIf cfg.reverseProxy.proxyAll { inherit (cfg.reverseProxy) proxyPass lanOnly; };
+          locations = {
+            "/" =
+              if cfg.reverseProxy.elementWeb then
+                {
+                  inherit (cfg.reverseProxy) lanOnly;
+                  root = import ./element-web.nix {
+                    inherit pkgs clientConfig;
+                    domains = cfg.reverseProxy.domains;
+                  };
+                }
+              else
+                lib.mkIf cfg.reverseProxy.proxyAll { inherit (cfg.reverseProxy) proxyPass lanOnly; };
 
-              # Matrix protocol
-              "~ ^/(_matrix|_synapse)" = {
-                inherit (cfg.reverseProxy) proxyPass lanOnly;
-                extraConfig = ''
-                  client_max_body_size 128M;
-                  proxy_read_timeout 120;
-                '';
-              };
+            # Matrix protocol
+            "~ ^/(_matrix|_synapse)" = {
+              inherit (cfg.reverseProxy) proxyPass lanOnly;
+              extraConfig = ''
+                client_max_body_size 128M;
+                proxy_read_timeout 120;
+              '';
+            };
 
-              # Announce server & client metadata
-              "= /.well-known/matrix/server" = lib.mkIf (!cfg.reverseProxy.proxyAll) {
-                inherit (cfg.reverseProxy) lanOnly;
-                return = ''200 '${builtins.toJSON serverConfig}' '';
-                extraConfig = ''
-                  add_header Content-Type application/json;
-                  add_header Access-Control-Allow-Origin *;
-                '';
-              };
+            # Announce server & client metadata
+            "= /.well-known/matrix/server" = lib.mkIf (!cfg.reverseProxy.proxyAll) {
+              inherit (cfg.reverseProxy) lanOnly;
+              return = ''200 '${builtins.toJSON serverConfig}' '';
+              extraConfig = ''
+                add_header Content-Type application/json;
+                add_header Access-Control-Allow-Origin *;
+              '';
+            };
 
-              "= /.well-known/matrix/client" = lib.mkIf (!cfg.reverseProxy.proxyAll) {
-                inherit (cfg.reverseProxy) lanOnly;
-                return = ''200 '${builtins.toJSON clientConfig}' '';
-                extraConfig = ''
-                  add_header Content-Type application/json;
-                  add_header Access-Control-Allow-Origin *;
-                '';
-              };
+            "= /.well-known/matrix/client" = lib.mkIf (!cfg.reverseProxy.proxyAll) {
+              inherit (cfg.reverseProxy) lanOnly;
+              return = ''200 '${builtins.toJSON clientConfig}' '';
+              extraConfig = ''
+                add_header Content-Type application/json;
+                add_header Access-Control-Allow-Origin *;
+              '';
             };
           };
         };
+    })
 
+    {
       assertions = [
         {
           assertion = !cfg.reverseProxy.elementWeb || !cfg.reverseProxy.proxyAll;
           message = "Element web client can only be hosted if `codgician.services.dendrite.reverseProxy.proxyAll` is disabled.";
         }
       ];
-    })
+    }
   ];
 }

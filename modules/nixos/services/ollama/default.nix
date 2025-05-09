@@ -5,6 +5,7 @@
   ...
 }:
 let
+  serviceName = "ollama";
   cfg = config.codgician.services.ollama;
   types = lib.types;
 in
@@ -42,13 +43,13 @@ in
 
     user = lib.mkOption {
       type = types.str;
-      default = "ollama";
+      default = serviceName;
       description = "User under which ollama runs.";
     };
 
     group = lib.mkOption {
       type = types.str;
-      default = "ollama";
+      default = serviceName;
       description = "Group under which ollama runs.";
     };
 
@@ -74,31 +75,10 @@ in
     };
 
     # Reverse proxy profile for nginx
-    reverseProxy = {
-      enable = lib.mkEnableOption "Reverse proxy for ollama.";
-
-      domains = lib.mkOption {
-        type = types.listOf types.str;
-        example = [
-          "example.com"
-          "example.org"
-        ];
-        default = [ ];
-        description = ''
-          List of domains for the reverse proxy.
-        '';
-      };
-
-      proxyPass = lib.mkOption {
-        type = types.str;
-        default = "http://${cfg.host}:${builtins.toString cfg.port}";
-        defaultText = ''http://$\{config.codgician.services.ollama.host\}:$\{toString config.codgician.services.ollama.port\}'';
-        description = ''
-          Source URI for the reverse proxy.
-        '';
-      };
-
-      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
+    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
+      inherit serviceName;
+      defaultProxyPass = "http://${cfg.host}:${builtins.toString cfg.port}";
+      defaultProxyPassText = ''with config.codgician.services.ollama; http://$\{host}:$\{builtins.toString port}'';
     };
   };
 
@@ -135,17 +115,8 @@ in
     })
 
     # Reverse proxy profile
-    (lib.mkIf cfg.reverseProxy.enable {
-      codgician.services.nginx = {
-        enable = true;
-        reverseProxies.ollama = {
-          inherit (cfg.reverseProxy) enable domains;
-          https = true;
-          locations."/" = {
-            inherit (cfg.reverseProxy) proxyPass lanOnly;
-          };
-        };
-      };
+    (lib.codgician.mkServiceReverseProxyConfig {
+      inherit serviceName cfg;
     })
   ];
 }

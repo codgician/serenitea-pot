@@ -5,6 +5,7 @@
   ...
 }:
 let
+  serviceName = "grafana";
   cfg = config.codgician.services.grafana;
   systemCfg = config.codgician.system;
   types = lib.types;
@@ -20,30 +21,9 @@ in
     };
 
     # Reverse proxy profile for nginx
-    reverseProxy = {
-      enable = lib.mkEnableOption "Reverse proxy for Grafana";
-
-      domains = lib.mkOption {
-        type = types.listOf types.str;
-        example = [
-          "example.com"
-          "example.org"
-        ];
-        default = [ ];
-        description = ''
-          List of domains for the reverse proxy.
-        '';
-      };
-
-      proxyPass = lib.mkOption {
-        type = types.str;
-        default = "http://unix:/run/grafana/grafana.sock";
-        description = ''
-          Source URI for the reverse proxy.
-        '';
-      };
-
-      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
+    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
+      inherit serviceName;
+      defaultProxyPass = "http://unix:/run/grafana/grafana.sock";
     };
   };
 
@@ -96,10 +76,10 @@ in
       # Ensure postgres is enabled
       codgician.services.postgresql.enable = true;
       services.postgresql = {
-        ensureDatabases = [ "grafana" ];
+        ensureDatabases = [ serviceName ];
         ensureUsers = [
           {
-            name = "grafana";
+            name = serviceName;
             ensureDBOwnership = true;
           }
         ];
@@ -113,8 +93,8 @@ in
               {
                 directory = cfg.dataDir;
                 mode = "0750";
-                user = "grafana";
-                group = "grafana";
+                user = serviceName;
+                group = serviceName;
               }
             ];
       };
@@ -123,7 +103,7 @@ in
     # Agenix secrets
     (lib.mkIf cfg.enable (
       with lib.codgician;
-      mkAgenixConfigs { owner = "grafana"; } (
+      mkAgenixConfigs { owner = serviceName; } (
         builtins.map getAgeSecretPathFromName [
           "grafana-admin-password"
           "grafana-secret-key"
@@ -133,20 +113,8 @@ in
     ))
 
     # Reverse proxy profile
-    (lib.mkIf cfg.reverseProxy.enable {
-      codgician.services.nginx = {
-        enable = true;
-        reverseProxies.grafana = {
-          inherit (cfg.reverseProxy) enable domains;
-          https = true;
-          locations."/" = {
-            inherit (cfg.reverseProxy) proxyPass lanOnly;
-          };
-        };
-      };
-
-      # Add nginx to grafana group if served locally
-      users.users.nginx.extraGroups = lib.mkIf cfg.enable [ "grafana" ];
+    (lib.codgician.mkServiceReverseProxyConfig {
+      inherit serviceName cfg;
     })
   ];
 }

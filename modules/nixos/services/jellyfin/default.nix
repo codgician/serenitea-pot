@@ -1,5 +1,6 @@
 { config, lib, ... }:
 let
+  serviceName = "jellyfin";
   cfg = config.codgician.services.jellyfin;
   systemCfg = config.codgician.system;
   types = lib.types;
@@ -10,13 +11,13 @@ rec {
 
     user = lib.mkOption {
       type = types.str;
-      default = "jellyfin";
+      default = serviceName;
       description = "User under which jellyfin runs";
     };
 
     group = lib.mkOption {
       type = types.str;
-      default = "jellyfin";
+      default = serviceName;
       description = "Group under which jellyfin runs";
     };
 
@@ -33,26 +34,9 @@ rec {
     };
 
     # Reverse proxy profile for nginx
-    reverseProxy = {
-      enable = lib.mkEnableOption "Reverse proxy for Jellyfin";
-
-      domains = lib.mkOption {
-        type = types.listOf types.str;
-        example = [
-          "example.com"
-          "example.org"
-        ];
-        default = [ ];
-        description = "List of domains for the reverse proxy";
-      };
-
-      proxyPass = lib.mkOption {
-        type = types.str;
-        default = "http://127.0.0.1:8096";
-        description = "Source URI for the reverse proxy";
-      };
-
-      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients";
+    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
+      inherit serviceName;
+      defaultProxyPass = "http://127.0.0.1:8096";
     };
   };
 
@@ -85,17 +69,8 @@ rec {
     })
 
     # Reverse proxy profile
-    (lib.mkIf cfg.reverseProxy.enable {
-      codgician.services.nginx = {
-        enable = true;
-        reverseProxies.jellyfin = {
-          inherit (cfg.reverseProxy) enable domains;
-          https = true;
-          locations."/" = {
-            inherit (cfg.reverseProxy) proxyPass lanOnly;
-          };
-        };
-      };
+    (lib.codgician.mkServiceReverseProxyConfig {
+      inherit serviceName cfg;
     })
   ];
 }

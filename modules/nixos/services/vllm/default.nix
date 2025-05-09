@@ -5,6 +5,7 @@
   ...
 }:
 let
+  serviceName = "vllm";
   cfg = config.codgician.services.vllm;
   types = lib.types;
   instanceNames = builtins.attrNames cfg.instances;
@@ -63,18 +64,9 @@ let
   # Make configs for nginx reverse proxy
   mkReverseProxyConfig =
     instance:
-    let
-      instanceCfg = cfg.instances.${instance};
-    in
-    lib.mkIf (instanceCfg.reverseProxy.enable) {
-      enable = true;
-      reverseProxies."vllm@${instance}" = {
-        inherit (instanceCfg.reverseProxy) enable domains;
-        https = true;
-        locations."/" = {
-          inherit (instanceCfg.reverseProxy) proxyPass lanOnly;
-        };
-      };
+    lib.codgician.mkServiceReverseProxyConfig {
+      serviceName = "${serviceName}@${instance}";
+      cfg = cfg.instances.${instance};
     };
 in
 {
@@ -134,31 +126,10 @@ in
                 };
 
                 # Reverse proxy profile for nginx
-                reverseProxy = {
-                  enable = lib.mkEnableOption "Reverse proxy for vLLM.";
-
-                  domains = lib.mkOption {
-                    type = types.listOf types.str;
-                    example = [
-                      "example.com"
-                      "example.org"
-                    ];
-                    default = [ ];
-                    description = ''
-                      List of domains for the reverse proxy.
-                    '';
-                  };
-
-                  proxyPass = lib.mkOption {
-                    type = types.str;
-                    default = "http://${config.host}:${builtins.toString config.port}";
-                    defaultText = ''http://$\{config.codgician.services.vllm.instances.{instanceName}.host\}:$\{toString config.codgician.services.vllm.instances.{instanceName}.port\}'';
-                    description = ''
-                      Source URI for the reverse proxy.
-                    '';
-                  };
-
-                  lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
+                reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
+                  inherit serviceName;
+                  defaultProxyPass = "http://${config.host}:${builtins.toString config.port}";
+                  defaultProxyPassText = ''with config.codgician.services.vllm.instances.*; http://$\{host}:$\{builtins.toString port}'';
                 };
               };
             }

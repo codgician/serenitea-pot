@@ -37,24 +37,16 @@
         proxyPass = "https://192.168.0.22";
       };
 
+      meshcentral.reverseProxy = {
+        enable = true;
+        domains = [ "amt.codgician.me" ];
+        proxyPass = "https://192.168.0.10";
+      };
+
       nginx = {
         enable = true;
         openFirewall = true;
         reverseProxies = {
-          "amt.codgician.me" = {
-            enable = true;
-            https = true;
-            domains = [ "amt.codgician.me" ];
-            locations."/".proxyPass = "https://192.168.0.10";
-          };
-
-          "books.codgician.me" = {
-            enable = true;
-            https = true;
-            domains = [ "books.codgician.me" ];
-            locations."/".proxyPass = "https://192.168.0.7";
-          };
-
           "bubbles.codgician.me" = {
             enable = true;
             https = true;
