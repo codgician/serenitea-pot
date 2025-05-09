@@ -80,6 +80,7 @@ in
       htop
       aria2
       iperf3
+      dnsutils
     ];
 
     # Fonts
