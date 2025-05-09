@@ -91,6 +91,7 @@ in
           global = {
             server_name = cfg.domain;
             private_key = "$CREDENTIALS_DIRECTORY/private_key";
+            jetstream.storage_path = "${cfg.dataPath}/jetstream";
             trusted_third_party_id_servers = [
               "matrix.codgician.me"
               "matrix.org"
@@ -127,9 +128,8 @@ in
           mscs = {
             inherit database;
             mscs = [
-              # Support Threads
-              # see: https://github.com/matrix-org/dendrite/blob/main/docs/FAQ.md#does-dendrite-support-threads
-              "msc2836"
+              "msc2836" # threads
+              "msc2946" # space summaries
             ];
           };
 
@@ -190,8 +190,23 @@ in
         loadCredential = [ "private_key:${config.age.secrets.matrix-global-private-key.path}" ];
       };
 
-      # Allow R/W to media path
-      systemd.services.dendrite.serviceConfig.ReadWritePaths = [ cfg.dataPath ];
+      
+      systemd.services.dendrite.serviceConfig = {
+        # Allow R/W to media path
+        ReadWritePaths = [ cfg.dataPath ];
+
+        # Disable dynamic user
+        DynamicUser = lib.mkForce false;
+        User = "dendrite";
+        Group = "dendrite";
+      };
+
+      # Create user
+      users.users.dendrite = {
+        group = "dendrite";
+        isSystemUser = true;
+      };
+      users.groups.dendrite = { };
 
       # PostgreSQL
       codgician.services.postgresql.enable = true;

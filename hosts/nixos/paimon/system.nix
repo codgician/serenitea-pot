@@ -31,6 +31,7 @@
       dendrite = {
         enable = true;
         domain = "matrix.codgician.me";
+        dataPath = "/xpool/appdata/dendrite";
         reverseProxy = {
           enable = true;
           elementWeb = true;
