@@ -54,18 +54,16 @@ rec {
           ;
       };
 
-      # Persist data when dataDir is default value
-      environment = lib.optionalAttrs (systemCfg ? impermanence) {
-        persistence.${systemCfg.impermanence.path}.directories =
-          lib.mkIf (cfg.dataDir == options.codgician.services.jellyfin.dataDir.default)
-            [
-              {
-                directory = cfg.dataDir;
-                mode = "0750";
-                inherit (cfg) user group;
-              }
-            ];
-      };
+      # Persist default data directory
+      codgician.system.impermanence.extraItems =
+        lib.mkIf (cfg.dataDir == options.codgician.services.jellyfin.dataDir.default)
+          [
+            {
+              type = "directory";
+              path = cfg.dataDir;
+              inherit (cfg) user group;
+            }
+          ];
     })
 
     # Reverse proxy profile

@@ -33,12 +33,15 @@ in
       mount-nvidia-docker-1-directories = true;
     };
 
+    # Global packages
+    environment.systemPackages = with pkgs; [ podman-tui ];
+
     # Persist data
-    environment = {
-      systemPackages = with pkgs; [ podman-tui ];
-      persistence.${systemCfg.impermanence.path}.directories = lib.mkIf (systemCfg ? impermanence) [
-        "/var/lib/containers"
-      ];
-    };
+    codgician.system.impermanence.extraItems = [
+      {
+        type = "directory";
+        path = "/var/lib/containers";
+      }
+    ];
   };
 }

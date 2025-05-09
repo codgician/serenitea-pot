@@ -243,5 +243,6 @@
     serviceConfig.Type = "oneshot";
   };
 
+  nix.settings.system-features = [ "gccarch-znver3" ];
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

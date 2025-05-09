@@ -129,46 +129,40 @@ in
       };
 
       # Create user
-      users.users.open-webui = {
-        group = "open-webui";
+      users.users.${serviceName} = {
+        group = serviceName;
         isSystemUser = true;
       };
-      users.groups.open-webui = { };
+      users.groups.${serviceName} = { };
 
       # Add embedding model to ollama
-      codgician.services.ollama.loadModels = [
-        "qllama/bge-m3:latest"
-      ];
+      codgician.services.ollama.loadModels = [ "qllama/bge-m3:latest" ];
 
       # Set up Redis
-      services.redis.servers.open-webui = {
+      services.redis.servers.${serviceName} = {
         enable = true;
         unixSocketPerm = 660;
       };
 
       systemd.services.open-webui.serviceConfig = {
         # Ensure access to Redis
-        SupplementaryGroups = [
-          config.services.redis.servers.open-webui.group
-        ];
+        SupplementaryGroups = [ config.services.redis.servers.open-webui.group ];
 
         # Disable dynamic user
         DynamicUser = lib.mkForce false;
-        User = "open-webui";
-        Group = "open-webui";
+        User = serviceName;
+        Group = serviceName;
       };
 
       # Persist data when dataDir is default value
-      environment = lib.optionalAttrs (systemCfg ? impermanence) {
-        persistence.${systemCfg.impermanence.path}.directories = [
-          {
-            directory = "/var/lib/open-webui";
-            mode = "0750";
-            user = "open-webui";
-            group = "open-webui";
-          }
-        ];
-      };
+      codgician.system.impermanence.extraItems = [
+        {
+          type = "directory";
+          path = "/var/lib/open-webui";
+          user = serviceName;
+          group = serviceName;
+        }
+      ];
     })
 
     # PostgreSQL
@@ -180,7 +174,7 @@ in
         ensureDatabases = [ pgDbName ];
         ensureUsers = [
           {
-            name = "open-webui";
+            name = serviceName;
             ensureDBOwnership = true;
           }
         ];

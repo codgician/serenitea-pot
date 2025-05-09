@@ -6,7 +6,6 @@
 }:
 let
   cfg = config.codgician.system.secure-boot;
-  impermanenceCfg = config.codgician.system.impermanence;
 in
 {
   options.codgician.system.secure-boot = {
@@ -19,29 +18,28 @@ in
       default = "/etc/secureboot";
       description = ''
         Path to PKI bundle.
-        This path will not be automatically persisted if set to non-default value with impermenance on.
+        This path will not be automatically persisted if set to non-default value with impermanence on.
       '';
     };
   };
 
-  config = lib.mkMerge [
-    # Persist /etc/secureboot if impermanence is on
-    (lib.mkIf impermanenceCfg.enable {
-      environment.persistence.${impermanenceCfg.path} = {
-        directories = [ "/etc/secureboot" ];
-      };
-    })
+  config = lib.mkIf cfg.enable {
+    # Include sbctl package
+    environment.systemPackages = [ pkgs.sbctl ];
 
-    (lib.mkIf cfg.enable {
-      # Include sbctl package
-      environment.systemPackages = [ pkgs.sbctl ];
+    # Lanzaboote will replace the systemd-boot module.
+    boot.loader.systemd-boot.enable = lib.mkForce false;
+    boot.lanzaboote = {
+      enable = true;
+      pkiBundle = cfg.pkiBundle;
+    };
 
-      # Lanzaboote will replace the systemd-boot module.
-      boot.loader.systemd-boot.enable = lib.mkForce false;
-      boot.lanzaboote = {
-        enable = true;
-        pkiBundle = cfg.pkiBundle;
-      };
-    })
-  ];
+    # Persist /etc/secureboot
+    codgician.system.impermanence.extraItems = [
+      {
+        path = "/etc/secureboot";
+        type = "directory";
+      }
+    ];
+  };
 }

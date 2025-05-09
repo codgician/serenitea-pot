@@ -2,7 +2,6 @@
 let
   serviceName = "callibre-web";
   cfg = config.codgician.services.calibre-web;
-  systemCfg = config.codgician.system;
   types = lib.types;
 in
 {
@@ -58,9 +57,12 @@ in
       };
 
       # Persist data
-      environment = lib.optionalAttrs (systemCfg ? impermanence) {
-        persistence.${systemCfg.impermanence.path}.directories = [ "/var/lib/calibre-web" ];
-      };
+      codgician.system.impermanence.extraItems = [
+        {
+          type = "directory";
+          path = "/var/lib/calibre-web";
+        }
+      ];
     })
 
     # Reverse proxy profile

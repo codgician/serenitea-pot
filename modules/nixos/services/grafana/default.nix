@@ -86,18 +86,16 @@ in
       };
 
       # Persist data when dataDir is default value
-      environment = lib.optionalAttrs (systemCfg ? impermanence) {
-        persistence.${systemCfg.impermanence.path}.directories =
-          lib.mkIf (cfg.dataDir == options.codgician.services.grafana.dataDir.default)
-            [
-              {
-                directory = cfg.dataDir;
-                mode = "0750";
-                user = serviceName;
-                group = serviceName;
-              }
-            ];
-      };
+      codgician.system.impermanence.extraItems =
+        lib.mkIf (cfg.dataDir == options.codgician.services.grafana.dataDir.default)
+          [
+            {
+              type = "directory";
+              path = cfg.dataDir;
+              user = serviceName;
+              group = serviceName;
+            }
+          ];
     })
 
     # Agenix secrets

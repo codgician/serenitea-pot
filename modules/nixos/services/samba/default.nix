@@ -98,16 +98,12 @@ in
     );
 
     # Persist data
-    environment = lib.optionalAttrs (systemCfg ? impermanence) {
-      persistence.${systemCfg.impermanence.path}.directories = [
-        {
-          directory = "/var/lib/samba";
-          user = "root";
-          group = "root";
-          mode = "u=rwx,g=rx,o=x";
-        }
-      ];
-    };
+    codgician.system.impermanence.extraItems = [
+      {
+        type = "directory";
+        path = "/var/lib/samba";
+      }
+    ];
 
     # Assertions
     assertions =

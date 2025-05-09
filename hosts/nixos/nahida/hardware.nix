@@ -18,6 +18,7 @@
 
   services.resolved.enable = true;
 
+  nix.settings.system-features = [ "gccarch-znver3" ];
   nixpkgs.config.cudaSupport = true;
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

@@ -1,12 +1,4 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-let
-  impermanenceCfg = config.codgician.system.impermanence;
-in
+{ lib, pkgs, ... }:
 {
   # Enable Proxmox VE
   networking.firewall.allowedTCPPorts = [ 8006 ];
@@ -34,14 +26,20 @@ in
       cp -f key.pem /etc/pve/local/pveproxy-ssl.key
       systemctl restart pveproxy.service
     '';
-  };
 
-  # Impermenance for Proxmox VE
-  environment.persistence.${impermanenceCfg.path}.directories = lib.mkIf impermanenceCfg.enable [
-    "/var/lib/pve-cluster"
-    "/var/lib/pve-firewall"
-    "/var/lib/pve-manager"
-  ];
+    # Impermanence for Proxmox VE
+    system.impermanence.extraItems =
+      builtins.map
+        (path: {
+          type = "directory";
+          inherit path;
+        })
+        [
+          "/var/lib/pve-cluster"
+          "/var/lib/pve-firewall"
+          "/var/lib/pve-manager"
+        ];
+  };
 
   # hookscript snippets
   environment.etc."pve-snippets/snippets/hookscript-guoba.sh".source = lib.getExe (

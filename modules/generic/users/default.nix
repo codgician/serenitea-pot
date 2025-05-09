@@ -6,7 +6,6 @@
 }:
 let
   cfg = config.codgician.users;
-  systemCfg = config.codgician.system;
   types = lib.types;
   isLinux = pkgs.stdenvNoCC.isLinux;
 
@@ -94,17 +93,16 @@ let
 
         # Impermanence: persist home directory if enabled
         {
-          environment = lib.optionalAttrs (systemCfg ? impermanence) {
-            persistence.${systemCfg.impermanence.path}.directories =
-              lib.mkIf (systemCfg.impermanence.enable && cfg.${name}.createHome)
-                [
-                  {
-                    directory = cfg.${name}.home;
-                    user = name;
-                    group = "users";
-                    mode = "u=rwx,g=rx,o=";
-                  }
-                ];
+          codgician.system = lib.optionalAttrs (config.codgician.system ? impermanence) {
+            impermanence.extraItems = lib.mkIf (cfg.${name}.createHome) [
+              {
+                type = "directory";
+                path = cfg.${name}.home;
+                user = name;
+                group = "users";
+                mode = "700";
+              }
+            ];
           };
         }
 
