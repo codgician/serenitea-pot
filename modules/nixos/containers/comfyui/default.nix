@@ -1,7 +1,8 @@
 { config, lib, ... }:
 let
+  serviceName = "comfyui";
+  inherit (lib) types;
   cfg = config.codgician.containers.comfyui;
-  types = lib.types;
   uid = 2024;
 in
 {
@@ -27,31 +28,10 @@ in
     };
 
     # Reverse proxy profile for nginx
-    reverseProxy = {
-      enable = lib.mkEnableOption "Reverse proxy for comfyui.";
-
-      domains = lib.mkOption {
-        type = types.listOf types.str;
-        example = [
-          "example.com"
-          "example.org"
-        ];
-        default = [ ];
-        description = ''
-          List of domains for the reverse proxy.
-        '';
-      };
-
-      proxyPass = lib.mkOption {
-        type = types.str;
-        default = "http://127.0.0.1:${builtins.toString cfg.port}";
-        defaultText = ''http://127.0.0.1:$\{toString config.codgician.containers.comfyui.port}'';
-        description = ''
-          Source URI for the reverse proxy.
-        '';
-      };
-
-      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
+    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
+      inherit serviceName;
+      defaultProxyPass = "http://127.0.0.1:${toString cfg.port}";
+      defaultProxyPassText = ''with config.codgician.containers.comfyui; http://127.0.0.1:$\{toString port}'';
     };
   };
 
@@ -68,7 +48,6 @@ in
         extraOptions =
           [
             "--pull=newer"
-            "--log-level=debug"
             "-e"
             "SECURITY_LEVEL=normal"
             "-e"
@@ -93,17 +72,8 @@ in
     })
 
     # Reverse proxy profile
-    (lib.mkIf cfg.reverseProxy.enable {
-      codgician.services.nginx = {
-        enable = true;
-        reverseProxies.comfyui = {
-          inherit (cfg.reverseProxy) enable domains;
-          https = true;
-          locations."/" = {
-            inherit (cfg.reverseProxy) proxyPass lanOnly;
-          };
-        };
-      };
+    (lib.codgician.mkServiceReverseProxyConfig {
+      inherit serviceName cfg;
     })
   ];
 }

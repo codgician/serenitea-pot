@@ -8,13 +8,15 @@
 
   # My settings
   codgician = {
-    containers.comfyui = {
-      enable = true;
-      dataDir = "/xpool/appdata/comfyui";
-      modelDir = "/xpool/llm/comfyui";
-      reverseProxy = {
+    containers = {
+      comfyui = {
         enable = true;
-        domains = [ "vanarana.codgician.me" ];
+        dataDir = "/xpool/appdata/comfyui";
+        modelDir = "/xpool/llm/comfyui";
+        reverseProxy = {
+          enable = true;
+          domains = [ "vanarana.codgician.me" ];
+        };
       };
     };
 
