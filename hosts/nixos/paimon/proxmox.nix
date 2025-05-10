@@ -7,11 +7,6 @@
     ipAddress = "192.168.0.21";
   };
 
-  # VirGL
-  environment.systemPackages = with pkgs; [
-    virglrenderer
-  ];
-
   # Reverse proxy
   codgician = {
     services.nginx = {
