@@ -50,11 +50,11 @@
             htop
             aria2
             android-tools
+            scrcpy
             pandoc
             acpica-tools
             terraform
             smartmontools
-            pciutils
             ffmpeg-full
             virt-manager
             tcping-go
