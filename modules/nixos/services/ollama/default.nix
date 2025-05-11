@@ -99,8 +99,10 @@ in
         environmentVariables = {
           OLLAMA_FLASH_ATTENTION = lib.mkIf (cfg.acceleration != false) "1";
           OLLAMA_KV_CACHE_TYPE = "q8_0";
-          # Increase default context length to 8K
-          OLLAMA_CONTEXT_LENGTH = "8192";
+          # Increase default context length to 16K
+          OLLAMA_CONTEXT_LENGTH = "16384";
+          # Keep alive
+          OLLAMA_KEEP_ALIVE = "-1";
         };
 
         # Override package to save build time
