@@ -19,7 +19,10 @@
         };
       };
 
-      mcpo.enable = true;
+      mcpo = {
+        enable = true;
+        dataDir = "/xpool/appdata/mcpo";
+      };
     };
 
     services = {

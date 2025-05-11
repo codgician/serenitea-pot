@@ -10,6 +10,16 @@ let
   inherit (lib) types;
   cfg = config.codgician.containers.mcpo;
   mcpoConfig.mcpServers = {
+    arxiv = {
+      command = "uv";
+      args = [
+        "tool"
+        "run"
+        "arxiv-mcp-server"
+        "--storage-path"
+        "/persist/arxiv"
+      ];
+    };
     amap-maps = {
       command = "npx";
       args = [
@@ -28,6 +38,7 @@ let
         "-y"
         "@modelcontextprotocol/server-memory"
       ];
+      env.MEMORY_FILE_PATH = "/persist/memory/memory.json";
     };
     google-maps = {
       command = "npx";
@@ -56,6 +67,12 @@ in
       description = "Port for mcpo to listen on.";
     };
 
+    dataDir = lib.mkOption {
+      type = types.path;
+      default = "/var/lib/mcpo";
+      description = "Data directory for mcpo.";
+    };
+
     # Reverse proxy profile for nginx
     reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
       inherit serviceName;
@@ -70,7 +87,10 @@ in
         autoStart = true;
         image = "ghcr.io/open-webui/mcpo:latest";
         ports = [ "127.0.0.1:${builtins.toString cfg.port}:8000" ];
-        volumes = [ "/run/mcpo/config.json:/config.json" ];
+        volumes = [ 
+          "/run/mcpo/config.json:/config.json" 
+          "${cfg.dataDir}:/persist"
+        ];
         extraOptions = [ "--pull=newer" ];
         cmd = [ "--config=/config.json" ];
       };
