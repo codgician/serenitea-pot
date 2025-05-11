@@ -51,6 +51,10 @@ with pubKeys.hosts;
   "matrix-global-private-key.age".publicKeys = someHosts [ paimon ];
   "matrix-env.age".publicKeys = someHosts [ paimon ];
 
+  # mcp secrets
+  "mcp-amap-api-key.age".publicKeys = someHosts [ paimon ];
+  "mcp-google-maps-api-key.age".publicKeys = someHosts [ paimon ];
+
   # Open-WebUI secrets
   "open-webui-env.age".publicKeys = someHosts [ paimon ];
 

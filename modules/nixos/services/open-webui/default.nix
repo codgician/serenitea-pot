@@ -7,7 +7,6 @@
 let
   serviceName = "open-webui";
   cfg = config.codgician.services.open-webui;
-  systemCfg = config.codgician.system;
   types = lib.types;
   listToStr = lib.strings.concatStringsSep ";";
 
@@ -107,6 +106,11 @@ in
           ENABLE_RAG_LOCAL_WEB_FETCH = "True";
           ENABLE_RAG_WEB_LOADER_SSL_VERIFICATION = "True";
           WEBUI_SESSION_COOKIE_SAME_SITE = "lax";
+          # Search
+          ENABLE_WEB_SEARCH = "True";
+          WEB_SEARCH_ENGINE = "google_pse";
+          WEB_SEARCH_RESULT_COUNT = "5";
+          WEB_SEARCH_CONCURRENT_REQUESTS = "10";
           # RAG
           ENABLE_RAG_HYBRID_SEARCH = "True";
           PDF_EXTRACT_IMAGES = "True";

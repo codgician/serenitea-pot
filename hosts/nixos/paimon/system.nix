@@ -18,6 +18,8 @@
           domains = [ "vanarana.codgician.me" ];
         };
       };
+
+      mcpo.enable = true;
     };
 
     services = {
