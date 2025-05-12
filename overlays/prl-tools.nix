@@ -12,11 +12,9 @@ in
 {
   linuxPackages = super.linuxPackages.extend (
     lpself: lpsuper: {
-      prl-tools = (
-        unstablePkgs.linuxPackages.prl-tools.override {
-          inherit (lpsuper) kernel;
-        }
-      );
+      prl-tools = unstablePkgs.linuxPackages.prl-tools.override {
+        inherit (lpsuper) kernel;
+      };
     }
   );
 }
