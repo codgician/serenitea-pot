@@ -94,10 +94,11 @@ in
     # Konsole
     programs.konsole = rec {
       enable = true;
+      customColorSchemes.breeze-blur = ./breeze-blur.colorscheme;
       defaultProfile = profiles.default.name;
       profiles.default = {
         name = "Default";
-        colorScheme = "Breeze";
+        colorScheme = "breeze-blur";
         command = lib.getExe pkgs.zsh;
         font = {
           name = "Cascadia Mono PL";
@@ -115,7 +116,13 @@ in
       };
       iconTheme.name = "breeze-dark";
       theme.name = "Breeze";
-      gtk2.configLocation = "${config.home.homeDirectory}/.config/.gtkrc-2.0";
     };
+
+    # Hack: fix .gtkrc-2.0 becoming a real file instead of a symlink
+    home.activation.rm-gtkrc-2-0 = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
+      if [ ! -L $HOME/.gtkrc-2.0 ]; then
+        rm -f $HOME/.gtkrc-2.0
+      fi
+    '';
   };
 }
