@@ -18,7 +18,7 @@ let
       model_name = x.name;
       litellm_params = {
         model = "azure_ai/${x.name}";
-        api_base = "https://${azureSubdomain}.cognitiveservices.azure.com";
+        api_base = "https://${azureSubdomain}.openai.azure.com";
         api_key = "os.environ/AZURE_AKASHA_API_KEY";
         api_version = "2025-03-01-preview";
       };
