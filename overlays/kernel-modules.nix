@@ -1,6 +1,6 @@
 # Use version from unstable for specified kernel modules
 
-{ inputs, ... }:
+{ inputs, lib, ... }:
 
 self: super:
 let
@@ -16,18 +16,11 @@ let
   mkLinuxPackageOverride =
     name:
     super.${name}.extend (
-      lpself: lpsuper: {
-        # Parallel tools kernel module
-        prl-tools = unstablePkgs.linuxPackages.prl-tools.override {
-          inherit (lpsuper) kernel;
-        };
-
-        # mstflint kernel module
-        mstflint_access = unstablePkgs.linuxPackages.mstflint_access.override {
-          inherit (lpsuper) kernel;
-          inherit (unstablePkgs) mstflint;
-        };
-      }
+      lpself: lpsuper:
+      lib.genAttrs [
+        "mstflint_access"
+        "prl-tools"
+      ] (pkgName: unstablePkgs.linuxPackages.${pkgName}.override { inherit (lpsuper) kernel; })
     );
 in
 {
