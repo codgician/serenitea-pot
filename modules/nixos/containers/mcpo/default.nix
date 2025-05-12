@@ -87,8 +87,8 @@ in
         autoStart = true;
         image = "ghcr.io/open-webui/mcpo:latest";
         ports = [ "127.0.0.1:${builtins.toString cfg.port}:8000" ];
-        volumes = [ 
-          "/run/mcpo/config.json:/config.json" 
+        volumes = [
+          "/run/mcpo/config.json:/config.json"
           "${cfg.dataDir}:/persist"
         ];
         extraOptions = [ "--pull=newer" ];

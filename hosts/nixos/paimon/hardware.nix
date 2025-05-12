@@ -58,7 +58,7 @@
       options kvm ignore_msrs=1
       options kvm report_ignored_msrs=0
     '';
-
+    extraModulePackages = with config.boot.kernelPackages; [ mstflint_access ];
     supportedFilesystems = [
       "vfat"
       "zfs"
@@ -83,7 +83,6 @@
   hardware.mlnx-ofed = {
     enable = true;
     fwctl.enable = true;
-    kernel-mft.enable = true;
   };
 
   # Specify boot-0 as the primary ESP partition
@@ -114,6 +113,7 @@
     clevis
     jose
     tpm2-tools
+    mstflint
   ];
 
   # Enable OpenGL
@@ -241,6 +241,5 @@
     serviceConfig.Type = "oneshot";
   };
 
-  nix.settings.system-features = [ "gccarch-znver3" ];
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

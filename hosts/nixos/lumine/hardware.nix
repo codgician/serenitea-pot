@@ -18,6 +18,4 @@
 
   # Enable nix-ld
   programs.nix-ld.enable = true;
-
-  nix.settings.system-features = [ "gccarch-ampere1" ];
 }

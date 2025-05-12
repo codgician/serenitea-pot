@@ -125,11 +125,11 @@
     "flake-compat": {
       "flake": false,
       "locked": {
-        "lastModified": 1733328505,
-        "narHash": "sha256-NeCCThCEP3eCl2l/+27kNNK7QrwZB1IJCrXfrbv5oqU=",
+        "lastModified": 1747046372,
+        "narHash": "sha256-CIVLLkVgvHYbgI2UpXvIIBJ12HWgX+fjA8Xf8PUmqCY=",
         "owner": "edolstra",
         "repo": "flake-compat",
-        "rev": "ff81ac966bb2cae68946d5ed5fc4994f96d0ffec",
+        "rev": "9100a0f413b0c601e0533d1d94ffd501ce2e7885",
         "type": "github"
       },
       "original": {
@@ -304,11 +304,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1746775468,
-        "narHash": "sha256-HmcE5portrQNg22uXn17V36KKW6nipX9YnwejQcMePg=",
+        "lastModified": 1747047452,
+        "narHash": "sha256-azAvzJz4FBV1he7rDE6G54rf1DCBsR6XGJnWTAuNEz4=",
         "owner": "codgician",
         "repo": "mlnx-ofed-nixos",
-        "rev": "c8d8fb9de1471368e61ca22f06289fba70fcad03",
+        "rev": "5fa6b546d110dac2d1f09f4e28b1f373e2c6544b",
         "type": "github"
       },
       "original": {
@@ -510,11 +510,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1747039369,
-        "narHash": "sha256-1KAK/ek4ZKy/I39MFr5oE37d9QmseKUrP2M/m+6POLk=",
+        "lastModified": 1747045627,
+        "narHash": "sha256-nUY7Eu4Z5wk1HziCKHFcQXSbsE75ByX3mbxvnBg4GHo=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "dc87a3fadc35eef70979dd2c45e37b0575fd64bf",
+        "rev": "cfd261dfe9ea0c8dbdfa5b9a28b01fe2765b9d37",
         "type": "github"
       },
       "original": {
