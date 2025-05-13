@@ -28,6 +28,13 @@ let
   settingsFormat = pkgs.formats.yaml { };
   settings.model_list = azureModels ++ [
     {
+      model_name = "gemini-2.5-pro-io";
+      litellm_params = {
+        model = "gemini/gemini-2.5-pro-preview-05-06";
+        api_key = "os.environ/GEMINI_API_KEY";
+      };
+    }
+    {
       model_name = "gemini-2.5-pro";
       litellm_params = {
         model = "gemini/gemini-2.5-pro-exp-03-25";
