@@ -102,7 +102,6 @@ in
     # Security
     users.mutableUsers = false;
     users.users.root.hashedPassword = "!";
-    security.sudo.wheelNeedsPassword = false;
     nix.settings.trusted-users = [
       "root"
       "@wheel"
@@ -112,6 +111,11 @@ in
       audit.enable = !config.boot.isContainer;
       auditd.enable = !config.boot.isContainer;
       apparmor.enable = !config.boot.isContainer;
+      sudo-rs = {
+        enable = true;
+        execWheelOnly = true;
+        wheelNeedsPassword = false;
+      };
     };
 
     # Enable fail2ban
