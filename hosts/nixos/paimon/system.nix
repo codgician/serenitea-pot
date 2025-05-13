@@ -52,10 +52,9 @@
         acceleration = "cuda";
         modelDir = "/xpool/llm/ollama/models";
         loadModels = [
-          "qwen3:30b"
-          "qwen3:32b"
           "hf.co/unsloth/Qwen3-30B-A3B-GGUF:Q5_K_M"
-          "gemma3:27b"
+          "hf.co/unsloth/Qwen3-32B-GGUF:Q5_K_M"
+          "hf.co/unsloth/gemma-3-27b-it-qat-GGUF:Q4_K_M"
         ];
       };
 
