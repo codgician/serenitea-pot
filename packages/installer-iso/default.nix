@@ -29,6 +29,10 @@ let
           {
             imports = [ (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix") ];
 
+            # Override to use sudo-rs
+            security.sudo.enable = lib.mkForce false;
+            security.sudo-rs.enable = lib.mkForce true;
+
             # Add common utilities
             environment.systemPackages = [
               inetutils
@@ -66,7 +70,7 @@ stdenv.mkDerivation {
   phases = [ "installPhase" ];
   installPhase = ''
     mkdir -p $out
-    cp $src $out
+    cp -r $src $out
   '';
   meta = {
     description = "NixOS installation image customized by codgician";
