@@ -134,38 +134,42 @@ in
 
     # Enable dpdk if configured
     environment.systemPackages = lib.mkIf enableDpdk [ pkgs.dpdk ];
-    systemd.services = lib.mkIf enableDpdk {
-      # Bind correct driver before starting ovs-vswitchd
-      ovs-vswitchd = {
-        path = with pkgs; [
+    systemd.services.ovs-vswitchd = {
+      path = lib.mkIf enableDpdk (
+        with pkgs;
+        [
           dpdk
           which
           pciutils
           iproute2
-        ];
+        ]
+      );
 
-        preStart = builtins.concatStringsSep "\n" (
-          (builtins.map (dev: ''
+      preStart = builtins.concatStringsSep "\n" (
+        # Bind correct driver before starting ovs-vswitchd
+        (lib.optionals enableDpdk (
+          builtins.map (dev: ''
             if lspci -s ${dev} | grep Mellanox; then
               echo "Skip binding vfio-pci driver for Mellanox NICs"
             else
               echo "Binding ${dev} to vfio-pci driver ..."
               dpdk-devbind.py -b vfio-pci ${dev} --force
             fi
-          '') dpdkDevs)
-          ++ builtins.map (option: "ovs-vsctl --no-wait set Open_vSwitch . ${option}") (
-            [
-              "other_config:dpdk-init=true"
-              "other_config:vhost-iommu-support=true"
-              "other_config:userspace-tso-enable=true"
-              "other_config:dpdk-extra=\"${
-                builtins.concatStringsSep " " (builtins.map (d: "-a ${d}") dpdkDevs)
-              }\""
-            ]
-            ++ cfg.extraGlobalOptions
-          )
-        );
-      };
+          '') dpdkDevs
+        ))
+        # Apply global options to openvswitch
+        ++ builtins.map (option: "ovs-vsctl --no-wait set Open_vSwitch . ${option}") (
+          (lib.optionals enableDpdk [
+            "other_config:dpdk-init=true"
+            "other_config:vhost-iommu-support=true"
+            "other_config:userspace-tso-enable=true"
+            "other_config:dpdk-extra=\"${
+              builtins.concatStringsSep " " (builtins.map (d: "-a ${d}") dpdkDevs)
+            }\""
+          ])
+          ++ cfg.extraGlobalOptions
+        )
+      );
     };
   };
 }
