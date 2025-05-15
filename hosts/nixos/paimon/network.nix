@@ -97,6 +97,10 @@
     enable = true;
     extraGlobalOptions = [
       "other_config:hw-offload=true"
+      "other_config:max-idle=30000"
+      "other_config:max-revalidator=10000"
+      "other_config:n-handler-threads=4"
+      "other_config:n-revalidator-threads=4"
       # Prevent `tc mirred to Houston: device vs0 is down` flooding dmesg
       "other_config:tc-policy=skip_sw"
     ];
