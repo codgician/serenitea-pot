@@ -103,6 +103,7 @@
     switches.vs0 = {
       interfaces = {
         enp67s0f0np0 = { };
+        enp67s0f1np1 = { };
         # VFs
         enp67s0f0r0 = { };
         enp67s0f0r1 = { };
