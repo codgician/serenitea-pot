@@ -14,8 +14,8 @@
       DEV_PCIBASE=0000:43:00
 
       # Set number of VFs
-      echo "Creating 4 VFs for $DEV_NAME ..."
-      echo 4 > /sys/class/net/$DEV_NAME/device/sriov_numvfs
+      echo "Creating 6 VFs for $DEV_NAME ..."
+      echo 6 > /sys/class/net/$DEV_NAME/device/sriov_numvfs
 
       # Set MAC addresses for VFs
       echo "Setting MAC addresses for VFs ..."
@@ -23,6 +23,8 @@
       ip link set $DEV_NAME vf 1 mac ac:79:86:2a:81:da
       ip link set $DEV_NAME vf 2 mac ac:79:86:28:02:91
       ip link set $DEV_NAME vf 3 mac ac:79:86:92:0b:af
+      ip link set $DEV_NAME vf 4 mac ac:79:86:7e:27:1f
+      ip link set $DEV_NAME vf 5 mac ac:79:86:5a:2d:03
 
       # Unbind VFs
       echo "Unbinding VFs from driver ..."
@@ -30,10 +32,13 @@
       echo ''${DEV_PCIBASE}.3 > /sys/bus/pci/drivers/mlx5_core/unbind
       echo ''${DEV_PCIBASE}.4 > /sys/bus/pci/drivers/mlx5_core/unbind
       echo ''${DEV_PCIBASE}.5 > /sys/bus/pci/drivers/mlx5_core/unbind
+      echo ''${DEV_PCIBASE}.6 > /sys/bus/pci/drivers/mlx5_core/unbind
+      echo ''${DEV_PCIBASE}.7 > /sys/bus/pci/drivers/mlx5_core/unbind
 
       # Enable eSwitch
       echo "Setting eSwitch mode to switchdev ..."
       devlink dev eswitch set pci/''${DEV_PCIBASE}.0 mode switchdev
+      devlink dev eswitch set pci/''${DEV_PCIBASE}.1 mode switchdev
 
       # Bind first VF to host
       echo "Binding first VF to host ..."
@@ -92,7 +97,8 @@
     enable = true;
     extraGlobalOptions = [
       "other_config:hw-offload=true"
-      #"other_config:tc-policy=skip_sw"
+      # Prevent `tc mirred to Houston: device vs0 is down` flooding dmesg
+      "other_config:tc-policy=skip_sw"
     ];
     switches.vs0 = {
       interfaces = {
