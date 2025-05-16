@@ -35,6 +35,10 @@
       echo ''${DEV_PCIBASE}.6 > /sys/bus/pci/drivers/mlx5_core/unbind
       echo ''${DEV_PCIBASE}.7 > /sys/bus/pci/drivers/mlx5_core/unbind
 
+      # Set DMFS
+      devlink dev param set pci/''${DEV_PCIBASE}.0 name flow_steering_mode value "dmfs" cmode runtime
+      devlink dev param set pci/''${DEV_PCIBASE}.1 name flow_steering_mode value "dmfs" cmode runtime
+
       # Enable eSwitch
       echo "Setting eSwitch mode to switchdev ..."
       devlink dev eswitch set pci/''${DEV_PCIBASE}.0 mode switchdev
