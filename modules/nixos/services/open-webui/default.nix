@@ -121,6 +121,11 @@ in
           RAG_EMBEDDING_MODEL = lib.mkIf ollamaCfg.enable "qllama/bge-m3:latest";
           RAG_OLLAMA_BASE_URL = lib.mkIf ollamaCfg.enable "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
           # RAG_RERANKING_MODEL = "BAAI/bge-reranker-v2-m3";
+          # Image generation
+          IMAGE_GENERATION_ENGINE = "openai";
+          ENABLE_IMAGE_GENERATION = "True";
+          IMAGE_GENERATION_MODEL = "imagen-3.0-generate-002";
+          IMAGES_OPENAI_API_BASE_URL="https://generativelanguage.googleapis.com/v1beta/openai";
           # Redis
           ENABLE_WEBSOCKET_SUPPORT = "True";
           WEBSOCKET_MANAGER = "redis";
