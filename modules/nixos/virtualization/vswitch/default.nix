@@ -12,9 +12,23 @@ let
   getVswitchDpdkDevs =
     switchCfg:
     lib.pipe switchCfg.interfaces [
-      (lib.filterAttrs (_: intCfg: intCfg.type == "dpdk" && intCfg.device != null))
+      (lib.filterAttrs (_: intCfg: intCfg.type == "dpdk" && intCfg.dpdkDevice != null))
       builtins.attrValues
-      (builtins.map (intCfg: intCfg.device))
+      (builtins.map (intCfg: intCfg.dpdkDevice))
+    ];
+
+  # Make assertion for a dpdk device in a vswitch
+  mkVswitchDpdkDevAssertions =
+    switchCfg:
+    lib.pipe switchCfg.interfaces [
+      (lib.filterAttrs (_: intCfg: intCfg.type == "dpdk" && intCfg.dpdkDevice != null))
+      (lib.mapAttrs (
+        intName: intCfg: {
+          assertion = intCfg.extraDpdkDevArgs == [ ] || intCfg.dpdkDevice != null;
+          message = "dpdkDevice must be specified if extraDpdkDevArgs is not empty for interface ${intName} of switch ${switchCfg.name}.";
+        }
+      ))
+      builtins.attrValues
     ];
 
   # List of dpdk devices
@@ -54,11 +68,21 @@ in
                       example = "dpdk";
                     };
 
-                    device = lib.mkOption {
+                    dpdkDevice = lib.mkOption {
                       type = with types; nullOr str;
                       description = "PCIe device address, only needed for dpdk type.";
                       default = null;
                       example = "0000:01:00.0";
+                    };
+
+                    extraDpdkDevArgs = lib.mkOption {
+                      type = with types; listOf str;
+                      description = ''
+                        Extra arguments to pass to `options:dpdk-devargs`, appending after device id.
+                        Only effective for dpdk type.
+                      '';
+                      default = [ ];
+                      example = [ "representor=[0]" ];
                     };
 
                     extraOptions = lib.mkOption {
@@ -119,9 +143,11 @@ in
         ++ (lib.pipe switchCfg.interfaces [
           (lib.mapAttrs (
             intName: intCfg:
-            (lib.optional (
-              intCfg.type == "dpdk" && intCfg.device != null
-            ) "options:dpdk-devargs=${intCfg.device}")
+            (lib.optional (intCfg.type == "dpdk" && intCfg.dpdkDevice != null)
+              "options:dpdk-devargs=${
+                builtins.concatStringsSep "," ([ intCfg.dpdkDevice ] ++ intCfg.extraDpdkDevArgs)
+              }"
+            )
             ++ intCfg.extraOptions
           ))
           (lib.filterAttrs (_: options: options != [ ]))
@@ -171,5 +197,8 @@ in
         )
       );
     };
+
+    # Assertions
+    assertions = builtins.concatMap mkVswitchDpdkDevAssertions (builtins.attrValues cfg.switches);
   };
 }
