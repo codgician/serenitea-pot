@@ -5,6 +5,8 @@ let
   types = lib.types;
 in
 {
+  imports = [ ./kernels ];
+
   options.codgician.services.jupyter = {
     enable = lib.mkEnableOption "Jupyter";
 

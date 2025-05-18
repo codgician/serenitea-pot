@@ -7,6 +7,7 @@
         enable = true;
         notebookDir = "/lab/jupyter";
         user = "codgi";
+        extraKernels.ihaskell.enable = true;
         reverseProxy = {
           enable = true;
           domains = [ "dragonspine.codgician.me" ];
