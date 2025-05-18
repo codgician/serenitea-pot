@@ -25,7 +25,7 @@
       ip link set $DEV_NAME vf 3 mac ac:79:86:92:0b:af
       ip link set $DEV_NAME vf 4 mac ac:79:86:32:a1:21
       ip link set $DEV_NAME vf 5 mac ac:79:86:7e:27:1f
-      
+
       # Unbind VFs
       echo "Unbinding VFs from driver ..."
       echo ''${DEV_PCIBASE}.2 > /sys/bus/pci/drivers/mlx5_core/unbind

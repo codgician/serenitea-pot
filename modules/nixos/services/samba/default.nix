@@ -47,6 +47,7 @@ in
       settings = cfg.shares // {
         global = {
           "protocol" = "SMB3";
+          "min protocol" = "SMB3";
           "server string" = config.networking.hostName;
           "netbios name" = config.networking.hostName;
           "wins support" = "yes";

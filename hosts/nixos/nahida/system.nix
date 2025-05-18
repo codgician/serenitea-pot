@@ -2,6 +2,19 @@
 {
   # My settings
   codgician = {
+    services = {
+      jupyter = {
+        enable = true;
+        notebookDir = "/lab/jupyter";
+        user = "codgi";
+        reverseProxy = {
+          enable = true;
+          domains = [ "dragonspine.codgician.me" ];
+        };
+      };
+      nginx.openFirewall = true;
+    };
+
     system = {
       auto-upgrade.enable = true;
       impermanence.enable = true;

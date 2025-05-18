@@ -125,7 +125,7 @@ in
           IMAGE_GENERATION_ENGINE = "openai";
           ENABLE_IMAGE_GENERATION = "True";
           IMAGE_GENERATION_MODEL = "imagen-3.0-generate-002";
-          IMAGES_OPENAI_API_BASE_URL="https://generativelanguage.googleapis.com/v1beta/openai";
+          IMAGES_OPENAI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
           # Redis
           ENABLE_WEBSOCKET_SUPPORT = "True";
           WEBSOCKET_MANAGER = "redis";

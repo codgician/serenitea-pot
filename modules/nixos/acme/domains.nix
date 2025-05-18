@@ -2,9 +2,9 @@
 {
   "amt.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "akasha.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
-  "aranyaka.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "books.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "bubbles.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
+  "dragonspine.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "fin.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "git.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "hass.codgician.me".challengeProfile = ./profiles/codgician-me.nix;

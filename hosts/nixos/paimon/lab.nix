@@ -26,6 +26,11 @@ in
     path = outputs.nixosConfigurations.nahida.config.system.build.toplevel;
     bindMounts =
       {
+        "/lab" = {
+          hostPath = "/fpool/lab";
+          isReadOnly = false;
+        };
+
         "/persist" = {
           hostPath = "/zroot/lab";
           isReadOnly = false;

@@ -75,6 +75,17 @@
           "smb"
         ];
         shares = {
+          "lab" = {
+            path = "/fpool/lab";
+            browsable = "yes";
+            writeable = "yes";
+            "force user" = "codgi";
+            "read only" = "no";
+            "guest ok" = "no";
+            "create mask" = "0644";
+            "directory mask" = "0755";
+          };
+
           "media" = {
             path = "/fpool/media";
             browsable = "yes";

@@ -25,6 +25,7 @@ rec {
     [
       fischl
       lumine
+      nahida
       paimon
       raiden-ei
       xianyun
