@@ -7,7 +7,7 @@
 let
   cfg = config.codgician.system.wsl;
   types = lib.types;
-  ldLibraryPath = lib.makeLibraryPath [ pkgs.addOpenGLRunpath.driverLink ];
+  ldLibraryPath = lib.makeLibraryPath [ pkgs.addDriverRunpath.driverLink ];
 in
 {
   options.codgician.system.wsl = {
@@ -45,7 +45,7 @@ in
     hardware.graphics = {
       enable = true;
       extraPackages = with pkgs; [
-        mesa.drivers
+        mesa
         libvdpau-va-gl
         vaapiVdpau
       ];

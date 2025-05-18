@@ -13,7 +13,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    programs.vscode = {
+    programs.vscode.profiles.default = {
       extensions = with pkgs.vscode-marketplace; [
         rust-lang.rust-analyzer
         # vadimcn.vscode-lldb

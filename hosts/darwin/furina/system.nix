@@ -16,6 +16,8 @@
     users.codgi.enable = true;
   };
 
+  system.primaryUser = "codgi";
+
   # Home manager
   home-manager.users.codgi =
     { pkgs, ... }:
@@ -30,11 +32,7 @@
         git.enable = true;
         pwsh.enable = true;
         ssh.enable = true;
-        vscode = {
-          enable = true;
-          # Workaround remote ssh issue
-          immutableExtensions = false;
-        };
+        vscode.enable = true;
         zsh.enable = true;
       };
 
@@ -56,7 +54,6 @@
             terraform
             smartmontools
             ffmpeg-full
-            virt-manager
             tcping-go
             github-copilot-cli
             binwalk

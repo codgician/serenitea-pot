@@ -18,9 +18,11 @@
     users.codgi.enable = true;
   };
 
+  system.primaryUser = "codgi";
+
   # Home manager
   home-manager.users.codgi =
-    { config, pkgs, ... }:
+    { pkgs, ... }:
     {
       codgician.codgi = {
         dev.nix.enable = true;

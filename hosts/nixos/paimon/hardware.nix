@@ -65,7 +65,6 @@
     ];
 
     zfs = {
-      package = pkgs.zfs_unstable;
       extraPools = [
         "fpool"
         "opool"

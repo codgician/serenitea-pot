@@ -145,17 +145,19 @@
   };
 
   # Use PulseAudio
-  services.pipewire.enable = false;
-  hardware.pulseaudio.enable = true;
+  services = {
+    pipewire.enable = false;
+    pulseaudio = {
+      enable = true;
+      package = pkgs.pulseaudioFull;
+    };
+  };
 
   # Enable Bluetooth
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;
   };
-
-  # Bluetooth audio
-  hardware.pulseaudio.package = pkgs.pulseaudioFull;
 
   # Enable power management options
   powerManagement.enable = true;
