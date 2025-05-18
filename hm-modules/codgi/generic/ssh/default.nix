@@ -59,10 +59,6 @@ in
           hostname = "raiden-ei.lan";
           user = "codgi";
         };
-        "sigewinne" = {
-          hostname = "sigewinne.lan";
-          user = "codgi";
-        };
         "xianyun" = {
           hostname = "xianyun.codgician.me";
           user = "codgi";
