@@ -69,15 +69,26 @@ in
           github.copilot = {
             nextEditSuggestions.enabled = true;
             chat = {
+              agent.thinkingTool = true;
+              codesearch.enabled = true;
+              followUps = "always";
+              edits.temporalContext.enabled = true;
               temporalContext.enabled = true;
               scopeSelection = true;
-              edits = {
-                codesearch.enabled = true;
-                temporalContext.enabled = true;
+              nextEditSuggestions = {
+                enabled = true;
+                fixes = true;
               };
               generateTests.codeLens = true;
-              languageContext.typescript.enabled = true;
-              search.semanticTextResults = true;
+              languageContext.typescript = {
+                enabled = true;
+                fix.typescript.enabled = true;
+                inline.typescript.enabled = true;
+              };
+              search = {
+                semanticTextResults = true;
+                keywordSuggestions = true;
+              };
             };
           };
         };
