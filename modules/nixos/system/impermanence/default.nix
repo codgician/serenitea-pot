@@ -113,15 +113,6 @@ in
       ] ++ extraFiles;
     };
 
-    # Clean up persisted files in root partition on boot
-    boot.initrd.postMountCommands = lib.mkIf cfg.enable (
-      lib.pipe config.environment.persistence.${cfg.path}.files [
-        (builtins.map (x: "rm -rf /mnt-root/${x.filePath}"))
-        (builtins.concatStringsSep "\n")
-        lib.mkBefore
-      ]
-    );
-
     # Suppress systemd-machine-id-commit service
     systemd.suppressedSystemUnits = lib.mkIf cfg.enable [
       "systemd-machine-id-commit.service"
