@@ -31,7 +31,6 @@
       ];
     };
 
-    kernelPackages = pkgs.linuxPackages_6_12;
     kernelModules = [ "kvm-intel" ];
     kernelParams = [
       "intel_iommu=on"

@@ -81,13 +81,13 @@ lib.optionalAttrs (lib.version >= "24.05") {
         with pkgs;
         (
           [
-            breeze-gtk
             pciutils
             usbutils
             clinfo
             glxinfo
             vulkan-tools
             aha
+            kdePackages.breeze-gtk
             kdePackages.kio-admin
             kdePackages.kwallet-pam
             qt6.qtvirtualkeyboard

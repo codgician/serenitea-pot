@@ -26,7 +26,7 @@ in
         theme = "half-life";
       };
 
-      initExtra =
+      initContent =
         ''
           zstyle :omz:plugins:ssh-agent quiet yes
         ''

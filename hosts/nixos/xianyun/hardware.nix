@@ -27,11 +27,8 @@ in
       "zfs"
     ];
 
-    zfs = {
-      package = pkgs.zfs_2_3;
-      # The default /dev/disk/by-id is empty in Tencent CVM
-      devNodes = "/dev/disk/by-path";
-    };
+    # The default /dev/disk/by-id is empty in Tencent CVM
+    zfs.devNodes = "/dev/disk/by-path";
   };
 
   fileSystems."/persist".neededForBoot = true;

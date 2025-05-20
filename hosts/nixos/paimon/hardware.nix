@@ -37,7 +37,6 @@
       "kvm-amd"
       "ast"
     ];
-    kernelPackages = pkgs.linuxPackages_6_12;
     kernelParams = [
       "video=astdrmfb"
       "amd_pstate=active"
@@ -65,7 +64,6 @@
     ];
 
     zfs = {
-      package = pkgs.zfs_unstable;
       extraPools = [
         "fpool"
         "opool"

@@ -11,7 +11,6 @@
 
     kernelModules = [ ];
     kernelParams = [ "video=Virtual-1:3024x1890@120" ];
-    kernelPackages = pkgs.linuxPackages_6_12;
     extraModulePackages = [ ];
   };
 

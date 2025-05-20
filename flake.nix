@@ -20,7 +20,7 @@
   };
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11-small";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05-small";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable-small";
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
@@ -42,7 +42,7 @@
     proxmox-nixos = {
       url = "github:SaumonNet/proxmox-nixos";
       inputs = {
-        nixpkgs-stable.follows = "nixpkgs";
+        #nixpkgs-stable.follows = "nixpkgs";
         nixpkgs-unstable.follows = "nixpkgs-unstable";
         flake-compat.follows = "flake-compat";
         utils.follows = "flake-utils";
@@ -55,7 +55,7 @@
     };
 
     darwin = {
-      url = "github:lnl7/nix-darwin/nix-darwin-24.11";
+      url = "github:lnl7/nix-darwin/nix-darwin-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -65,7 +65,7 @@
     };
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-24.11";
+      url = "github:nix-community/home-manager/release-25.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

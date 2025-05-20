@@ -5,14 +5,14 @@ with pubKeys;
 with pubKeys.hosts;
 {
   # Wireless credentials
-  "wireless-env.age".publicKeys = someHosts [ sigewinne ];
+  "wireless-env.age".publicKeys = someHosts [ ];
 
   # User password
   "codgi-password.age".publicKeys = someHosts [ paimon ];
   "codgi-hashed-password.age".publicKeys = allHosts;
   "smb-password.age".publicKeys = someHosts [ paimon ];
   "smb-hashed-password.age".publicKeys = someHosts [ paimon ];
-  "kiosk-hashed-password.age".publicKeys = someHosts [ sigewinne ];
+  "kiosk-hashed-password.age".publicKeys = someHosts [ ];
 
   # NUT password
   "nut-password.age".publicKeys = someHosts [
