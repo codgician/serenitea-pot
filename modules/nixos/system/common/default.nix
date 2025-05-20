@@ -16,6 +16,9 @@ let
 in
 {
   config = lib.mkIf cfg.enable {
+    # Enable systemd in initrd
+    boot.initrd.systemd.enable = true;
+
     # Set flake for auto upgrade
     system.autoUpgrade = {
       flake = "github:codgician/serenitea-pot";
