@@ -20,13 +20,22 @@ let
         model = "azure_ai/${x.name}";
         api_base = "https://${azureSubdomain}.openai.azure.com";
         api_key = "os.environ/AZURE_AKASHA_API_KEY";
-        api_version = "2025-03-01-preview";
+        api_version = "2025-05-01-preview";
       };
     }))
   ];
 
   settingsFormat = pkgs.formats.yaml { };
   settings.model_list = azureModels ++ [
+    {
+      model_name = "grok-3";
+      litellm_params = {
+        model = "azure_ai/grok-3";
+        api_base = "https://${azureSubdomain}.services.ai.azure.com";
+        api_key = "os.environ/AZURE_AKASHA_API_KEY";
+        api_version = "2025-05-01-preview";
+      };
+    }
     {
       model_name = "gemini-2.5-pro";
       litellm_params = {
