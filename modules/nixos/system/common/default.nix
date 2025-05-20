@@ -17,7 +17,7 @@ in
 {
   config = lib.mkIf cfg.enable {
     # Enable systemd in initrd
-    boot.initrd.systemd.enable = true;
+    boot.initrd.systemd.enable = lib.mkIf (!config.boot.isContainer) true;
 
     # Set flake for auto upgrade
     system.autoUpgrade = {
