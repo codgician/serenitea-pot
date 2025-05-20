@@ -18,9 +18,9 @@ let
       model_name = x.name;
       litellm_params = {
         model = "azure_ai/${x.name}";
-        api_base = "https://${azureSubdomain}.openai.azure.com";
+        api_base = "https://${azureSubdomain}.cognitiveservices.azure.com";
         api_key = "os.environ/AZURE_AKASHA_API_KEY";
-        api_version = "2025-05-01-preview";
+        api_version = "2025-04-01-preview";
       };
     }))
   ];
@@ -33,7 +33,6 @@ let
         model = "azure_ai/grok-3";
         api_base = "https://${azureSubdomain}.services.ai.azure.com";
         api_key = "os.environ/AZURE_AKASHA_API_KEY";
-        api_version = "2025-05-01-preview";
       };
     }
     {
