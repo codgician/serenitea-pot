@@ -33,13 +33,14 @@ in
       ];
     };
 
-    # Vertex AI / Vision AI
-    akasha-vertex-ai-key = {
-      name = "akasha-vertex-ai";
-      display_name = "Akasha Vertex AI";
+    # AI
+    akasha-ai-key = {
+      name = "akasha-ai";
+      display_name = "Akasha AI";
       inherit depends_on;
       restrictions.api_targets = mkRestrictions [
         "aiplatform.googleapis.com"
+        "generativelanguage.googleapis.com"
         "visionai.googleapis.com"
       ];
     };

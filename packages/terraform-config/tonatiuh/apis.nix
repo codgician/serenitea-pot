@@ -13,8 +13,9 @@ let
     "geocoding-backend.googleapis.com"
     "distance-matrix-backend.googleapis.com"
 
-    # Vertex AI / Vision AI
+    # AI
     "aiplatform.googleapis.com"
+    "generativelanguage.googleapis.com"
     "visionai.googleapis.com"
   ];
 in
