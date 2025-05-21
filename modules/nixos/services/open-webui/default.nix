@@ -122,10 +122,12 @@ in
           RAG_OLLAMA_BASE_URL = lib.mkIf ollamaCfg.enable "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
           # RAG_RERANKING_MODEL = "BAAI/bge-reranker-v2-m3";
           # Image generation
-          IMAGE_GENERATION_ENGINE = "openai";
+          IMAGE_GENERATION_ENGINE = "gemini";
           ENABLE_IMAGE_GENERATION = "True";
+          ENABLE_IMAGE_PROMPT_GENERATION = "True";
           IMAGE_GENERATION_MODEL = "imagen-3.0-generate-002";
-          IMAGES_OPENAI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai";
+          IMAGE_SIZE = "1024x1024";
+          IMAGES_GEMINI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
           # Redis
           ENABLE_WEBSOCKET_SUPPORT = "True";
           WEBSOCKET_MANAGER = "redis";
