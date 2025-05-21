@@ -70,9 +70,44 @@ in
             err "Terraform envs should not be empty. Decryption failure?"; 
           }
 
-          eval "export $(echo "$envs" | xargs)"
-          cd "$dir"
+          # Set IFS to newline to split $envs into individual lines
+          OLD_IFS="$IFS"
+          IFS=$'\n'
 
+          # Loop through each line in the $envs variable
+          for line in $envs; do
+              # Skip empty lines or lines without an '=' (or just a key)
+              if [[ "$line" =~ ^[^=]+=[[:space:]]*$ ]]; then
+                # Handle cases like VAR_EMPTY= or VAR_ONLY_KEY=
+                key="''${line%%=*}"
+                value=""
+              elif [[ "$line" =~ ^[^=]+=.+ ]]; then
+                # This regex ensures there's at least one char after the equals sign
+                IFS='=' read -r key value <<< "$line"
+              else
+                # Skip lines that don't look like KEY=VALUE
+                continue
+              fi
+
+              # Check if the value is already double-quoted
+              if [[ "$value" == \"*\" ]]; then
+                # If it's already double-quoted, assume it's properly escaped internally.
+                quoted_value="$value"
+              elif [[ "$value" == \'*\' ]]; then
+                # If it's single-quoted, assume it's properly escaped internally
+                quoted_value="$value"
+              else
+                # If the value is unquoted (like {"a":"b"} or hello world),
+                # use printf %q to safely quote it for shell assignment.
+                quoted_value=$(printf %q "$value")
+              fi
+              export_command="export ''${key}=''${quoted_value}"
+              eval "$export_command"
+          done
+          # Restore original IFS
+          IFS="$OLD_IFS"
+          
+          cd "$dir"
           [ ! -e config.tf.json ] || rm -f config.tf.json
           cp ${outputs.packages.${pkgs.system}.terraform-config} config.tf.json
           terraform init
