@@ -41,6 +41,7 @@ in
       restrictions.api_targets = mkRestrictions [
         "aiplatform.googleapis.com"
         "generativelanguage.googleapis.com"
+        "texttospeech.googleapis.com"
         "visionai.googleapis.com"
       ];
     };
