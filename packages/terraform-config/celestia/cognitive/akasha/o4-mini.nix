@@ -14,7 +14,7 @@
 
     sku = {
       name = "GlobalStandard";
-      capacity = 150;
+      capacity = 1000;
     };
   };
 }

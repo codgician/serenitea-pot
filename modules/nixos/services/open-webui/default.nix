@@ -20,10 +20,14 @@ let
 
   pgDbHost = "/run/postgresql";
   pgDbName = serviceName;
+
+  ollamaEmbeddingModel = "bge-m3";
 in
 {
   options.codgician.services.open-webui = {
     enable = lib.mkEnableOption "Open-webui.";
+
+    package = lib.mkPackageOption pkgs "open-webui" { };
 
     host = lib.mkOption {
       type = types.str;
@@ -67,6 +71,13 @@ in
           description = "Custom favicon.png for open-webui.";
         };
 
+        appIcon = lib.mkOption {
+          type = with types; nullOr path;
+          default = null;
+          example = "/path/to/app-icon.png";
+          description = "Custom app icon for open-webui.";
+        };
+
         # Custom splash
         splash = lib.mkOption {
           type = with types; nullOr path;
@@ -89,10 +100,17 @@ in
     (lib.mkIf cfg.enable {
       services.open-webui = {
         enable = true;
-        inherit (cfg) host port openFirewall;
+        inherit (cfg)
+          host
+          port
+          openFirewall
+          package
+          ;
         environmentFile = config.age.secrets.open-webui-env.path;
         environment = {
-          USE_CUDA = "True";
+          # todo: CUDA is not working as expected, will look into it later
+          USE_CUDA_DOCKER = "True";
+          DEVICE_TYPE = "cuda";
           ENV = "prod";
           WEBUI_AUTH = "True";
           WEBUI_NAME = "Akasha";
@@ -143,7 +161,7 @@ in
           ENABLE_RAG_WEB_SEARCH = "True";
           RAG_WEB_SEARCH_ENGINE = "google_pse";
           RAG_EMBEDDING_ENGINE = lib.mkIf ollamaCfg.enable "ollama";
-          RAG_EMBEDDING_MODEL = lib.mkIf ollamaCfg.enable "qllama/bge-m3:latest";
+          RAG_EMBEDDING_MODEL = lib.mkIf ollamaCfg.enable ollamaEmbeddingModel;
           RAG_OLLAMA_BASE_URL = lib.mkIf ollamaCfg.enable "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
           # RAG_RERANKING_MODEL = "BAAI/bge-reranker-v2-m3";
           # Image generation
@@ -172,7 +190,7 @@ in
       users.groups.${serviceName} = { };
 
       # Add embedding model to ollama
-      codgician.services.ollama.loadModels = [ "qllama/bge-m3:latest" ];
+      codgician.services.ollama.loadModels = [ ollamaEmbeddingModel ];
 
       # Set up Redis
       services.redis.servers.${serviceName} = {
@@ -237,7 +255,12 @@ in
       inherit serviceName cfg;
       overrideVhostConfig.locations =
         let
-          inherit (cfg.reverseProxy) favicon splash splashDark;
+          inherit (cfg.reverseProxy)
+            appIcon
+            favicon
+            splash
+            splashDark
+            ;
           convertFavicon = lib.codgician.convertImage pkgs favicon;
         in
         {
@@ -254,10 +277,9 @@ in
             args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
             outName = "favicon.ico";
           };
-          "=/static/apple-touch-icon.png".alias = convertFavicon {
-            args = "-background transparent -resize 180x180";
-            outName = "apple-touch-icon.png";
-          };
+        })
+        // (lib.optionalAttrs (appIcon != null) {
+          "=/static/apple-touch-icon.png".alias = appIcon;
         })
         // (lib.optionalAttrs (splash != null) {
           "=/static/splash.png".alias = splash;

@@ -6,7 +6,10 @@ self: super:
 let
   unstablePkgs = import inputs.nixpkgs-unstable {
     inherit (super) system;
-    config.allowUnfree = true;
+    config = {
+      allowUnfree = true;
+      cudaSupport = true;
+    };
   };
 
   pythonNames = builtins.filter (x: builtins.match "(^python[0-9]*$)" x != null) (
@@ -24,7 +27,7 @@ let
     });
 in
 {
-  inherit (unstablePkgs) litellm open-webui;
+  inherit (unstablePkgs) litellm;
   inherit (unstablePkgs) llama-cpp vllm;
   inherit (unstablePkgs) ollama ollama-cuda ollama-rocm;
 }
