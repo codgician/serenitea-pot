@@ -58,6 +58,30 @@ in
       inherit serviceName;
       defaultProxyPass = "http://${cfg.host}:${builtins.toString cfg.port}";
       defaultProxyPassText = ''with config.codgician.services.open-webui; http://$\{host}:$\{toString port}'';
+      extraOptions = {
+        # Custom favicon
+        favicon = lib.mkOption {
+          type = with types; nullOr path;
+          default = null;
+          example = "/path/to/favicon.png";
+          description = "Custom favicon.png for open-webui.";
+        };
+
+        # Custom splash
+        splash = lib.mkOption {
+          type = with types; nullOr path;
+          default = null;
+          example = "/path/to/splash.png";
+          description = "Custom splash.png for open-webui.";
+        };
+
+        splashDark = lib.mkOption {
+          type = with types; nullOr path;
+          default = null;
+          example = "/path/to/splash-dark.png";
+          description = "Custom splash-dark.png for open-webui.";
+        };
+      };
     };
   };
 
@@ -68,6 +92,7 @@ in
         inherit (cfg) host port openFirewall;
         environmentFile = config.age.secrets.open-webui-env.path;
         environment = {
+          USE_CUDA = "True";
           ENV = "prod";
           WEBUI_AUTH = "True";
           WEBUI_NAME = "Akasha";
@@ -210,6 +235,36 @@ in
     # Reverse proxy profile
     (lib.codgician.mkServiceReverseProxyConfig {
       inherit serviceName cfg;
+      overrideVhostConfig.locations =
+        let
+          inherit (cfg.reverseProxy) favicon splash splashDark;
+          convertFavicon = lib.codgician.convertImage pkgs favicon;
+        in
+        {
+          "/" = { inherit (cfg.reverseProxy) proxyPass lanOnly; };
+        }
+        // (lib.optionalAttrs (favicon != null) {
+          "=/favicon.png".alias = favicon;
+          "=/static/favicon.png".alias = favicon;
+          "=/static/favicon-96x96.png".alias = convertFavicon {
+            args = "-background transparent -resize 96x96";
+            outName = "favicon-96x96.png";
+          };
+          "=/static/favicon.ico".alias = convertFavicon {
+            args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
+            outName = "favicon.ico";
+          };
+          "=/static/apple-touch-icon.png".alias = convertFavicon {
+            args = "-background transparent -resize 180x180";
+            outName = "apple-touch-icon.png";
+          };
+        })
+        // (lib.optionalAttrs (splash != null) {
+          "=/static/splash.png".alias = splash;
+        })
+        // (lib.optionalAttrs (splashDark != null) {
+          "=/static/splash-dark.png".alias = splashDark;
+        });
     })
   ];
 }

@@ -20,6 +20,7 @@ let
     concatAttrs (
       builtins.map (x: import x (args // { inherit lib stable nixpkgs; })) [
         ./consts.nix
+        ./image.nix
         ./io.nix
         ./reverse-proxy.nix
         ./secrets.nix

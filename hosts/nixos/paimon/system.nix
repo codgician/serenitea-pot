@@ -61,9 +61,19 @@
       open-webui = {
         enable = true;
         database = "postgresql";
-        reverseProxy = {
+        reverseProxy = rec {
           enable = true;
           domains = [ "akasha.codgician.me" ];
+          favicon =
+            (pkgs.fetchurl {
+              url = "https://media.githubusercontent.com/media/codgician/assets/465dc48eabca23c08f1e07ba8b0cf07fd7cf53d6/images/akasha/logo.png";
+              sha256 = "sha256-aXa2So5dcthDY8B1UXvfu4Ym8RSTAmR+XWPRokVC9oA=";
+            }).outPath;
+          splash = (pkgs.fetchurl {
+              url = "https://media.githubusercontent.com/media/codgician/assets/465dc48eabca23c08f1e07ba8b0cf07fd7cf53d6/images/akasha/logo-round.png";
+              sha256 = "sha256-qty11SyWzNgxkOsUvy1BUI5NgydUdXN1V6p7FvHhvTk=";
+            }).outPath;
+          splashDark = splash;
         };
       };
 
