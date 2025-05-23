@@ -264,7 +264,12 @@ in
           convertFavicon = lib.codgician.convertImage pkgs favicon;
         in
         {
-          "/" = { inherit (cfg.reverseProxy) proxyPass lanOnly; };
+          "/" = { 
+            inherit (cfg.reverseProxy) proxyPass lanOnly; 
+            extraConfig = ''
+              client_max_body_size 128M;
+            '';
+          };
         }
         // (lib.optionalAttrs (favicon != null) {
           "=/favicon.png".alias = favicon;
