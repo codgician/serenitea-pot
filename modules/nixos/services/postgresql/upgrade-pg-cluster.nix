@@ -3,9 +3,7 @@
 { config, pkgs, ... }:
 let
   cfg = config.codgician.services.postgresql;
-  newPostgres = pkgs.postgresql.withPackages (pp: [
-    # List extensions you need here, example: pp.plv8
-  ]);
+  newPostgres = pkgs.postgresql.withPackages config.services.postgresql.extensions;
   user = "postgres";
   group = "postgres";
 in
