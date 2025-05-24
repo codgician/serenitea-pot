@@ -1,6 +1,6 @@
 # Always use open-webui from unstable
 
-{ inputs, ... }:
+{ inputs, lib, ... }:
 
 self: super:
 let
@@ -22,13 +22,5 @@ let
   };
 in
 {
-  open-webui =
-    (unstablePkgs.open-webui.override {
-      inherit python3Packages;
-    }).overridePythonAttrs
-      (oldAttrs: {
-        dependencies = oldAttrs.dependencies ++ [
-          python3Packages.torchWithCuda
-        ];
-      });
+  open-webui = unstablePkgs.open-webui.override { inherit python3Packages; };
 }

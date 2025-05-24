@@ -108,9 +108,8 @@ in
           ;
         environmentFile = config.age.secrets.open-webui-env.path;
         environment = {
-          # todo: CUDA is not working as expected, will look into it later
+          # Enable CUDA
           USE_CUDA_DOCKER = "True";
-          DEVICE_TYPE = "cuda";
           ENV = "prod";
           WEBUI_AUTH = "True";
           WEBUI_NAME = "Akasha";
@@ -199,8 +198,29 @@ in
       };
 
       systemd.services.open-webui.serviceConfig = {
-        # Ensure access to Redis
-        SupplementaryGroups = [ config.services.redis.servers.open-webui.group ];
+
+        SupplementaryGroups = [
+          # Ensure access to Redis
+          config.services.redis.servers.open-webui.group
+          # For ROCm
+          "render"
+        ];
+
+        # Allow access to GPU
+        DeviceAllow = [
+          # CUDA
+          # https://docs.nvidia.com/dgx/pdf/dgx-os-5-user-guide.pdf
+          "char-nvidiactl"
+          "char-nvidia-caps"
+          "char-nvidia-frontend"
+          "char-nvidia-uvm"
+          # ROCm
+          "char-drm"
+          "char-fb"
+          "char-kfd"
+          # WSL (Windows Subsystem for Linux)
+          "/dev/dxg"
+        ];
 
         # Disable dynamic user
         DynamicUser = lib.mkForce false;
@@ -264,8 +284,8 @@ in
           convertFavicon = lib.codgician.convertImage pkgs favicon;
         in
         {
-          "/" = { 
-            inherit (cfg.reverseProxy) proxyPass lanOnly; 
+          "/" = {
+            inherit (cfg.reverseProxy) proxyPass lanOnly;
             extraConfig = ''
               client_max_body_size 128M;
             '';
