@@ -6,7 +6,6 @@
 }:
 let
   cfg = config.codgician.services.samba;
-  systemCfg = config.codgician.system;
   userCfg = config.codgician.users;
   types = lib.types;
 in
