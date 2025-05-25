@@ -70,6 +70,8 @@
 
       open-webui = {
         enable = true;
+        # Use customized package
+        package = pkgs.open-webui-akasha;
         database = "postgresql";
         stateDir = "/xpool/appdata/open-webui";
         reverseProxy = rec {
