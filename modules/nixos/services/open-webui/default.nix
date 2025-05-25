@@ -1,5 +1,6 @@
 {
   config,
+  options,
   lib,
   pkgs,
   ...
@@ -20,8 +21,6 @@ let
 
   pgDbHost = "/run/postgresql";
   pgDbName = serviceName;
-
-  ollamaEmbeddingModel = "bge-m3";
 in
 {
   options.codgician.services.open-webui = {
@@ -53,6 +52,12 @@ in
       default = "sqlite";
       example = "postgresql";
       description = "Database backend for open-webui.";
+    };
+
+    stateDir = lib.mkOption {
+      type = types.path;
+      default = "/var/lib/open-webui";
+      description = "Directory to store open-webui data.";
     };
 
     openFirewall = lib.mkEnableOption "Open firewall for open-webui.";
@@ -103,6 +108,7 @@ in
         inherit (cfg)
           host
           port
+          stateDir
           openFirewall
           package
           ;
@@ -159,10 +165,8 @@ in
           ENABLE_SEARCH_QUERY = "True";
           ENABLE_RAG_WEB_SEARCH = "True";
           RAG_WEB_SEARCH_ENGINE = "google_pse";
-          RAG_EMBEDDING_ENGINE = lib.mkIf ollamaCfg.enable "ollama";
-          RAG_EMBEDDING_MODEL = lib.mkIf ollamaCfg.enable ollamaEmbeddingModel;
-          RAG_OLLAMA_BASE_URL = lib.mkIf ollamaCfg.enable "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
-          # RAG_RERANKING_MODEL = "BAAI/bge-reranker-v2-m3";
+          RAG_EMBEDDING_MODEL = "intfloat/multilingual-e5-large-instruct";
+          RAG_RERANKING_MODEL = "intfloat/multilingual-e5-large-instruct";
           # Image generation
           IMAGE_GENERATION_ENGINE = "gemini";
           ENABLE_IMAGE_GENERATION = "True";
@@ -187,9 +191,6 @@ in
         isSystemUser = true;
       };
       users.groups.${serviceName} = { };
-
-      # Add embedding model to ollama
-      codgician.services.ollama.loadModels = [ ollamaEmbeddingModel ];
 
       # Set up Redis
       services.redis.servers.${serviceName} = {
@@ -229,14 +230,16 @@ in
       };
 
       # Persist data when dataDir is default value
-      codgician.system.impermanence.extraItems = [
-        {
-          type = "directory";
-          path = "/var/lib/open-webui";
-          user = serviceName;
-          group = serviceName;
-        }
-      ];
+      codgician.system.impermanence.extraItems =
+        lib.mkIf (cfg.stateDir == options.codgician.services.open-webui.stateDir.default)
+          [
+            {
+              type = "directory";
+              path = "/var/lib/open-webui";
+              user = serviceName;
+              group = serviceName;
+            }
+          ];
     })
 
     # PostgreSQL

@@ -71,6 +71,7 @@
       open-webui = {
         enable = true;
         database = "postgresql";
+        stateDir = "/xpool/appdata/open-webui";
         reverseProxy = rec {
           enable = true;
           domains = [ "akasha.codgician.me" ];
