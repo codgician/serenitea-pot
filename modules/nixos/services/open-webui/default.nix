@@ -147,6 +147,7 @@ in
           ENABLE_RAG_LOCAL_WEB_FETCH = "True";
           ENABLE_RAG_WEB_LOADER_SSL_VERIFICATION = "True";
           WEBUI_SESSION_COOKIE_SAME_SITE = "lax";
+          RAG_FILE_MAX_SIZE = "100"; # MB
           # Search
           ENABLE_WEB_SEARCH = "True";
           WEB_SEARCH_ENGINE = "google_pse";
@@ -275,45 +276,67 @@ in
             appIcon
             favicon
             splash
-            splashDark
             ;
           convertImage = lib.codgician.convertImage pkgs;
+          mkNginxLocationForStaticFile = path: {
+            root = builtins.dirOf path;
+            tryFiles = "/${builtins.baseNameOf path} =404";
+            extraConfig = ''
+              access_log off; 
+              log_not_found off;
+            '';
+          };
         in
-        {
+        (lib.optionalAttrs (favicon != null) {
+          "= /favicon.png" = mkNginxLocationForStaticFile favicon;
+          "= /static/favicon.png" = mkNginxLocationForStaticFile favicon;
+          "= /static/favicon-dark.png" = mkNginxLocationForStaticFile favicon;
+          "= /static/favicon-96x96.png" = mkNginxLocationForStaticFile (
+            convertImage favicon {
+              args = "-background transparent -resize 96x96";
+              outName = "favicon-96x96.png";
+            }
+          );
+          "= /favicon.ico" = mkNginxLocationForStaticFile (
+            convertImage favicon {
+              args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
+              outName = "favicon.ico";
+            }
+          );
+          "= /static/favicon.ico" = mkNginxLocationForStaticFile (
+            convertImage favicon {
+              args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
+              outName = "favicon.ico";
+            }
+          );
+        })
+        // (lib.optionalAttrs (appIcon != null) {
+          "= /static/apple-touch-icon.png" = mkNginxLocationForStaticFile appIcon;
+          "= /static/web-app-manifest-192x192.png" = mkNginxLocationForStaticFile (
+            convertImage appIcon {
+              args = "-background transparent -resize 192x192";
+              outName = "web-app-manifest-192x192.png";
+            }
+          );
+          "= /static/web-app-manifest-512x512.png" = mkNginxLocationForStaticFile (
+            convertImage appIcon {
+              args = "-background transparent -resize 512x512";
+              outName = "web-app-manifest-512x512.png";
+            }
+          );
+        })
+        // (lib.optionalAttrs (splash != null) {
+          "= /static/splash.png" = mkNginxLocationForStaticFile splash;
+          "= /static/splash-dark.png" = mkNginxLocationForStaticFile splash;
+        })
+        // {
           "/" = {
             inherit (cfg.reverseProxy) proxyPass lanOnly;
             extraConfig = ''
               client_max_body_size 128M;
             '';
           };
-        }
-        // (lib.optionalAttrs (favicon != null) {
-          "=/static/favicon.png".alias = favicon;
-          "=/static/favicon-dark.png".alias = favicon;
-          "=/static/favicon-96x96.png".alias = convertImage favicon {
-            args = "-background transparent -resize 96x96";
-            outName = "favicon-96x96.png";
-          };
-          "=/static/favicon.ico".alias = convertImage favicon {
-            args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
-            outName = "favicon.ico";
-          };
-        })
-        // (lib.optionalAttrs (appIcon != null) {
-          "=/static/apple-touch-icon.png".alias = appIcon;
-          "=/static/web-app-manifest-192x192.png".alias = convertImage appIcon {
-            args = "-background transparent -resize 192x192";
-            outName = "web-app-manifest-192x192.png";
-          };
-          "=/static/web-app-manifest-512x512.png".alias = convertImage appIcon {
-            args = "-background transparent -resize 512x512";
-            outName = "web-app-manifest-512x512.png";
-          };
-        })
-        // (lib.optionalAttrs (splash != null) {
-          "=/static/splash.png".alias = splash;
-          "=/static/splash-dark.png".alias = splash;
-        });
+        };
     })
   ];
 }

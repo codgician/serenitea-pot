@@ -15,6 +15,7 @@ let
       return
       root
       alias
+      tryFiles
       ;
     proxyWebsockets = true;
     extraConfig =

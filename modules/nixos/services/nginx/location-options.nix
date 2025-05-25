@@ -31,6 +31,13 @@ in
       '';
     };
 
+    tryFiles = lib.mkOption {
+      type = types.nullOr types.str;
+      example = "$uri =404";
+      default = null;
+      description = "nginx try_files directive.";
+    };
+
     root = lib.mkOption {
       type = types.nullOr types.path;
       example = "/path/to/webroot";
