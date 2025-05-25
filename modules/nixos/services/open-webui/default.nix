@@ -90,13 +90,6 @@ in
           example = "/path/to/splash.png";
           description = "Custom splash.png for open-webui.";
         };
-
-        splashDark = lib.mkOption {
-          type = with types; nullOr path;
-          default = null;
-          example = "/path/to/splash-dark.png";
-          description = "Custom splash-dark.png for open-webui.";
-        };
       };
     };
   };
@@ -284,7 +277,7 @@ in
             splash
             splashDark
             ;
-          convertFavicon = lib.codgician.convertImage pkgs favicon;
+          convertImage = lib.codgician.convertImage pkgs;
         in
         {
           "/" = {
@@ -295,25 +288,31 @@ in
           };
         }
         // (lib.optionalAttrs (favicon != null) {
-          "=/favicon.png".alias = favicon;
           "=/static/favicon.png".alias = favicon;
-          "=/static/favicon-96x96.png".alias = convertFavicon {
+          "=/static/favicon-dark.png".alias = favicon;
+          "=/static/favicon-96x96.png".alias = convertImage favicon {
             args = "-background transparent -resize 96x96";
             outName = "favicon-96x96.png";
           };
-          "=/static/favicon.ico".alias = convertFavicon {
+          "=/static/favicon.ico".alias = convertImage favicon {
             args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
             outName = "favicon.ico";
           };
         })
         // (lib.optionalAttrs (appIcon != null) {
           "=/static/apple-touch-icon.png".alias = appIcon;
+          "=/static/web-app-manifest-192x192.png".alias = convertImage appIcon {
+            args = "-background transparent -resize 192x192";
+            outName = "web-app-manifest-192x192.png";
+          };
+          "=/static/web-app-manifest-512x512.png".alias = convertImage appIcon {
+            args = "-background transparent -resize 512x512";
+            outName = "web-app-manifest-512x512.png";
+          };
         })
         // (lib.optionalAttrs (splash != null) {
           "=/static/splash.png".alias = splash;
-        })
-        // (lib.optionalAttrs (splashDark != null) {
-          "=/static/splash-dark.png".alias = splashDark;
+          "=/static/splash-dark.png".alias = splash;
         });
     })
   ];

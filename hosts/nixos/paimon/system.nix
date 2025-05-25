@@ -86,7 +86,6 @@
               sha256 = "sha256-qty11SyWzNgxkOsUvy1BUI5NgydUdXN1V6p7FvHhvTk=";
             }).outPath;
           splash = favicon;
-          splashDark = favicon;
         };
       };
 
