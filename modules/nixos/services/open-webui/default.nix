@@ -311,6 +311,7 @@ in
           );
         })
         // (lib.optionalAttrs (appIcon != null) {
+          "= /static/logo.png" = mkNginxLocationForStaticFile appIcon;
           "= /static/apple-touch-icon.png" = mkNginxLocationForStaticFile appIcon;
           "= /static/web-app-manifest-192x192.png" = mkNginxLocationForStaticFile (
             convertImage appIcon {
