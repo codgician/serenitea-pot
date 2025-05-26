@@ -25,8 +25,7 @@ let
     }))
   ];
 
-  settingsFormat = pkgs.formats.yaml { };
-  settings.model_list = azureModels ++ [
+  allModels = azureModels ++ [
     {
       model_name = "grok-3";
       litellm_params = {
@@ -89,11 +88,11 @@ in
 
     package = lib.mkPackageOption pkgs "litellm" { };
 
-    dataDir = lib.mkOption {
+    stateDir = lib.mkOption {
       type = types.path;
       default = "/var/lib/litellm";
       description = ''
-        Directory for LiteLLM to store data.
+        Directory for LiteLLM to store state data.
       '';
     };
 
@@ -107,44 +106,11 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
-      # Systemd service for LiteLLM
-      systemd.services.litellm = lib.optionalAttrs cfg.enable {
-        inherit (cfg) enable;
-        restartIfChanged = true;
-        description = "LiteLLM proxy service";
-        wantedBy = [ "multi-user.target" ];
-        after = [ "network.target" ];
-
-        serviceConfig = {
-          ExecStart = ''
-            ${lib.getExe cfg.package} \
-              --config ${settingsFormat.generate "litellm-config.yml" settings} \
-              --host ${cfg.host} \
-              --port ${builtins.toString cfg.port} \
-              --telemetry False
-          '';
-
-          EnvironmentFile = config.age.secrets.litellm-env.path;
-          WorkingDirectory = cfg.dataDir;
-          StateDirectory = "litellm";
-          RuntimeDirectory = "litellm";
-          RuntimeDirectoryMode = "0755";
-          PrivateTmp = true;
-          DynamicUser = true;
-          DevicePolicy = "closed";
-          LockPersonality = true;
-          PrivateUsers = true;
-          ProtectHome = true;
-          ProtectHostname = true;
-          ProtectKernelLogs = true;
-          ProtectKernelModules = true;
-          ProtectKernelTunables = true;
-          ProtectControlGroups = true;
-          RestrictNamespaces = true;
-          RestrictRealtime = true;
-          SystemCallArchitectures = "native";
-          UMask = "0077";
-        };
+      services.litellm = {
+        enable = true;
+        inherit (cfg) host port stateDir;
+        environmentFile = config.age.secrets.litellm-env.path;
+        settings.model_list = allModels;
       };
     })
 
