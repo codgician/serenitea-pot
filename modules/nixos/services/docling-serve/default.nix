@@ -59,18 +59,17 @@ in
           withUI = true;
           withTesserocr = true;
           withRapidocr = true;
-          withCPU = true;
         };
 
         environment = {
           DOCLING_SERVE_ARTIFACTS_PATH = lib.mkIf (cfg.artifactsDir != null) cfg.artifactsDir;
           DOCLING_SERVE_ENABLE_UI = "true";
           DOCLING_SERVE_ENABLE_REMOTE_SERVICES = "true";
+          DOCLING_SERVE_ALLOW_EXTERNAL_PLUGINS = "true";
+          DOCLING_SERVE_SINGLE_USE_RESULTS = "true";
+          DOCLING_SERVE_MAX_SYNC_WAIT = "600"; # 10 minutes
+          DOCLING_SERVE_RESULT_REMOVAL_DELAY = "600"; # 10 minutes
           DOCLING_DEVICE = "cuda:0";
-          DOCLING_SERVE_MAX_DOCUMENT_TIMEOUT = "600"; # 10 min
-          # Mitigate https://github.com/docling-project/docling-serve/issues/175
-          DOCLING_SERVE_ENG_LOC_NUM_WORKERS = "1";
-          UVICORN_WORKERS = "3";
         };
       };
 

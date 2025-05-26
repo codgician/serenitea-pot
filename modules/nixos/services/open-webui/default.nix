@@ -160,8 +160,8 @@ in
             ENABLE_SEARCH_QUERY = "True";
             ENABLE_RAG_WEB_SEARCH = "True";
             RAG_WEB_SEARCH_ENGINE = "google_pse";
-            RAG_EMBEDDING_MODEL = "intfloat/multilingual-e5-large-instruct";
-            RAG_RERANKING_MODEL = "intfloat/multilingual-e5-large-instruct";
+            RAG_EMBEDDING_MODEL = "BAAI/bge-m3";
+            RAG_RERANKING_MODEL = "BAAI/bge-reranker-v2-m3";
             # Image generation
             IMAGE_GENERATION_ENGINE = "gemini";
             ENABLE_IMAGE_GENERATION = "True";
@@ -184,8 +184,6 @@ in
             DOCLING_SERVER_URL =
               with config.codgician.services.docling-serve;
               "http://${host}:${builtins.toString port}";
-            DOCLING_OCR_ENGINE = "rapidocr";
-            DOCLING_OCR_LANG = "english,chinese";
           });
       };
 
@@ -250,7 +248,11 @@ in
       # PostgreSQL
       codgician.services.postgresql.enable = true;
       services.postgresql = {
-        extensions = ps: with ps; [ pgvector ];
+        extensions =
+          ps: with ps; [
+            pgvector
+            pgvectorscale
+          ];
         ensureDatabases = [ pgDbName ];
         ensureUsers = [
           {
