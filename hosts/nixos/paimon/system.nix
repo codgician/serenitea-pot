@@ -58,6 +58,7 @@
       # LLM
       docling-serve = {
         enable = true;
+        artifactsDir = "/xpool/appdata/docling-serve/artifacts";
         stateDir = "/xpool/appdata/docling-serve";
       };
 

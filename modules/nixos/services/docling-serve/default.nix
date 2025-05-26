@@ -27,6 +27,12 @@ in
       description = "Port for ${serviceName} to listen on.";
     };
 
+    artifactsDir = lib.mkOption {
+      type = with types; nullOr path;
+      default = null;
+      description = "Directory for ${serviceName} to store model artifacts.";
+    };
+
     stateDir = lib.mkOption {
       type = types.path;
       default = "/var/lib/${serviceName}";
@@ -57,13 +63,19 @@ in
         };
 
         environment = {
+          DOCLING_SERVE_ARTIFACTS_PATH = lib.mkIf (cfg.artifactsDir != null) cfg.artifactsDir;
           DOCLING_SERVE_ENABLE_UI = "true";
-          DOCLING_DEVICE = "cuda";
+          DOCLING_SERVE_ENABLE_REMOTE_SERVICES = "true";
+          DOCLING_DEVICE = "cuda:0";
+          DOCLING_SERVE_MAX_DOCUMENT_TIMEOUT = "600"; # 10 min
+          # Mitigate https://github.com/docling-project/docling-serve/issues/175
+          DOCLING_SERVE_ENG_LOC_NUM_WORKERS = "1";
+          UVICORN_WORKERS = "3";
         };
       };
 
       systemd.services.docling-serve.serviceConfig = {
-        ReadWritePaths = [ cfg.stateDir ];
+        ReadWritePaths = with cfg; ([ stateDir ] ++ lib.optional (cfg.artifactsDir != null) artifactsDir);
 
         # Allow access to GPU
         SupplementaryGroups = [ "render" ]; # For ROCm
