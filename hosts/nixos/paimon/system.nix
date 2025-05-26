@@ -128,10 +128,8 @@
             writeable = "yes";
             "force user" = "codgi";
             "guest ok" = "no";
-            "fruit:aapl" = "yes";
             "fruit:time machine" = "yes";
             "fruit:time machine max size" = "1T";
-            "vfs objects" = "catia fruit streams_xattr";
           };
         };
       };
