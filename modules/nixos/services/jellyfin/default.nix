@@ -2,7 +2,6 @@
 let
   serviceName = "jellyfin";
   cfg = config.codgician.services.jellyfin;
-  systemCfg = config.codgician.system;
   types = lib.types;
 in
 rec {

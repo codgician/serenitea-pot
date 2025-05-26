@@ -56,6 +56,11 @@
       };
 
       # LLM
+      docling-serve = {
+        enable = true;
+        stateDir = "/xpool/appdata/docling-serve";
+      };
+
       litellm.enable = true;
       ollama = {
         enable = true;
