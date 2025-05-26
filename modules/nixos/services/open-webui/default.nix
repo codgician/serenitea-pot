@@ -162,6 +162,9 @@ in
             RAG_WEB_SEARCH_ENGINE = "google_pse";
             RAG_EMBEDDING_MODEL = "BAAI/bge-m3";
             RAG_RERANKING_MODEL = "BAAI/bge-reranker-v2-m3";
+            RAG_TOP_K = "5";
+            RAG_TOP_K_RERANKER = "5";
+            RAG_RELEVANCE_THRESHOLD = "0.3";
             # Image generation
             IMAGE_GENERATION_ENGINE = "gemini";
             ENABLE_IMAGE_GENERATION = "True";
