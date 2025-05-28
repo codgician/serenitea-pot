@@ -71,6 +71,8 @@
     "github-copilot-for-xcode"
     "insomnia"
     "google-earth-pro"
-    "orbstack"
+    "obs"
+    "obs-advanced-scene-switcher"
+    "obs-backgroundremoval"
   ];
 }
