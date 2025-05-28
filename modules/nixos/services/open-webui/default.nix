@@ -160,8 +160,8 @@ in
             ENABLE_SEARCH_QUERY = "True";
             ENABLE_RAG_WEB_SEARCH = "True";
             RAG_WEB_SEARCH_ENGINE = "google_pse";
-            RAG_EMBEDDING_MODEL = "BAAI/bge-m3";
-            RAG_RERANKING_MODEL = "BAAI/bge-reranker-v2-m3";
+            RAG_EMBEDDING_MODEL = "jinaai/jina-embeddings-v3";
+            RAG_RERANKING_MODEL = "jinaai/jina-reranker-v2-base-multilingual";
             RAG_TOP_K = "5";
             RAG_TOP_K_RERANKER = "5";
             RAG_RELEVANCE_THRESHOLD = "0.3";
@@ -187,6 +187,8 @@ in
             DOCLING_SERVER_URL =
               with config.codgician.services.docling-serve;
               "http://${host}:${builtins.toString port}";
+            DOCLING_OCR_ENGINE = "easyocr";
+            DOCLING_OCR_LANG = "en,ch_sim";
           });
       };
 

@@ -54,7 +54,7 @@ in
           "invalid users" = [ "root" ];
           "security" = "user";
 
-          "vfs objects" = "acl_xattr fruit catia streams_xattr aio_pthread zfsacl";
+          "vfs objects" = "acl_xattr fruit catia streams_xattr aio_pthread";
 
           "fruit:aapl" = "yes";
           "fruit:model" = "MacSamba";

@@ -33,7 +33,7 @@ in
       virtualisation.oci-containers.containers.${serviceName} = {
         autoStart = true;
         image = "docker.io/fishaudio/fish-speech:latest";
-        volumes = [ "${cfg.dataDir}/reference:/opt/fish-speech/reference" ];
+        volumes = [ "${cfg.dataDir}/references:/opt/fish-speech/references" ];
         extraOptions =
           [
             "--pull=newer"
