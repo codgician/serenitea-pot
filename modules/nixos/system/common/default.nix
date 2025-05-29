@@ -113,7 +113,12 @@ in
     security = {
       audit.enable = !config.boot.isContainer;
       auditd.enable = !config.boot.isContainer;
-      apparmor.enable = !config.boot.isContainer;
+      apparmor = {
+        enable = !config.boot.isContainer;
+        packages = with pkgs; [ apparmor-profiles ];
+        killUnconfinedConfinables = true;
+      };
+
       sudo-rs = {
         enable = true;
         execWheelOnly = true;
