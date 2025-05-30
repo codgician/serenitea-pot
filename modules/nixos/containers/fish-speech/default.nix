@@ -43,6 +43,7 @@ in
         cmd = [
           "python"
           "tools/api_server.py"
+          "--compile"
           "--listen"
           "127.0.0.1:${builtins.toString cfg.port}"
         ];
