@@ -126,6 +126,9 @@ in
       };
     };
 
+    # Enlarge audit backlog limit
+    boot.kernelParams = [ "audit_backlog_limit=8192" ];
+
     # Enable fail2ban
     services.fail2ban.enable = config.networking.firewall.enable;
 
