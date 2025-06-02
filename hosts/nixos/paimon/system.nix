@@ -22,11 +22,6 @@
       fish-speech = {
         enable = true;
         dataDir = "/xpool/llm/fish-speech";
-        reverseProxy = {
-          enable = true;
-          domains = [ "echoes.codgician.me" ];
-          lanOnly = true;
-        };
       };
 
       mcpo = {

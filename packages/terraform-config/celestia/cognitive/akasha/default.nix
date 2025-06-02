@@ -9,7 +9,9 @@ in
     ./deepseek-r1.nix
     ./deepseek-v3.nix
     ./gpt-4.1.nix
+    ./gpt-4.1-nano.nix
     ./gpt-4o.nix
+    ./gpt-4o-mini.nix
     ./grok-3.nix
     ./o4-mini.nix
   ];
