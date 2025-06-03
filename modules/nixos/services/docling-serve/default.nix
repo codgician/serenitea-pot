@@ -67,7 +67,7 @@ in
           DOCLING_SERVE_ENABLE_REMOTE_SERVICES = "true";
           DOCLING_SERVE_ALLOW_EXTERNAL_PLUGINS = "true";
           DOCLING_SERVE_SINGLE_USE_RESULTS = "true";
-          DOCLING_SERVE_MAX_SYNC_WAIT = "600"; # 10 minutes
+          DOCLING_SERVE_MAX_SYNC_WAIT = "1200"; # 20 minutes
           DOCLING_SERVE_RESULT_REMOVAL_DELAY = "600"; # 10 minutes
           DOCLING_DEVICE = "cuda:0";
         };
