@@ -28,17 +28,17 @@ let
       ];
       env.AMAP_MAPS_API_KEY._secret = config.age.secrets.mcp-amap-api-key.path;
     };
-    fetch = {
-      command = "uvx";
-      args = [ "mcp-server-fetch" ];
-    };
-    memory = {
+    context7 = {
       command = "npx";
       args = [
         "-y"
-        "@modelcontextprotocol/server-memory"
+        "@upstash/context7-mcp"
       ];
-      env.MEMORY_FILE_PATH = "/persist/memory/memory.json";
+      env.DEFAULT_MINIMUM_TOKENS = "10000";
+    };
+    fetch = {
+      command = "uvx";
+      args = [ "mcp-server-fetch" ];
     };
     google-maps = {
       command = "npx";
@@ -47,6 +47,13 @@ let
         "@modelcontextprotocol/server-google-maps"
       ];
       env.GOOGLE_MAPS_API_KEY._secret = config.age.secrets.mcp-google-maps-api-key.path;
+    };
+    sequential-thinking = {
+      command = "npx";
+      args = [
+        "-y"
+        "@modelcontextprotocol/server-sequential-thinking"
+      ];
     };
     time = {
       command = "uvx";
