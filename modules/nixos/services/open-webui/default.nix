@@ -360,6 +360,7 @@ in
           "~ ^/api/v1/files" = {
             inherit (cfg.reverseProxy) proxyPass lanOnly;
             extraConfig = ''
+              client_max_body_size 128M;
               proxy_connect_timeout 1800;
               proxy_send_timeout 1800;
               proxy_read_timeout 1800;
