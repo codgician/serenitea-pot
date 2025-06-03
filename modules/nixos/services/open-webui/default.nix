@@ -351,6 +351,10 @@ in
             inherit (cfg.reverseProxy) proxyPass lanOnly;
             extraConfig = ''
               client_max_body_size 128M;
+              proxy_connect_timeout 300;
+              proxy_send_timeout 300;
+              proxy_read_timeout 300;
+              send_timeout 300;
             '';
           };
         };
