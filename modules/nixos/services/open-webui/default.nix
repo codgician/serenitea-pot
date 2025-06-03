@@ -357,6 +357,15 @@ in
               send_timeout 300;
             '';
           };
+          "~ ^/api/v1/files" = {
+            inherit (cfg.reverseProxy) proxyPass lanOnly;
+            extraConfig = ''
+              proxy_connect_timeout 1800;
+              proxy_send_timeout 1800;
+              proxy_read_timeout 1800;
+              send_timeout 1800;
+            '';
+          };
         };
     })
   ];
