@@ -237,6 +237,7 @@
       ethtool
       sysstat
       powertop
+      nvtopPackages.nvidia
       libhugetlbfs
     ])
     ++ (with config.boot.kernelPackages; [

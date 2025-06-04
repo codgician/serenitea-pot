@@ -111,7 +111,13 @@
     (with pkgs; [
       lm_sensors
       smartmontools
+      pciutils
+      nvme-cli
+      usbutils
       ethtool
+      sysstat
+      powertop
+      nvtopPackages.intel
       libhugetlbfs
     ])
     ++ (with config.boot.kernelPackages; [
