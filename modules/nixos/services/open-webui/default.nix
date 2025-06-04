@@ -293,7 +293,22 @@ in
             favicon
             splash
             ;
+
           convertImage = lib.codgician.convertImage pkgs;
+          resizeImage =
+            size: outName: image:
+            convertImage image {
+              args = "-background transparent -resize ${size}";
+              inherit outName;
+            };
+
+          faviconIco = convertImage favicon {
+            args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
+            outName = "favicon.ico";
+          };
+          favicon96 = resizeImage "96x96" "favicon-96x96.png" favicon;
+          favicon512 = resizeImage "512x512" "favicon" appIcon;
+
           mkNginxLocationForStaticFile = path: {
             root = builtins.dirOf path;
             tryFiles = "/${builtins.baseNameOf path} =404";
@@ -304,42 +319,23 @@ in
           };
         in
         (lib.optionalAttrs (favicon != null) {
-          "= /favicon.png" = mkNginxLocationForStaticFile favicon;
-          "= /static/favicon.png" = mkNginxLocationForStaticFile favicon;
-          "= /static/favicon-dark.png" = mkNginxLocationForStaticFile favicon;
-          "= /static/favicon-96x96.png" = mkNginxLocationForStaticFile (
-            convertImage favicon {
-              args = "-background transparent -resize 96x96";
-              outName = "favicon-96x96.png";
-            }
-          );
-          "= /favicon.ico" = mkNginxLocationForStaticFile (
-            convertImage favicon {
-              args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
-              outName = "favicon.ico";
-            }
-          );
-          "= /static/favicon.ico" = mkNginxLocationForStaticFile (
-            convertImage favicon {
-              args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
-              outName = "favicon.ico";
-            }
-          );
+          "= /favicon.png" = mkNginxLocationForStaticFile favicon512;
+          "= /static/favicon.png" = mkNginxLocationForStaticFile favicon512;
+          "= /static/favicon-dark.png" = mkNginxLocationForStaticFile favicon512;
+          "= /static/favicon-96x96.png" = mkNginxLocationForStaticFile favicon96;
+          "= /favicon.ico" = mkNginxLocationForStaticFile faviconIco;
+          "= /static/favicon.ico" = mkNginxLocationForStaticFile faviconIco;
         })
         // (lib.optionalAttrs (appIcon != null) {
           "= /static/logo.png" = mkNginxLocationForStaticFile appIcon;
-          "= /static/apple-touch-icon.png" = mkNginxLocationForStaticFile appIcon;
+          "= /static/apple-touch-icon.png" = mkNginxLocationForStaticFile (
+            resizeImage "180x180" "apple-touch-icon.png" appIcon
+          );
           "= /static/web-app-manifest-192x192.png" = mkNginxLocationForStaticFile (
-            convertImage appIcon {
-              args = "-background transparent -resize 192x192";
-              outName = "web-app-manifest-192x192.png";
-            }
+            resizeImage "192x192" "web-app-manifest-192x192.png" appIcon
           );
           "= /static/web-app-manifest-512x512.png" = mkNginxLocationForStaticFile (
-            convertImage appIcon {
-              args = "-background transparent -resize 512x512";
-              outName = "web-app-manifest-512x512.png";
-            }
+            resizeImage "512x512" "web-app-manifest-512x512.png" appIcon
           );
         })
         // (lib.optionalAttrs (splash != null) {
