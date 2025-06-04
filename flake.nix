@@ -40,9 +40,9 @@
     };
 
     proxmox-nixos = {
-      url = "github:SaumonNet/proxmox-nixos";
+      url = "github:codgician/proxmox-nixos/qemu-update-script";
       inputs = {
-        #nixpkgs-stable.follows = "nixpkgs";
+        nixpkgs-stable.follows = "nixpkgs";
         nixpkgs-unstable.follows = "nixpkgs-unstable";
         flake-compat.follows = "flake-compat";
         utils.follows = "flake-utils";
