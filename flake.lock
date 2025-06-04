@@ -220,11 +220,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1748979197,
-        "narHash": "sha256-mKYwYcO9RmA2AcAFIXGDBOw5iv/fbjw6adWvMbnfIuk=",
+        "lastModified": 1749049052,
+        "narHash": "sha256-wIt8ZBc8diKg1H5ibi3Bw9HUcPR2w3xy4ddcuzjgLb0=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "34a13086148cbb3ae65a79f753eb451ce5cac3d3",
+        "rev": "ffab96a8b4a523c4b5e2645ee09e95a75cbdbfab",
         "type": "github"
       },
       "original": {
@@ -430,11 +430,11 @@
     },
     "nixpkgs-unstable": {
       "locked": {
-        "lastModified": 1748942227,
-        "narHash": "sha256-U1oNpFoDO7QaO4iHsue7atK/5mJy7U1Y37mLU/SRk0o=",
+        "lastModified": 1749032651,
+        "narHash": "sha256-1RLgqmQnvTD1F1BCxu70F2z3LtyHfi+JDy97eklH2E0=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "7ab490624e297ff96f52858bb32b504516b8bb61",
+        "rev": "a1ba3c5c21b2424ad0bd13bbbfa50ebfbd54823e",
         "type": "github"
       },
       "original": {
@@ -475,11 +475,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1749030266,
-        "narHash": "sha256-I54Oe1UXbmEivZadDQfrKWfj8fWlqp8Prft5eTd01rA=",
+        "lastModified": 1749046819,
+        "narHash": "sha256-BXr1ipGk73YG7KcuDKHH7Zgx+qZHCTsTwwFzMU3PnYY=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "b7c9c6da95db614b41b5b8b0f822f5e183cdbe4a",
+        "rev": "ab4d3f2d11336b2a44ce31cfcd298fe36de233ba",
         "type": "github"
       },
       "original": {
@@ -553,16 +553,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1749031581,
+        "lastModified": 1749035253,
         "narHash": "sha256-ABq8mYd0+Uj+wKK7AcUaP+Ma2hwoUP63r/k7AmqnVe8=",
-        "owner": "codgician",
+        "owner": "SaumonNet",
         "repo": "proxmox-nixos",
-        "rev": "9937276619987e24cd3ccdc8ee3a3e870e7025ee",
+        "rev": "bb52ad5b17c421cc58af558be8663dce6eb9faf8",
         "type": "github"
       },
       "original": {
-        "owner": "codgician",
-        "ref": "qemu-update-script",
+        "owner": "SaumonNet",
         "repo": "proxmox-nixos",
         "type": "github"
       }
