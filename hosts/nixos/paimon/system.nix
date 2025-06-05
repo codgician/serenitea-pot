@@ -130,6 +130,10 @@
             "guest ok" = "no";
             "fruit:time machine" = "yes";
             "fruit:time machine max size" = "1T";
+            "fruit:encoding" = "private";
+            "fruit:locking" = "none";
+            "fruit:metadata" = "netatalk";
+            "fruit:resource" = "file";
           };
         };
       };

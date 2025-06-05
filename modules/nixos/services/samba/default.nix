@@ -54,7 +54,7 @@ in
           "invalid users" = [ "root" ];
           "security" = "user";
 
-          "vfs objects" = "acl_xattr fruit catia streams_xattr aio_pthread";
+          "vfs objects" = "acl_xattr catia fruit streams_xattr aio_pthread";
 
           "fruit:aapl" = "yes";
           "fruit:model" = "MacSamba";
@@ -64,6 +64,7 @@ in
           "fruit:veto_appledouble" = "no";
           "fruit:wipe_intentionally_left_blank_rfork" = "yes";
           "fruit:delete_empty_adfiles" = "yes";
+          "fruit:zero_file_id" = "yes";
 
           "recycle:keeptree" = "no";
           "oplocks" = "yes";
