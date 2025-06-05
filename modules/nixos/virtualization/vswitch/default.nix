@@ -113,6 +113,7 @@ in
             };
           };
         });
+      description = "Configuration for each switch managed by Open vSwitch.";
     };
   };
 
