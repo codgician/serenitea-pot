@@ -2,12 +2,12 @@
   lib,
   pkgs,
   options ?
-    (lib.codgician.mkNixosSystem {
-      hostName = "nixos";
+    (lib.codgician.mkDarwinSystem {
+      hostName = "darwin";
       inherit (pkgs) system;
     }).options,
-  nixos-docs,
+  docs-nixos,
   ...
 }:
 
-nixos-docs.override { inherit options; }
+docs-nixos.override { inherit options; }
