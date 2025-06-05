@@ -43,13 +43,13 @@
           echo ' -h --help            Show this screen'
           echo ' -v --verbose         Print verbose logs'
           echo ' --pcr-ids            List of PCR IDs to use for encryption,'
-          echo '                      defaults to 1,7,12,14'
+          echo '                      defaults to 1,2,7,12,14'
           echo ' --pcr-bank           PCR bank to use for encryption,'
           echo '                      defaults to sha256'
           echo ' '
         }
 
-        pcr_ids="1,7,12,14"
+        pcr_ids="1,2,7,12,14"
         pcr_bank="sha256"
         while [[ $# -gt 0 ]]; do
           case $1 in
