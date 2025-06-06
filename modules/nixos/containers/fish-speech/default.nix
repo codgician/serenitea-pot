@@ -32,7 +32,7 @@ in
     (lib.mkIf cfg.enable {
       virtualisation.oci-containers.containers.${serviceName} = {
         autoStart = true;
-        image = "docker.io/fishaudio/fish-speech:latest";
+        image = "docker.io/fishaudio/fish-speech:v1.5.1";
         volumes = [ "${cfg.dataDir}/references:/opt/fish-speech/references" ];
         extraOptions =
           [
