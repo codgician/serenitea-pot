@@ -160,8 +160,8 @@ in
             ENABLE_SEARCH_QUERY = "True";
             ENABLE_RAG_WEB_SEARCH = "True";
             RAG_WEB_SEARCH_ENGINE = "google_pse";
-            RAG_EMBEDDING_MODEL = "jinaai/jina-embeddings-v3";
-            RAG_RERANKING_MODEL = "jinaai/jina-reranker-v2-base-multilingual";
+            RAG_EMBEDDING_MODEL = "Qwen/Qwen3-Embedding-0.6B";
+            RAG_RERANKING_MODEL = "Qwen/Qwen3-Reranker-0.6B";
             RAG_TOP_K = "5";
             RAG_TOP_K_RERANKER = "5";
             RAG_RELEVANCE_THRESHOLD = "0.3";
