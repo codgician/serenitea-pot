@@ -126,6 +126,7 @@
             "valid users" = "codgi";
             public = "no";
             writeable = "yes";
+            "vfs objects" = "catia fruit streams_xattr";
             "force user" = "codgi";
             "guest ok" = "no";
             "fruit:time machine" = "yes";
