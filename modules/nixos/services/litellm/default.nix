@@ -37,7 +37,7 @@ let
     {
       model_name = "gemini-2.5-pro";
       litellm_params = {
-        model = "gemini/gemini-2.5-pro-preview-05-06";
+        model = "gemini/gemini-2.5-pro-preview-06-05";
         api_key = "os.environ/GEMINI_API_KEY";
       };
     }
