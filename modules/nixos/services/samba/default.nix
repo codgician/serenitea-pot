@@ -68,7 +68,6 @@ in
 
           "recycle:keeptree" = "no";
           "oplocks" = "yes";
-          "locking" = "yes";
         };
       };
     };
