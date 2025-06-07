@@ -12,7 +12,9 @@ let
 
   terraformConf = builtins.fromJSON outputs.packages.${pkgs.system}.terraform-config.value;
   azureSubdomain = terraformConf.resource.azurerm_ai_services.akasha.custom_subdomain_name;
-  azureModels = lib.pipe terraformConf.resource.azurerm_cognitive_deployment [
+
+  # Azure OpenAI models deployed via azurerm_cognitive_deployment
+  azCognitiveModels = lib.pipe terraformConf.resource.azurerm_cognitive_deployment [
     builtins.attrValues
     (builtins.map (x: {
       model_name = x.name;
@@ -25,46 +27,39 @@ let
     }))
   ];
 
-  allModels = azureModels ++ [
-    {
-      model_name = "grok-3";
+  # Azure AI models derployed via azapi_resource
+  azApiModels = lib.pipe terraformConf.resource.azapi_resource [
+    builtins.attrValues
+    (builtins.filter (x: lib.hasPrefix "Microsoft.CognitiveServices/accounts/deployments" x.type))
+    (builtins.map (x: {
+      model_name = x.name;
       litellm_params = {
-        model = "azure_ai/grok-3";
+        model = "azure_ai/${x.name}";
         api_base = "https://${azureSubdomain}.services.ai.azure.com";
         api_key = "os.environ/AZURE_AKASHA_API_KEY";
       };
-    }
-    {
-      model_name = "gemini-2.5-pro";
-      litellm_params = {
-        model = "gemini/gemini-2.5-pro-preview-06-05";
-        api_key = "os.environ/GEMINI_API_KEY";
-      };
-    }
-    {
-      model_name = "gemini-2.5-flash";
-      litellm_params = {
-        model = "gemini/gemini-2.5-flash-preview-05-20";
-        api_key = "os.environ/GEMINI_API_KEY";
-      };
-    }
-    {
-      model_name = "akasha-deepseek-r1";
-      litellm_params = {
-        model = "azure_ai/akasha-deepseek-r1";
-        api_base = "os.environ/AZURE_AKASHA_DEEPSEEK_R1_API_BASE";
-        api_key = "os.environ/AZURE_AKASHA_DEEPSEEK_R1_API_KEY";
-      };
-    }
-    {
-      model_name = "akasha-deepseek-v3";
-      litellm_params = {
-        model = "azure_ai/akasha-deepseek-v3";
-        api_base = "os.environ/AZURE_AKASHA_DEEPSEEK_V3_API_BASE";
-        api_key = "os.environ/AZURE_AKASHA_DEEPSEEK_V3_API_KEY";
-      };
-    }
+    }))
   ];
+
+  allModels =
+    azCognitiveModels
+    ++ azApiModels
+    ++ [
+      {
+        model_name = "gemini-2.5-pro";
+        litellm_params = {
+          model = "gemini/gemini-2.5-pro-preview-06-05";
+          api_key = "os.environ/GEMINI_API_KEY";
+        };
+      }
+      {
+        model_name = "gemini-2.5-flash";
+        litellm_params = {
+          model = "gemini/gemini-2.5-flash-preview-05-20";
+          api_key = "os.environ/GEMINI_API_KEY";
+        };
+      }
+    ];
 in
 {
   options.codgician.services.litellm = {
