@@ -1,19 +1,25 @@
 { config, ... }:
 {
+  # Not supported by azurerm module yet
+  # todo: migrate to azurerm_cognitive_deployment when the API exists preview
   resource.azapi_resource.akasha-deepseek-v3 = {
-    name = "akasha-deepseek-v3";
-    type = "Microsoft.MachineLearningServices/workspaces/serverlessEndpoints@2024-10-01";
-    parent_id = config.resource.azurerm_ai_foundry_project.akasha-ai-project "id";
-    location = config.resource.azurerm_ai_foundry_project.akasha-ai-project.location;
-
+    type = "Microsoft.CognitiveServices/accounts/deployments@2024-10-01";
+    name = "deepseek-v3";
+    parent_id = config.resource.azurerm_ai_services.akasha "id";
     body = {
       properties = {
-        authMode = "Key";
-        contentSafety.contentSafetyStatus = "Disabled";
-        modelSettings.modelId = "azureml://registries/azureml-deepseek/models/DeepSeek-V3-0324";
+        model = {
+          format = "DeepSeek";
+          name = "DeepSeek-V3-0324";
+          version = "1";
+        };
+        versionUpgradeOption = "OnceNewDefaultVersionAvailable";
+        raiPolicyName = "Microsoft.DefaultV2";
       };
-
-      sku.name = "Consumption";
+      sku = {
+        name = "GlobalStandard";
+        capacity = 1;
+      };
     };
   };
 }
