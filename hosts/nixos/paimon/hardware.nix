@@ -81,8 +81,6 @@
   hardware.mlnx-ofed = {
     enable = true;
     fwctl.enable = true;
-    nvme.enable = true;
-    nfsrdma.enable = true;
   };
 
   # Specify boot-0 as the primary ESP partition

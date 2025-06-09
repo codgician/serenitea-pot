@@ -5,7 +5,7 @@
   systemd.services.mlx5-sriov = {
     enable = true;
     description = "Set up VFs for Mellanox ConnectX-5 NIC.";
-    wantedBy = [ "ovs-vswitchd.service" ];
+    wantedBy = [ "network-pre.target" ];
     after = [ "systemd-udev-settle.service" ];
     path = with pkgs; [ iproute2 ];
     # Doc: https://docs.nvidia.com/networking/display/mlnxofedv24100700/ovs+offload+using+asap²+direct
