@@ -50,7 +50,6 @@ in
           "server string" = config.networking.hostName;
           "netbios name" = config.networking.hostName;
           "wins support" = "yes";
-          "server smb encrypt" = "desired";
           "invalid users" = [ "root" ];
           "security" = "user";
 
@@ -65,9 +64,6 @@ in
           "fruit:wipe_intentionally_left_blank_rfork" = "yes";
           "fruit:delete_empty_adfiles" = "yes";
           "fruit:zero_file_id" = "yes";
-
-          "recycle:keeptree" = "no";
-          "oplocks" = "yes";
         };
       };
     };
