@@ -52,14 +52,18 @@ in
           "wins support" = "yes";
           "invalid users" = [ "root" ];
           "security" = "user";
+          "server smb encrypt" = "desired";
 
           "vfs objects" = "acl_xattr catia fruit streams_xattr aio_pthread";
+          "aio read size" = "16384";
+          "aio write size" = "16384";
 
           "fruit:aapl" = "yes";
           "fruit:model" = "MacSamba";
           "fruit:posix_rename" = "yes";
           "fruit:metadata" = "stream";
           "fruit:nfs_aces" = "no";
+          "fruit:copyfile" = "yes";
           "fruit:veto_appledouble" = "no";
           "fruit:wipe_intentionally_left_blank_rfork" = "yes";
           "fruit:delete_empty_adfiles" = "yes";
