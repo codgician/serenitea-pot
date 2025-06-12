@@ -58,7 +58,7 @@
       magnification = false;
       mineffect = "scale";
       persistent-apps = [
-        "/System/Applications/Launchpad.app"
+        "/System/Applications/Apps.app"
         "/System/Cryptexes/App/System/Applications/Safari.app"
         "/System/Applications/Messages.app"
         "/System/Applications/FaceTime.app"
