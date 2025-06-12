@@ -83,7 +83,8 @@ in
   boot.loader.efi.canTouchEfiVariables = true;
   boot.plymouth = {
     enable = true;
-    theme = "breeze";
+    theme = "nixos-bgrt";
+    themePackages = [ pkgs.nixos-bgrt-plymouth ];
   };
 
   # Select internationalisation properties.
