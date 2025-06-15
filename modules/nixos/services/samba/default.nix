@@ -58,6 +58,8 @@ in
           "preferred master" = "yes";
           "dns proxy" = "no";
 
+          "strict sync" = "no";
+
           "vfs objects" = "catia fruit streams_xattr aio_pthread";
           "aio read size" = "16384";
           "aio write size" = "16384";
