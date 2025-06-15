@@ -51,14 +51,14 @@ in
           "wins support" = "yes";
           "invalid users" = [ "root" ];
           "security" = "user";
-          "server smb encrypt" = "desired";
+          "server smb encrypt" = "required";
 
           "workgroup" = "WORKGROUP";
           "local master" = "yes";
           "preferred master" = "yes";
           "dns proxy" = "no";
 
-          "vfs objects" = "acl_xattr catia fruit streams_xattr aio_pthread";
+          "vfs objects" = "catia fruit streams_xattr aio_pthread";
           "aio read size" = "16384";
           "aio write size" = "16384";
 
