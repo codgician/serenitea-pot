@@ -53,7 +53,7 @@
     ];
 
     extraModprobeConfig = ''
-      options vfio-pci ids=10de:1cb6,10de:0fb9,10de:2882,10de:22be
+      options vfio-pci ids=10de:1cb6,10de:0fb9,10de:2882,10de:22be,10de:2783,10de:22bc
       options kvm ignore_msrs=1
       options kvm report_ignored_msrs=0
     '';

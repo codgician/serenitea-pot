@@ -45,14 +45,18 @@ in
 
       settings = cfg.shares // {
         global = {
-          "protocol" = "SMB3";
-          "min protocol" = "SMB3";
+          "server min protocol" = "SMB3";
           "server string" = config.networking.hostName;
           "netbios name" = config.networking.hostName;
           "wins support" = "yes";
           "invalid users" = [ "root" ];
           "security" = "user";
           "server smb encrypt" = "desired";
+
+          "workgroup" = "WORKGROUP";
+          "local master" = "yes";
+          "preferred master" = "yes";
+          "dns proxy" = "no";
 
           "vfs objects" = "acl_xattr catia fruit streams_xattr aio_pthread";
           "aio read size" = "16384";
@@ -63,10 +67,6 @@ in
           "fruit:posix_rename" = "yes";
           "fruit:metadata" = "stream";
           "fruit:nfs_aces" = "no";
-          "fruit:copyfile" = "yes";
-          "fruit:veto_appledouble" = "no";
-          "fruit:wipe_intentionally_left_blank_rfork" = "yes";
-          "fruit:delete_empty_adfiles" = "yes";
           "fruit:zero_file_id" = "yes";
         };
       };
