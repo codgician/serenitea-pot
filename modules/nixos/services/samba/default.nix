@@ -46,6 +46,7 @@ in
       settings = cfg.shares // {
         global = {
           "server min protocol" = "SMB3";
+          "server multi channel support" = "yes";
           "server string" = config.networking.hostName;
           "netbios name" = config.networking.hostName;
           "wins support" = "yes";
@@ -61,8 +62,8 @@ in
           "strict sync" = "no";
 
           "vfs objects" = "catia fruit streams_xattr aio_pthread";
-          "aio read size" = "16384";
-          "aio write size" = "16384";
+          "aio read size" = "1";
+          "aio write size" = "1";
 
           "fruit:aapl" = "yes";
           "fruit:model" = "MacSamba";
