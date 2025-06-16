@@ -38,10 +38,10 @@ in
       package = pkgs.sambaFull;
       openFirewall = true;
 
-      nsswins = true;
+      nsswins = false;
       smbd.enable = true;
       nmbd.enable = true;
-      winbindd.enable = true;
+      winbindd.enable = false;
 
       settings = cfg.shares // {
         global = {
@@ -52,7 +52,6 @@ in
           "wins support" = "yes";
           "invalid users" = [ "root" ];
           "security" = "user";
-          "server smb encrypt" = "required";
 
           "workgroup" = "WORKGROUP";
           "local master" = "yes";
