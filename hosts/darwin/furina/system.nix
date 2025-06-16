@@ -72,12 +72,25 @@
       };
     };
 
-  # System packages
-  environment.systemPackages = with pkgs; [
-    fastfetch
-    zulu
-    openssl
-  ];
+  environment = {
+    # System packages
+    systemPackages = with pkgs; [
+      fastfetch
+      zulu
+      openssl
+    ];
+
+    # SMB client settings
+    etc."nsmb.conf".text = ''
+      [default]
+      streams=yes
+      soft=yes
+      signing_required=yes
+      protocol_vers_map=6
+      port445=no_netbios
+      mc_prefer_wired=yes
+    '';
+  };
 
   # System settings
   system.defaults = {
