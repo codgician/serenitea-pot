@@ -88,6 +88,7 @@
       signing_required=yes
       protocol_vers_map=6
       port445=no_netbios
+      mc_on=no
       mc_prefer_wired=yes
     '';
   };
