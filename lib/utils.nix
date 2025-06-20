@@ -18,7 +18,7 @@ rec {
       inputs.mlnx-ofed-nixos.overlays.default
     ]
     ++ (builtins.map (x: import x { inherit inputs lib; }) (
-      with lib.codgician; getNixFilePaths overlaysDir
+      with lib.codgician; getFolderPaths overlaysDir
     ));
 
   # Make package universe

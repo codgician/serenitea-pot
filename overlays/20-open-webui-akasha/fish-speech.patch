@@ -1,0 +1,167 @@
+diff --git a/backend/open_webui/routers/audio.py b/backend/open_webui/routers/audio.py
+index 27634cec1..895f7971c 100644
+--- a/backend/open_webui/routers/audio.py
++++ b/backend/open_webui/routers/audio.py
+@@ -534,7 +534,72 @@ async def speech(request: Request, user=Depends(get_verified_user)):
+             await f.write(json.dumps(payload))
+ 
+         return FileResponse(file_path)
++    
++    elif request.app.state.config.TTS_ENGINE == "fishspeech":
++        try:
++            timeout = aiohttp.ClientTimeout(total=AIOHTTP_CLIENT_TIMEOUT)
++            async with aiohttp.ClientSession(
++                timeout=timeout, trust_env=True
++            ) as session:
++                async with session.post(
++                    url=f"{request.app.state.config.TTS_OPENAI_API_BASE_URL}/tts",
++                    json={
++                        "text": payload["input"],
++                        "chunk_length": 200,
++                        "format": "mp3",
++                        "references": [],
++                        "reference_id": request.app.state.config.TTS_VOICE,
++                        "seed": None,
++                        "use_memory_cache": "on",
++                        "normalize": True,
++                        "streaming": False,
++                        "max_new_tokens": 1024,
++                        "top_p": 0.7,
++                        "repetition_penalty": 1.2,
++                        "temperature": 0.7
++                    },
++                    headers={
++                        "Content-Type": "application/json",
++                        "Authorization": f"Bearer {request.app.state.config.TTS_API_KEY}",
++                        **(
++                            {
++                                "X-OpenWebUI-User-Name": user.name,
++                                "X-OpenWebUI-User-Id": user.id,
++                                "X-OpenWebUI-User-Email": user.email,
++                                "X-OpenWebUI-User-Role": user.role,
++                            }
++                            if ENABLE_FORWARD_USER_INFO_HEADERS
++                            else {}
++                        ),
++                    },
++                ) as r:
++                    r.raise_for_status()
++
++                    async with aiofiles.open(file_path, "wb") as f:
++                        await f.write(await r.read())
++
++                    async with aiofiles.open(file_body_path, "w") as f:
++                        await f.write(json.dumps(payload))
++            
++            return FileResponse(file_path)
++        
++        except Exception as e:
++            log.exception(e)
++            detail = None
+ 
++            try:
++                if r.status != 200:
++                    res = await r.json()
++
++                    if "error" in res:
++                        detail = f"External: {res['error'].get('message', '')}"
++            except Exception:
++                detail = f"External: {e}"
++
++            raise HTTPException(
++                status_code=getattr(r, "status", 500),
++                detail=detail if detail else "Open WebUI: Server Connection Error",
++            )
+ 
+ def transcription_handler(request, file_path, metadata):
+     filename = os.path.basename(file_path)
+diff --git a/src/lib/components/admin/Settings/Audio.svelte b/src/lib/components/admin/Settings/Audio.svelte
+index da3912a51..50c802897 100644
+--- a/src/lib/components/admin/Settings/Audio.svelte
++++ b/src/lib/components/admin/Settings/Audio.svelte
+@@ -467,6 +467,7 @@
+ 							<option value="openai">{$i18n.t('OpenAI')}</option>
+ 							<option value="elevenlabs">{$i18n.t('ElevenLabs')}</option>
+ 							<option value="azure">{$i18n.t('Azure AI Speech')}</option>
++							<option value="fishspeech">{$i18n.t('FishSpeech')}</option>
+ 						</select>
+ 					</div>
+ 				</div>
+@@ -719,7 +720,46 @@
+ 								</div>
+ 							</div>
+ 						</div>
+-					{/if}
++						{:else if TTS_ENGINE === 'fishspeech'}
++					<div class=" flex gap-2">
++						<div class="w-full">
++							<div class=" mb-1.5 text-sm font-medium">{$i18n.t('TTS Voice')}</div>
++							<div class="flex w-full">
++								<div class="flex-1">
++									<input
++										list="voice-list"
++										class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-hidden"
++										bind:value={TTS_VOICE}
++										placeholder="Input fishspeech reference voice id"
++									/>
++								</div>
++							</div>
++							<div class="mt-2 mb-1 text-xs text-gray-400 dark:text-gray-500">
++								The usage of reference voice id can be found in the fishspeech documentation.,
++								<a
++									class=" hover:underline dark:text-gray-200 text-gray-800"
++									href="https://docs.fish.audio/api-reference/endpoint/openapi-v1/text-to-speech#body-reference-id"
++									target="_blank"
++								>
++									{$i18n.t(`click here`)}.
++								</a>
++
++								To learn more about fishspeech,
++	
++								<a
++									class=" hover:underline dark:text-gray-200 text-gray-800"
++									href="https://fish.audio/"
++									target="_blank"
++								>
++									{$i18n.t(`click here`, {
++										name: 'fishspeech'
++									})}.
++								</a>
++
++							</div>
++						</div>
++					</div>
++				{/if}
+ 				</div>
+ 
+ 				<div class="pt-0.5 flex w-full justify-between">
+diff --git a/src/lib/utils/index.ts b/src/lib/utils/index.ts
+index 30f37e68d..564133bec 100644
+--- a/src/lib/utils/index.ts
++++ b/src/lib/utils/index.ts
+@@ -883,7 +883,7 @@ export const extractSentences = (text: string) => {
+ 	});
+ 
+ 	// Split the modified text into sentences based on common punctuation marks, avoiding these blocks
+-	let sentences = text.split(/(?<=[.!?])\s+/);
++	let sentences = text.split(/(?<=[.!?])\s+|(?<=[。！？])/);
+ 
+ 	// Restore code blocks and process sentences
+ 	sentences = sentences.map((sentence) => {
+@@ -922,8 +922,14 @@ export const extractSentencesForAudio = (text: string) => {
+ 		const lastIndex = mergedTexts.length - 1;
+ 		if (lastIndex >= 0) {
+ 			const previousText = mergedTexts[lastIndex];
+-			const wordCount = previousText.split(/\s+/).length;
+-			const charCount = previousText.length;
++			let wordCount = previousText.split(/\s+/).length;
++			let charCount = previousText.length;
++
++			const isCJK = /[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\u3400-\u4dbf\u4e00-\u9fff\uF900-\uFAFF]/.test(previousText);
++			if (isCJK) {
++				wordCount = charCount;
++				charCount = charCount * 10;
++			}
+ 			if (wordCount < 4 || charCount < 50) {
+ 				mergedTexts[lastIndex] = previousText + ' ' + currentText;
+ 			} else {

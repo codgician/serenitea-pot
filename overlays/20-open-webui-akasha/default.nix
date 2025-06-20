@@ -6,10 +6,7 @@ self: super:
 let
   patches = [
     # Add fish-speech support (#11230)
-    (super.fetchurl {
-      url = "https://patch-diff.githubusercontent.com/raw/open-webui/open-webui/pull/11230.patch";
-      sha256 = "sha256-JD498hMgJGnWCdFSPppVrXjrpR8nRXDMPm/BXo+V03M=";
-    })
+    ./fish-speech.patch
   ];
 in
 {
