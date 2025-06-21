@@ -40,6 +40,7 @@
     kernelParams = [
       "video=astdrmfb"
       "amd_pstate=active"
+      "hugepagesz=2M"
       "hugepagesz=1G"
       "default_hugepagesz=1G"
       "hugepages=16"
