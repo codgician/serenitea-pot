@@ -234,7 +234,7 @@
     after = [ "cpufreq.service" ];
     script = ''
       for cpu_path in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; 
-        do echo "balance_power" > "$cpu_path"; 
+        do echo "balance_performance" > "$cpu_path"; 
       done
     '';
     serviceConfig.Type = "oneshot";
