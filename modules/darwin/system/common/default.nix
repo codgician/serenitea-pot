@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.system.common;
 in
@@ -15,6 +20,11 @@ in
 
     # Enable Touch ID for sudo
     security.pam.services.sudo_local.touchIdAuth = true;
+
+    # Fonts
+    fonts.packages = with pkgs; [
+      cascadia-code
+    ];
 
     environment = {
       # Disable ssh password authentication
