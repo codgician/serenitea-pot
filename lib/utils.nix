@@ -9,14 +9,16 @@ let
   inherit (lib.codgician) stable;
 in
 rec {
-  # Package overlays
-  overlays =
+  # Get package overlays
+  getOverlays =
+    system:
     [
       (self: super: { inherit lib; })
       inputs.nur.overlays.default
       inputs.nix-vscode-extensions.overlays.default
       inputs.mlnx-ofed-nixos.overlays.default
     ]
+    ++ (lib.optional (isLinuxSystem system) inputs.proxmox-nixos.overlays.${system})
     ++ (builtins.map (x: import x { inherit inputs lib; }) (
       with lib.codgician; getFolderPaths overlaysDir
     ));
@@ -25,7 +27,8 @@ rec {
   mkPkgs =
     system:
     (import nixpkgs {
-      inherit system overlays;
+      inherit system;
+      overlays = getOverlays system;
       config.allowUnfree = true;
       flake.source = nixpkgs.outPath;
     });
@@ -80,23 +83,17 @@ rec {
       mlnx-ofed-nixos.nixosModules.default
       vscode-server.nixosModules.default
       proxmox-nixos.nixosModules.proxmox-ve
-      (
-        { system, ... }:
-        {
-          nixpkgs.overlays = [ proxmox-nixos.overlays.${system} ];
-        }
-      )
     ];
 
   # Base configs for all platforms
   mkBaseConfig =
     system: hostName:
-    { lib, ... }:
+    { ... }:
     {
       networking.hostName = hostName;
       nixpkgs = {
         config.allowUnfree = true;
-        inherit (lib.codgician) overlays;
+        overlays = getOverlays system;
       };
     };
 
