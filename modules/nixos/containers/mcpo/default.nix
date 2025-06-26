@@ -10,6 +10,13 @@ let
   inherit (lib) types;
   cfg = config.codgician.containers.mcpo;
   mcpoConfig.mcpServers = {
+    code-runner = {
+      type = "streamable_http";
+      url = "https://cpprunner.aiursoft.cn/mcp";
+      headers = {
+        "Content-Type" = "application/json";
+      };
+    };
     arxiv = {
       command = "uv";
       args = [
