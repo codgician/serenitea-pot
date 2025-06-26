@@ -64,8 +64,8 @@
         loadModels = [
           "hf.co/unsloth/Qwen3-30B-A3B-GGUF:Q4_K_M"
           "hf.co/unsloth/Qwen3-32B-GGUF:Q4_K_M"
-          "hf.co/unsloth/Magistral-Small-2506-GGUF:Q4_K_M"
           "huihui_ai/qwen3-abliterated:30b-a3b-q4_K_M"
+          "mistral-small3.2:24b"
         ];
       };
 
