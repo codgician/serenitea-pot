@@ -56,7 +56,6 @@ in
 
         # Enable optional features
         package = cfg.package.override {
-          withUI = true;
           withTesserocr = true;
           withRapidocr = true;
         };
