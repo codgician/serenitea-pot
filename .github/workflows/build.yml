@@ -26,6 +26,7 @@ jobs:
           usrmisc: true
           opt: true
           varcache: true
+          debug: true
       - name: Checkout new change
         uses: actions/checkout@v4
         with:
