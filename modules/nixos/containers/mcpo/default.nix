@@ -10,13 +10,6 @@ let
   inherit (lib) types;
   cfg = config.codgician.containers.mcpo;
   mcpoConfig.mcpServers = {
-    code-runner = {
-      type = "streamable_http";
-      url = "https://cpprunner.aiursoft.cn/mcp";
-      headers = {
-        "Content-Type" = "application/json";
-      };
-    };
     arxiv = {
       command = "uv";
       args = [
@@ -34,6 +27,13 @@ let
         "@amap/amap-maps-mcp-server"
       ];
       env.AMAP_MAPS_API_KEY._secret = config.age.secrets.mcp-amap-api-key.path;
+    };
+    code-runner = {
+      type = "streamable_http";
+      url = "https://cpprunner.aiursoft.cn/mcp";
+      headers = {
+        "Content-Type" = "application/json";
+      };
     };
     context7 = {
       command = "npx";
