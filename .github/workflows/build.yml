@@ -94,6 +94,18 @@ jobs:
           extraPullNames: nix-community
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
           signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+      - name: Override nix-daemon build directory
+        run: |
+          sudo mkdir -p /mnt/nixtmp
+          sudo chmod ug=rwx,o=rwxt /mnt/nixtmp
+
+          sudo mkdir -p /etc/systemd/system/nix-daemon.service.d
+          sudo tee /etc/systemd/system/nix-daemon.service.d/override.conf >/dev/null <<EOF
+          [Service]
+          Environment=TMPDIR=/mnt/nixtmp
+          EOF
+
+          sudo systemctl daemon-reload
       - name: Build
         run: |
           nix build .#nixosConfigurations.${{ matrix.host.name }}.config.system.build.toplevel
