@@ -26,7 +26,6 @@ jobs:
           usrmisc: true
           opt: true
           varcache: true
-          debug: true
       - name: Checkout new change
         uses: actions/checkout@v4
         with:
@@ -37,19 +36,6 @@ jobs:
             accept-flake-config = true
             experimental-features = nix-command flakes
             builders-use-substitutes = true
-      - name: Override nix-daemon build directory
-        run: |
-          sudo mkdir -p /mnt/nixtmp
-          sudo chmod ug=rwx,o=rwxt /mnt/nixtmp
-
-          sudo mkdir -p /etc/systemd/system/nix-daemon.service.d
-          sudo tee /etc/systemd/system/nix-daemon.service.d/override.conf >/dev/null <<EOF
-          [Service]
-          Environment=TMPDIR=/mnt/nixtmp
-          EOF
-
-          sudo systemctl daemon-reload
-          sudo systemctl restart nix-daemon
       - name: Check flake
         run: nix flake check --all-systems
       - name: Calculate strategy matrix
@@ -77,10 +63,15 @@ jobs:
           usrmisc: true
           opt: true
           varcache: true
+          debug: true
       - name: Checkout new change
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
+      - name: Create /nix under /mnt
+        run: |
+          sudo mkdir -p /mnt/nix
+          sudo ln -s /mnt/nix /nix
       - uses: cachix/install-nix-action@v31
         with:
           nix_path: 'nixpkgs=https://github.com/NixOS/nixpkgs/archive/refs/heads/nixos-unstable.tar.gz'
@@ -94,18 +85,6 @@ jobs:
           extraPullNames: nix-community
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
           signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
-      - name: Override nix-daemon build directory
-        run: |
-          sudo mkdir -p /mnt/nixtmp
-          sudo chmod ug=rwx,o=rwxt /mnt/nixtmp
-
-          sudo mkdir -p /etc/systemd/system/nix-daemon.service.d
-          sudo tee /etc/systemd/system/nix-daemon.service.d/override.conf >/dev/null <<EOF
-          [Service]
-          Environment=TMPDIR=/mnt/nixtmp
-          EOF
-
-          sudo systemctl daemon-reload
       - name: Build
         run: |
           nix build .#nixosConfigurations.${{ matrix.host.name }}.config.system.build.toplevel
