@@ -37,6 +37,19 @@ jobs:
             accept-flake-config = true
             experimental-features = nix-command flakes
             builders-use-substitutes = true
+      - name: Override nix-daemon build directory
+        run: |
+          sudo mkdir -p /mnt/nixtmp
+          sudo chmod ug=rwx,o=rwxt /mnt/nixtmp
+
+          sudo mkdir -p /etc/systemd/system/nix-daemon.service.d
+          sudo tee /etc/systemd/system/nix-daemon.service.d/override.conf >/dev/null <<EOF
+          [Service]
+          Environment=TMPDIR=/mnt/nixtmp
+          EOF
+
+          sudo systemctl daemon-reload
+          sudo systemctl restart nix-daemon
       - name: Check flake
         run: nix flake check --all-systems
       - name: Calculate strategy matrix
