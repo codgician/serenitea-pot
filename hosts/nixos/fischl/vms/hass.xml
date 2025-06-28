@@ -12,6 +12,7 @@
     <hugepages/>
   </memoryBacking>
   <vcpu placement="static">2</vcpu>
+  <iothreads>1</iothreads>
   <cputune>
     <vcpupin vcpu="0" cpuset="6"/>
     <vcpupin vcpu="1" cpuset="7"/>
