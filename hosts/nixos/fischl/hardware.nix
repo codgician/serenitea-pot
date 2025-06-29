@@ -39,7 +39,11 @@
       "default_hugepagesz=1G"
       "hugepages=6"
       "pcie_aspm=off"
+      "pcie_port_pm=off"
     ];
+
+    # Pin kernel version to 6.6.y for stability
+    kernelPackages = pkgs.linuxPackages_6_6;
 
     # ZFS on root boot configs
     supportedFilesystems = [
