@@ -11,6 +11,7 @@ let
     "fin"
     "git"
     "hass"
+    "leyline"
     "matrix"
     "pve"
     "gardemek"
