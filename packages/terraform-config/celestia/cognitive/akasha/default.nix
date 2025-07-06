@@ -14,6 +14,7 @@ in
     ./gpt-4o-mini.nix
     ./grok-3.nix
     ./o4-mini.nix
+    ./sora.nix
   ];
 
   resource = {
