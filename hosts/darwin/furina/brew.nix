@@ -38,7 +38,6 @@
     "IT之家" = 570610859;
     "Store Redirect" = 1601434613;
     "NetEaseMusic" = 944848654;
-    "iStat Menus" = 1319778037;
     "VidHub" = 1659622164;
     "APTV" = 1630403500;
     "Home Assistant" = 1099568401;
