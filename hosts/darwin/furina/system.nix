@@ -60,6 +60,7 @@
             imhex
             ghidra
             prismlauncher-unwrapped
+            macmon
           ]
           ++ (with pkgs.nur.repos.codgician; [
             mtk_uartboot
