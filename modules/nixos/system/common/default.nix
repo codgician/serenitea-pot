@@ -91,12 +91,6 @@ in
       fontconfig.enable = true;
       fontDir.enable = true;
       enableGhostscriptFonts = true;
-      packages = with pkgs; [
-        noto-fonts
-        noto-fonts-cjk-sans
-        noto-fonts-emoji
-        cascadia-code
-      ];
     };
 
     # Open firewall for iperf3 and mDNS

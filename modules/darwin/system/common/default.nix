@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 let
@@ -18,13 +17,13 @@ in
       "/etc/ssh/ssh_host_rsa_key"
     ];
 
-    # Enable Touch ID for sudo
-    security.pam.services.sudo_local.touchIdAuth = true;
-
-    # Fonts
-    fonts.packages = with pkgs; [
-      cascadia-code
-    ];
+    # PAM configuration
+    security.pam.services.sudo_local = {
+      enable = true;
+      reattach = true;
+      touchIdAuth = true;
+      watchIdAuth = true;
+    };
 
     environment = {
       # Disable ssh password authentication

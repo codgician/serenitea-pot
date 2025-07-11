@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -17,5 +18,13 @@ in
   config = lib.mkIf cfg.enable {
     # Set up nix-direnv
     programs.direnv.nix-direnv.enable = true;
+
+    # Fonts
+    fonts.packages = with pkgs; [
+      cascadia-code
+      noto-fonts
+      noto-fonts-cjk-sans
+      noto-fonts-emoji
+    ];
   };
 }
