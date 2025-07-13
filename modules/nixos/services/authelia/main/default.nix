@@ -74,7 +74,7 @@ in
 
           settings = {
             theme = "auto";
-            server.address = "unix:///run/${serviceName}/main.sock?umask=022";
+            server.address = "unix:///run/${serviceName}/main.sock?umask=000";
             log.level = "debug";
             default_2fa_method = "webauthn";
 
