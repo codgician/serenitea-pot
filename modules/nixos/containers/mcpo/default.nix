@@ -129,17 +129,6 @@ in
       };
     })
 
-    # Agenix secrets
-    (lib.mkIf cfg.enable (
-      with lib.codgician;
-      mkAgenixConfigs { } (
-        builtins.map getAgeSecretPathFromName [
-          "mcp-amap-api-key"
-          "mcp-google-maps-api-key"
-        ]
-      )
-    ))
-
     # Reverse proxy profile
     (lib.codgician.mkServiceReverseProxyConfig {
       inherit serviceName cfg;

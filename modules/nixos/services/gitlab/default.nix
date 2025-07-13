@@ -110,23 +110,23 @@ in
 
       # PostgreSQL
       codgician.services.postgresql.enable = true;
-    })
 
-    # Agenix secrets
-    (lib.mkIf cfg.enable (
-      with lib.codgician;
-      mkAgenixConfigs { owner = cfg.user; } (
-        builtins.map getAgeSecretPathFromName [
-          "gitlab-init-root-password"
-          "gitlab-db"
-          "gitlab-jws"
-          "gitlab-otp"
-          "gitlab-secret"
-          "gitlab-smtp"
-          "gitlab-omniauth-github"
-        ]
-      )
-    ))
+      # Agenix secrets
+      codgician.system.agenix.secrets =
+        lib.genAttrs
+          [
+            "gitlab-init-root-password"
+            "gitlab-db"
+            "gitlab-jws"
+            "gitlab-otp"
+            "gitlab-secret"
+            "gitlab-smtp"
+            "gitlab-omniauth-github"
+          ]
+          (owner: {
+            inherit owner;
+          });
+    })
 
     # Reverse proxy profile
     (lib.codgician.mkServiceReverseProxyConfig {

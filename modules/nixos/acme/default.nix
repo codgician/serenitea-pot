@@ -92,15 +92,6 @@ in
           useRoot = false;
         };
       }
-
-      # Agenix credentials
-      (lib.codgician.mkAgenixConfigs { } (
-        lib.pipe domainNames [
-          (builtins.filter (name: cfg.${name}.enable && cfg.${name}.ageSecretFilePath != null))
-          (builtins.map (name: cfg.${name}.ageSecretFilePath))
-          lib.lists.unique
-        ]
-      ))
     ]
   );
 }

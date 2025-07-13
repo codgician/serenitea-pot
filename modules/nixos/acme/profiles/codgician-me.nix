@@ -16,6 +16,4 @@ in
   };
 
   codgician.acme."${domain}".ageSecretFilePath = credPath;
-
-  assertions = lib.codgician.mkAgenixAssertions [ credPath ];
 }

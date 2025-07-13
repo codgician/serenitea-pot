@@ -51,12 +51,9 @@ in
         nix-eval-jobs
         nix-fast-build
       ];
-    }
 
-    # Agenix secrets
-    (
-      with lib.codgician;
-      mkAgenixConfigs { mode = "644"; } [ (getAgeSecretPathFromName "nix-access-tokens") ]
-    )
+      # Agenix secrets
+      codgician.system.agenix.secrets.nix-access-tokens.mode = "0644";
+    }
   ];
 }

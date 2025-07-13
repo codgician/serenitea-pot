@@ -287,10 +287,6 @@ in
         '';
     })
 
-    (lib.mkIf cfg.enable (
-      with lib.codgician; mkAgenixConfigs { } [ (getAgeSecretPathFromName "open-webui-env") ]
-    ))
-
     # Reverse proxy profile
     (lib.codgician.mkServiceReverseProxyConfig {
       inherit serviceName cfg;

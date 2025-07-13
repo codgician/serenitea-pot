@@ -109,10 +109,6 @@ in
       };
     })
 
-    (lib.mkIf cfg.enable (
-      with lib.codgician; mkAgenixConfigs { } [ (getAgeSecretPathFromName "litellm-env") ]
-    ))
-
     # Reverse proxy profile
     (lib.codgician.mkServiceReverseProxyConfig {
       inherit serviceName cfg;

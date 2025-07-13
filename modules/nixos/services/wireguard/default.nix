@@ -105,28 +105,6 @@ in
           message = "WireGuard: Host ${intCfg.host} should not be in peers list.";
         }) (builtins.attrValues cfg.interfaces);
       }
-
-      # Agenix credentials
-      (lib.codgician.mkAgenixConfigs { } (
-        lib.pipe cfg.interfaces [
-          builtins.attrValues
-
-          # Get key names
-          (builtins.concatMap (
-            intCfg:
-            with lib.codgician;
-            let
-              privateKeys = [ (getAgeSecretPathFromName (getPrivateKeyName intCfg.host)) ];
-              presharedKeys = builtins.map (
-                peer: getAgeSecretPathFromName (getPresharedKeyName intCfg.host peer)
-              ) intCfg.peers;
-            in
-            privateKeys ++ presharedKeys
-          ))
-
-          lib.unique
-        ]
-      ))
     ]
   );
 }

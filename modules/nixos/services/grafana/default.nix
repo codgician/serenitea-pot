@@ -7,7 +7,6 @@
 let
   serviceName = "grafana";
   cfg = config.codgician.services.grafana;
-  systemCfg = config.codgician.system;
   types = lib.types;
 in
 {
@@ -96,19 +95,19 @@ in
               group = serviceName;
             }
           ];
-    })
 
-    # Agenix secrets
-    (lib.mkIf cfg.enable (
-      with lib.codgician;
-      mkAgenixConfigs { owner = serviceName; } (
-        builtins.map getAgeSecretPathFromName [
-          "grafana-admin-password"
-          "grafana-secret-key"
-          "grafana-smtp"
-        ]
-      )
-    ))
+      # Agenix secrets
+      codgician.system.agenix.secrets =
+        lib.genAttrs
+          [
+            "grafana-admin-password"
+            "grafana-secret-key"
+            "grafana-smtp"
+          ]
+          (_: {
+            owner = serviceName;
+          });
+    })
 
     # Reverse proxy profile
     (lib.codgician.mkServiceReverseProxyConfig {

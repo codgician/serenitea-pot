@@ -91,10 +91,25 @@ let
         # Import user specific options
         (import ./${name} { inherit config lib pkgs; })
 
-        # Impermanence: persist home directory if enabled
         {
-          codgician.system = lib.optionalAttrs (config.codgician.system ? impermanence) {
-            impermanence.extraItems = lib.mkIf (cfg.${name}.createHome) [
+          codgician.system = {
+            # Agenix secrets
+            agenix.secrets =
+              let
+                credFiles =
+                  cfg.${name}.extraAgeFiles
+                  ++ (builtins.filter (x: x != null) [
+                    cfg.${name}.passwordAgeFile
+                    cfg.${name}.hashedPasswordAgeFile
+                  ]);
+                credNames = builtins.map (x: lib.codgician.getAgeSecretNameFromPath x) credFiles;
+              in
+              lib.genAttrs credNames (_: {
+                owner = name;
+              });
+
+            # Impermanence: persist home directory if enabled
+            impermanence.extraItems = lib.mkIf (config.codgician.system ? impermanence) [
               {
                 type = "directory";
                 path = cfg.${name}.home;
@@ -105,19 +120,6 @@ let
             ];
           };
         }
-
-        # Agenix: manage secrets if enabled
-        (
-          let
-            credFiles =
-              cfg.${name}.extraAgeFiles
-              ++ (builtins.filter (x: x != null) [
-                cfg.${name}.passwordAgeFile
-                cfg.${name}.hashedPasswordAgeFile
-              ]);
-          in
-          lib.codgician.mkAgenixConfigs { owner = name; } credFiles
-        )
 
         # Common options
         {

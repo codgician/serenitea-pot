@@ -201,18 +201,6 @@ in
       };
     })
 
-    # Agenix secrets
-    (lib.mkIf cfg.enable (
-      let
-        credFileNames = [
-          "matrix-global-private-key"
-          "matrix-env"
-        ];
-        credFiles = builtins.map (lib.codgician.getAgeSecretPathFromName) credFileNames;
-      in
-      lib.codgician.mkAgenixConfigs { } credFiles
-    ))
-
     # Reverse proxy profile
     (lib.codgician.mkServiceReverseProxyConfig {
       inherit serviceName cfg;

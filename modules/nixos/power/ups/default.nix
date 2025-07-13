@@ -100,108 +100,93 @@ in
     };
   };
 
-  config = lib.mkIf (cfg.devices != { }) (
-    lib.mkMerge [
-      {
-        power.ups = {
-          enable = true;
-          mode = "standalone";
-          openFirewall = true;
-          users = {
-            "admin" = {
-              actions = [ "SET" ];
-              instcmds = [ "ALL" ];
-              passwordFile = config.age.secrets.nut-password.path;
-            };
-            "upsmon".passwordFile = config.age.secrets.upsmon-password.path;
-          };
-
-          # Devices
-          ups = builtins.mapAttrs (
-            name: value: import (./skus + "/${value.sku}.nix") (value // { inherit lib; })
-          ) cfg.devices;
-
-          # Monitor
-          upsmon = {
-            monitor = builtins.mapAttrs (name: value: {
-              user = "admin";
-              powerValue = 1;
-              type = "master";
-              passwordFile = config.age.secrets.nut-password.path;
-              system = name;
-            }) cfg.devices;
-
-            settings = {
-              MINSUPPLIES = cfg.minSupplies;
-              NOTIFYFLAG = [
-                [
-                  "ONLINE"
-                  "SYSLOG+WALL+EXEC"
-                ]
-                [
-                  "ONBATT"
-                  "SYSLOG+WALL+EXEC"
-                ]
-                [
-                  "LOWBATT"
-                  "SYSLOG+WALL+EXEC"
-                ]
-                [
-                  "FSD"
-                  "SYSLOG+WALL+EXEC"
-                ]
-                [
-                  "COMMBAD"
-                  "SYSLOG+EXEC"
-                ]
-                [
-                  "COMMOK"
-                  "SYSLOG+EXEC"
-                ]
-                [
-                  "REPLBATT"
-                  "SYSLOG+EXEC"
-                ]
-                [
-                  "NOCOMM"
-                  "SYSLOG+EXEC"
-                ]
-                [
-                  "SHUTDOWN"
-                  "SYSLOG+EXEC"
-                ]
-                [
-                  "NOPARENT"
-                  "SYSLOG+EXEC"
-                ]
-              ];
-            };
-          };
-
-          upsd = {
-            enable = true;
-            listen = [
-              {
-                address = "::";
-                port = 3493;
-              }
-            ];
-          };
-
-          schedulerRules = (import ./sched.nix { inherit config pkgs lib; }).outPath;
+  config = lib.mkIf (cfg.devices != { }) {
+    power.ups = {
+      enable = true;
+      mode = "standalone";
+      openFirewall = true;
+      users = {
+        "admin" = {
+          actions = [ "SET" ];
+          instcmds = [ "ALL" ];
+          passwordFile = config.age.secrets.nut-password.path;
         };
-      }
+        "upsmon".passwordFile = config.age.secrets.upsmon-password.path;
+      };
 
-      # Agenix secrets
-      (
-        with lib.codgician;
-        mkAgenixConfigs { } (
-          builtins.map getAgeSecretPathFromName [
-            "nut-password"
-            "upsmon-password"
-          ]
-        )
-      )
-    ]
-  );
+      # Devices
+      ups = builtins.mapAttrs (
+        name: value: import (./skus + "/${value.sku}.nix") (value // { inherit lib; })
+      ) cfg.devices;
+
+      # Monitor
+      upsmon = {
+        monitor = builtins.mapAttrs (name: value: {
+          user = "admin";
+          powerValue = 1;
+          type = "master";
+          passwordFile = config.age.secrets.nut-password.path;
+          system = name;
+        }) cfg.devices;
+
+        settings = {
+          MINSUPPLIES = cfg.minSupplies;
+          NOTIFYFLAG = [
+            [
+              "ONLINE"
+              "SYSLOG+WALL+EXEC"
+            ]
+            [
+              "ONBATT"
+              "SYSLOG+WALL+EXEC"
+            ]
+            [
+              "LOWBATT"
+              "SYSLOG+WALL+EXEC"
+            ]
+            [
+              "FSD"
+              "SYSLOG+WALL+EXEC"
+            ]
+            [
+              "COMMBAD"
+              "SYSLOG+EXEC"
+            ]
+            [
+              "COMMOK"
+              "SYSLOG+EXEC"
+            ]
+            [
+              "REPLBATT"
+              "SYSLOG+EXEC"
+            ]
+            [
+              "NOCOMM"
+              "SYSLOG+EXEC"
+            ]
+            [
+              "SHUTDOWN"
+              "SYSLOG+EXEC"
+            ]
+            [
+              "NOPARENT"
+              "SYSLOG+EXEC"
+            ]
+          ];
+        };
+      };
+
+      upsd = {
+        enable = true;
+        listen = [
+          {
+            address = "::";
+            port = 3493;
+          }
+        ];
+      };
+
+      schedulerRules = (import ./sched.nix { inherit config pkgs lib; }).outPath;
+    };
+  };
 }
