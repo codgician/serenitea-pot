@@ -5,6 +5,7 @@ let
   cnames = [
     "akasha"
     "amt"
+    "auth"
     "books"
     "bubbles"
     "dragonspine"

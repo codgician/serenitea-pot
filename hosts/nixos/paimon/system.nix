@@ -31,6 +31,14 @@
     };
 
     services = {
+      # Auth
+      authelia.main = {
+        enable = true;
+        domain = "codgician.me";
+        database = "postgresql";
+        reverseProxy.enable = true;
+      };
+
       postgresql = {
         enable = true;
         dataDir = "/opool/postgres";

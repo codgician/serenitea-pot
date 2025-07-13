@@ -4,6 +4,13 @@ in
 with pubKeys;
 with pubKeys.hosts;
 {
+  # Authelia
+  "authelia-main-jwt.age".publicKeys = someHosts [ paimon ];
+  "authelia-main-session.age".publicKeys = someHosts [ paimon ];
+  "authelia-main-storage.age".publicKeys = someHosts [ paimon ];
+  "authelia-main-smtp.age".publicKeys = someHosts [ paimon ];
+  "authelia-main-users.age".publicKeys = someHosts [ paimon ];
+
   # Wireless credentials
   "wireless-env.age".publicKeys = someHosts [ ];
 
