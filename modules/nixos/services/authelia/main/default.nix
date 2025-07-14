@@ -140,13 +140,6 @@ in
 
             webauthn = {
               enable_passkey_login = true;
-              metadata = {
-                enabled = true;
-                validate_trust_anchor = true;
-                validate_entry = true;
-                validate_status = true;
-                validate_entry_permit_zero_aaguid = false;
-              };
             };
           };
         };

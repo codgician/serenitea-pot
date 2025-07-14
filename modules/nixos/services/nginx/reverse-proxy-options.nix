@@ -1,10 +1,25 @@
-{ lib, pkgs, ... }:
+{
+  options,
+  lib,
+  pkgs,
+  ...
+}:
 let
   types = lib.types;
+  autheliaInstances = builtins.attrNames options.codgician.services.authelia.instances;
 in
 {
   options = {
     enable = lib.mkEnableOption "Nginx reverse proxy profile for this service.";
+
+    authelia = lib.mkOption {
+      type = with types; nullOr (enum autheliaInstances);
+      default = null;
+      description = ''
+        Authelia instance to use for authentication.
+        If set, the reverse proxy will be configured to use Authelia for authentication.
+      '';
+    };
 
     https = lib.mkEnableOption "Use https and auto-renew certificates.";
 
