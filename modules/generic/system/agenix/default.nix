@@ -21,12 +21,13 @@ let
   });
 
   # Available secrets on current system
-  pubkeys = (import "${secretsDir}/pubkeys.nix").hosts.${hostName};
+  pubkeyHosts = (import "${secretsDir}/pubkeys.nix").hosts;
+  pubkeys = if (pubkeyHosts ? ${hostName}) then pubkeyHosts.${hostName} else [ ];
   isSecretAvailable =
     secretName:
     # Only check against the first public key in the list for simplicity
     pubkeys != [ ] && builtins.elem (builtins.head pubkeys) (secrets.${secretName}.publicKeys);
-  availableSecretNames = builtins.filter (isSecretAvailable) secretNames;
+  availableSecretNames = builtins.filter isSecretAvailable secretNames;
 in
 {
   options.codgician.system.agenix = {
