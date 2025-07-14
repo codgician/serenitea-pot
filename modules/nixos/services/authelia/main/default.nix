@@ -80,7 +80,7 @@ in
 
             # Use file backend for simplicity
             authentication_backend.file = {
-              path = config.age.secrets."authelia-main-users".path;
+              path = "/var/lib/authelia-main/users.yml";
               search.email = true;
               password = {
                 algorithm = "argon2";
@@ -118,22 +118,39 @@ in
 
             access_control = {
               # todo: define rules
-              default_policy = "one_factor";
+              default_policy = "two_factor";
             };
 
             notifier = {
-              disable_startup_check = true; # todo: fix it
               smtp = {
                 address = "smtp://smtp.office365.com:587";
                 username = "bot@codgician.me";
                 # password provided by AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
-                sender = "Authelia <bot@codgician.me>";
+                sender = "bot@codgician.me";
                 subject = "[Authelia] {title}";
+                identifier = cfg.domain;
+                timeout = "15s";
+                startup_check_address = "test@authelia.com";
+                tls = {
+                  server_name = "smtp.office365.com";
+                  minimum_version = "TLS1.2";
+                };
+              };
+            };
+
+            webauthn = {
+              enable_passkey_login = true;
+              metadata = {
+                enabled = true;
+                validate_trust_anchor = true;
+                validate_entry = true;
+                validate_status = true;
+                validate_entry_permit_zero_aaguid = false;
               };
             };
           };
         };
-        
+
         # Grant access to /run
         systemd.services.${serviceName}.serviceConfig = {
           RuntimeDirectory = serviceName;
@@ -155,13 +172,21 @@ in
               "authelia-main-session"
               "authelia-main-storage"
               "authelia-main-smtp"
-              "authelia-main-users"
             ]
             (name: {
               owner = cfg.user;
               group = cfg.group;
               mode = "0600";
             });
+
+        # Persist default data directory
+        codgician.system.impermanence.extraItems = [
+          {
+            type = "directory";
+            path = "/var/lib/${serviceName}";
+            inherit (cfg) user group;
+          }
+        ];
       }
 
       # PostgreSQL
