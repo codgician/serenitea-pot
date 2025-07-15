@@ -32,7 +32,7 @@
 
     services = {
       # Auth
-      authelia.main = {
+      authelia.instances.main = {
         enable = true;
         domain = "codgician.me";
         database = "postgresql";

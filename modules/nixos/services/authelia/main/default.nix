@@ -2,11 +2,11 @@
 let
   name = "main";
   serviceName = "authelia-${name}";
-  cfg = config.codgician.services.authelia.${name};
+  cfg = config.codgician.services.authelia.instances.${name};
   types = lib.types;
 in
 {
-  options.codgician.services.authelia.${name} = {
+  options.codgician.services.authelia.instances.${name} = {
     enable = lib.mkEnableOption "Authelia instance ${name}";
 
     address = lib.mkOption {
