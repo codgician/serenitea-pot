@@ -102,7 +102,6 @@ jobs:
           nix_path: 'nixpkgs=https://github.com/NixOS/nixpkgs/archive/refs/heads/nixos-unstable.tar.gz'
           extra_nix_config: |
             accept-flake-config = true
-            auto-optimise-store = true
             experimental-features = nix-command flakes
             builders-use-substitutes = true
             extra-platforms = x86_64-darwin
