@@ -126,7 +126,9 @@ in
     openFirewall = lib.mkEnableOption "Open port 80 and 443 in firewall configuration.";
 
     reverseProxies = lib.mkOption {
-      type = types.attrsOf (types.submodule (import ./reverse-proxy-options.nix { inherit options lib pkgs; }));
+      type = types.attrsOf (
+        types.submodule (import ./reverse-proxy-options.nix { inherit options lib pkgs; })
+      );
       default = { };
       example = lib.literalExpression ''
         {
