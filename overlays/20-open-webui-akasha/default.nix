@@ -5,12 +5,13 @@
 self: super:
 let
   patches = [
+    # Support docling-serve 1.x (#15785)
+    ./docling-v1.patch
     # Add fish-speech support (#11230)
     ./fish-speech.patch
   ];
 
   postPatch = ''
-
     # Remove suffix in webui name
     substituteInPlace backend/open_webui/env.py \
       --replace-fail 'WEBUI_NAME += " (Open WebUI)"' 'WEBUI_NAME += ""' 
