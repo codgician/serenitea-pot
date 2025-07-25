@@ -27,15 +27,14 @@ in
           options = "--delete-older-than 7d";
         };
 
-        extraOptions =
-          ''
-            fallback = true
-            experimental-features = nix-command flakes
-            accept-flake-config = true
-          ''
-          + (lib.optionalString (config.age.secrets ? "nix-access-tokens") ''
-            !include ${config.age.secrets.nix-access-tokens.path}
-          '');
+        extraOptions = ''
+          fallback = true
+          experimental-features = nix-command flakes
+          accept-flake-config = true
+        ''
+        + (lib.optionalString (config.age.secrets ? "nix-access-tokens") ''
+          !include ${config.age.secrets.nix-access-tokens.path}
+        '');
         optimise.automatic = true;
         settings = lib.mkMerge [
           {

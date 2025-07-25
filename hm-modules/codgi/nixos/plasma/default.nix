@@ -56,7 +56,8 @@ in
                 "applications:org.kde.dolphin.desktop"
                 "applications:firefox.desktop"
                 "applications:org.kde.konsole.desktop"
-              ] ++ (lib.optional (config.codgician.codgi.vscode.enable) "applications:code.desktop");
+              ]
+              ++ (lib.optional (config.codgician.codgi.vscode.enable) "applications:code.desktop");
             }
 
             "org.kde.plasma.panelspacer"

@@ -15,62 +15,61 @@ let
 
   # Define module options for each user
   mkUserOptions = name: {
-    "${name}" =
-      {
-        enable = lib.mkEnableOption ''Enable user "${name}".'';
+    "${name}" = {
+      enable = lib.mkEnableOption ''Enable user "${name}".'';
 
-        createHome = lib.mkOption {
-          type = types.bool;
-          default = true;
-          description = ''
-            Whether or not to create home directory for user "${name}".
-          '';
-        };
-
-        home = lib.mkOption {
-          type = types.path;
-          default = if isLinux then "/home/${name}" else "/Users/${name}";
-          description = ''
-            Path of home directory for user "${name}".
-          '';
-        };
-
-        extraAgeFiles = lib.mkOption {
-          type = types.listOf types.path;
-          default = [ ];
-          description = ''
-            Paths to `.age` secret files owned by user "${name}" excluding `hashedPasswordAgeFile`.
-          '';
-        };
-
-        hashedPasswordAgeFile = lib.mkOption {
-          type = with types; nullOr path;
-          default = null;
-          visible = isLinux;
-          description = ''
-            Path to hashed password file encrypted managed by agenix.
-          '';
-        };
-
-        passwordAgeFile = lib.mkOption {
-          type = with types; nullOr path;
-          default = null;
-          description = ''
-            Path to plain password file encrypted managed by agenix.
-            This option does not set login password.
-          '';
-        };
-
-      }
-      // lib.optionalAttrs isLinux {
-        extraGroups = lib.mkOption {
-          type = types.listOf types.str;
-          default = [ ];
-          description = ''
-            Auxiliary groups for user "${name}".
-          '';
-        };
+      createHome = lib.mkOption {
+        type = types.bool;
+        default = true;
+        description = ''
+          Whether or not to create home directory for user "${name}".
+        '';
       };
+
+      home = lib.mkOption {
+        type = types.path;
+        default = if isLinux then "/home/${name}" else "/Users/${name}";
+        description = ''
+          Path of home directory for user "${name}".
+        '';
+      };
+
+      extraAgeFiles = lib.mkOption {
+        type = types.listOf types.path;
+        default = [ ];
+        description = ''
+          Paths to `.age` secret files owned by user "${name}" excluding `hashedPasswordAgeFile`.
+        '';
+      };
+
+      hashedPasswordAgeFile = lib.mkOption {
+        type = with types; nullOr path;
+        default = null;
+        visible = isLinux;
+        description = ''
+          Path to hashed password file encrypted managed by agenix.
+        '';
+      };
+
+      passwordAgeFile = lib.mkOption {
+        type = with types; nullOr path;
+        default = null;
+        description = ''
+          Path to plain password file encrypted managed by agenix.
+          This option does not set login password.
+        '';
+      };
+
+    }
+    // lib.optionalAttrs isLinux {
+      extraGroups = lib.mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        description = ''
+          Auxiliary groups for user "${name}".
+        '';
+      };
+    };
   };
 
   # Define assertions for each user
@@ -92,54 +91,52 @@ let
         (import ./${name} { inherit config lib pkgs; })
 
         {
-          codgician.system =
-            {
-              # Agenix secrets
-              agenix.secrets =
-                let
-                  credFiles =
-                    cfg.${name}.extraAgeFiles
-                    ++ (builtins.filter (x: x != null) [
-                      cfg.${name}.passwordAgeFile
-                      cfg.${name}.hashedPasswordAgeFile
-                    ]);
-                  credNames = builtins.map (x: lib.codgician.getAgeSecretNameFromPath x) credFiles;
-                in
-                lib.genAttrs credNames (_: {
-                  owner = name;
-                });
-            }
-            // lib.optionalAttrs (config.codgician.system ? impermanence) {
-              # Impermanence: persist home directory if enabled
-              impermanence.extraItems = [
-                {
-                  type = "directory";
-                  path = cfg.${name}.home;
-                  user = name;
-                  group = "users";
-                  mode = "700";
-                }
-              ];
-            };
+          codgician.system = {
+            # Agenix secrets
+            agenix.secrets =
+              let
+                credFiles =
+                  cfg.${name}.extraAgeFiles
+                  ++ (builtins.filter (x: x != null) [
+                    cfg.${name}.passwordAgeFile
+                    cfg.${name}.hashedPasswordAgeFile
+                  ]);
+                credNames = builtins.map (x: lib.codgician.getAgeSecretNameFromPath x) credFiles;
+              in
+              lib.genAttrs credNames (_: {
+                owner = name;
+              });
+          }
+          // lib.optionalAttrs (config.codgician.system ? impermanence) {
+            # Impermanence: persist home directory if enabled
+            impermanence.extraItems = [
+              {
+                type = "directory";
+                path = cfg.${name}.home;
+                user = name;
+                group = "users";
+                mode = "700";
+              }
+            ];
+          };
         }
 
         # Common options
         {
           assertions = mkUserAssertions name;
-          users.users.${name} =
-            {
-              createHome = cfg.${name}.createHome;
-              home = cfg.${name}.home;
-            }
-            // lib.optionalAttrs (cfg.${name} ? extraGroups) {
-              extraGroups = cfg.${name}.extraGroups;
-            }
-            // lib.optionalAttrs isLinux {
-              hashedPasswordFile =
-                config.age.secrets."${lib.codgician.getAgeSecretNameFromPath
-                  cfg.${name}.hashedPasswordAgeFile
-                }".path;
-            };
+          users.users.${name} = {
+            createHome = cfg.${name}.createHome;
+            home = cfg.${name}.home;
+          }
+          // lib.optionalAttrs (cfg.${name} ? extraGroups) {
+            extraGroups = cfg.${name}.extraGroups;
+          }
+          // lib.optionalAttrs isLinux {
+            hashedPasswordFile =
+              config.age.secrets."${lib.codgician.getAgeSecretNameFromPath
+                cfg.${name}.hashedPasswordAgeFile
+              }".path;
+          };
         }
 
         # Import home-manager modules (only when createHome is enabled)

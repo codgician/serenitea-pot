@@ -14,14 +14,13 @@ in
     programs.ssh = {
       enable = true;
       addKeysToAgent = "yes";
-      extraConfig =
-        ''
-          IdentityFile ~/.ssh/id_ed25519
-        ''
-        + lib.optionalString pkgs.stdenvNoCC.isDarwin ''
-          IgnoreUnknown UseKeychain
-          UseKeychain yes
-        '';
+      extraConfig = ''
+        IdentityFile ~/.ssh/id_ed25519
+      ''
+      + lib.optionalString pkgs.stdenvNoCC.isDarwin ''
+        IgnoreUnknown UseKeychain
+        UseKeychain yes
+      '';
       matchBlocks = {
         "fischl" = {
           hostname = "fischl.lan";

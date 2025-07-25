@@ -16,27 +16,25 @@ in
       enable = true;
       oh-my-zsh = {
         enable = true;
-        plugins =
-          [
-            "git"
-          ]
-          ++ lib.optionals pkgs.stdenvNoCC.isDarwin [
-            "macos"
-          ];
+        plugins = [
+          "git"
+        ]
+        ++ lib.optionals pkgs.stdenvNoCC.isDarwin [
+          "macos"
+        ];
         theme = "half-life";
       };
 
-      initContent =
+      initContent = ''
+        zstyle :omz:plugins:ssh-agent quiet yes
+      ''
+      + lib.optionalString pkgs.stdenvNoCC.isDarwin (
+        lib.optionalString osConfig.homebrew.enable ''
+          if [ -f /opt/homebrew/bin/brew ]; then 
+            eval "$(/opt/homebrew/bin/brew shellenv)"
+          fi
         ''
-          zstyle :omz:plugins:ssh-agent quiet yes
-        ''
-        + lib.optionalString pkgs.stdenvNoCC.isDarwin (
-          lib.optionalString osConfig.homebrew.enable ''
-            if [ -f /opt/homebrew/bin/brew ]; then 
-              eval "$(/opt/homebrew/bin/brew shellenv)"
-            fi
-          ''
-        );
+      );
     };
 
     # Also enable direnv

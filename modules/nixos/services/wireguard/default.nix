@@ -75,26 +75,25 @@ in
         ];
 
         networking = {
-          wireguard =
-            {
-              interfaces = builtins.mapAttrs (_: intCfg: {
-                inherit (hostOptions.${intCfg.host}) privateKeyFile ips listenPort;
-                inherit (intCfg) mtu allowedIPsAsRoutes;
-                peers = builtins.map (peer: {
-                  inherit (hostOptions.${peer})
-                    name
-                    endpoint
-                    publicKey
-                    allowedIPs
-                    ;
-                  presharedKeyFile = config.age.secrets.${getPresharedKeyName intCfg.host peer}.path;
-                  dynamicEndpointRefreshSeconds = 5;
-                }) intCfg.peers;
-              }) cfg.interfaces;
-            }
-            // (lib.optionalAttrs (lib.versionAtLeast lib.version "25.05") {
-              useNetworkd = false; # See: https://github.com/systemd/systemd/issues/9911
-            });
+          wireguard = {
+            interfaces = builtins.mapAttrs (_: intCfg: {
+              inherit (hostOptions.${intCfg.host}) privateKeyFile ips listenPort;
+              inherit (intCfg) mtu allowedIPsAsRoutes;
+              peers = builtins.map (peer: {
+                inherit (hostOptions.${peer})
+                  name
+                  endpoint
+                  publicKey
+                  allowedIPs
+                  ;
+                presharedKeyFile = config.age.secrets.${getPresharedKeyName intCfg.host peer}.path;
+                dynamicEndpointRefreshSeconds = 5;
+              }) intCfg.peers;
+            }) cfg.interfaces;
+          }
+          // (lib.optionalAttrs (lib.versionAtLeast lib.version "25.05") {
+            useNetworkd = false; # See: https://github.com/systemd/systemd/issues/9911
+          });
 
           # Open firewall
           firewall.allowedUDPPorts = lib.mkIf cfg.openFirewall ports;

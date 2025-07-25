@@ -37,12 +37,11 @@ in
           "${cfg.dataDir}/references:/opt/fish-speech/references"
           "${cfg.dataDir}/checkpoints:/opt/fish-speech/checkpoints"
         ];
-        extraOptions =
-          [
-            "--pull=newer"
-            "--net=host"
-          ]
-          ++ lib.optionals config.hardware.nvidia-container-toolkit.enable [ "--device=nvidia.com/gpu=all" ];
+        extraOptions = [
+          "--pull=newer"
+          "--net=host"
+        ]
+        ++ lib.optionals config.hardware.nvidia-container-toolkit.enable [ "--device=nvidia.com/gpu=all" ];
         cmd = [
           "python"
           "tools/api_server.py"

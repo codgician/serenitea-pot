@@ -13,20 +13,15 @@ in
       defaultProxyPassText ? null,
       extraOptions ? { },
     }:
-    {
-      enable = lib.mkEnableOption "Reverse proxy for ${serviceName}";
-
-      domains = lib.mkOption {
-        type = types.listOf types.str;
-        example = [
-          "example.com"
-          "example.org"
-        ];
-        default = defaultDomains;
-        defaultText = lib.mkIf (defaultDomainsText != null) defaultDomainsText;
-        description = "List of domains for the reverse proxy.";
-      };
-
+    (import ../modules/nixos/services/nginx/reverse-proxy-options.nix {
+      inherit
+        lib
+        serviceName
+        defaultDomains
+        defaultDomainsText
+        ;
+    }).options
+    // {
       proxyPass = lib.mkOption {
         type = types.str;
         default = defaultProxyPass;
@@ -34,7 +29,9 @@ in
         description = "Source URI for the reverse proxy.";
       };
 
-      lanOnly = lib.mkEnableOption "Only allow requests from LAN clients.";
+      lanOnly = lib.mkEnableOption ''
+        Only allow requests from LAN clients.
+      '';
     }
     // extraOptions;
 
@@ -52,7 +49,8 @@ in
           inherit (cfg.reverseProxy) enable domains;
           https = true;
           locations."/" = { inherit (cfg.reverseProxy) proxyPass lanOnly; };
-        } // overrideVhostConfig;
+        }
+        // overrideVhostConfig;
       };
     };
 }

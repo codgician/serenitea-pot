@@ -89,28 +89,28 @@ in
     environment.persistence.${cfg.path} = {
       inherit (cfg) enable;
       hideMounts = true;
-      directories =
-        [
-          "/var/log"
-          "/var/lib/acme"
-          "/var/lib/bluetooth"
-          "/var/lib/nixos"
-          {
-            directory = "/var/lib/private";
-            mode = "0700";
-          }
-          "/var/lib/systemd/coredump"
-          "/etc/NetworkManager/system-connections"
-          "/home"
-        ]
-        ++ lib.optionals (config.services.fail2ban.enable) [ "/var/lib/fail2ban" ]
-        ++ lib.optionals (config.services.fwupd.enable) [ "/var/lib/fwupd" ]
-        ++ extraDirectories;
+      directories = [
+        "/var/log"
+        "/var/lib/acme"
+        "/var/lib/bluetooth"
+        "/var/lib/nixos"
+        {
+          directory = "/var/lib/private";
+          mode = "0700";
+        }
+        "/var/lib/systemd/coredump"
+        "/etc/NetworkManager/system-connections"
+        "/home"
+      ]
+      ++ lib.optionals (config.services.fail2ban.enable) [ "/var/lib/fail2ban" ]
+      ++ lib.optionals (config.services.fwupd.enable) [ "/var/lib/fwupd" ]
+      ++ extraDirectories;
       files = [
         "/etc/machine-id"
         "/etc/ssh/ssh_host_ed25519_key"
         "/etc/ssh/ssh_host_ed25519_key.pub"
-      ] ++ extraFiles;
+      ]
+      ++ extraFiles;
     };
 
     # Suppress systemd-machine-id-commit service

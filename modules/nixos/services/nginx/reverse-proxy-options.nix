@@ -1,19 +1,20 @@
 {
-  options,
   lib,
-  pkgs,
-  ...
+  serviceName ? null,
+  defaultDomains ? [ ],
+  defaultDomainsText ? null,
 }:
 let
   types = lib.types;
-  autheliaInstances = builtins.attrNames options.codgician.services.authelia.instances;
 in
 {
   options = {
-    enable = lib.mkEnableOption "Nginx reverse proxy profile for this service.";
+    enable = lib.mkEnableOption "Nginx reverse proxy profile for ${
+      if serviceName == null then "this service" else serviceName
+    }.";
 
     authelia = lib.mkOption {
-      type = with types; nullOr (enum autheliaInstances);
+      type = with types; nullOr str;
       default = null;
       description = ''
         Authelia instance to use for authentication.
@@ -29,12 +30,13 @@ in
         "example.com"
         "example.org"
       ];
-      default = [ ];
+      default = defaultDomains;
+      defaultText = lib.mkIf (defaultDomainsText != null) defaultDomainsText;
       description = "List of domains for the reverse proxy.";
     };
 
     locations = lib.mkOption {
-      type = types.attrsOf (types.submodule (import ./location-options.nix { inherit lib pkgs; }));
+      type = types.attrsOf (types.submodule (import ./location-options.nix { inherit lib; }));
       default = { };
       example = lib.literalExpression ''
         {

@@ -44,18 +44,18 @@ in
         volumes = [
           "${cfg.dataDir}/basedir:/basedir"
           "${cfg.dataDir}/run:/comfy/mnt"
-        ] ++ (lib.optional (cfg.modelDir != null) "${cfg.modelDir}:/comfy/mnt/ComfyUI/models");
-        extraOptions =
-          [
-            "--pull=newer"
-            "-e"
-            "SECURITY_LEVEL=normal"
-            "-e"
-            "WANTED_UID=${builtins.toString uid}"
-            "-e"
-            "WANTED_GID=${builtins.toString uid}"
-          ]
-          ++ lib.optionals config.hardware.nvidia-container-toolkit.enable [ "--device=nvidia.com/gpu=all" ];
+        ]
+        ++ (lib.optional (cfg.modelDir != null) "${cfg.modelDir}:/comfy/mnt/ComfyUI/models");
+        extraOptions = [
+          "--pull=newer"
+          "-e"
+          "SECURITY_LEVEL=normal"
+          "-e"
+          "WANTED_UID=${builtins.toString uid}"
+          "-e"
+          "WANTED_GID=${builtins.toString uid}"
+        ]
+        ++ lib.optionals config.hardware.nvidia-container-toolkit.enable [ "--device=nvidia.com/gpu=all" ];
       };
 
       virtualisation.podman.enable = true;
