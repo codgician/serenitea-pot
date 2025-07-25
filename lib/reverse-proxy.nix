@@ -48,7 +48,10 @@ in
         reverseProxies.${serviceName} = {
           inherit (cfg.reverseProxy) enable domains;
           https = true;
-          locations."/" = { inherit (cfg.reverseProxy) proxyPass lanOnly; };
+          locations."/" = {
+            inherit (cfg.reverseProxy) lanOnly;
+            passthru = { inherit (cfg.reverseProxy) proxyPass; };
+          };
         }
         // overrideVhostConfig;
       };

@@ -57,10 +57,13 @@ in
     (lib.codgician.mkServiceReverseProxyConfig {
       inherit serviceName cfg;
       overrideVhostConfig.locations."/" = {
-        inherit (cfg.reverseProxy) proxyPass lanOnly;
-        extraConfig = ''
-          proxy_buffering off;
-        '';
+        inherit (cfg.reverseProxy) lanOnly;
+        passthru = {
+          inherit (cfg.reverseProxy) proxyPass;
+          extraConfig = ''
+            proxy_buffering off;
+          '';
+        };
       };
     })
   ];

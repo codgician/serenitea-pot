@@ -221,7 +221,7 @@ in
               if cfg.reverseProxy.elementWeb then
                 {
                   inherit (cfg.reverseProxy) lanOnly;
-                  root = import ./element-web.nix {
+                  passthru.root = import ./element-web.nix {
                     inherit pkgs clientConfig;
                     domains = cfg.reverseProxy.domains;
                   };
@@ -231,30 +231,37 @@ in
 
             # Matrix protocol
             "~ ^/(_matrix|_synapse)" = {
-              inherit (cfg.reverseProxy) proxyPass lanOnly;
-              extraConfig = ''
-                client_max_body_size 0;
-                proxy_read_timeout 120;
-              '';
+              inherit (cfg.reverseProxy) lanOnly;
+              passthru = {
+                inherit (cfg.reverseProxy) proxyPass;
+                extraConfig = ''
+                  client_max_body_size 0;
+                  proxy_read_timeout 120;
+                '';
+              };
             };
 
             # Announce server & client metadata
             "= /.well-known/matrix/server" = lib.mkIf (!cfg.reverseProxy.proxyAll) {
               inherit (cfg.reverseProxy) lanOnly;
-              return = ''200 '${builtins.toJSON serverConfig}' '';
-              extraConfig = ''
-                add_header Content-Type application/json;
-                add_header Access-Control-Allow-Origin *;
-              '';
+              passthru = {
+                return = ''200 '${builtins.toJSON serverConfig}' '';
+                extraConfig = ''
+                  add_header Content-Type application/json;
+                  add_header Access-Control-Allow-Origin *;
+                '';
+              };
             };
 
             "= /.well-known/matrix/client" = lib.mkIf (!cfg.reverseProxy.proxyAll) {
               inherit (cfg.reverseProxy) lanOnly;
-              return = ''200 '${builtins.toJSON clientConfig}' '';
-              extraConfig = ''
-                add_header Content-Type application/json;
-                add_header Access-Control-Allow-Origin *;
-              '';
+              passthru = {
+                return = ''200 '${builtins.toJSON clientConfig}' '';
+                extraConfig = ''
+                  add_header Content-Type application/json;
+                  add_header Access-Control-Allow-Origin *;
+                '';
+              };
             };
           };
         };

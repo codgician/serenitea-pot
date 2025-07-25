@@ -51,28 +51,28 @@
             enable = true;
             https = true;
             domains = [ "bubbles.codgician.me" ];
-            locations."/".proxyPass = "http://192.168.0.9:1234";
+            locations."/".passthru.proxyPass = "http://192.168.0.9:1234";
           };
 
           "hass.codgician.me" = {
             enable = true;
             https = true;
             domains = [ "hass.codgician.me" ];
-            locations."/".proxyPass = "http://192.168.0.6:8123";
+            locations."/".passthru.proxyPass = "http://192.168.0.6:8123";
           };
 
           "pve.codgician.me" = {
             enable = true;
             https = true;
             domains = [ "pve.codgician.me" ];
-            locations."/".proxyPass = "https://192.168.0.21";
+            locations."/".passthru.proxyPass = "https://192.168.0.21";
           };
 
           "saw.codgician.me" = {
             enable = true;
             https = true;
             domains = [ "saw.codgician.me" ];
-            locations."/" = {
+            locations."/".passthru = {
               proxyPass = "https://192.168.0.28";
               extraConfig = ''
                 client_max_body_size 128M;
@@ -88,7 +88,7 @@
               "codgician.me"
               "*.codgician.me"
             ];
-            locations."/".root = import ./lumine-web.nix { inherit pkgs; };
+            locations."/".passthru.root = import ./lumine-web.nix { inherit pkgs; };
           };
         };
       };

@@ -13,15 +13,6 @@ in
       if serviceName == null then "this service" else serviceName
     }.";
 
-    authelia = lib.mkOption {
-      type = with types; nullOr str;
-      default = null;
-      description = ''
-        Authelia instance to use for authentication.
-        If set, the reverse proxy will be configured to use Authelia for authentication.
-      '';
-    };
-
     https = lib.mkEnableOption "Use https and auto-renew certificates.";
 
     domains = lib.mkOption {

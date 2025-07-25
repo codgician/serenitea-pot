@@ -322,49 +322,55 @@ in
           };
         in
         (lib.optionalAttrs (favicon != null) {
-          "= /favicon.png" = mkNginxLocationForStaticFile favicon512;
-          "= /static/favicon.png" = mkNginxLocationForStaticFile favicon512;
-          "= /static/favicon-dark.png" = mkNginxLocationForStaticFile favicon512;
-          "= /static/favicon-96x96.png" = mkNginxLocationForStaticFile favicon96;
-          "= /favicon.ico" = mkNginxLocationForStaticFile faviconIco;
-          "= /static/favicon.ico" = mkNginxLocationForStaticFile faviconIco;
+          "= /favicon.png".passthru = mkNginxLocationForStaticFile favicon512;
+          "= /static/favicon.png".passthru = mkNginxLocationForStaticFile favicon512;
+          "= /static/favicon-dark.png".passthru = mkNginxLocationForStaticFile favicon512;
+          "= /static/favicon-96x96.png".passthru = mkNginxLocationForStaticFile favicon96;
+          "= /favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
+          "= /static/favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
         })
         // (lib.optionalAttrs (appIcon != null) {
-          "= /static/logo.png" = mkNginxLocationForStaticFile appIcon;
-          "= /static/apple-touch-icon.png" = mkNginxLocationForStaticFile (
+          "= /static/logo.png".passthru = mkNginxLocationForStaticFile appIcon;
+          "= /static/apple-touch-icon.png".passthru = mkNginxLocationForStaticFile (
             resizeImage "180x180" "apple-touch-icon.png" appIcon
           );
-          "= /static/web-app-manifest-192x192.png" = mkNginxLocationForStaticFile (
+          "= /static/web-app-manifest-192x192.png".passthru = mkNginxLocationForStaticFile (
             resizeImage "192x192" "web-app-manifest-192x192.png" appIcon
           );
-          "= /static/web-app-manifest-512x512.png" = mkNginxLocationForStaticFile (
+          "= /static/web-app-manifest-512x512.png".passthru = mkNginxLocationForStaticFile (
             resizeImage "512x512" "web-app-manifest-512x512.png" appIcon
           );
         })
         // (lib.optionalAttrs (splash != null) {
-          "= /static/splash.png" = mkNginxLocationForStaticFile splash;
-          "= /static/splash-dark.png" = mkNginxLocationForStaticFile splash;
+          "= /static/splash.png".passthru = mkNginxLocationForStaticFile splash;
+          "= /static/splash-dark.png".passthru = mkNginxLocationForStaticFile splash;
         })
         // {
           "/" = {
-            inherit (cfg.reverseProxy) proxyPass lanOnly;
-            extraConfig = ''
-              client_max_body_size 128M;
-              proxy_connect_timeout 300;
-              proxy_send_timeout 300;
-              proxy_read_timeout 300;
-              send_timeout 300;
-            '';
+            inherit (cfg.reverseProxy) lanOnly;
+            passthru = {
+              inherit (cfg.reverseProxy) proxyPass;
+              extraConfig = ''
+                client_max_body_size 128M;
+                proxy_connect_timeout 300;
+                proxy_send_timeout 300;
+                proxy_read_timeout 300;
+                send_timeout 300;
+              '';
+            };
           };
           "~ ^/api/v1/files" = {
-            inherit (cfg.reverseProxy) proxyPass lanOnly;
-            extraConfig = ''
-              client_max_body_size 128M;
-              proxy_connect_timeout 1800;
-              proxy_send_timeout 1800;
-              proxy_read_timeout 1800;
-              send_timeout 1800;
-            '';
+            inherit (cfg.reverseProxy) lanOnly;
+            passthru = {
+              inherit (cfg.reverseProxy) proxyPass;
+              extraConfig = ''
+                client_max_body_size 128M;
+                proxy_connect_timeout 1800;
+                proxy_send_timeout 1800;
+                proxy_read_timeout 1800;
+                send_timeout 1800;
+              '';
+            };
           };
         };
     })

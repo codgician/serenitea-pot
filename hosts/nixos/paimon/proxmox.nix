@@ -105,7 +105,7 @@ in
           enable = true;
           https = true;
           domains = [ "pve.codgician.me" ];
-          locations."/".proxyPass = "https://127.0.0.1:8006";
+          locations."/".passthru.proxyPass = "https://127.0.0.1:8006";
         };
       };
     };
