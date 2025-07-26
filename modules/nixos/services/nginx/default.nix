@@ -41,7 +41,7 @@ let
             deny all;
           '')
           # Authelia authentication
-          + (lib.optionalString locationCfg.authelia.enable ''
+          + (lib.optionalString (hostCfg.authelia.enable && locationCfg.authelia.enable) ''
             auth_request ${autheliaApiPath};
 
             ## Save the upstream metadata response headers from Authelia to variables.

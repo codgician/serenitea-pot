@@ -1,13 +1,29 @@
 { pkgs, ... }:
 {
   codgician = {
-    containers.comfyui.reverseProxy = {
-      enable = true;
-      domains = [ "vanarana.codgician.me" ];
-      proxyPass = "https://192.168.0.22";
+    containers = {
+      comfyui.reverseProxy = {
+        enable = true;
+        domains = [ "vanarana.codgician.me" ];
+        proxyPass = "https://192.168.0.22";
+      };
     };
 
     services = {
+      authelia.instances.main = {
+        domain = "auth.codgician.me";
+        reverseProxy = {
+          enable = true;
+          proxyPass = "https://192.168.0.22";
+        };
+      };
+
+      code-server.reverseProxy = {
+        enable = true;
+        domains = [ "leyline.codgician.me" ];
+        proxyPass = "https://192.168.0.8";
+      };
+
       dendrite = {
         domain = "matrix.codgician.me";
         reverseProxy = {
@@ -29,6 +45,12 @@
         enable = true;
         domains = [ "fin.codgician.me" ];
         proxyPass = "https://192.168.0.22";
+      };
+
+      jupyter.reverseProxy = {
+        enable = true;
+        domains = [ "dragonspine.codgician.me" ];
+        proxyPass = "https://192.168.0.8";
       };
 
       open-webui.reverseProxy = {

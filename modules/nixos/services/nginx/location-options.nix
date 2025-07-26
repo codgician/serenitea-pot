@@ -9,7 +9,14 @@ in
     '';
 
     authelia = {
-      enable = lib.mkEnableOption "Enable Authelia authentication for this location.";
+      enable = lib.mkOption {
+        type = types.bool;
+        default = true;
+        description = ''
+          Enable Authelia authentication for this location.
+          This is only effective when authelia is enabled in the vhost.
+        '';
+      };
 
       policy = lib.mkOption {
         type =
