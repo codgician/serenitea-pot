@@ -6,12 +6,32 @@
 }:
 let
   types = lib.types;
+  serviceName' = if serviceName == null then "this service" else serviceName;
 in
 {
   options = {
-    enable = lib.mkEnableOption "Nginx reverse proxy profile for ${
-      if serviceName == null then "this service" else serviceName
-    }.";
+    enable = lib.mkEnableOption "Nginx reverse proxy profile for ${serviceName'}.";
+
+    authelia = {
+      enable = lib.mkEnableOption "Authelia";
+
+      url = lib.mkOption {
+        type = types.str;
+        default = "https://auth.codgician.me";
+        example = "https://auth.example.com";
+        description = "The URL of the Authelia.";
+      };
+
+      defaultPolicy = lib.mkOption {
+        type = types.enum [
+          "bypass"
+          "one_factor"
+          "two_factor"
+        ];
+        default = "two_factor";
+        description = "The default authentication policy to apply.";
+      };
+    };
 
     https = lib.mkEnableOption "Use https and auto-renew certificates.";
 

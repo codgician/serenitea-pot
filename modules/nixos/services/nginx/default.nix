@@ -7,10 +7,11 @@
 let
   cfg = config.codgician.services.nginx;
   types = lib.types;
+  autheliaApiPath = "/internal/authelia/authz";
 
   # Make location configuration
   mkLocationConfig =
-    serverName: locationName: locationCfg:
+    hostCfg: locationCfg:
     lib.mkMerge [
       locationCfg.passthru
       {
@@ -38,6 +39,36 @@ let
             allow 192.168.0.0/16;
             allow fc00::/7;
             deny all;
+          '')
+          # Authelia authentication
+          + (lib.optionalString locationCfg.authelia.enable ''
+            auth_request ${autheliaApiPath};
+
+            ## Save the upstream metadata response headers from Authelia to variables.
+            auth_request_set $user $upstream_http_remote_user;
+            auth_request_set $groups $upstream_http_remote_groups;
+            auth_request_set $name $upstream_http_remote_name;
+            auth_request_set $email $upstream_http_remote_email;
+
+            ## Inject the metadata response headers from the variables into the request made to the backend.
+            proxy_set_header Remote-User $user;
+            proxy_set_header Remote-Groups $groups;
+            proxy_set_header Remote-Email $email;
+            proxy_set_header Remote-Name $name;
+
+            ## Set the $redirection_url to the Location header of the response to the Authz endpoint.
+            auth_request_set $redirection_url $upstream_http_location;
+
+            ## Handle 401 errors - redirect to Authelia
+            error_page 401 =302 $redirection_url;
+
+            ## Set authelia policy
+            auth_request_set $authelia_policy "${
+              if locationCfg.authelia.policy == null then
+                hostCfg.authelia.defaultPolicy
+              else
+                locationCfg.authelia.policy
+            }";
           '');
       }
     ];
@@ -48,10 +79,50 @@ let
     serverAliases = builtins.tail hostCfg.domains;
     locations = lib.mkMerge (
       [
-        (builtins.mapAttrs (mkLocationConfig serverName) hostCfg.locations)
+        (builtins.mapAttrs (_: locationCfg: mkLocationConfig hostCfg locationCfg) hostCfg.locations)
       ]
       ++ (lib.optional (hostCfg.robots != null) {
         "/robots.txt".return = ''200 "${lib.replaceStrings [ "\n" ] [ "\\n" ] hostCfg.robots}"'';
+      })
+      ++ (lib.optional hostCfg.authelia.enable {
+        "${autheliaApiPath}" = {
+          proxyPass = hostCfg.authelia.url + "/api/authz/auth-request"; # Use auth-request endpoint
+          recommendedProxySettings = false;
+          extraConfig = ''
+            internal;
+
+            ## Headers
+            proxy_set_header X-Original-Method $request_method;
+            proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+            proxy_set_header X-Forwarded-For $remote_addr;
+            proxy_set_header Content-Length "";
+            proxy_set_header Connection "";
+
+            ## Basic Proxy Configuration
+            proxy_pass_request_body off;
+            proxy_next_upstream error timeout invalid_header http_500 http_502 http_503; # Timeout if the real server is dead
+            proxy_http_version 1.1;
+            proxy_redirect http:// $scheme://;
+            proxy_cache_bypass $cookie_session;
+            proxy_no_cache $cookie_session;
+            proxy_buffers 4 32k;
+            client_body_buffer_size 128k;
+
+            ## Trusted Proxies Configuration
+            real_ip_header X-Forwarded-For;
+            real_ip_recursive on;
+
+            ## Advanced Proxy Configuration
+            send_timeout 5m;
+            proxy_read_timeout 240;
+            proxy_send_timeout 240;
+            proxy_connect_timeout 240;
+          ''
+          + (lib.optionalString (lib.hasPrefix "https://" hostCfg.authelia.url) ''
+            proxy_ssl_server_name on;
+            proxy_ssl_name $proxy_host;
+          '');
+        };
       })
     );
     forceSSL = hostCfg.https;

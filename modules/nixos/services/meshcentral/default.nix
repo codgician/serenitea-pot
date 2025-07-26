@@ -58,6 +58,7 @@ in
       inherit serviceName cfg;
       overrideVhostConfig.locations."/" = {
         inherit (cfg.reverseProxy) lanOnly;
+        authelia.enable = cfg.reverseProxy.authelia.enable;
         passthru = {
           inherit (cfg.reverseProxy) proxyPass;
           extraConfig = ''

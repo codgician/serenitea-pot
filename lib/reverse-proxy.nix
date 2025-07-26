@@ -46,10 +46,11 @@ in
       codgician.services.nginx = lib.mkIf cfg.reverseProxy.enable {
         enable = true;
         reverseProxies.${serviceName} = {
-          inherit (cfg.reverseProxy) enable domains;
+          inherit (cfg.reverseProxy) enable authelia domains;
           https = true;
           locations."/" = {
             inherit (cfg.reverseProxy) lanOnly;
+            authelia.enable = cfg.reverseProxy.authelia.enable;
             passthru = { inherit (cfg.reverseProxy) proxyPass; };
           };
         }

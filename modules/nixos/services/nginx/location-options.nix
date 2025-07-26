@@ -8,6 +8,25 @@ in
       Only allow requests from LAN clients.
     '';
 
+    authelia = {
+      enable = lib.mkEnableOption "Enable Authelia authentication for this location.";
+
+      policy = lib.mkOption {
+        type =
+          with types;
+          nullOr (enum [
+            "bypass"
+            "one_factor"
+            "two_factor"
+          ]);
+        default = null;
+        description = ''
+          Override the authentication policy for this location.
+          If null, uses the vhost default policy.
+        '';
+      };
+    };
+
     ssl = {
       verify = lib.mkOption {
         type = types.bool;

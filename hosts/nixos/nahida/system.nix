@@ -11,6 +11,7 @@
         reverseProxy = {
           enable = true;
           domains = [ "leyline.codgician.me" ];
+          authelia.enable = true;
         };
       };
 
@@ -22,6 +23,7 @@
         reverseProxy = {
           enable = true;
           domains = [ "dragonspine.codgician.me" ];
+          authelia.enable = true;
         };
       };
       nginx.openFirewall = true;

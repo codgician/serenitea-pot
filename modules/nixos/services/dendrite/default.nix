@@ -221,13 +221,17 @@ in
               if cfg.reverseProxy.elementWeb then
                 {
                   inherit (cfg.reverseProxy) lanOnly;
+                  authelia.enable = cfg.reverseProxy.authelia.enable;
                   passthru.root = import ./element-web.nix {
                     inherit pkgs clientConfig;
                     domains = cfg.reverseProxy.domains;
                   };
                 }
               else
-                lib.mkIf cfg.reverseProxy.proxyAll { inherit (cfg.reverseProxy) proxyPass lanOnly; };
+                lib.mkIf cfg.reverseProxy.proxyAll {
+                  inherit (cfg.reverseProxy) proxyPass lanOnly;
+                  authelia.enable = cfg.reverseProxy.authelia.enable;
+                };
 
             # Matrix protocol
             "~ ^/(_matrix|_synapse)" = {
