@@ -13,7 +13,7 @@
       require_pkce = true;
       pkce_challenge_method = "S256";
       redirect_uris = [
-        "https://fin.codgician.me/sso/OID/redirect/authelia"
+        "https://fin.codgician.me/sso/OID/redirect/authelia-main"
       ];
       scopes = [
         "openid"
