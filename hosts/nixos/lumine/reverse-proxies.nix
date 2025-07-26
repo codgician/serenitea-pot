@@ -70,6 +70,7 @@
 
           "saw.codgician.me" = {
             enable = true;
+            authelia.enable = true;
             https = true;
             domains = [ "saw.codgician.me" ];
             locations."/".passthru = {

@@ -34,7 +34,8 @@
       # Auth
       authelia.instances.main = {
         enable = true;
-        domain = "codgician.me";
+        sessionDomain = "codgician.me";
+        domain = "auth.codgician.me";
         database = "postgresql";
         reverseProxy.enable = true;
       };

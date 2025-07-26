@@ -18,10 +18,18 @@ in
       '';
     };
 
-    domain = lib.mkOption {
+    sessionDomain = lib.mkOption {
       type = types.str;
       example = "example.com";
       description = "The session domain for Authelia instance ${name}.";
+    };
+
+    domain = lib.mkOption {
+      type = types.str;
+      default = "auth.${cfg.sessionDomain}";
+      defaultText = "$\{config.codgician.services.authelia.$\{name\}.domain\}";
+      example = "auth.example.com";
+      description = "The authentication domain for Authelia instance ${name}.";
     };
 
     user = lib.mkOption {
@@ -50,8 +58,8 @@ in
     reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
       inherit serviceName;
       defaultProxyPass = "http://unix:/run/${serviceName}/main.sock";
-      defaultDomains = [ "auth.${cfg.domain}" ];
-      defaultDomainsText = ''with config.codgician.services.authelia.${name}; [ "auth.$\{domain}" ]'';
+      defaultDomains = [ "${cfg.domain}" ];
+      defaultDomainsText = ''with config.codgician.services.authelia.${name}; [ domain ]'';
     };
   };
 
@@ -99,8 +107,8 @@ in
               name = "authelia_session_${name}";
               cookies = [
                 {
-                  inherit (cfg) domain;
-                  authelia_url = "https://auth.${cfg.domain}";
+                  domain = cfg.sessionDomain;
+                  authelia_url = "https://${cfg.domain}";
                 }
               ];
               redis = {
@@ -128,7 +136,7 @@ in
                 # password provided by AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
                 sender = "bot@codgician.me";
                 subject = "[Authelia] {title}";
-                identifier = cfg.domain;
+                identifier = cfg.sessionDomain;
                 timeout = "15s";
                 startup_check_address = "test@authelia.com";
                 tls = {
