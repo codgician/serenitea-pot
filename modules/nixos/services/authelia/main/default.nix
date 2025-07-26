@@ -1,4 +1,4 @@
-{ config, lib, ... }:
+args@{ config, lib, pkgs, ... }:
 let
   name = "main";
   serviceName = "authelia-${name}";
@@ -79,11 +79,18 @@ in
           storageEncryptionKeyFile = config.age.secrets."authelia-main-storage".path;
         };
 
+        settingsFiles = [
+          config.age.secrets."authelia-main-jwks".path
+        ];
+
         settings = {
           theme = "auto";
           server.address = "unix:///run/${serviceName}/main.sock?umask=000";
           log.level = "debug";
           default_2fa_method = "webauthn";
+
+          # Identity providers
+          identity_providers.oidc = import ./oidc.nix args;
 
           # Use file backend for simplicity
           authentication_backend.file = {
@@ -172,6 +179,7 @@ in
             "authelia-main-session"
             "authelia-main-storage"
             "authelia-main-smtp"
+            "authelia-main-jwks"
           ]
           (name: {
             owner = cfg.user;

@@ -9,6 +9,10 @@ with pubKeys.hosts;
   "authelia-main-session.age".publicKeys = someHosts [ paimon ];
   "authelia-main-storage.age".publicKeys = someHosts [ paimon ];
   "authelia-main-smtp.age".publicKeys = someHosts [ paimon ];
+  "authelia-main-jwks.age".publicKeys = someHosts [ paimon ];
+
+  # OIDC secrets
+  "jellyfin-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];
 
   # Wireless credentials
   "wireless-env.age".publicKeys = someHosts [ ];
