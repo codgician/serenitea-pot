@@ -23,7 +23,7 @@ in
     }).options
     // {
       proxyPass = lib.mkOption {
-        type = types.str;
+        type = with types; nullOr str;
         default = defaultProxyPass;
         defaultText = lib.mkIf (defaultProxyPass != null) defaultProxyPassText;
         description = "Source URI for the reverse proxy.";
@@ -40,21 +40,23 @@ in
     {
       serviceName,
       cfg,
-      overrideVhostConfig ? { },
+      extraVhostConfig ? { },
     }:
     {
       codgician.services.nginx = lib.mkIf cfg.reverseProxy.enable {
         enable = true;
-        reverseProxies.${serviceName} = {
-          inherit (cfg.reverseProxy) enable authelia domains;
-          https = true;
-          locations."/" = {
-            inherit (cfg.reverseProxy) lanOnly;
-            authelia.enable = cfg.reverseProxy.authelia.enable;
-            passthru = { inherit (cfg.reverseProxy) proxyPass; };
-          };
-        }
-        // overrideVhostConfig;
+        reverseProxies.${serviceName} = lib.mkMerge [
+          {
+            inherit (cfg.reverseProxy) enable authelia domains;
+            https = true;
+            locations."/" = {
+              inherit (cfg.reverseProxy) lanOnly;
+              authelia.enable = cfg.reverseProxy.authelia.enable;
+              passthru = { inherit (cfg.reverseProxy) proxyPass; };
+            };
+          }
+          extraVhostConfig
+        ];
       };
     };
 }

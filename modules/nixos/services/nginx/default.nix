@@ -17,17 +17,20 @@ let
       {
         proxyWebsockets = true;
         extraConfig =
-          (
-            # Enhance https reverse proxy security
-            with locationCfg;
-            lib.optionalString ((passthru ? proxyPass) && lib.hasPrefix "https://" passthru.proxyPass) (
-              lib.optionalString ssl.proxySslName ''
+          # Enhance https reverse proxy security
+          (lib.optionalString
+            (
+              locationCfg.passthru.proxyPass or null != null
+              && lib.hasPrefix "https://" locationCfg.passthru.proxyPass
+            )
+            (
+              lib.optionalString locationCfg.ssl.proxySslName ''
                 proxy_ssl_server_name on;
                 proxy_ssl_name $host;
               ''
-              + lib.optionalString ssl.verify ''
+              + lib.optionalString locationCfg.ssl.verify ''
                 proxy_ssl_verify on;
-                proxy_ssl_trusted_certificate ${ssl.trustedCertificate};
+                proxy_ssl_trusted_certificate ${locationCfg.ssl.trustedCertificate};
                 proxy_ssl_certificate_cache max=1000;
               ''
             )

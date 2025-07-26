@@ -289,7 +289,7 @@ in
     # Reverse proxy profile
     (lib.codgician.mkServiceReverseProxyConfig {
       inherit serviceName cfg;
-      overrideVhostConfig.locations =
+      extraVhostConfig.locations =
         let
           inherit (cfg.reverseProxy)
             appIcon
@@ -346,20 +346,13 @@ in
           "= /static/splash-dark.png".passthru = mkNginxLocationForStaticFile splash;
         })
         // {
-          "/" = {
-            inherit (cfg.reverseProxy) lanOnly;
-            authelia.enable = cfg.reverseProxy.authelia.enable;
-            passthru = {
-              inherit (cfg.reverseProxy) proxyPass;
-              extraConfig = ''
-                client_max_body_size 128M;
-                proxy_connect_timeout 300;
-                proxy_send_timeout 300;
-                proxy_read_timeout 300;
-                send_timeout 300;
-              '';
-            };
-          };
+          "/".passthru.extraConfig = ''
+            client_max_body_size 128M;
+            proxy_connect_timeout 300;
+            proxy_send_timeout 300;
+            proxy_read_timeout 300;
+            send_timeout 300;
+          '';
           "~ ^/api/v1/files" = {
             inherit (cfg.reverseProxy) lanOnly;
             passthru = {

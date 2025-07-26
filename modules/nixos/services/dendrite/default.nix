@@ -204,7 +204,7 @@ in
     # Reverse proxy profile
     (lib.codgician.mkServiceReverseProxyConfig {
       inherit serviceName cfg;
-      overrideVhostConfig =
+      extraVhostConfig =
         let
           # Metadata for matrix server and client
           clientConfig = {
@@ -217,21 +217,15 @@ in
         in
         {
           locations = {
-            "/" =
-              if cfg.reverseProxy.elementWeb then
-                {
-                  inherit (cfg.reverseProxy) lanOnly;
-                  authelia.enable = cfg.reverseProxy.authelia.enable;
-                  passthru.root = import ./element-web.nix {
-                    inherit pkgs clientConfig;
-                    domains = cfg.reverseProxy.domains;
-                  };
-                }
-              else
-                lib.mkIf cfg.reverseProxy.proxyAll {
-                  inherit (cfg.reverseProxy) proxyPass lanOnly;
-                  authelia.enable = cfg.reverseProxy.authelia.enable;
+            "/" = lib.mkIf cfg.reverseProxy.elementWeb {
+              passthru = {
+                proxyPass = lib.mkForce null;
+                root = import ./element-web.nix {
+                  inherit pkgs clientConfig;
+                  domains = cfg.reverseProxy.domains;
                 };
+              };
+            };
 
             # Matrix protocol
             "~ ^/(_matrix|_synapse)" = {
