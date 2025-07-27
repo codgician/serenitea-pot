@@ -13,6 +13,7 @@ with pubKeys.hosts;
 
   # OIDC secrets
   "jellyfin-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];
+  "meshcentral-oidc-secret-authelia-main.age".publicKeys = someHosts [ fischl ];
   "proxmox-ve-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];
 
   # Wireless credentials

@@ -74,5 +74,28 @@
       userinfo_signed_response_alg = "none";
       token_endpoint_auth_method = "client_secret_basic";
     }
+    {
+      client_id = "meshcentral";
+      client_name = "MeshCentral";
+      client_secret = "$pbkdf2-sha512$310000$3wBHZHE59oHLU7tiujMk5Q$/KSucx0AZIRORxV1TY3ewLiLzQiXrSVJc5cKtaYeHANSyoK3lKkVDnzDlvX2ETycwcxqJv758H48e/J/YXofAQ";
+      public = false;
+      authorization_policy = "two_factor";
+      require_pkce = true;
+      pkce_challenge_method = "S256";
+      redirect_uris = [
+        "https://amt.codgician.me/auth-oidc-callback"
+      ];
+      scopes = [
+        "openid"
+        "profile"
+        "email"
+        "groups"
+      ];
+      response_types = [ "code" ];
+      grant_types = [ "authorization_code" ];
+      access_token_signed_response_alg = "none";
+      userinfo_signed_response_alg = "none";
+      token_endpoint_auth_method = "client_secret_post";
+    }
   ];
 }
