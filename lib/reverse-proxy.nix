@@ -47,8 +47,12 @@ in
         enable = true;
         reverseProxies.${serviceName} = lib.mkMerge [
           {
-            inherit (cfg.reverseProxy) enable authelia domains;
-            https = true;
+            inherit (cfg.reverseProxy)
+              enable
+              https
+              authelia
+              domains
+              ;
             locations."/" = {
               inherit (cfg.reverseProxy) lanOnly;
               authelia.enable = cfg.reverseProxy.authelia.enable;

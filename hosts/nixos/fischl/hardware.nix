@@ -70,8 +70,8 @@
   #   wantedBy = [ "initrd.target" ];
   #   script = ''
   #     devs="0000:01:00.0 0000:02:00.0 0000:03:00.0"
-  #     for dev in $devs; do 
-  #       echo "vfio-pci" > /sys/bus/pci/devices/$dev/driver_override 
+  #     for dev in $devs; do
+  #       echo "vfio-pci" > /sys/bus/pci/devices/$dev/driver_override
   #     done
   #     modprobe -i vfio-pci
   #   '';

@@ -11,6 +11,12 @@ let
   types = lib.types;
   listToStr = lib.strings.concatStringsSep ";";
 
+  webuiUrl =
+    if cfg.reverseProxy.enable then
+      "${if cfg.reverseProxy.https then "https" else "http"}://${builtins.head cfg.reverseProxy.domains}"
+    else
+      "${cfg.host}:${builtins.toString cfg.port}";
+
   litellmCfg = config.codgician.services.litellm;
   litellmBases = lib.optionals litellmCfg.enable [
     "http://${litellmCfg.host}:${builtins.toString litellmCfg.port}"
@@ -113,17 +119,25 @@ in
           ENV = "prod";
           WEBUI_AUTH = "True";
           WEBUI_NAME = "Akasha";
-          WEBUI_URL =
-            if cfg.reverseProxy.enable then
-              builtins.head cfg.reverseProxy.domains
-            else
-              "${cfg.host}:${builtins.toString cfg.port}";
-          # Logging
-          # GLOBAL_LOG_LEVEL = "DEBUG";
-          # Features
+          WEBUI_URL = webuiUrl;
+          # OAuth
           ENABLE_SIGNUP = "False";
           ENABLE_LOGIN_FORM = "True";
           DEFAULT_USER_ROLE = "pending";
+          ENABLE_OAUTH_SIGNUP = "False";
+          OAUTH_MERGE_ACCOUNTS_BY_EMAIL = "True";
+          OAUTH_CLIENT_ID = "akasha";
+          # OAUTH_CLIENT_SECRET provided in env
+          OPENID_REDIRECT_URI = "${webuiUrl}/oauth/oidc/callback";
+          OPENID_PROVIDER_URL = "https://auth.codgician.me/.well-known/openid-configuration";
+          OAUTH_PROVIDER_NAME = "Authelia";
+          OAUTH_SCOPES = "openid email profile groups";
+          ENABLE_OAUTH_ROLE_MANAGEMENT = "True";
+          OAUTH_ROLES_CLAIM = "groups";
+          OAUTH_ALLOWED_ROLES = "akasha-users,akasha-admins";
+          OAUTH_ADMIN_ROLES = "akasha-admins";
+          # Logging
+          # GLOBAL_LOG_LEVEL = "DEBUG";
           ENABLE_CHANNELS = "True";
           ENABLE_AUTOCOMPLETE_GENERATION = "True";
           AUTOCOMPLETE_GENERATION_INPUT_MAX_LENGTH = "-1";

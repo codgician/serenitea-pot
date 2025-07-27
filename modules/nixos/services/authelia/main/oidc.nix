@@ -50,5 +50,29 @@
       userinfo_signed_response_alg = "none";
       token_endpoint_auth_method = "client_secret_basic";
     }
+    {
+      client_id = "akasha";
+      client_name = "Akasha";
+      # In open-webui-env.age, hashed with pbkdf2
+      client_secret = "$pbkdf2-sha512$310000$ZKILB7Dr6u5JEH4qmpXa7g$blbLjgLx0tZXNlHguk3TPe3n1BGgPp6Q5agy/c71YAs7DHUu4ALaJSTTop7mbLU1/hCQpPjRr55LBaJYlcsalw";
+      public = false;
+      authorization_policy = "two_factor";
+      require_pkce = false;
+      pkce_challenge_method = "";
+      redirect_uris = [
+        "https://akasha.codgician.me/oauth/oidc/callback"
+      ];
+      scopes = [
+        "openid"
+        "profile"
+        "email"
+        "groups"
+      ];
+      response_types = [ "code" ];
+      grant_types = [ "authorization_code" ];
+      access_token_signed_response_alg = "none";
+      userinfo_signed_response_alg = "none";
+      token_endpoint_auth_method = "client_secret_basic";
+    }
   ];
 }

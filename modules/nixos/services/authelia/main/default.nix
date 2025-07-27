@@ -1,4 +1,9 @@
-args@{ config, lib, pkgs, ... }:
+args@{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   name = "main";
   serviceName = "authelia-${name}";

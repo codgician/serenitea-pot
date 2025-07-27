@@ -33,7 +33,11 @@ in
       };
     };
 
-    https = lib.mkEnableOption "Use https and auto-renew certificates.";
+    https = lib.mkOption {
+      type = types.bool;
+      default = true;
+      description = "Use https and auto-renew certificates.";
+    };
 
     domains = lib.mkOption {
       type = types.listOf types.str;
