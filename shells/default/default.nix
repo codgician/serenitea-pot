@@ -3,7 +3,6 @@
 pkgs.mkShell {
   buildInputs = with pkgs; [
     agenix
-    disko
     direnv
     git
     nixd
