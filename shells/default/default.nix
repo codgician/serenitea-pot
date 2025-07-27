@@ -1,8 +1,14 @@
 { pkgs, ... }:
 
 pkgs.mkShell {
-  buildInputs = with pkgs; [ agenix ];
+  buildInputs = with pkgs; [
+    agenix
+    disko
+    direnv
+    git
+    nixd
+  ];
   shellHook = ''
-    echo "Welcome back to serenitea pot!"
+    echo "Welcome to serenitea pot!"
   '';
 }
