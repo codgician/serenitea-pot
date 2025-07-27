@@ -474,11 +474,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1753602108,
-        "narHash": "sha256-1wtWdPv2hr28ovGDO5MjWIORwEp/W/GqBSMmOjdjJ88=",
+        "lastModified": 1753613567,
+        "narHash": "sha256-q4EzULESVEoxPyzblOJa3keINHJDMKA9dpj3aFJ2EqQ=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "25a74a74a42011433753edc4970e9b8ca58994ec",
+        "rev": "8598ddca549368eb1def4b907d3590258be7fc69",
         "type": "github"
       },
       "original": {
@@ -552,16 +552,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1749385025,
-        "narHash": "sha256-2w6+xAMdT9LgMxDHaIyddMTacBbF7RjaZFyGjjTDBhg=",
+        "lastModified": 1753610765,
+        "narHash": "sha256-gIOHf5ui4s0ha0zXSuOSwsb0cRxJCAwVzy4Ztz7VNkc=",
         "owner": "codgician",
         "repo": "proxmox-nixos",
-        "rev": "48f39fbe2e8f90f9ac160dd4b6929f3ac06d8223",
+        "rev": "4e835d963f934dc175f6db9ad3e9f270d6cf03c0",
         "type": "github"
       },
       "original": {
         "owner": "codgician",
-        "ref": "evergreen",
+        "ref": "pve-rs-0-9-4",
         "repo": "proxmox-nixos",
         "type": "github"
       }

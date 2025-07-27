@@ -1,4 +1,4 @@
-{ config, ... }:
+{ ... }:
 {
   # OIDC clients
   # Docs: https://www.authelia.com/configuration/identity-providers/openid-connect/clients/
@@ -25,6 +25,30 @@
       access_token_signed_response_alg = "none";
       userinfo_signed_response_alg = "none";
       token_endpoint_auth_method = "client_secret_post";
+    }
+    {
+      client_id = "proxmox-ve";
+      client_name = "Proxmox VE";
+      # proxmox-ve-oidc-secret-authelia-main.age, hashed with pbkdf2
+      client_secret = "$pbkdf2-sha512$310000$ukEvIApLnfEEmOko21MxRQ$cyEAkkrydzgW3ZZdQzbfwUtA9AMH.o3Y4VMiScKWtJ3JaSI3cXhaUueGyUrPIUNS1mrRuwCiAunnr0BxI.SIrw";
+      public = false;
+      authorization_policy = "two_factor";
+      require_pkce = true;
+      pkce_challenge_method = "S256";
+      redirect_uris = [
+        "https://pve.codgician.me"
+      ];
+      scopes = [
+        "openid"
+        "profile"
+        "email"
+        "groups"
+      ];
+      response_types = [ "code" ];
+      grant_types = [ "authorization_code" ];
+      access_token_signed_response_alg = "none";
+      userinfo_signed_response_alg = "none";
+      token_endpoint_auth_method = "client_secret_basic";
     }
   ];
 }
