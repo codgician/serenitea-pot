@@ -87,9 +87,8 @@ in
 
       # Make meshcentral config module support secrets
       systemd.services.meshcentral = {
-        preStart = utils.genJqSecretsReplacementSnippet config.services.meshcentral.settings "/run/meshcentral/config.json";
         serviceConfig = {
-          DynamicUser = lib.mkForce false;
+          ExecStartPre = "+${pkgs.writeShellScript "meshcentral-pre-start" (utils.genJqSecretsReplacementSnippet config.services.meshcentral.settings "/run/meshcentral/config.json")}";
           ExecStart = lib.mkForce "${cfg.package}/bin/meshcentral --datapath /var/lib/meshcentral --configfile /run/meshcentral/config.json";
           RuntimeDirectory = "meshcentral";
           RuntimeDirectoryMode = "0700";
