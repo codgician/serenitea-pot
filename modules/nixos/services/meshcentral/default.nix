@@ -45,6 +45,7 @@ in
         enable = true;
         settings = {
           domains."" = {
+            showPasswordLogin = false;
             allowedOrigin = lib.mkIf cfg.reverseProxy.enable cfg.reverseProxy.domains;
             authStrategies.oidc = lib.mkIf cfg.reverseProxy.enable {
               issuer = "https://auth.codgician.me";
