@@ -91,7 +91,6 @@ in
         settings = {
           theme = "auto";
           server.address = "unix:///run/${serviceName}/main.sock?umask=000";
-          log.level = "debug";
           default_2fa_method = "webauthn";
 
           # Identity providers
@@ -157,8 +156,36 @@ in
             };
           };
 
+          totp = {
+            issuer = "codgician.me";
+            algorithm = "SHA1";
+            digits = 6;
+            period = 30;
+            skew = 1;
+            secret_size = 32;
+            allowed_algorithms = [
+              "SHA1"
+              "SHA256"
+              "SHA512"
+            ];
+            allowed_digits = [
+              6
+              8
+            ];
+            allowed_periods = [ 30 ];
+            disable_reuse_security_policy = false;
+          };
+
           webauthn = {
             enable_passkey_login = true;
+            experimental_enable_passkey_uv_two_factors = true;
+            experimental_enable_passkey_upgrade = true;
+            display_name = "Authelia";
+            timeout = "60s";
+            selection_criteria = {
+              discoverability = "preferred";
+              user_verification = "preferred";
+            };
           };
         };
       };
