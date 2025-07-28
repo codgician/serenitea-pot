@@ -249,6 +249,7 @@
       powertop
       nvtopPackages.nvidia
       libhugetlbfs
+      authelia
     ])
     ++ (with config.boot.kernelPackages; [
       turbostat

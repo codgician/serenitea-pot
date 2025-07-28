@@ -178,13 +178,19 @@ in
 
           webauthn = {
             enable_passkey_login = true;
+            attestation_conveyance_preference = "direct";
             experimental_enable_passkey_uv_two_factors = true;
             experimental_enable_passkey_upgrade = true;
             display_name = "Authelia";
             timeout = "60s";
             selection_criteria = {
-              discoverability = "preferred";
-              user_verification = "preferred";
+              attachment = "platform";
+              discoverability = "required";
+              user_verification = "required";
+            };
+            metadata = {
+              enabled = true;
+              validate_entry = false;
             };
           };
         };
