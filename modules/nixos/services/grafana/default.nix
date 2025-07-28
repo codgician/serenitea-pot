@@ -34,8 +34,6 @@ in
       services.grafana = {
         enable = true;
         settings = {
-          log.level = "debug";
-
           database = {
             host = "/run/postgresql";
             user = "grafana";
