@@ -64,14 +64,6 @@ let
 
             ## Handle 401 errors - redirect to Authelia
             error_page 401 =302 $redirection_url;
-
-            ## Set authelia policy
-            auth_request_set $authelia_policy "${
-              if locationCfg.authelia.policy == null then
-                hostCfg.authelia.defaultPolicy
-              else
-                locationCfg.authelia.policy
-            }";
           '');
       }
     ];

@@ -21,16 +21,6 @@ in
         example = "https://auth.example.com";
         description = "The URL of the Authelia.";
       };
-
-      defaultPolicy = lib.mkOption {
-        type = types.enum [
-          "bypass"
-          "one_factor"
-          "two_factor"
-        ];
-        default = "two_factor";
-        description = "The default authentication policy to apply.";
-      };
     };
 
     https = lib.mkOption {

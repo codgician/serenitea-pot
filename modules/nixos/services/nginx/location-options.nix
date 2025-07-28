@@ -17,21 +17,6 @@ in
           This is only effective when authelia is enabled in the vhost.
         '';
       };
-
-      policy = lib.mkOption {
-        type =
-          with types;
-          nullOr (enum [
-            "bypass"
-            "one_factor"
-            "two_factor"
-          ]);
-        default = null;
-        description = ''
-          Override the authentication policy for this location.
-          If null, uses the vhost default policy.
-        '';
-      };
     };
 
     ssl = {
