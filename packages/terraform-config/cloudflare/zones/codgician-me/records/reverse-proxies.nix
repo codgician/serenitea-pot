@@ -15,7 +15,6 @@ let
     "leyline"
     "matrix"
     "pve"
-    "gardemek"
     "vanarana"
   ];
 in

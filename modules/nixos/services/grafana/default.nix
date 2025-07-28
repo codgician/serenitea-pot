@@ -48,7 +48,7 @@ in
             root_url = lib.mkIf cfg.reverseProxy.enable "https://${builtins.head cfg.reverseProxy.domains}";
             protocol = "socket";
             socket = "/run/grafana/grafana.sock";
-            socket_mode = "0660";
+            socket_mode = "0777";
             enable_gzip = true;
           };
 

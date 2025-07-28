@@ -4,13 +4,6 @@
   # My settings
   codgician = {
     services = {
-      grafana = {
-        enable = true;
-        reverseProxy = {
-          enable = true;
-          domains = [ "gardemek.codgician.me" ];
-        };
-      };
       postgresql.zfsOptimizations = true;
       nixos-vscode-server.enable = true;
       wireguard = {
