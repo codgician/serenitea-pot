@@ -8,6 +8,9 @@ let
   serviceName = "grafana";
   cfg = config.codgician.services.grafana;
   types = lib.types;
+
+  scheme = if cfg.reverseProxy.https then "https" else "http";
+  url = "${scheme}://${builtins.head cfg.reverseProxy.domains}";
 in
 {
   options.codgician.services.grafana = {
@@ -31,6 +34,8 @@ in
       services.grafana = {
         enable = true;
         settings = {
+          log.level = "debug";
+
           database = {
             host = "/run/postgresql";
             user = "grafana";
@@ -45,11 +50,45 @@ in
           };
 
           server = {
-            root_url = lib.mkIf cfg.reverseProxy.enable "https://${builtins.head cfg.reverseProxy.domains}";
+            root_url = url;
             protocol = "socket";
             socket = "/run/grafana/grafana.sock";
             socket_mode = "0777";
             enable_gzip = true;
+          };
+
+          "auth.generic_oauth" = {
+            enabled = true;
+            allow_sign_up = true;
+            auto_login = true;
+            name = "Authelia";
+            icon = "signin";
+            client_id = "grafana";
+            client_secret = "$__file{${config.age.secrets.grafana-oidc-secret-authelia-main.path}}";
+            scopes = [
+              "openid"
+              "profile"
+              "email"
+              "groups"
+            ];
+            empty_scopes = false;
+            auth_url = "https://auth.codgician.me/api/oidc/authorization";
+            token_url = "https://auth.codgician.me/api/oidc/token";
+            api_url = "https://auth.codgician.me/api/oidc/userinfo";
+            login_attribute_path = "preferred_username";
+            groups_attribute_path = "groups";
+            name_attribute_path = "name";
+            email_attribute_path = "email";
+            use_pkce = true;
+            allow_assign_grafana_admin = true;
+            # Refrain from adding trailing or, see github:grafana/grafana#106686
+            role_attribute_path = builtins.concatStringsSep " || " [
+              "contains(groups, 'grafana-admins') && 'GrafanaAdmin'"
+              "contains(groups, 'grafana-editors') && 'Editor'"
+              "contains(groups, 'grafana-viewers') && 'Viewer'"
+            ];
+            role_attribute_strict = true;
+            skip_org_role_sync = false;
           };
 
           smtp = rec {
@@ -103,6 +142,7 @@ in
             "grafana-admin-password"
             "grafana-secret-key"
             "grafana-smtp"
+            "grafana-oidc-secret-authelia-main"
           ]
           (_: {
             owner = serviceName;

@@ -13,8 +13,10 @@ let
     "git"
     "hass"
     "leyline"
+    "lumenstone"
     "matrix"
     "pve"
+    "saw"
     "vanarana"
   ];
 in

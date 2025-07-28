@@ -12,6 +12,7 @@ with pubKeys.hosts;
   "authelia-main-jwks.age".publicKeys = someHosts [ paimon ];
 
   # OIDC secrets
+  "grafana-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];
   "jellyfin-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];
   "meshcentral-oidc-secret-authelia-main.age".publicKeys = someHosts [ fischl ];
   "proxmox-ve-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];
@@ -55,9 +56,9 @@ with pubKeys.hosts;
   "gitlab-omniauth-github.age".publicKeys = someHosts [ paimon ];
 
   # Grafana secrets
-  "grafana-admin-password.age".publicKeys = someHosts [ lumine ];
-  "grafana-secret-key.age".publicKeys = someHosts [ lumine ];
-  "grafana-smtp.age".publicKeys = someHosts [ lumine ];
+  "grafana-admin-password.age".publicKeys = someHosts [ paimon ];
+  "grafana-secret-key.age".publicKeys = someHosts [ paimon ];
+  "grafana-smtp.age".publicKeys = someHosts [ paimon ];
 
   # Matrix secrets
   "matrix-global-private-key.age".publicKeys = someHosts [ paimon ];

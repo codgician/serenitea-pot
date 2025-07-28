@@ -101,6 +101,15 @@
         };
       };
 
+      # Monitoring
+      grafana = {
+        enable = true;
+        reverseProxy = {
+          enable = true;
+          domains = [ "lumenstone.codgician.me" ];
+        };
+      };
+
       # File server
       samba = {
         enable = true;
