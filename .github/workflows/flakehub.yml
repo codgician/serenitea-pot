@@ -1,4 +1,6 @@
 name: "flakehub"
+permissions:
+  contents: read
 on:
   push:
     branches:

@@ -1,4 +1,6 @@
 name: expiry
+permissions:
+  contents: read
 on:
   schedule:
     - cron: '0 9 * * *'
