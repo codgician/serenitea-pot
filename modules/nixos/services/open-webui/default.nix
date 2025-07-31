@@ -187,7 +187,7 @@ in
           IMAGE_GENERATION_ENGINE = "gemini";
           ENABLE_IMAGE_GENERATION = "True";
           ENABLE_IMAGE_PROMPT_GENERATION = "True";
-          IMAGE_GENERATION_MODEL = "imagen-3.0-generate-002";
+          IMAGE_GENERATION_MODEL = "imagen-4.0-generate-preview-06-06";
           IMAGE_SIZE = "1024x1024";
           IMAGES_GEMINI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
           # Redis
