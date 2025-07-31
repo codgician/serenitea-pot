@@ -56,43 +56,64 @@
   };
 
   # Set route metric
-  systemd.network.networks = {
-    # High speed NIC (first VF for host)
-    "10-enp67s0f0v0" = {
-      name = "enp67s0f0v0";
-      networkConfig = {
-        DHCP = "yes";
-        IPv6PrivacyExtensions = "kernel";
-      };
-      dhcpV4Config.RouteMetric = 1024;
-      dhcpV6Config = {
-        RouteMetric = 1024;
-        DUIDType = "vendor";
-        DUIDRawData = "00:00:ab:11:75:d9:96:0e:f8:35:fe:2f";
-      };
-      linkConfig.RequiredForOnline = "no-carrier";
+  systemd.network = {
+    config.routeTables = {
+      failover = 2048;
     };
-
-    # Leave second VF unconfigured for container
-    "11-enp67s0f0v1" = {
-      name = "enp67s0f0v1";
-      linkConfig.Unmanaged = "yes";
-    };
-
-    # Fallback NIC
-    "12-eno1" = {
-      name = "eno1";
-      networkConfig = {
-        DHCP = "yes";
-        IPv6PrivacyExtensions = "kernel";
+    networks = {
+      # High speed NIC (first VF for host)
+      "10-enp67s0f0v0" = {
+        name = "enp67s0f0v0";
+        networkConfig = {
+          DHCP = "yes";
+          IPv6PrivacyExtensions = "kernel";
+        };
+        dhcpV4Config.RouteMetric = 1024;
+        dhcpV6Config = {
+          RouteMetric = 1024;
+          DUIDType = "vendor";
+          DUIDRawData = "00:00:ab:11:75:d9:96:0e:f8:35:fe:2f";
+        };
+        linkConfig.RequiredForOnline = "no-carrier";
       };
-      dhcpV4Config.RouteMetric = 2048;
-      dhcpV6Config = {
-        RouteMetric = 2048;
-        DUIDType = "vendor";
-        DUIDRawData = "00:00:ab:11:75:d9:96:0e:f8:35:fe:0f";
+
+      # Leave second VF unconfigured for container
+      "11-enp67s0f0v1" = {
+        name = "enp67s0f0v1";
+        linkConfig.Unmanaged = "yes";
       };
-      linkConfig.RequiredForOnline = "no-carrier";
+
+      # Management NIC
+      "12-eno1" = {
+        name = "eno1";
+        networkConfig = {
+          DHCP = "yes";
+          IPv6PrivacyExtensions = "kernel";
+        };
+        dhcpV4Config = {
+          RouteMetric = 2048;
+          UseRoutes = "no";
+        };
+        dhcpV6Config = {
+          RouteMetric = 2048;
+          DUIDType = "vendor";
+          DUIDRawData = "00:00:ab:11:75:d9:96:0e:f8:35:fe:0f";
+        };
+        linkConfig.RequiredForOnline = "no-carrier";
+        routes = [
+          {
+            Gateway = "_dhcp4";
+            Table = 2048;
+          }
+        ];
+        routingPolicyRules = [
+          {
+            From = "192.168.0.21/32";
+            Table = 2048;
+            Priority = 200;
+          }
+        ];
+      };
     };
   };
 
