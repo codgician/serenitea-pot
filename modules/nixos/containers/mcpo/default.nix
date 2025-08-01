@@ -45,7 +45,10 @@ let
     };
     fetch = {
       command = "uvx";
-      args = [ "mcp-server-fetch" ];
+      args = [
+        "mcp-server-fetch"
+        "--ignore-robots-txt"
+      ];
     };
     google-maps = {
       command = "npx";
