@@ -285,11 +285,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1754033561,
-        "narHash": "sha256-1xlU3sxIGFuIdndi7KJORaGjplDrnQ782majb6PgDjk=",
+        "lastModified": 1754140881,
+        "narHash": "sha256-im+OIxf6ZtKok1qXaANm42tv4x7hJJyX10XJyr+RaHk=",
         "owner": "codgician",
         "repo": "mlnx-ofed-nixos",
-        "rev": "240fed2a07dab2f933f0e754b438c686aae2a3bf",
+        "rev": "665112be3ad6509938263211f1b28d6c8d8221a8",
         "type": "github"
       },
       "original": {
@@ -474,11 +474,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1754127502,
-        "narHash": "sha256-o47xEjP7sFk/aPvJ0+nD7F1CrhKNPsbAbJ8tcCYXB28=",
+        "lastModified": 1754153362,
+        "narHash": "sha256-YISovYBixYBuFeK9oHdOW2XCbpxtjOLycX9QYCUimdo=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "3549e57772c2c2715bffc408687d2be590e5e7b8",
+        "rev": "ca0cf0af08e03a609607974e226a36d09d88e299",
         "type": "github"
       },
       "original": {
@@ -552,16 +552,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1753610765,
-        "narHash": "sha256-gIOHf5ui4s0ha0zXSuOSwsb0cRxJCAwVzy4Ztz7VNkc=",
+        "lastModified": 1754153569,
+        "narHash": "sha256-y3MsSHSk8KLurkCl7prdpQJAlHdCdo/rfoVxusNAiEU=",
         "owner": "codgician",
         "repo": "proxmox-nixos",
-        "rev": "4e835d963f934dc175f6db9ad3e9f270d6cf03c0",
+        "rev": "ae8c5f1faa48d5ebbb65194edfceed11bc260a14",
         "type": "github"
       },
       "original": {
         "owner": "codgician",
-        "ref": "pve-rs-0-9-4",
+        "ref": "pve-8-latest",
         "repo": "proxmox-nixos",
         "type": "github"
       }
