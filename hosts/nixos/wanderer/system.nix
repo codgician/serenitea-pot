@@ -4,6 +4,7 @@
   # My settings
   codgician = {
     services = {
+      litellm.enable = true;
       nixos-vscode-server.enable = true;
     };
 
