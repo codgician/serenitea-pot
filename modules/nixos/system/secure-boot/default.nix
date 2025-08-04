@@ -37,10 +37,6 @@ in
     # Persist /etc/secureboot
     codgician.system.impermanence.extraItems = [
       {
-        path = "/etc/secureboot";
-        type = "directory";
-      }
-      {
         path = "/var/lib/sbctl";
         type = "directory";
       }
