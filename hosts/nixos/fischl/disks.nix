@@ -20,7 +20,10 @@ let
             type = "filesystem";
             format = "vfat";
             mountpoint = "/boot-${builtins.toString id}";
-            mountOptions = [ "umask=0077" ];
+            mountOptions = [
+              "nofail"
+              "umask=0077"
+            ];
           };
         };
         zroot = {

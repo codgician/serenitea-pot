@@ -2,8 +2,8 @@
 
 {
   disks ? [
-    "disk/by-id/nvme-WD_Blue_SN5000_1TB_251222801711"
-    "disk/by-id/nvme-WD_Blue_SN5000_1TB_251222802843"
+    "disk/by-id/nvme-SKHynix_HFS001TEM4X182N_5SDAN42221030AG17-part2"
+    "disk/by-id/nvme-SKHynix_HFS001TEM4X182N_5SDAN42221030AG2H-part2"
   ],
   ...
 }:
@@ -22,7 +22,10 @@ let
             type = "filesystem";
             format = "vfat";
             mountpoint = "/boot-${builtins.toString id}";
-            mountOptions = [ "umask=0077" ];
+            mountOptions = [
+              "nofail"
+              "umask=0077"
+            ];
           };
         };
         zroot = {
