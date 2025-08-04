@@ -15,7 +15,7 @@ in
 
     pkiBundle = lib.mkOption {
       type = lib.types.path;
-      default = "/etc/secureboot";
+      default = "/var/lib/sbctl";
       description = ''
         Path to PKI bundle.
         This path will not be automatically persisted if set to non-default value with impermanence on.
@@ -38,6 +38,10 @@ in
     codgician.system.impermanence.extraItems = [
       {
         path = "/etc/secureboot";
+        type = "directory";
+      }
+      {
+        path = "/var/lib/sbctl";
         type = "directory";
       }
     ];
