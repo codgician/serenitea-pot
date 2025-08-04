@@ -72,7 +72,7 @@ with pubKeys.hosts;
   "open-webui-env.age".publicKeys = someHosts [ paimon ];
 
   # LiteLLM secrets
-  "litellm-env.age".publicKeys = someHosts [ paimon ];
+  "litellm-env.age".publicKeys = someHosts [ paimon wanderer ];
 
   # Terraform secrets
   "terraform-env.age" = {
