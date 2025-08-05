@@ -8,10 +8,17 @@ let
   cfg = config.codgician.system.wsl;
   types = lib.types;
   ldLibraryPath = lib.makeLibraryPath [ pkgs.addDriverRunpath.driverLink ];
+
+  # See: https://github.com/nix-community/NixOS-WSL/issues/454
+  env = {
+    LD_LIBRARY_PATH = ldLibraryPath;
+    GALLIUM_DRIVER = "d3d12";
+    LIBGL_KOPPER_DRI2 = "true"; 
+  };
 in
 {
   options.codgician.system.wsl = {
-    enable = lib.mkEnableOption "NixOS WSL.";
+    enable = lib.mkEnableOption "NixOS WSL";
 
     defaultUser = lib.mkOption {
       type = types.str;
@@ -42,18 +49,10 @@ in
       glxinfo
       vulkan-tools
     ];
-    hardware.graphics = {
-      enable = true;
-      extraPackages = with pkgs; [
-        mesa
-        libvdpau-va-gl
-        vaapiVdpau
-      ];
-    };
 
-    # Hack LD_LIBRARY_PATH
-    # See: https://github.com/nix-community/NixOS-WSL/issues/454
-    environment.sessionVariables.LD_LIBRARY_PATH = ldLibraryPath;
-    services.displayManager.environment.LD_LIBRARY_PATH = ldLibraryPath;
+    hardware.graphics.enable = true;
+
+    environment.sessionVariables = env;
+    services.displayManager.environment = env;
   };
 }
