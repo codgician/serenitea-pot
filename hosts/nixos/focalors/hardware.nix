@@ -9,7 +9,10 @@
       kernelModules = [ ];
     };
 
-    supportedFilesystems = [ "vfat" "zfs "];
+    supportedFilesystems = [
+      "vfat"
+      "zfs "
+    ];
     kernelModules = [ ];
     kernelParams = [ "video=Virtual-1:3024x1890@120" ];
     extraModulePackages = [ ];

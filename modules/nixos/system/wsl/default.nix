@@ -13,7 +13,7 @@ let
   env = {
     LD_LIBRARY_PATH = ldLibraryPath;
     GALLIUM_DRIVER = "d3d12";
-    LIBGL_KOPPER_DRI2 = "true"; 
+    LIBGL_KOPPER_DRI2 = "true";
   };
 in
 {
