@@ -16,6 +16,7 @@ let
   # Azure OpenAI models deployed via azurerm_cognitive_deployment
   azCognitiveModels = lib.pipe terraformConf.resource.azurerm_cognitive_deployment [
     builtins.attrValues
+    (builtins.filter (x: x.name != "sora"))
     (builtins.map (x: {
       model_name = x.name;
       litellm_params = {
@@ -31,6 +32,7 @@ let
   azApiModels = lib.pipe terraformConf.resource.azapi_resource [
     builtins.attrValues
     (builtins.filter (x: lib.hasPrefix "Microsoft.CognitiveServices/accounts/deployments" x.type))
+    (builtins.filter (x: !(lib.hasPrefix "flux" x.name)))
     (builtins.map (x: {
       model_name = x.name;
       litellm_params = {
