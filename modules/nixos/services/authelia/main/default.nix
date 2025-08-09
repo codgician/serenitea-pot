@@ -14,15 +14,6 @@ in
   options.codgician.services.authelia.instances.${name} = {
     enable = lib.mkEnableOption "Authelia instance ${name}";
 
-    address = lib.mkOption {
-      type = types.str;
-      default = "unix:///run/authelia/main.sock";
-      description = ''
-        Address for Authelia instance ${name} to listen on.
-        Use a Unix socket for local communication.
-      '';
-    };
-
     sessionDomain = lib.mkOption {
       type = types.str;
       example = "example.com";
@@ -62,7 +53,7 @@ in
     # Reverse proxy profile for nginx
     reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
       inherit serviceName;
-      defaultProxyPass = "http://unix:/run/${serviceName}/main.sock";
+      defaultProxyPass = "http://unix:/run/${serviceName}/${name}.sock";
       defaultDomains = [ "${cfg.domain}" ];
       defaultDomainsText = ''with config.codgician.services.authelia.${name}; [ domain ]'';
     };
@@ -90,7 +81,7 @@ in
 
         settings = {
           theme = "auto";
-          server.address = "unix:///run/${serviceName}/main.sock?umask=000";
+          server.address = "unix:///run/${serviceName}/${name}.sock?umask=0000";
           default_2fa_method = "webauthn";
 
           # Identity providers
@@ -140,6 +131,7 @@ in
           };
 
           notifier = {
+            disable_startup_check = true;
             smtp = {
               address = "smtp://smtp.office365.com:587";
               username = "bot@codgician.me";
@@ -148,7 +140,7 @@ in
               subject = "[Authelia] {title}";
               identifier = cfg.sessionDomain;
               timeout = "15s";
-              startup_check_address = "test@authelia.com";
+              startup_check_address = "bot@codgician.me";
               tls = {
                 server_name = "smtp.office365.com";
                 minimum_version = "TLS1.2";
