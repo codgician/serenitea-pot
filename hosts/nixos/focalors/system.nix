@@ -72,6 +72,7 @@ in
 
   # Enable Network Manager
   networking.networkmanager.enable = true;
+  networking.hostId = "41182c40";
 
   # SDDM default scaling
   services.displayManager.sddm.settings.General = {
