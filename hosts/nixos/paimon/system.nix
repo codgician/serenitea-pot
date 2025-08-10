@@ -40,6 +40,9 @@
         reverseProxy.enable = true;
       };
 
+      # Email
+      postfix.enable = true;
+
       postgresql = {
         enable = true;
         dataDir = "/opool/postgres";

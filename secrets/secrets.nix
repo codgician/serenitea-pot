@@ -11,6 +11,12 @@ with pubKeys.hosts;
   "authelia-main-smtp.age".publicKeys = someHosts [ paimon ];
   "authelia-main-jwks.age".publicKeys = someHosts [ paimon ];
 
+  # Sasl XOAuth2 config
+  "sasl-xoauth2.age" = {
+    publicKeys = allServers;
+    expiryDates = [ "2027-08-10" ];
+  };
+
   # OIDC secrets
   "grafana-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];
   "jellyfin-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];
