@@ -235,6 +235,21 @@
     autoSnapshot.enable = true;
     expandOnBoot = "all";
     trim.enable = true;
+    zed = {
+      enableMail = true;
+      settings = {
+        ZED_DEBUG_LOG = "/tmp/zed.debug.log";
+        
+        ZED_EMAIL_ADDR = "codgician@outlook.com";
+        ZED_EMAIL_PROG = "${config.security.wrapperDir}/sendmail";
+        ZED_EMAIL_OPTS = "@ADDRESS@";
+        ZED_NOTIFY_INTERVAL_SECS = 60 * 10;
+        ZED_NOTIFY_VERBOSE = true;
+
+        ZED_USE_ENCLOSURE_LEDS = true;
+        ZED_SCRUB_AFTER_RESILVER = true;
+      };
+    };
   };
 
   networking.hostId = "a7f3fe2e";

@@ -12,20 +12,19 @@ let
   saslPasswd = pkgs.writeText "sasl_passwd" ''
     [smtp.office365.com]:587 bot@codgician.me:${tokenFile}
   '';
-
-  # TODO: remove this as fixed upstream
-  sasl-xoauth2 = pkgs.nur.repos.codgician.sasl-xoauth2.overrideAttrs (_: {
-    postPatch = ''
-      substituteInPlace src/CMakeLists.txt scripts/sasl-xoauth2-tool.in \
-        --replace-fail "\''${CMAKE_INSTALL_FULL_SYSCONFDIR}" '/etc'
-    '';
-  });
 in
 {
   options.codgician.services.postfix = {
     enable = lib.mkEnableOption "postfix";
 
     verbose = lib.mkEnableOption "debugging logs";
+
+    authorizedUsers = lib.mkOption {
+      type = with types; listOf str;
+      default = [ "root" "codgi" "postfix" ];
+      example = [ "user1" "user2" ];
+      description = "List of users authorized to interact with postfix.";
+    };
 
     user = lib.mkOption {
       type = types.str;
@@ -43,7 +42,7 @@ in
   config = lib.mkIf cfg.enable {
     # Make debugging easier
     environment.systemPackages = with pkgs; [
-      sasl-xoauth2
+      pkgs.nur.repos.codgician.sasl-xoauth2
       cyrus_sasl
     ];
 
@@ -53,12 +52,17 @@ in
       inherit (cfg) user group;
       relayHost = "smtp.office365.com";
       relayPort = 587;
-      config = {
+      config = rec {
         import_environment = "SASL_PATH";
         mynetworks = "127.0.0.0/8";
         inet_interfaces = "loopback-only";
         inet_protocols = "all";
         sender_canonical_maps = "static:bot@codgician.me";
+
+        # Access control
+        authorized_submit_users = builtins.concatStringsSep ", " cfg.authorizedUsers;
+        authorized_mailq_users = authorized_submit_users;
+        authorized_flush_users = authorized_submit_users;
 
         # SMTP
         smtp_tls_security_level = "encrypt";
@@ -98,7 +102,7 @@ in
     };
 
     systemd.services.postfix.environment.SASL_PATH = lib.makeSearchPath "lib/sasl2" [
-      sasl-xoauth2
+      pkgs.nur.repos.codgician.sasl-xoauth2
     ];
 
     environment.etc."sasl-xoauth2.conf" = {
