@@ -19,6 +19,15 @@ in
     # Enable systemd in initrd
     boot.initrd.systemd.enable = lib.mkIf (!config.boot.isContainer) true;
 
+    # Console
+    console = {
+      font = "${pkgs.terminus_font}/share/consolefonts/ter-u14n.psf.gz";
+      earlySetup = true;
+      useXkbConfig = true;
+    };
+
+    systemd.services.systemd-vconsole-setup.unitConfig.After = "local-fs.target";
+
     # Set flake for auto upgrade
     system.autoUpgrade = {
       flake = "github:codgician/serenitea-pot";
@@ -61,11 +70,10 @@ in
     # Time zone.
     time.timeZone = "Asia/Shanghai";
 
-    # Select internationalisation properties.
-    i18n.defaultLocale = "en_US.UTF-8";
-    console = {
-      font = "Lat2-Terminus16";
-      useXkbConfig = true;
+    # Locales
+    i18n = {
+      defaultLocale = "en_US.UTF-8";
+      extraLocales = [ "zh_CN.UTF-8/UTF-8" ];
     };
 
     # Zsh
