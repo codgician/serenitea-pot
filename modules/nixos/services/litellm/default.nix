@@ -13,55 +13,47 @@ let
   terraformConf = builtins.fromJSON outputs.packages.${pkgs.system}.terraform-config.value;
   azureSubdomain = terraformConf.resource.azurerm_ai_services.akasha.custom_subdomain_name;
 
-  # Azure OpenAI models deployed via azurerm_cognitive_deployment
+  # Azure AI models
   azCognitiveModels = lib.pipe terraformConf.resource.azurerm_cognitive_deployment [
     builtins.attrValues
     (builtins.filter (x: x.name != "sora"))
-    (builtins.map (x: {
-      model_name = x.name;
-      litellm_params = {
-        model = "azure_ai/${x.name}";
-        api_base = "https://${azureSubdomain}.cognitiveservices.azure.com";
-        api_key = "os.environ/AZURE_AKASHA_API_KEY";
-        api_version = "2025-04-01-preview";
-      };
-    }))
   ];
-
-  # Azure AI models derployed via azapi_resource
   azApiModels = lib.pipe terraformConf.resource.azapi_resource [
     builtins.attrValues
     (builtins.filter (x: lib.hasPrefix "Microsoft.CognitiveServices/accounts/deployments" x.type))
     (builtins.filter (x: !(lib.hasPrefix "flux" x.name)))
-    (builtins.map (x: {
-      model_name = x.name;
-      litellm_params = {
-        model = "azure_ai/${x.name}";
-        api_base = "https://${azureSubdomain}.services.ai.azure.com";
-        api_key = "os.environ/AZURE_AKASHA_API_KEY";
-      };
-    }))
   ];
+  azModels =
+    builtins.concatMap
+      (builtins.map (x: {
+        model_name = x.name;
+        litellm_params = {
+          model = "azure_ai/${x.name}";
+          api_base = "https://${azureSubdomain}.services.ai.azure.com";
+          api_key = "os.environ/AZURE_AKASHA_API_KEY";
+        };
+      }))
+      [
+        azCognitiveModels
+        azApiModels
+      ];
 
-  allModels =
-    azCognitiveModels
-    ++ azApiModels
-    ++ [
-      {
-        model_name = "gemini-2.5-pro";
-        litellm_params = {
-          model = "gemini/gemini-2.5-pro";
-          api_key = "os.environ/GEMINI_API_KEY";
-        };
-      }
-      {
-        model_name = "gemini-2.5-flash";
-        litellm_params = {
-          model = "gemini/gemini-2.5-flash";
-          api_key = "os.environ/GEMINI_API_KEY";
-        };
-      }
-    ];
+  allModels = azModels ++ [
+    {
+      model_name = "gemini-2.5-pro";
+      litellm_params = {
+        model = "gemini/gemini-2.5-pro";
+        api_key = "os.environ/GEMINI_API_KEY";
+      };
+    }
+    {
+      model_name = "gemini-2.5-flash";
+      litellm_params = {
+        model = "gemini/gemini-2.5-flash";
+        api_key = "os.environ/GEMINI_API_KEY";
+      };
+    }
+  ];
 in
 {
   options.codgician.services.litellm = {
