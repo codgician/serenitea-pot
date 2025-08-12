@@ -170,5 +170,24 @@ in
     };
 
     security.pam.sshAgentAuth.enable = true;
+
+    # ZFS common configurations
+    services.zfs = lib.mkIf config.boot.zfs.enabled {
+      autoScrub.enable = true;
+      autoSnapshot.enable = true;
+      expandOnBoot = "all";
+      trim.enable = true;
+      zed = {
+        enableMail = config.codgician.services.postfix.enable;
+        settings = {
+          ZED_EMAIL_ADDR = lib.mkIf config.codgician.services.postfix.enable "codgician@outlook.com";
+          ZED_NOTIFY_INTERVAL_SECS = 60 * 10;
+          ZED_NOTIFY_VERBOSE = true;
+
+          ZED_USE_ENCLOSURE_LEDS = true;
+          ZED_SCRUB_AFTER_RESILVER = true;
+        };
+      };
+    };
   };
 }

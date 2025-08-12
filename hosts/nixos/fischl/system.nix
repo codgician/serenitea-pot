@@ -24,6 +24,8 @@
       };
 
       nixos-vscode-server.enable = true;
+
+      postfix.enable = true;
     };
 
     system = {
@@ -69,20 +71,14 @@
     mdadmConf = "MAILADDR codgi";
   };
 
-  # ZFS configurations
-  services.zfs = {
-    autoScrub.enable = true;
-    autoSnapshot = {
-      enable = true;
-      frequent = 4;
-      hourly = 24;
-      daily = 7;
-      weekly = 0;
-      monthly = 0;
-      flags = "-k -p --utc";
-    };
-    expandOnBoot = "all";
-    trim.enable = true;
+  # Customize zfs auto snapshot cadence
+  services.zfs.autoSnapshot = {
+    frequent = 4;
+    hourly = 24;
+    daily = 7;
+    weekly = 0;
+    monthly = 0;
+    flags = "-k -p --utc";
   };
 
   boot.plymouth.enable = false;
