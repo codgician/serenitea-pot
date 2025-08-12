@@ -128,7 +128,7 @@ in
 
           notifier = {
             smtp = {
-              address = "smtp://127.0.0.1:25";
+              address = "smtp://localhost:25";
               sender = "bot@codgician.me";
               subject = "[Authelia] {title}";
               identifier = cfg.sessionDomain;
@@ -201,7 +201,6 @@ in
             "authelia-main-jwt"
             "authelia-main-session"
             "authelia-main-storage"
-            "authelia-main-smtp"
             "authelia-main-jwks"
           ]
           (name: {

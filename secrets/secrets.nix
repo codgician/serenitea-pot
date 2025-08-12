@@ -63,7 +63,6 @@ with pubKeys.hosts;
   # Grafana secrets
   "grafana-admin-password.age".publicKeys = someHosts [ paimon ];
   "grafana-secret-key.age".publicKeys = someHosts [ paimon ];
-  "grafana-smtp.age".publicKeys = someHosts [ paimon ];
 
   # Matrix secrets
   "matrix-global-private-key.age".publicKeys = someHosts [ paimon ];

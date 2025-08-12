@@ -89,14 +89,11 @@ in
             skip_org_role_sync = false;
           };
 
-          smtp = rec {
+          smtp = {
             enabled = true;
-            user = "bot@codgician.me";
-            password = "$__file{${config.age.secrets.grafana-smtp.path}}";
-            host = "smtp.office365.com:587";
-            startTLS_policy = "MandatoryStartTLS";
+            host = "localhost:25";
             from_name = "Grafana";
-            from_address = user;
+            from_address = "bot@codgician.me";
           };
 
           users = {
@@ -139,7 +136,6 @@ in
           [
             "grafana-admin-password"
             "grafana-secret-key"
-            "grafana-smtp"
             "grafana-oidc-secret-authelia-main"
           ]
           (_: {

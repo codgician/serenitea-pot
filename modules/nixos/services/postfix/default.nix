@@ -24,6 +24,7 @@ in
       default = [
         "root"
         "codgi"
+        "grafana"
         "postfix"
       ];
       example = [

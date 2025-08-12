@@ -41,6 +41,12 @@
         };
       };
 
+      grafana.reverseProxy = {
+        enable = true;
+        domains = [ "lumenstone.codgician.me" ];
+        proxyPass = "http://192.168.0.22";
+      };
+
       jellyfin.reverseProxy = {
         enable = true;
         domains = [ "fin.codgician.me" ];
