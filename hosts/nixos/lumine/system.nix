@@ -56,12 +56,14 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # ZFS configurations
-  services.zfs = {
-    autoScrub.enable = true;
-    autoSnapshot.enable = false;
-    expandOnBoot = "all";
-    trim.enable = true;
+  # Customize zfs auto snapshot cadence
+  services.zfs.autoSnapshot = {
+    frequent = 4;
+    hourly = 24;
+    daily = 7;
+    weekly = 0;
+    monthly = 0;
+    flags = "-k -p --utc";
   };
 
   networking.hostId = "2b4cf168";
