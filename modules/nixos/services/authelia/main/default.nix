@@ -65,10 +65,6 @@ in
         enable = true;
         inherit (cfg) user group;
 
-        environmentVariables = {
-          AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE = config.age.secrets."authelia-main-smtp".path;
-        };
-
         secrets = {
           jwtSecretFile = config.age.secrets."authelia-main-jwt".path;
           sessionSecretFile = config.age.secrets."authelia-main-session".path;
@@ -131,20 +127,17 @@ in
           };
 
           notifier = {
-            disable_startup_check = true;
             smtp = {
-              address = "smtp://smtp.office365.com:587";
-              username = "bot@codgician.me";
-              # password provided by AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE
+              address = "smtp://127.0.0.1:25";
               sender = "bot@codgician.me";
               subject = "[Authelia] {title}";
               identifier = cfg.sessionDomain;
               timeout = "15s";
               startup_check_address = "bot@codgician.me";
-              tls = {
-                server_name = "smtp.office365.com";
-                minimum_version = "TLS1.2";
-              };
+
+              # Disable TLS for local smtp relay
+              disable_require_tls = true;
+              disable_starttls = true;
             };
           };
 

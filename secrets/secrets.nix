@@ -8,7 +8,6 @@ with pubKeys.hosts;
   "authelia-main-jwt.age".publicKeys = someHosts [ paimon ];
   "authelia-main-session.age".publicKeys = someHosts [ paimon ];
   "authelia-main-storage.age".publicKeys = someHosts [ paimon ];
-  "authelia-main-smtp.age".publicKeys = someHosts [ paimon ];
   "authelia-main-jwks.age".publicKeys = someHosts [ paimon ];
 
   # Sasl XOAuth2 config

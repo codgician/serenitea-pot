@@ -238,8 +238,6 @@
     zed = {
       enableMail = true;
       settings = {
-        ZED_DEBUG_LOG = "/tmp/zed.debug.log";
-        
         ZED_EMAIL_ADDR = "codgician@outlook.com";
         ZED_NOTIFY_INTERVAL_SECS = 60 * 10;
         ZED_NOTIFY_VERBOSE = true;

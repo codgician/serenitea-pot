@@ -21,8 +21,15 @@ in
 
     authorizedUsers = lib.mkOption {
       type = with types; listOf str;
-      default = [ "root" "codgi" "postfix" ];
-      example = [ "user1" "user2" ];
+      default = [
+        "root"
+        "codgi"
+        "postfix"
+      ];
+      example = [
+        "user1"
+        "user2"
+      ];
       description = "List of users authorized to interact with postfix.";
     };
 
@@ -54,7 +61,11 @@ in
       relayPort = 587;
       config = rec {
         import_environment = "SASL_PATH";
-        mynetworks = "127.0.0.0/8";
+        mynetworks = builtins.concatStringsSep " " [
+          "127.0.0.0/8"
+          "[::ffff:127.0.0.0]/104"
+          "[::1]/128"
+        ];
         inet_interfaces = "loopback-only";
         inet_protocols = "all";
         sender_canonical_maps = "static:bot@codgician.me";
