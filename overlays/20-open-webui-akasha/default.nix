@@ -5,8 +5,6 @@
 self: super:
 let
   patches = [
-    # Support docling-serve 1.x (#15785)
-    ./docling-v1.patch
     # Add fish-speech support (#11230)
     ./fish-speech.patch
   ];
@@ -18,8 +16,8 @@ let
     # Customize PWA description
     substituteInPlace backend/open_webui/main.py \
       --replace-fail \
-      'Open WebUI is an open, extensible, user-friendly interface for AI that adapts to your workflow.' \
-      'Akasha is an Open WebUI based solution for learning and sharing knowledge.'
+      'is an open, extensible, user-friendly interface for AI that adapts to your workflow.' \
+      'is an Open WebUI based solution for learning and sharing knowledge.'
   '';
 in
 {
