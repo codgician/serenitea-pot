@@ -36,8 +36,8 @@ in
         settings = {
           database = {
             host = "/run/postgresql";
-            user = "grafana";
-            name = "grafana";
+            user = serviceName;
+            name = serviceName;
             type = "postgres";
           };
 
@@ -105,6 +105,9 @@ in
           };
         };
       };
+
+      # Add to authorized users of postfix
+      codgician.services.postfix.authorizedUsers = [ serviceName ];
 
       # Ensure postgres is enabled
       codgician.services.postgresql.enable = true;

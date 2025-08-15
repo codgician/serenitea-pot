@@ -181,6 +181,9 @@ in
         };
       };
 
+      # Add to authorized users of postfix
+      codgician.services.postfix.authorizedUsers = [ "root" ];
+
       # Grant access to /run
       systemd.services.${serviceName}.serviceConfig = {
         RuntimeDirectory = serviceName;

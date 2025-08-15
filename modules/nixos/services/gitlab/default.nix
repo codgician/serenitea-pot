@@ -49,7 +49,7 @@ in
   config = lib.mkMerge [
     # GitLab configurations
     (lib.mkIf cfg.enable {
-      services.gitlab = rec {
+      services.gitlab = {
         enable = true;
         packages.gitlab = pkgs.gitlab;
         inherit (cfg)
@@ -68,6 +68,9 @@ in
           jwsFile = config.age.secrets.gitlab-jws.path;
           otpFile = config.age.secrets.gitlab-otp.path;
           secretFile = config.age.secrets.gitlab-secret.path;
+          activeRecordSaltFile = config.age.secrets.gitlab-active-record-salt.path;
+          activeRecordPrimaryKeyFile = config.age.secrets.gitlab-active-record-primary-key.path;
+          activeRecordDeterministicKeyFile = config.age.secrets.gitlab-active-record-deterministic-key.path;
         };
 
         # Mail settings
@@ -76,37 +79,55 @@ in
           enableStartTLSAuto = true;
           tls = false;
           authentication = "login";
-          address = "smtp.office365.com";
-          port = 587;
-          username = "bot@codgician.me";
-          passwordFile = config.age.secrets.gitlab-smtp.path;
+          address = "127.0.0.1";
+          port = 25;
           domain = "codgician.me";
         };
         extraConfig.gitlab = {
-          email_from = smtp.username;
-          email_reply_to = smtp.username;
+          email_from = "bot@codgician.me";
+          email_reply_to = "bot@codgician.me";
         };
 
         # OmniAuth
         extraConfig.omniauth = {
           enabled = true;
-          allow_single_sign_on = [ "github" ];
+          allow_single_sign_on = [ "openid_connect" ];
           block_auto_created_users = true;
           providers = [
             {
-              name = "github";
-              label = "GitHub";
-              app_id = "3bc605d269d8117af816";
-              app_secret = {
-                _secret = config.age.secrets.gitlab-omniauth-github.path;
-              };
+              name = "openid_connect";
+              label = "Authelia";
+              icon = "https://www.authelia.com/images/branding/logo-cropped.png";
               args = {
-                scope = "user:email";
+                name = "openid_connect";
+                strategy_class = "OmniAuth::Strategies::OpenIDConnect";
+                issuer = "https://auth.codgician.me";
+                discovery = true;
+                scope = [
+                  "openid"
+                  "profile"
+                  "email"
+                  "groups"
+                ];
+                client_auth_method = "basic";
+                response_type = "code";
+                response_mode = "query";
+                uid_field = "preferred_username";
+                send_scope_to_token_endpoint = true;
+                pkce = true;
+                client_options = {
+                  identifier = "gitlab";
+                  secret._secret = config.age.secrets.gitlab-oidc-secret-authelia-main.path;
+                  redirect_uri = "https://${cfg.host}/users/auth/openid_connect/callback";
+                };
               };
             }
           ];
         };
       };
+
+      # Add to authorized users of postfix
+      codgician.services.postfix.authorizedUsers = [ serviceName ];
 
       # PostgreSQL
       codgician.services.postgresql.enable = true;
@@ -120,11 +141,15 @@ in
             "gitlab-jws"
             "gitlab-otp"
             "gitlab-secret"
-            "gitlab-smtp"
-            "gitlab-omniauth-github"
+            "gitlab-active-record-salt"
+            "gitlab-active-record-primary-key"
+            "gitlab-active-record-deterministic-key"
+            "gitlab-oidc-secret-authelia-main"
           ]
-          (owner: {
-            inherit owner;
+          (name: {
+            owner = cfg.user;
+            group = cfg.group;
+            mode = "0600";
           });
     })
 

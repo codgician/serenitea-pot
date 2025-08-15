@@ -57,8 +57,10 @@ with pubKeys.hosts;
   "gitlab-jws.age".publicKeys = someHosts [ paimon ];
   "gitlab-otp.age".publicKeys = someHosts [ paimon ];
   "gitlab-secret.age".publicKeys = someHosts [ paimon ];
-  "gitlab-smtp.age".publicKeys = someHosts [ paimon ];
-  "gitlab-omniauth-github.age".publicKeys = someHosts [ paimon ];
+  "gitlab-active-record-salt.age".publicKeys = someHosts [ paimon ];
+  "gitlab-active-record-primary-key.age".publicKeys = someHosts [ paimon ];
+  "gitlab-active-record-deterministic-key.age".publicKeys = someHosts [ paimon ];
+  "gitlab-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];
 
   # Grafana secrets
   "grafana-admin-password.age".publicKeys = someHosts [ paimon ];

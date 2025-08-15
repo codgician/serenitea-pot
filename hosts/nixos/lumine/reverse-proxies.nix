@@ -37,7 +37,7 @@
         host = "git.codgician.me";
         reverseProxy = {
           enable = true;
-          proxyPass = "https://192.168.0.7";
+          proxyPass = "https://192.168.0.22";
         };
       };
 

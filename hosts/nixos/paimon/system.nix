@@ -157,6 +157,13 @@
         };
       };
 
+      gitlab = {
+        enable = true;
+        statePath = "/fpool/gitlab";
+        host = "git.codgician.me";
+        reverseProxy.enable = true;
+      };
+
       jellyfin = {
         enable = true;
         dataDir = "/xpool/appdata/jellyfin";

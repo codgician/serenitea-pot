@@ -23,8 +23,6 @@ in
       type = with types; listOf str;
       default = [
         "root"
-        "codgi"
-        "grafana"
         "postfix"
       ];
       example = [
@@ -72,7 +70,7 @@ in
         sender_canonical_maps = "static:bot@codgician.me";
 
         # Access control
-        authorized_submit_users = builtins.concatStringsSep ", " cfg.authorizedUsers;
+        authorized_submit_users = builtins.concatStringsSep ", " (lib.unique cfg.authorizedUsers);
         authorized_mailq_users = authorized_submit_users;
         authorized_flush_users = authorized_submit_users;
 
