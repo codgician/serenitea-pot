@@ -41,6 +41,29 @@ in
     # Enable sandboxed nix builds
     nix.settings.sandbox = true;
 
+    # Enable nix-index
+    programs = {
+      nix-index = {
+        enable = true;
+        enableBashIntegration = true;
+        enableZshIntegration = true;
+      };
+
+      # Replace command-not-found with nix-index
+      command-not-found.enable = false;
+      bash.interactiveShellInit = ''
+        source ${pkgs.nix-index}/etc/profile.d/command-not-found.sh
+      '';
+
+      zsh = {
+        enable = true;
+        enableCompletion = true;
+        interactiveShellInit = ''
+          source ${pkgs.nix-index}/etc/profile.d/command-not-found.sh 
+        '';
+      };
+    };
+
     # Enable redistributable firmware
     hardware.enableAllFirmware = true;
     hardware.enableRedistributableFirmware = true;
@@ -74,12 +97,6 @@ in
     i18n = {
       defaultLocale = "en_US.UTF-8";
       extraLocales = [ "zh_CN.UTF-8/UTF-8" ];
-    };
-
-    # Zsh
-    programs.zsh = {
-      enable = true;
-      enableCompletion = true;
     };
 
     # Common global packages
