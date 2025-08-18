@@ -41,27 +41,10 @@ in
     # Enable sandboxed nix builds
     nix.settings.sandbox = true;
 
-    # Enable nix-index
-    programs = {
-      nix-index = {
-        enable = true;
-        enableBashIntegration = true;
-        enableZshIntegration = true;
-      };
-
-      # Replace command-not-found with nix-index
-      command-not-found.enable = false;
-      bash.interactiveShellInit = ''
-        source ${pkgs.nix-index}/etc/profile.d/command-not-found.sh
-      '';
-
-      zsh = {
-        enable = true;
-        enableCompletion = true;
-        interactiveShellInit = ''
-          source ${pkgs.nix-index}/etc/profile.d/command-not-found.sh 
-        '';
-      };
+    # Configure zsh
+    programs.zsh = {
+      enable = true;
+      enableCompletion = true;
     };
 
     # Enable redistributable firmware
