@@ -1,6 +1,6 @@
 { config, ... }:
 let
-  location = "eastus2";
+  location = "swedencentral";
   resource_group_name = config.resource.azurerm_resource_group.celestia.name;
   inherit (config.provider.azurerm) tenant_id client_id;
 in
@@ -14,9 +14,9 @@ in
     ./gpt-5-chat.nix
     ./gpt-5-nano.nix
     ./gpt-5-mini.nix
+    ./gpt-oss-120b.nix
     ./grok-3.nix
     ./o4-mini.nix
-    ./sora.nix
   ];
 
   resource = {
@@ -28,15 +28,15 @@ in
       sku_name = "S0";
     };
 
-    azurerm_key_vault.akasha-kv = {
-      name = "akasha-kv";
+    azurerm_key_vault.akasha-keyvault = {
+      name = "akasha-keyvault";
       inherit location resource_group_name tenant_id;
       sku_name = "standard";
       purge_protection_enabled = true;
     };
 
-    azurerm_key_vault_access_policy.akasha-kvpolicy = {
-      key_vault_id = config.resource.azurerm_key_vault.akasha-kv "id";
+    azurerm_key_vault_access_policy.akasha-keyvault-policy = {
+      key_vault_id = config.resource.azurerm_key_vault.akasha-keyvault "id";
       inherit tenant_id;
       object_id = client_id;
       key_permissions = [
@@ -59,14 +59,8 @@ in
       name = "akasha";
       inherit location resource_group_name;
       storage_account_id = config.resource.azurerm_storage_account.akashastorage "id";
-      key_vault_id = config.resource.azurerm_key_vault.akasha-kv "id";
+      key_vault_id = config.resource.azurerm_key_vault.akasha-keyvault "id";
       identity.type = "SystemAssigned";
-
-      # Hack: Adding automatically generated tags to exclude them from diff
-      tags = with config.resource; {
-        "__SYSTEM__AIServices_akasha" = azurerm_ai_services.akasha "id";
-        "__SYSTEM__AzureOpenAI_akasha_aoai" = azurerm_ai_services.akasha "id";
-      };
     };
 
     azurerm_ai_foundry_project.akasha-ai-project = {

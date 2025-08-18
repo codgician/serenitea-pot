@@ -9,7 +9,7 @@ in
     required_providers = {
       azurerm = {
         source = "hashicorp/azurerm";
-        version = "~>4.24";
+        version = "~>4.40";
       };
 
       azapi = {

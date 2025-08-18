@@ -1,25 +1,20 @@
 { config, ... }:
 {
-  # Not supported by azurerm module yet
-  # todo: migrate to azurerm_cognitive_deployment when the API exists preview
-  resource.azapi_resource.flux-1-kontext-pro = {
-    type = "Microsoft.CognitiveServices/accounts/deployments@2024-10-01";
-    name = "flux.1-kontext-pro";
-    parent_id = config.resource.azurerm_ai_services.akasha "id";
-    body = {
-      properties = {
-        model = {
-          format = "Black Forest Labs";
-          name = "FLUX.1-Kontext-pro";
-          version = "1";
-        };
-        versionUpgradeOption = "OnceNewDefaultVersionAvailable";
-        raiPolicyName = "Microsoft.DefaultV2";
-      };
-      sku = {
-        name = "GlobalStandard";
-        capacity = 1000;
-      };
+  resource.azurerm_cognitive_deployment.akasha-flux-1-kontext-pro = {
+    name = "flux-1-kontext-pro";
+    cognitive_account_id = config.resource.azurerm_ai_services.akasha "id";
+    version_upgrade_option = "OnceNewDefaultVersionAvailable";
+    rai_policy_name = "Microsoft.DefaultV2";
+
+    model = {
+      format = "Black Forest Labs";
+      name = "FLUX.1-Kontext-pro";
+      version = "1";
+    };
+
+    sku = {
+      name = "GlobalStandard";
+      capacity = 6;
     };
   };
 }

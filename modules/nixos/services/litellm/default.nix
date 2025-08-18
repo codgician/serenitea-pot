@@ -14,29 +14,18 @@ let
   azureSubdomain = terraformConf.resource.azurerm_ai_services.akasha.custom_subdomain_name;
 
   # Azure AI models
-  azCognitiveModels = lib.pipe terraformConf.resource.azurerm_cognitive_deployment [
+  azModels = lib.pipe terraformConf.resource.azurerm_cognitive_deployment [
     builtins.attrValues
-    (builtins.filter (x: x.name != "sora"))
-  ];
-  azApiModels = lib.pipe terraformConf.resource.azapi_resource [
-    builtins.attrValues
-    (builtins.filter (x: lib.hasPrefix "Microsoft.CognitiveServices/accounts/deployments" x.type))
     (builtins.filter (x: !(lib.hasPrefix "flux" x.name)))
+    (builtins.map (x: {
+      model_name = x.name;
+      litellm_params = {
+        model = "azure_ai/${x.name}";
+        api_base = "https://${azureSubdomain}.services.ai.azure.com";
+        api_key = "os.environ/AZURE_AKASHA_API_KEY";
+      };
+    }))
   ];
-  azModels =
-    builtins.concatMap
-      (builtins.map (x: {
-        model_name = x.name;
-        litellm_params = {
-          model = "azure_ai/${x.name}";
-          api_base = "https://${azureSubdomain}.services.ai.azure.com";
-          api_key = "os.environ/AZURE_AKASHA_API_KEY";
-        };
-      }))
-      [
-        azCognitiveModels
-        azApiModels
-      ];
 
   allModels = azModels ++ [
     {
