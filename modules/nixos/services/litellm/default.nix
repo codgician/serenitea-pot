@@ -27,22 +27,44 @@ let
     }))
   ];
 
-  allModels = azModels ++ [
-    {
-      model_name = "gemini-2.5-pro";
-      litellm_params = {
-        model = "gemini/gemini-2.5-pro";
-        api_key = "os.environ/GEMINI_API_KEY";
-      };
-    }
-    {
-      model_name = "gemini-2.5-flash";
-      litellm_params = {
-        model = "gemini/gemini-2.5-flash";
-        api_key = "os.environ/GEMINI_API_KEY";
-      };
-    }
-  ];
+  # Google Cloud models
+  gcpModels =
+    lib.map
+      (model_name: {
+        inherit model_name;
+        litellm_params = {
+          model = "gemini/${model_name}";
+          api_key = "os.environ/GEMINI_API_KEY";
+        };
+      })
+      [
+        "gemini-2.5-pro"
+        "gemini-2.5-flash"
+      ];
+
+  # GitHub Copilot models
+  githubModels =
+    lib.map
+      (model_name: {
+        inherit model_name;
+        litellm_params = {
+          model = "github_copilot/${model_name}";
+          extra_headers = {
+            editor-version = "vscode/${pkgs.vscode.version}";
+            editor-plugin-version = "copilot/${pkgs.vscode-extensions.github.copilot.version}";
+            Copilot-Integration-Id = "vscode-chat";
+            user-agent = "GithubCopilot/${pkgs.vscode-extensions.github.copilot.version}";
+          };
+        };
+      })
+      [
+        "claude-sonnet-4"
+        "claude-opus-41"
+        "gpt-5"
+        "o3"
+      ];
+
+  allModels = azModels ++ gcpModels ++ githubModels;
 in
 {
   options.codgician.services.litellm = {
@@ -88,6 +110,10 @@ in
         enable = true;
         inherit (cfg) host port stateDir;
         environmentFile = config.age.secrets.litellm-env.path;
+        environment = {
+          "DO_NOT_TRACK" = "True";
+          "GITHUB_COPILOT_TOKEN_DIR" = "${cfg.stateDir}/github";
+        };
         settings.model_list = allModels;
       };
     })
