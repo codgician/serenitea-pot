@@ -30,15 +30,16 @@
         "vfio_pci"
         "vfio_iommu_type1"
         "mlx5_core"
+        "ast"
       ];
     };
 
-    kernelModules = [
-      "kvm-amd"
-      "ast"
-    ];
+    kernelModules = [ "kvm-amd" ];
+
     kernelParams = [
-      "video=astdrmfb"
+      "video=VGA-1:1600x900@60"
+      "fbcon=map:0"
+      "vfio-pci.ids=10de:2783,10de:22bc,8086:56a5,8086:4f92"
       "amd_pstate=active"
       "hugepagesz=2M"
       "hugepagesz=1G"
@@ -54,7 +55,6 @@
     ];
 
     extraModprobeConfig = ''
-      options vfio-pci ids=10de:1cb6,10de:0fb9,10de:2882,10de:22be,10de:2783,10de:22bc
       options kvm ignore_msrs=1
       options kvm report_ignored_msrs=0
     '';
