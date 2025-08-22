@@ -74,6 +74,12 @@ lib.optionalAttrs (lib.version >= "24.05") {
     # Configure keymap in X11
     services.xserver.xkb.layout = "us";
 
+    xdg.portal = {
+      enable = true;
+      extraPortals = with pkgs; [ kdePackages.xdg-desktop-portal-kde ];
+      wlr.enable = true;
+    };
+
     # Install optional dependencies
     services.fwupd.enable = true;
     environment = {
@@ -89,6 +95,7 @@ lib.optionalAttrs (lib.version >= "24.05") {
             aha
             kdePackages.breeze-gtk
             kdePackages.kio-admin
+            kdePackages.krdp
             kdePackages.kwallet-pam
             qt6.qtvirtualkeyboard
           ]
