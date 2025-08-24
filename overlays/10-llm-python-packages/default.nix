@@ -1,6 +1,11 @@
 # Always use LLM packages from unstable
 
-{ inputs, ... }:
+{
+  inputs,
+  lib,
+  system,
+  ...
+}:
 
 self: super:
 let
@@ -8,7 +13,8 @@ let
     inherit (super) system;
     config = {
       allowUnfree = true;
-      cudaSupport = true;
+      cudaSupport = lib.systems.inspect.predicates.isLinux system;
+      rocmSupport = lib.systems.inspect.predicates.isLinux system;
     };
   };
 

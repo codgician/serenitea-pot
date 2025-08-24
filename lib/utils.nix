@@ -19,7 +19,7 @@ rec {
       inputs.mlnx-ofed-nixos.overlays.default
     ]
     ++ (lib.optional (isLinuxSystem system) inputs.proxmox-nixos.overlays.${system})
-    ++ (builtins.map (x: import x { inherit inputs lib; }) (
+    ++ (builtins.map (x: import x { inherit inputs lib system; }) (
       with lib.codgician; getFolderPaths overlaysDir
     ));
 

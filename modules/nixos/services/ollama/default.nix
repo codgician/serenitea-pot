@@ -11,7 +11,7 @@ let
 in
 {
   options.codgician.services.ollama = {
-    enable = lib.mkEnableOption "Ollama.";
+    enable = lib.mkEnableOption "Ollama";
 
     host = lib.mkOption {
       type = types.str;
@@ -99,6 +99,7 @@ in
         environmentVariables = {
           OLLAMA_FLASH_ATTENTION = lib.mkIf (cfg.acceleration != false) "1";
           OLLAMA_KV_CACHE_TYPE = "q8_0";
+          OLLAMA_NEW_ENGINE = "1";
           # Increase default context length to 16K
           OLLAMA_CONTEXT_LENGTH = "16384";
           # Keep alive

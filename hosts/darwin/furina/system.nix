@@ -61,6 +61,7 @@
             ghidra
             prismlauncher-unwrapped
             macmon
+            ollama
           ]
           ++ (with pkgs.nur.repos.codgician; [
             mtk_uartboot
