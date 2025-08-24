@@ -53,6 +53,7 @@ let
             editor-version = "vscode/${pkgs.vscode.version}";
             editor-plugin-version = "copilot/${pkgs.vscode-extensions.github.copilot.version}";
             Copilot-Integration-Id = "vscode-chat";
+            Copilot-Vision-Request = "true";
             user-agent = "GithubCopilot/${pkgs.vscode-extensions.github.copilot.version}";
           };
         };
