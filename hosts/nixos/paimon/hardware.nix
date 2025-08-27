@@ -79,11 +79,8 @@
   systemd.services."zfs-mount".preStart = "${lib.getExe config.boot.zfs.package} load-key -a";
 
   # Selfhost mlnx-ofed-nixos
-  hardware.mlnx-ofed = {
-    enable = true;
-    fwctl.enable = true;
-  };
-
+  hardware.mlnx-ofed.enable = true;
+  
   # Specify boot-0 as the primary ESP partition
   boot.loader.efi.efiSysMountPoint = "/boot-0";
 
