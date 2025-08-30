@@ -62,6 +62,7 @@
             prismlauncher-unwrapped
             macmon
             ollama
+            litellm
           ]
           ++ (with pkgs.nur.repos.codgician; [
             mtk_uartboot

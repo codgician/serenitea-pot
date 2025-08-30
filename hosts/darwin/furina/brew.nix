@@ -60,6 +60,7 @@
     "zoom"
     "discord"
     "firefox"
+    "figma"
     "balenaetcher"
     "altserver"
     "element"

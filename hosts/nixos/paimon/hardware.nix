@@ -80,7 +80,7 @@
 
   # Selfhost mlnx-ofed-nixos
   hardware.mlnx-ofed.enable = true;
-  
+
   # Specify boot-0 as the primary ESP partition
   boot.loader.efi.efiSysMountPoint = "/boot-0";
 
