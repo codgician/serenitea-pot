@@ -7,7 +7,7 @@
 let
   cfg = config.codgician.users;
   types = lib.types;
-  inherit (pkgs.stdenvNoCC) isDarwin isLinux;
+  inherit (pkgs.stdenvNoCC) isLinux;
 
   # Use list of sub-folder names as list of available users
   dirs = builtins.readDir ./.;
@@ -140,7 +140,7 @@ let
         }
 
         # Mark as known users in nix-darwin
-        { users = lib.optionalAttrs isDarwin { knownUsers = [ name ]; }; }
+        { users = lib.optionalAttrs (users ? knownUsers) { knownUsers = [ name ]; }; }
 
         # Import home-manager modules (only when createHome is enabled)
         (lib.mkIf cfg.${name}.createHome {
