@@ -140,9 +140,7 @@ let
         }
 
         # Mark as known users in nix-darwin
-        (lib.mkIf isDarwin {
-          users.knownUsers = [ name ];
-        })
+        { users = lib.optionalAttrs isDarwin { knownUsers = [ name ]; }; }
 
         # Import home-manager modules (only when createHome is enabled)
         (lib.mkIf cfg.${name}.createHome {
