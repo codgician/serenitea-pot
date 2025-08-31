@@ -6,6 +6,7 @@
 }:
 let
   inherit (config.networking) hostName;
+  inherit (pkgs.stdenvNoCC) isDarwin;
   inherit (lib.codgician)
     secrets
     secretsDir
@@ -40,7 +41,7 @@ in
 
       group = lib.mkOption {
         type = lib.types.str;
-        default = "root";
+        default = if isDarwin then "admin" else "root";
         description = "Group of secret ${name}.";
       };
 

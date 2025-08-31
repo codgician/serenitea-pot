@@ -2,13 +2,14 @@
 let
   name = builtins.baseNameOf ./.;
   pubKeys = import (lib.codgician.secretsDir + "/pubkeys.nix");
+  inherit (pkgs.stdenvNoCC) isDarwin;
 in
 {
   users.users.codgi = lib.mkMerge [
     # Generic configurations
     {
       inherit name;
-      uid = 1000;
+      uid = if isDarwin then 501 else 1000;
       description = "Shijia Zhang";
       shell = pkgs.zsh;
       openssh.authorizedKeys.keys = pubKeys.users.${name};
