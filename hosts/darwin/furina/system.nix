@@ -2,6 +2,9 @@
 {
   # My settings
   codgician = {
+    services = {
+      litellm.enable = true;
+    };
     system = {
       brew = {
         enable = true;
