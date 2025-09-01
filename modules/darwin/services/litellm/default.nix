@@ -82,7 +82,7 @@ in
     system.activationScripts."${serviceName}-prestart".text = ''
       mkdir -p '${cfg.stateDir}/github'
       chown -R ${serviceName}:admin '${cfg.stateDir}'
-      chmod -R 600 '${cfg.stateDir}'
+      chmod 700 '${cfg.stateDir}'
     '';
 
     # Ensure system user and group exist for the daemon
