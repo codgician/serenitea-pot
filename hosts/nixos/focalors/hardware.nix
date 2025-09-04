@@ -35,6 +35,13 @@
     ];
   };
 
+  # Remove after switching to 25.11
+  systemd.user.services = {
+    prlcp.enable = lib.mkForce false;
+    prldnd.enable = lib.mkForce false;
+    prlshprof.enable =  lib.mkForce false;
+  };
+
   # prlbinfmtconfig.sh would only register binfmt when systemd-binfmt.service is enabled.
   # Following lines are added to ensure the service exists and is enabled when prlstoolsd.service runs
   # boot.binfmt.registrations.RosettaLinux = {
