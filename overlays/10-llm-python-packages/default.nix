@@ -18,21 +18,43 @@ let
     };
   };
 
-  pythonNames = builtins.filter (x: builtins.match "(^python[0-9]*$)" x != null) (
-    builtins.attrNames super
-  );
+  pythonNames = builtins.filter
+    (x: builtins.match "(^python[0-9]*$)" x != null)
+    (builtins.attrNames super);
+
+  # Produce a patched pythonPackages set (keeping override methods intact)
+  mkPatchedPythonPackages =
+    pp:
+    pp.override {
+      overrides = pself': ppsuper': {
+        docling-serve =
+          let
+            orig = ppsuper'.docling-serve;
+            mkPatched = pkg:
+              pkg.overridePythonAttrs (old: {
+                pythonRemoveDeps = (old.pythonRemoveDeps or []) ++ [ "docling-mcp" ];
+              });
+          in
+          # Reattach / wrap override + overrideDerivation so downstream usage
+          # (including the one inside the application package) still works
+          mkPatched orig // {
+            override = args: mkPatched (orig.override args);
+            overrideDerivation = f: mkPatched (orig.overrideDerivation f);
+          };
+      };
+    };
 
   mkPackageOverride =
     pythonPackagesName:
     (ppself: ppsuper: {
-      inherit (unstablePkgs.${pythonPackagesName})
+      inherit (mkPatchedPythonPackages unstablePkgs.${pythonPackagesName})
         rapidocr-onnxruntime
         onnxruntime
         docling
         docling-ibm-models
-        docling-serve
         docling-core
         docling-parse
+        docling-serve
         ollama
         litellm
         vllm
@@ -40,21 +62,19 @@ let
     });
 in
 {
-  inherit (unstablePkgs) litellm;
-  inherit (unstablePkgs) llama-cpp vllm;
+  # Non-Python packages pulled directly from unstable
+  inherit (unstablePkgs) llama-cpp;
   inherit (unstablePkgs) ollama ollama-cuda ollama-rocm;
-
-  docling = unstablePkgs.docling.override {
-    python3Packages = unstablePkgs.python3Packages;
-  };
-  docling-serve = unstablePkgs.docling-serve.override {
-    python3Packages = unstablePkgs.python3Packages;
-  };
-  open-webui = unstablePkgs.open-webui.override {
-    python3Packages = unstablePkgs.python3Packages;
-  };
 }
-# Override python packages
+# Override Python applications to use patched python3Packages
+// (lib.genAttrs
+  [ "docling" "docling-serve" "open-webui" "litellm" "vllm" ]
+  (pkgName:
+    unstablePkgs.${pkgName}.override {
+      python3Packages = mkPatchedPythonPackages unstablePkgs.python3Packages;
+    })
+)
+# Override each pythonXY interpreter to expose unstable + patched packages
 // builtins.listToAttrs (
   builtins.map (pythonName: {
     name = pythonName;

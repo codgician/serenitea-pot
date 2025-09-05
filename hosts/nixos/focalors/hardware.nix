@@ -39,7 +39,7 @@
   systemd.user.services = {
     prlcp.enable = lib.mkForce false;
     prldnd.enable = lib.mkForce false;
-    prlshprof.enable =  lib.mkForce false;
+    prlshprof.enable = lib.mkForce false;
   };
 
   # prlbinfmtconfig.sh would only register binfmt when systemd-binfmt.service is enabled.

@@ -68,7 +68,7 @@ rec {
     with inputs;
     (mkHomeManagerModules "nixosModules" [
       # Home Manager modules
-      plasma-manager.homeManagerModules.plasma-manager
+      plasma-manager.homeModules.plasma-manager
     ])
     ++ [
       # NixOS modules
