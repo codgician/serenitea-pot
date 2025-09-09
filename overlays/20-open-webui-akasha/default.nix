@@ -9,6 +9,7 @@ let
     ./fish-speech.patch
   ];
 
+  # Patch branding
   postPatch = ''
     # Remove suffix in webui name
     substituteInPlace backend/open_webui/env.py \
@@ -31,6 +32,9 @@ in
       });
     in
     {
+      # Add all optional dependencies
+      dependencies = oldAttrs.dependencies ++ oldAttrs.optional-dependencies.all;
+
       # Apply patches to backend
       patches = (if (oldAttrs ? patches) then oldAttrs.patches else [ ]) ++ patches;
       postPatch = oldAttrs.postPatch + postPatch;
