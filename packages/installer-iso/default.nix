@@ -4,7 +4,6 @@
   stdenv,
   inetutils,
   htop,
-  httplz,
   pciutils,
   iperf3,
   screen,
@@ -37,7 +36,6 @@ let
             environment.systemPackages = [
               inetutils
               htop
-              httplz
               pciutils
               iperf3
               screen

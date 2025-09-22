@@ -220,7 +220,6 @@
 
       home.stateVersion = "25.05";
       home.packages = with pkgs; [
-        httplz
         screen
         nur.repos.codgician.gddr6
       ];

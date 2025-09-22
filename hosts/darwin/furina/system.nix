@@ -46,7 +46,6 @@
           [
             jq
             dnsutils
-            httplz
             iperf3
             htop
             aria2
@@ -58,7 +57,6 @@
             smartmontools
             ffmpeg-full
             tcping-go
-            github-copilot-cli
             binwalk
             imhex
             ghidra

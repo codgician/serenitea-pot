@@ -34,7 +34,6 @@
 
       home.stateVersion = "25.05";
       home.packages = with pkgs; [
-        httplz
         iperf3
         htop
         aria2
