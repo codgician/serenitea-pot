@@ -22,6 +22,7 @@ rec {
         api_base = "https://${azureSubdomain}.services.ai.azure.com";
         api_key = "os.environ/AZURE_AKASHA_API_KEY";
       };
+      model_info.base_model = "azure/${x.model.name}";
     }))
   ];
 
@@ -34,6 +35,7 @@ rec {
           model = "gemini/${model_name}";
           api_key = "os.environ/GEMINI_API_KEY";
         };
+        model_info.base_model = "gemini/${model_name}";
       })
       [
         "gemini-2.5-pro"
@@ -61,5 +63,6 @@ rec {
         "claude-opus-41"
         "gpt-5"
         "o3"
+        "embedding-3-small"
       ];
 }
