@@ -10,16 +10,6 @@ let
   inherit (lib) types;
   cfg = config.codgician.containers.mcpo;
   mcpoConfig.mcpServers = {
-    arxiv = {
-      command = "uv";
-      args = [
-        "tool"
-        "run"
-        "arxiv-mcp-server"
-        "--storage-path"
-        "/persist/arxiv"
-      ];
-    };
     amap-maps = {
       command = "npx";
       args = [
@@ -57,6 +47,18 @@ let
         "@modelcontextprotocol/server-google-maps"
       ];
       env.GOOGLE_MAPS_API_KEY._secret = config.age.secrets.mcp-google-maps-api-key.path;
+    };
+    paper-search = {
+      command = "uv";
+      args = [
+        "tool"
+        "run"
+        "--from"
+        "paper-search-mcp"
+        "python"
+        "-m"
+        "paper_search_mcp.server"
+      ];
     };
     sequential-thinking = {
       command = "npx";
