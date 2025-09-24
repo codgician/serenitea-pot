@@ -42,7 +42,7 @@
     };
 
     proxmox-nixos = {
-      url = "github:codgician/proxmox-nixos/pve-8-latest";
+      url = "github:SaumonNet/proxmox-nixos";
       inputs = {
         nixpkgs-stable.follows = "nixpkgs";
         nixpkgs-unstable.follows = "nixpkgs-unstable";

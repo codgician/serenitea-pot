@@ -552,16 +552,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1757426482,
-        "narHash": "sha256-dcg67QBMWozq9pn+LRkkDi1GztrCwj5RdCJ4TzVPKO0=",
-        "owner": "codgician",
+        "lastModified": 1758650077,
+        "narHash": "sha256-ZeRtJimtk0Faiq7DPZEQNGipda3TaR4QXp0TAzu934Q=",
+        "owner": "SaumonNet",
         "repo": "proxmox-nixos",
-        "rev": "c3a72cadb00c7457b992ef89e27e83b6e0ecb2d7",
+        "rev": "ce8768f43b4374287cd8b88d8fa9c0061e749d9a",
         "type": "github"
       },
       "original": {
-        "owner": "codgician",
-        "ref": "pve-8-latest",
+        "owner": "SaumonNet",
         "repo": "proxmox-nixos",
         "type": "github"
       }
