@@ -63,6 +63,5 @@ rec {
         "claude-opus-41"
         "gpt-5"
         "o3"
-        "embedding-3-small"
       ];
 }
