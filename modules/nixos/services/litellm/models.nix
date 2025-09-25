@@ -51,10 +51,10 @@ rec {
           model = "github_copilot/${model_name}";
           extra_headers = {
             editor-version = "vscode/${pkgs.vscode.version}";
-            editor-plugin-version = "copilot/${pkgs.vscode-extensions.github.copilot.version}";
+            editor-plugin-version = "copilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
             Copilot-Integration-Id = "vscode-chat";
             Copilot-Vision-Request = "true";
-            user-agent = "GithubCopilot/${pkgs.vscode-extensions.github.copilot.version}";
+            user-agent = "GithubCopilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
           };
         };
       })
