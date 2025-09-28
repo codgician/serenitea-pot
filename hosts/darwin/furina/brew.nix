@@ -64,7 +64,7 @@
     "balenaetcher"
     "altserver"
     "element"
-    "wireshark"
+    "wireshark-app"
     "moonlight"
     "rustdesk"
     "hopper-disassembler"
