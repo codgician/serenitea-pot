@@ -152,7 +152,7 @@
             "force user" = "codgi";
             "guest ok" = "no";
             "fruit:time machine" = "yes";
-            "fruit:time machine max size" = "1T";
+            "fruit:time machine max size" = "2T";
           };
         };
       };
