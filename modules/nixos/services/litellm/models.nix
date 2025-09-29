@@ -9,7 +9,7 @@ let
 in
 rec {
   # Everything
-  all = azure ++ google ++ github;
+  all = azure ++ deepseek ++ google ++ github;
 
   # Azure AI models
   azure = lib.pipe terraformConf.resource.azurerm_cognitive_deployment [
@@ -25,6 +25,15 @@ rec {
       model_info.base_model = "azure/${x.model.name}";
     }))
   ];
+
+  # Deepseek models
+  deepseek = lib.map (model_name: {
+    inherit model_name;
+    litellm_params = {
+      model = "deepseek/${model_name}";
+      api_key = "os.environ/DEEPSEEK_API_KEY";
+    };
+  }) [ "deepseek-chat" ];
 
   # Google Cloud models
   google =
