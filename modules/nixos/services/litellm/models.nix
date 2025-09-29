@@ -69,6 +69,7 @@ rec {
       })
       [
         "claude-sonnet-4"
+        "claude-sonnet-4.5"
         "claude-opus-41"
         "gpt-5"
         "gpt-5-codex"
