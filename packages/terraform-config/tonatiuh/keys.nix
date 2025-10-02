@@ -33,10 +33,23 @@ in
       ];
     };
 
-    # AI
+    # AI (Akasha)
     akasha-ai-key = {
       name = "akasha-ai";
       display_name = "Akasha AI";
+      inherit depends_on;
+      restrictions.api_targets = mkRestrictions [
+        "aiplatform.googleapis.com"
+        "generativelanguage.googleapis.com"
+        "texttospeech.googleapis.com"
+        "visionai.googleapis.com"
+      ];
+    };
+
+    # AI (Qiaoying)
+    qiaoying-ai-key = {
+      name = "qiaoying-ai";
+      display_name = "Qiaoying AI";
       inherit depends_on;
       restrictions.api_targets = mkRestrictions [
         "aiplatform.googleapis.com"
