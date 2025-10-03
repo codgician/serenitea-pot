@@ -11,7 +11,7 @@ in
       ttl = 120;
       comment = "Xianyun, on aocang";
       type = "A";
-      content = "1.14.98.187";
+      content = "132.232.214.83";
       inherit zone_id;
     };
 
