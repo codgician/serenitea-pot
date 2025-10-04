@@ -34,7 +34,6 @@ in
             editorconfig.editorconfig
             tamasfe.even-better-toml
             ms-vscode.hexeditor
-            ms-vscode.vscode-copilot-vision
             ms-vscode.vscode-diagnostic-tools
             ms-vscode.remote-explorer
             ms-vscode.remote-repositories
