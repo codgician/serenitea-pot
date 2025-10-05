@@ -15,47 +15,43 @@ in
     useCnMirror = lib.mkEnableOption "China mainland mirror for nix binary cache";
   };
 
-  config = lib.mkMerge [
-    {
-      nix = {
-        # Use latest nix
-        package = pkgs.nixVersions.latest;
+  config = {
+    nix = {
+      # Use latest nix
+      package = pkgs.nixVersions.latest;
 
-        # Nix garbage collection
-        gc = {
-          automatic = true;
-          options = "--delete-older-than 7d";
-        };
-
-        extraOptions = ''
-          fallback = true
-          experimental-features = nix-command flakes
-          accept-flake-config = true
-        ''
-        + (lib.optionalString (config.age.secrets ? "nix-access-tokens") ''
-          !include ${config.age.secrets.nix-access-tokens.path}
-        '');
-        optimise.automatic = true;
-        settings = lib.mkMerge [
-          {
-            inherit trusted-public-keys;
-            substituters =
-              (lib.optionals cfg.useCnMirror [
-                "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store?priority=10"
-              ])
-              ++ substituters;
-            extra-nix-path = "nixpkgs=flake:nixpkgs";
-          }
-        ];
+      # Nix garbage collection
+      gc = {
+        automatic = true;
+        options = "--delete-older-than 7d";
       };
 
-      environment.systemPackages = with pkgs; [
-        nix-eval-jobs
-        nix-fast-build
-      ];
+      extraOptions = ''
+        fallback = true
+        experimental-features = nix-command flakes
+        accept-flake-config = true
+      ''
+      + (lib.optionalString (config.age.secrets ? "nix-access-tokens") ''
+        !include ${config.age.secrets.nix-access-tokens.path}
+      '');
+      optimise.automatic = true;
+      settings = {
+        inherit trusted-public-keys;
+        substituters =
+          (lib.optionals cfg.useCnMirror [
+            "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store?priority=10"
+          ])
+          ++ substituters;
+        extra-nix-path = "nixpkgs=flake:nixpkgs";
+      };
+    };
 
-      # Agenix secrets
-      codgician.system.agenix.secrets.nix-access-tokens.mode = "0644";
-    }
-  ];
+    environment.systemPackages = with pkgs; [
+      nix-eval-jobs
+      nix-fast-build
+    ];
+
+    # Agenix secrets
+    codgician.system.agenix.secrets.nix-access-tokens.mode = "0644";
+  };
 }

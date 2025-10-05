@@ -1,6 +1,7 @@
 { config, lib, ... }:
 let
   serviceName = "sing-box";
+  inherit (lib) types;
   cfg = config.codgician.services.${serviceName};
   user = serviceName;
   group = serviceName;
@@ -14,6 +15,12 @@ in
   options.codgician.services.${serviceName} = {
     enable = lib.mkEnableOption serviceName;
 
+    domain = lib.mkOption {
+      type = with types; nullOr str;
+      default = null;
+      description = "Domain for this sing-box server.";
+    };
+
     users = lib.mkOption {
       type = with lib.types; listOf str;
       default = [ ];
@@ -23,59 +30,58 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable (
-    lib.mkMerge [
-      # General settings
-      {
-        services.sing-box = {
-          enable = true;
-          settings = {
-            log = {
-              disabled = false;
-              level = "warn";
-              timestamp = true;
-            };
-
-            dns.servers = [
-              {
-                type = "local";
-                tag = "local";
-              }
-            ];
-
-            outbounds = [
-              {
-                tag = "outbound-direct";
-                type = "direct";
-                domain_resolver.server = "local";
-              }
-            ];
-          };
+  # General settings
+  config = lib.mkIf cfg.enable {
+    services.sing-box = {
+      enable = true;
+      settings = {
+        log = {
+          disabled = false;
+          level = "warn";
+          timestamp = true;
         };
 
-        # Configure user and group for running sing-box
-        systemd.services.sing-box.serviceConfig = {
-          User = user;
-          Group = group;
-        };
+        dns.servers = [
+          {
+            type = "local";
+            tag = "local";
+          }
+        ];
 
-        users = {
-          users.${user} = {
-            inherit group;
-            isSystemUser = true;
-          };
-          groups.${group} = { };
-        };
+        outbounds = [
+          {
+            tag = "outbound-direct";
+            type = "direct";
+            domain_resolver.server = "local";
+          }
+        ];
+      };
+    };
 
-        # Agenix secrets
-        codgician.system.agenix.secrets =
-          lib.genAttrs (builtins.map (x: "sing-${x}-proxy-password") cfg.users)
-            (name: {
-              owner = user;
-              inherit group;
-              mode = "0600";
-            });
-      }
-    ]
-  );
+    # Configure user and group for running sing-box
+    systemd.services.sing-box.serviceConfig = {
+      User = user;
+      Group = group;
+    };
+
+    users = {
+      users.${user} = {
+        inherit group;
+        isSystemUser = true;
+      };
+      groups.${group} = { };
+    };
+
+    # ACME
+    codgician.acme.${cfg.domain}.enable = true;
+
+    # Agenix secrets
+    codgician.system.agenix.secrets =
+      lib.genAttrs (builtins.map (x: "sing-${x}-proxy-password") cfg.users)
+        (name: {
+          owner = user;
+          inherit group;
+          mode = "0600";
+        });
+  };
 }

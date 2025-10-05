@@ -3,9 +3,8 @@ let
   profileName = "hysteria2";
   cfg = config.codgician.services.sing-box;
   serverCfg = cfg.servers.${profileName};
-  inherit (config.networking) domain;
   inherit (lib) types;
-  certDir = config.security.acme.certs."${domain}".directory;
+  certDir = config.security.acme.certs."${cfg.domain}".directory;
 in
 {
   options.codgician.services.sing-box.servers.${profileName} = {
@@ -68,49 +67,45 @@ in
     };
   };
 
-  config = lib.mkIf serverCfg.enable (
-    lib.mkMerge [
+  config = lib.mkIf serverCfg.enable {
+    services.sing-box.settings.inbounds = [
       {
-        services.sing-box.settings.inbounds = [
-          {
-            type = "hysteria2";
-            tag = serverCfg.tag;
-            listen = serverCfg.ip;
-            listen_port = serverCfg.port;
-            down_mbps = lib.mkIf (serverCfg.downMbps != null) serverCfg.downMbps;
-            up_mbps = lib.mkIf (serverCfg.upMbps != null) serverCfg.upMbps;
-            brutal_debug = false;
+        type = "hysteria2";
+        tag = serverCfg.tag;
+        listen = serverCfg.ip;
+        listen_port = serverCfg.port;
+        down_mbps = lib.mkIf (serverCfg.downMbps != null) serverCfg.downMbps;
+        up_mbps = lib.mkIf (serverCfg.upMbps != null) serverCfg.upMbps;
+        brutal_debug = false;
 
-            masquerade = {
-              type = "proxy";
-              url = "https://127.0.0.1";
-            };
-
-            tls = {
-              enabled = true;
-              alpn = [ "h3" ];
-              server_name = domain;
-              certificate_path = certDir + "/fullchain.pem";
-              key_path = certDir + "/key.pem";
-              ech = {
-                enabled = true;
-                key_path = config.age.secrets."sing-ech-keys".path;
-              };
-            };
-
-            users = builtins.map (name: {
-              inherit name;
-              password._secret = config.age.secrets."sing-${name}-proxy-password".path;
-            }) serverCfg.users;
-          }
-        ];
-
-        # Open firewall
-        networking.firewall = lib.mkIf serverCfg.openFirewall {
-          allowedTCPPorts = [ serverCfg.port ];
-          allowedUDPPorts = [ serverCfg.port ];
+        masquerade = {
+          type = "proxy";
+          url = "https://127.0.0.1";
         };
+
+        tls = {
+          enabled = true;
+          alpn = [ "h3" ];
+          server_name = cfg.domain;
+          certificate_path = certDir + "/fullchain.pem";
+          key_path = certDir + "/key.pem";
+          ech = {
+            enabled = true;
+            key_path = config.age.secrets."sing-ech-keys".path;
+          };
+        };
+
+        users = builtins.map (name: {
+          inherit name;
+          password._secret = config.age.secrets."sing-${name}-proxy-password".path;
+        }) serverCfg.users;
       }
-    ]
-  );
+    ];
+
+    # Open firewall
+    networking.firewall = lib.mkIf serverCfg.openFirewall {
+      allowedTCPPorts = [ serverCfg.port ];
+      allowedUDPPorts = [ serverCfg.port ];
+    };
+  };
 }

@@ -48,7 +48,7 @@ in
       rec {
         type = "hysteria2";
         tag = clientCfg.tag;
-        server = lib.codgician.getHostFqdn clientCfg.server;
+        server = clientCfg.server;
         server_port = serverCfg.publicPort;
         password._secret = config.age.secrets."sing-${clientCfg.user}-proxy-password".path;
         down_mbps = lib.mkIf (clientCfg.downMbps != null) clientCfg.downMbps;

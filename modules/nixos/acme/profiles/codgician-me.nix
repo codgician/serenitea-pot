@@ -12,7 +12,7 @@ in
     email = "codgician@outlook.com";
     credentialsFile = config.age.secrets.cloudflare-credential.path;
     dnsProvider = "cloudflare";
-    group = config.services.nginx.user;
+    group = with config.services.nginx; lib.mkIf enable user;
   };
 
   codgician.acme."${domain}".ageSecretFilePath = credPath;

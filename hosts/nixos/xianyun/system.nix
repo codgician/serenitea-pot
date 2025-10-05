@@ -4,6 +4,18 @@
   codgician = {
     services = {
       nixos-vscode-server.enable = true;
+
+      sing-box = {
+        enable = true;
+        domain = "xianyun.codgician.me";
+        users = [
+          "codgi"
+          "lxm75"
+          "itscd"
+        ];
+        servers.hysteria2.enable = true;
+      };
+
       wireguard = {
         enable = true;
         openFirewall = true;
