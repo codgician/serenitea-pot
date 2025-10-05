@@ -132,9 +132,7 @@ let
 in
 {
   options.codgician.services.nginx = {
-    enable = lib.mkEnableOption ''
-      Enable nginx service.
-    '';
+    enable = lib.mkEnableOption "nginx";
 
     openFirewall = lib.mkEnableOption "Open port 80 and 443 in firewall configuration.";
 
@@ -201,7 +199,6 @@ in
     # Monitoring
     services.prometheus.exporters = {
       nginx.enable = true;
-      nginxlog.enable = true;
     };
 
     # ACME settings

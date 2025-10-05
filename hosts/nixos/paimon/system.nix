@@ -40,6 +40,9 @@
         reverseProxy.enable = true;
       };
 
+      # Monitor
+      prometheus.enable = true;
+
       # Email
       postfix.enable = true;
 
@@ -78,7 +81,6 @@
           "hf.co/unsloth/Qwen3-30B-A3B-Thinking-2507-GGUF:Q4_K_M"
           "hf.co/unsloth/Qwen3-Coder-30B-A3B-Instruct-GGUF:Q4_K_M"
           "huihui_ai/qwen3-abliterated:30b-a3b-thinking-2507-q4_K_M"
-          "mistral-small3.2:24b"
         ];
       };
 
