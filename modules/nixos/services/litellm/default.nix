@@ -7,6 +7,8 @@
 }:
 let
   serviceName = "litellm";
+  user = serviceName;
+  group = serviceName;
   cfg = config.codgician.services.litellm;
   types = lib.types;
   allModels = (import ./models.nix { inherit pkgs lib outputs; }).all;
@@ -41,6 +43,22 @@ in
       '';
     };
 
+    adminUi = {
+      enable = lib.mkEnableOption "LiteLLM Admin UI";
+
+      dbName = lib.mkOption {
+        type = types.str;
+        default = "litellm";
+        description = "Database name for LiteLLM Admin UI.";
+      };
+
+      dbHost = lib.mkOption {
+        type = types.str;
+        default = "/run/postgresql";
+        description = "Database host for LiteLLM Admin UI.";
+      };
+    };
+
     # Reverse proxy profile for nginx
     reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
       inherit serviceName;
@@ -60,6 +78,46 @@ in
           "GITHUB_COPILOT_TOKEN_DIR" = "${cfg.stateDir}/github";
         };
         settings.model_list = allModels;
+      };
+
+      systemd.services.litellm.serviceConfig = {
+        # Disable dynamic user
+        DynamicUser = lib.mkForce false;
+        User = user;
+        Group = group;
+      };
+
+      # Create user
+      users.users.${user} = {
+        inherit group;
+        isSystemUser = true;
+      };
+      users.groups.${group} = { };
+
+      # Persist default data directory
+      codgician.system.impermanence.extraItems = [
+        {
+          type = "directory";
+          path = "/var/lib/${serviceName}";
+          inherit user group;
+        }
+      ];
+    })
+
+    # Configure PostgreSQL for LiteLLM Admin UI
+    (lib.mkIf (cfg.enable && cfg.adminUi.enable) {
+      codgician.services.postgresql.enable = true;
+      services = {
+        litellm.environment."DATABASE_URL" = "postgres:///${cfg.adminUi.dbName}?host=${cfg.adminUi.dbHost}";
+        postgresql = {
+          ensureDatabases = [ cfg.adminUi.dbName ];
+          ensureUsers = [
+            {
+              name = "litellm";
+              ensureDBOwnership = true;
+            }
+          ];
+        };
       };
     })
 
