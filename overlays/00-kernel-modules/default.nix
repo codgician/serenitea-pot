@@ -18,7 +18,6 @@ in
         lpself: lpsuper:
         lib.genAttrs [
           "mstflint_access"
-          "prl-tools"
         ] (pkgName: unstablePkgs.linuxPackages.${pkgName}.override { inherit (lpsuper) kernel; })
       );
   };

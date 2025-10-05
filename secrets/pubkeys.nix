@@ -18,20 +18,25 @@ rec {
 
   # Aliases
   someHosts = xs: (builtins.concatLists xs) ++ users.codgi;
-  allServers = builtins.concatLists (
-    with hosts;
-    with users;
-    [
-      fischl
-      lumine
-      nahida
-      paimon
-      raiden-ei
-      xianyun
-      codgi
-    ]
-  );
-  allHosts = (builtins.concatLists (builtins.attrValues hosts)) ++ users.codgi;
+
+  publicServers' = with hosts; [
+    lumine
+    xianyun
+  ];
+  privateServers' = with hosts; [
+    fischl
+    nahida
+    paimon
+    raiden-ei
+  ];
+  allServers' = publicServers' ++ privateServers';
+  allHosts' = builtins.concatLists (builtins.attrValues hosts);
+
+  publicServers = someHosts publicServers';
+  privateServers = someHosts privateServers';
+  allServers = someHosts allServers';
+  allHosts = someHosts allHosts';
+
   everyone = builtins.concatLists (
     builtins.concatMap builtins.attrValues [
       hosts

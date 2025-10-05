@@ -10,7 +10,6 @@ let
   hosts = lib.codgician.getNixFileNamesWithoutExt ./peers;
 
   # Get wireguard secret file names without extension
-  getPrivateKeyName = x: "wg-private-key-${x}";
   getPresharedKeyName = x: y: "wg-preshared-key-${if x < y then "${x}-${y}" else "${y}-${x}"}";
 
   # All host options

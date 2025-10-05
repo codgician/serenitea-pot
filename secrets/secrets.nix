@@ -84,6 +84,12 @@ with pubKeys.hosts;
     wanderer
   ];
 
+  # Sing secrets
+  "sing-ech-keys.age".publicKeys = publicServers;
+  "sing-codgi-proxy-password.age".publicKeys = publicServers;
+  "sing-lxm75-proxy-password.age".publicKeys = publicServers;
+  "sing-itscd-proxy-password.age".publicKeys = publicServers;
+
   # Terraform secrets
   "terraform-env.age" = {
     publicKeys = users.codgi;
