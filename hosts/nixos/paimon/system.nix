@@ -71,7 +71,14 @@
         stateDir = "/xpool/appdata/docling-serve";
       };
 
-      litellm.enable = true;
+      litellm = {
+        enable = true;
+        reverseProxy = {
+          enable = true;
+          domains = [ "dendro.codgician.me" ];
+        };
+      };
+
       ollama = {
         enable = true;
         acceleration = "cuda";

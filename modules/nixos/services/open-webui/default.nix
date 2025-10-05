@@ -21,7 +21,6 @@ let
   litellmBases = lib.optionals litellmCfg.enable [
     "http://${litellmCfg.host}:${builtins.toString litellmCfg.port}"
   ];
-  litellmKeys = lib.optionals litellmCfg.enable [ "dummy" ];
 
   ollamaCfg = config.codgician.services.ollama;
   ollamaEmbeddingModel = "hf.co/jinaai/jina-embeddings-v4-text-retrieval-GGUF:Q4_K_M";
@@ -151,7 +150,7 @@ in
           # OpenAI (LiteLLM)
           ENABLE_OPENAI_API = if litellmCfg.enable then "True" else "False";
           OPENAI_API_BASE_URLS = listToStr litellmBases;
-          OPENAI_API_KEYS = listToStr litellmKeys;
+          # OPENAI_API_KEYS should be defined in UI
           # TTS
           TTS_ENGINE = "transformers";
           WHISPER_MODEL = "large-v3-turbo";

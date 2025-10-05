@@ -8,6 +8,7 @@ let
     "auth"
     "books"
     "bubbles"
+    "dendro"
     "dragonspine"
     "fin"
     "git"
