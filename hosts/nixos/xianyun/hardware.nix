@@ -42,21 +42,14 @@ in
   # Manually configure ipv6 network on Tencent Cloud
   networking = {
     usePredictableInterfaceNames = false;
-    interfaces.eth0.ipv6 = {
-      addresses = [
-        {
-          address = publicIpv6;
-          prefixLength = 128;
-        }
-      ];
-      routes = [
-        {
-          address = "::";
-          prefixLength = 0;
-          via = "fe80::feee:ffff:feff:ffff";
-        }
-      ];
-    };
+    interfaces.eth0.ipv6.routes = [
+      {
+        address = "::";
+        prefixLength = 0;
+        via = "fe80::feee:ffff:feff:ffff";
+        options.onlink = "";
+      }
+    ];
   };
 
   # Override distro in cloud-init

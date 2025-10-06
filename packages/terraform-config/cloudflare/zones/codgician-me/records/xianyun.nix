@@ -6,7 +6,7 @@ let
   ipv6 = "2402:4e00:c000:1400:aa68:cd10:e82c:0";
 in
 {
-  resource.cloudflare_dns_record = 
+  resource.cloudflare_dns_record =
     (lib.genAttrs [ "xianyun-a" "xianyun4-a" ] (name: {
       name = "${lib.removeSuffix "-a" name}.${zone_name}";
       proxied = false;
@@ -15,8 +15,8 @@ in
       type = "A";
       content = ipv4;
       inherit zone_id;
-    })) //
-    (lib.genAttrs [ "xianyun-aaaa" "xianyun6-aaaa" ] (name: {
+    }))
+    // (lib.genAttrs [ "xianyun-aaaa" "xianyun6-aaaa" ] (name: {
       name = "${lib.removeSuffix "-aaaa" name}.${zone_name}";
       proxied = false;
       ttl = 120;
