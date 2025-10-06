@@ -21,7 +21,7 @@ in
       ttl = 120;
       comment = "Xianyun, on aocang";
       type = "AAAA";
-      content = "2402:4e00:c000:1900:aa68:cd10:e82c:0";
+      content = "2402:4e00:c000:1400:aa68:cd10:e82c:0";
       inherit zone_id;
     };
   };
