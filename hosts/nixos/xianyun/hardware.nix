@@ -60,19 +60,33 @@ in
   };
 
   # Override distro in cloud-init
-  services.cloud-init.settings = {
-    preserve_hostname = true;
-    network.config = "disabled";
-    system_info.distro = "nixos";
+  services.cloud-init = {
+    extraPackages = with pkgs; [ zfs ];
+    settings = {
+      preserve_hostname = true;
+      network.config = "disabled";
+      system_info.distro = "nixos";
 
-    # Remove failing final modules
-    cloud_final_modules = [
-      "rightscale_userdata"
-      "keys-to-console"
-      "phone-home"
-      "final-message"
-      "power-state-change"
-    ];
+      cloud_init_modules = [
+        "migrator"
+        "seed_random"
+        "write-files"
+        "update_hostname"
+        "resolv_conf"
+        "ca-certs"
+        "rsyslog"
+        "users-groups"
+      ];
+
+      # Remove failing final modules
+      cloud_final_modules = [
+        "rightscale_userdata"
+        "keys-to-console"
+        "phone-home"
+        "final-message"
+        "power-state-change"
+      ];
+    };
   };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
