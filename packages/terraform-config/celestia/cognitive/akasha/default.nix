@@ -13,9 +13,10 @@ in
     ./gpt-4.1.nix
     ./gpt-5-chat.nix
     ./gpt-5-nano.nix
-    ./gpt-5-mini.nix
+    # ./gpt-5-mini.nix (use GitHub Copilot instead)
     ./gpt-oss-120b.nix
     ./grok-3.nix
+    ./grok-4-fast.nix
     ./o4-mini.nix
   ];
 

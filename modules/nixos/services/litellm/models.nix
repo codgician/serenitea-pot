@@ -73,6 +73,7 @@ rec {
         "claude-opus-41"
         "gpt-5"
         "gpt-5-codex"
+        "gpt-5-mini"
         "o3"
       ];
 }
