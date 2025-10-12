@@ -19,6 +19,8 @@
         };
       };
 
+      docling-serve.enable = true;
+
       fish-speech = {
         enable = true;
         dataDir = "/xpool/llm/fish-speech";
@@ -63,12 +65,6 @@
           enable = true;
           elementWeb = true;
         };
-      };
-
-      # LLM
-      docling-serve = {
-        enable = true;
-        stateDir = "/xpool/appdata/docling-serve";
       };
 
       litellm = {
