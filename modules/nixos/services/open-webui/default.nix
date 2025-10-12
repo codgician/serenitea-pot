@@ -362,7 +362,10 @@ in
           "/".passthru.extraConfig = ''
             client_max_body_size 128M;
             proxy_buffering off;
-            proxy_read_timeout 10m;
+            proxy_connect_timeout 300;
+            proxy_send_timeout 300;
+            proxy_read_timeout 300;
+            send_timeout 300;
           '';
           "~ ^/api/v1/files" = {
             inherit (cfg.reverseProxy) lanOnly;
@@ -370,7 +373,10 @@ in
               inherit (cfg.reverseProxy) proxyPass;
               extraConfig = ''
                 client_max_body_size 128M;
-                proxy_read_timeout 30m;
+                proxy_connect_timeout 1800;
+                proxy_send_timeout 1800;
+                proxy_read_timeout 1800;
+                send_timeout 1800;
               '';
             };
           };
