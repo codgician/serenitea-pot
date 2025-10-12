@@ -1,8 +1,16 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 let
   serviceName = "docling-serve";
   inherit (lib) types;
   cfg = config.codgician.containers.${serviceName};
+
+  # See: https://github.com/llm-d/llm-d/issues/117
+  ldSoConfFile = pkgs.writeText "00-system-libs.conf" ''
+    /lib64
+    /usr/lib64
+    /lib/x86_64-linux-gnu
+    /usr/lib/x86_64-linux-gnu
+  '';
 in
 {
   options.codgician.containers.${serviceName} = {
@@ -37,7 +45,9 @@ in
             "ghcr.io/docling-project/docling-serve-cu128:latest"
           else
             "ghcr.io/docling-project/docling-serve:latest";
-        volumes = [ ];
+        volumes = lib.optionals config.hardware.nvidia-container-toolkit.enable [
+          "${ldSoConfFile}:/etc/ld.so.conf.d/00-system-libs.conf:ro"
+        ];
         extraOptions = [
           "--pull=newer"
           "--net=host"
