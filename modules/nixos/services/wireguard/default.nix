@@ -51,7 +51,7 @@ in
 
             mtu = lib.mkOption {
               type = types.int;
-              default = 1412;
+              default = 1380;
               description = "MTU for the interface.";
             };
 
