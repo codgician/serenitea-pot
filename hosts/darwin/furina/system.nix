@@ -67,6 +67,7 @@
           ]
           ++ (with pkgs.nur.repos.codgician; [
             mtk_uartboot
+            nanokvm-usb
           ]);
 
         # symlinks to binaries
