@@ -52,6 +52,25 @@ in
     ];
   };
 
+  # Configure systemd-networkd for eth0 to enable DHCPv6
+  systemd.network.networks."10-eth0" = {
+    name = "eth0";
+    networkConfig = {
+      DHCP = "yes";
+      IPv6AcceptRA = true;
+    };
+    dhcpV6Config = {
+      # Use DHCPv6 for address assignment
+      UseAddress = true;
+      # Request prefix delegation if available
+      PrefixDelegationHint = "::/64";
+    };
+    ipv6AcceptRAConfig = {
+      # Accept Router Advertisements
+      DHCPv6Client = "always";
+    };
+  };
+
   # Override distro in cloud-init
   services.cloud-init = {
     extraPackages = with pkgs; [ zfs ];

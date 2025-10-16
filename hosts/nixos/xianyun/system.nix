@@ -100,6 +100,21 @@
     "net.ipv4.conf.all.proxy_arp" = "1";
     "net.ipv6.conf.all.forwarding" = "1";
     "net.ipv6.conf.all.proxy_ndp" = "1";
+
+    # Enable IPv6 on all interfaces
+    "net.ipv6.conf.all.disable_ipv6" = "0";
+    "net.ipv6.conf.default.disable_ipv6" = "0";
+    "net.ipv6.conf.lo.disable_ipv6" = "0";
+
+    # Accept Router Advertisements for IPv6
+    "net.ipv6.conf.all.accept_ra" = "2";
+    "net.ipv6.conf.default.accept_ra" = "2";
+    "net.ipv6.conf.eth0.accept_ra" = "2";
+
+    # Enable IPv6 autoconf
+    "net.ipv6.conf.all.autoconf" = "1";
+    "net.ipv6.conf.default.autoconf" = "1";
+    "net.ipv6.conf.eth0.autoconf" = "1";
   };
 
   # This value determines the NixOS release from which the default
