@@ -2,7 +2,7 @@
 {
   name = "qiaoying";
   domain = "cd.codgician.me";
-  listenPort = 51821;
+  port = 51821;
   ips = [
     "192.168.254.6/23"
     "fd00:c0d9:1cff::6/48"

@@ -24,7 +24,7 @@ let
   # Ports of all wireguard interfaces
   ports = lib.pipe cfg.interfaces [
     builtins.attrValues
-    (builtins.map (intCfg: hostOptions.${intCfg.host}.listenPort))
+    (builtins.map (intCfg: hostOptions.${intCfg.host}.port))
     lib.unique
   ];
 in
@@ -76,8 +76,9 @@ in
         networking = {
           wireguard = {
             interfaces = builtins.mapAttrs (_: intCfg: {
-              inherit (hostOptions.${intCfg.host}) privateKeyFile ips listenPort;
+              inherit (hostOptions.${intCfg.host}) privateKeyFile ips;
               inherit (intCfg) mtu allowedIPsAsRoutes;
+              listenPort = hostOptions.${intCfg.host}.port;
               peers = builtins.map (peer: {
                 inherit (hostOptions.${peer})
                   name
@@ -86,7 +87,7 @@ in
                   ;
                 endpoint =
                   with hostOptions.${peer};
-                  if (domain == null || port == null) then null else "${domain}:${builtins.toString port}}";
+                  if (domain == null || port == null) then null else "${domain}:${builtins.toString port}";
                 presharedKeyFile = config.age.secrets.${getPresharedKeyName intCfg.host peer}.path;
                 dynamicEndpointRefreshSeconds = 5;
               }) intCfg.peers;

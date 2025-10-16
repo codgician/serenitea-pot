@@ -2,7 +2,7 @@
 {
   name = "furina";
   domain = null;
-  listenPort = null;
+  port = null;
   ips = [
     "192.168.254.254/23"
     "fd00:c0d9:1cff::254/48"
