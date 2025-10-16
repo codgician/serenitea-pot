@@ -1,8 +1,8 @@
 { config }:
 {
   name = "lumidouce";
-  endpoint = "sz.codgician.me:51820";
-  listenPort = 51820;
+  domain = "sz.codgician.me";
+  listenPort = 51821;
   ips = [
     "192.168.254.1/23"
     "fd00:c0d9:1cff::1/48"

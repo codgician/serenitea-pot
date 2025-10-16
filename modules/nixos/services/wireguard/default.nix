@@ -81,10 +81,12 @@ in
               peers = builtins.map (peer: {
                 inherit (hostOptions.${peer})
                   name
-                  endpoint
                   publicKey
                   allowedIPs
                   ;
+                endpoint =
+                  with hostOptions.${peer};
+                  if (domain == null || port == null) then null else "${domain}:${builtins.toString port}}";
                 presharedKeyFile = config.age.secrets.${getPresharedKeyName intCfg.host peer}.path;
                 dynamicEndpointRefreshSeconds = 5;
               }) intCfg.peers;

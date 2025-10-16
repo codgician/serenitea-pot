@@ -1,8 +1,8 @@
 { config }:
 {
   name = "qiaoying";
-  endpoint = "cd6.codgician.me:51820";
-  listenPort = 51820;
+  domain = "cd.codgician.me";
+  listenPort = 51821;
   ips = [
     "192.168.254.6/23"
     "fd00:c0d9:1cff::6/48"

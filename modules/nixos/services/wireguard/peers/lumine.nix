@@ -1,7 +1,7 @@
 { config }:
 {
   name = "lumine";
-  endpoint = "lumine.codgician.me:51820";
+  domain = "lumine.codgician.me";
   listenPort = 51820;
   ips = [
     "192.168.254.64/23"

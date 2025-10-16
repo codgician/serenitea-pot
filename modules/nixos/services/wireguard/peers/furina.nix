@@ -1,7 +1,7 @@
 { config }:
 {
   name = "furina";
-  endpoint = null;
+  domain = null;
   listenPort = null;
   ips = [
     "192.168.254.254/23"

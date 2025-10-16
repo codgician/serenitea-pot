@@ -1,7 +1,7 @@
 { config }:
 {
   name = "xianyun";
-  endpoint = "xianyun.codgician.me:51820";
+  domain = "xianyun.codgician.me";
   listenPort = 51820;
   ips = [
     "192.168.254.72/23"
