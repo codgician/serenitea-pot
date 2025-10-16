@@ -22,6 +22,9 @@ in
       "sr_mod"
     ];
 
+    # Force RA acceptance when forwarding is enabled
+    kernel.sysctl."net.ipv6.conf.eth0.accept_ra" = "2";
+
     supportedFilesystems = [
       "vfat"
       "zfs"
@@ -42,14 +45,22 @@ in
   # Manually configure ipv6 network on Tencent Cloud
   networking = {
     usePredictableInterfaceNames = false;
-    interfaces.eth0.ipv6.routes = [
-      {
-        address = "::";
-        prefixLength = 0;
-        via = "fe80::feee:ffff:feff:ffff";
-        options.onlink = "";
-      }
-    ];
+    interfaces.eth0.ipv6 = {
+      addresses = [
+        {
+          address = publicIpv6;
+          prefixLength = 128;
+        }
+      ];
+      routes = [
+        {
+          address = "::";
+          prefixLength = 0;
+          via = "fe80::feee:ffff:feff:ffff";
+          options.onlink = true;
+        }
+      ];
+    };
   };
 
   # Override distro in cloud-init

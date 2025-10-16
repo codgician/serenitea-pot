@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   serviceName = "docling-serve";
   inherit (lib) types;
@@ -27,7 +32,7 @@ in
       default = 5001;
       description = "Port for ${serviceName} to listen on.";
     };
-    
+
     # Reverse proxy profile for nginx
     reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
       inherit serviceName;
