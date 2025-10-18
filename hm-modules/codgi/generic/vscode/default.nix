@@ -12,6 +12,18 @@ in
   options.codgician.codgi.vscode = {
     enable = lib.mkEnableOption "Visual Studio Code";
 
+    fontFamily = lib.mkOption {
+      type = with types; listOf str;
+      default = [ "Cascadia Code NF" "Cascadia Code" "monospace" ];
+      description = "List of font families for VSCode editor.";
+    };
+
+    fontSize = lib.mkOption {
+      type = types.int;
+      default = 14;
+      description = "Font size for VSCode editor.";
+    };
+
     immutableExtensions = lib.mkOption {
       type = types.bool;
       default = true;
@@ -55,18 +67,30 @@ in
           ]);
 
         userSettings = {
+          chat = {
+            agent.enabled = true;
+            editor = {
+              fontFamily = builtins.concatStringsSep ", " (builtins.map (x: "'${x}'") cfg.fontFamily);
+              fontSize = 12; # not using the same size as editor
+            };
+            edits2.enabled = true;
+            emptyState.history.enabled = true;
+            mcp = {
+              assisted.nuget.enabled = true;
+              gallery.enable = true;
+            };
+          };
           editor = {
-            fontFamily = "'Cascadia Code NF', 'Cascadia Code', monospace";
-            fontSize = 14;
+            fontFamily = builtins.concatStringsSep ", " (builtins.map (x: "'${x}'") cfg.fontFamily);  
+            inherit (cfg) fontSize;
           };
           terminal.integrated = {
-            fontFamily = "'Cascadia Mono PL', 'Cascadia Mono', monospace";
-            fontSize = 14;
+            fontFamily = builtins.concatStringsSep ", " (builtins.map (x: "'${x}'") cfg.fontFamily);
+            inherit (cfg) fontSize;
           };
           remote.SSH.defaultExtensions = builtins.map (
             ext: ext.vscodeExtUniqueId
           ) config.programs.vscode.profiles.default.extensions;
-          "github.copilot.chat.editor.temporalContext.enabled" = true;
           github.copilot = {
             nextEditSuggestions.enabled = true;
             chat = {
@@ -74,6 +98,8 @@ in
               codesearch.enabled = true;
               followUps = "always";
               edits.temporalContext.enabled = true;
+              editor.temporalContext.enabled = true;
+              executePrompt.enabled = true;
               temporalContext.enabled = true;
               scopeSelection = true;
               nextEditSuggestions = {
@@ -81,10 +107,15 @@ in
                 fixes = true;
               };
               generateTests.codeLens = true;
-              languageContext.typescript = {
-                enabled = true;
+              languageContext = {
                 fix.typescript.enabled = true;
                 inline.typescript.enabled = true;
+                typescript.includeDocumentation = true;
+              };
+              newWorkspace.useContext7 = true;
+              notebook = {
+                enhancedNextEditSuggestions.enabled = true;
+                followCellExecution.enabled = true;
               };
               search = {
                 semanticTextResults = true;
@@ -92,6 +123,7 @@ in
               };
             };
           };
+          "github.copilot.chat.editor.temporalContext.enabled" = true; # workaround
         };
       };
     };
