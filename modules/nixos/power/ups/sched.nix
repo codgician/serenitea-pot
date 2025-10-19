@@ -26,7 +26,7 @@ let
           log_event "The UPS needs its battery replaced"
           ;;
         lowbat)
-          log_event "The UPS has LOW BAT"
+          log_event "The UPS has LOW BAT while ON BATT"
           upsmon -c fsd
           ;;
         onbatt)
@@ -62,5 +62,5 @@ pkgs.writeText "upssched.conf" ''
   AT COMMBAD * EXECUTE upsgone
   AT NOCOMM * EXECUTE upsgone
   AT REPLBATT * EXECUTE replacebat
-  AT LOWBATT * EXECUTE lowbat
+  AT ONBATT+LOWBATT * EXECUTE lowbat
 ''
