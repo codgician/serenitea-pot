@@ -29,7 +29,6 @@
         "vfio"
         "vfio_pci"
         "vfio_iommu_type1"
-        "mlx5_core"
         "ast"
       ];
     };
