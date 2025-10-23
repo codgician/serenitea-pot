@@ -10,5 +10,5 @@ let
   };
 in
 {
-  inherit (unstablePkgs) sing-box sing-geoip;
+  inherit (unstablePkgs) sing-box sing-geoip nexttrace;
 }
