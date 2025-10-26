@@ -14,7 +14,11 @@ in
 
     fontFamily = lib.mkOption {
       type = with types; listOf str;
-      default = [ "Cascadia Code NF" "Cascadia Code" "monospace" ];
+      default = [
+        "Cascadia Code NF"
+        "Cascadia Code"
+        "monospace"
+      ];
       description = "List of font families for VSCode editor.";
     };
 
@@ -81,7 +85,7 @@ in
             };
           };
           editor = {
-            fontFamily = builtins.concatStringsSep ", " (builtins.map (x: "'${x}'") cfg.fontFamily);  
+            fontFamily = builtins.concatStringsSep ", " (builtins.map (x: "'${x}'") cfg.fontFamily);
             inherit (cfg) fontSize;
           };
           terminal.integrated = {

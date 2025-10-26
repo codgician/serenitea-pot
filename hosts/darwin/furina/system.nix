@@ -64,6 +64,7 @@
             macmon
             ollama
             nexttrace
+            codex
           ]
           ++ (with pkgs.nur.repos.codgician; [
             mtk_uartboot
