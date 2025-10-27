@@ -1,6 +1,11 @@
 # Apply patches and create open-webui-akasha package
 
-{ inputs, lib, system, ... }:
+{
+  inputs,
+  lib,
+  system,
+  ...
+}:
 
 self: super:
 let
@@ -36,25 +41,25 @@ let
 in
 {
   open-webui-akasha = open-webui-py312.overridePythonAttrs (
-      oldAttrs:
-      let
-        frontend = open-webui-py312.passthru.frontend.overrideAttrs (oldAttrs': {
-          # Apply patches to frontend
-          patches = (if (oldAttrs' ? patches) then oldAttrs'.patches else [ ]) ++ patches;
-          postPatch = oldAttrs'.postPatch + postPatch;
-        });
-      in
-      {
-        # Add all optional dependencies
-        dependencies = oldAttrs.dependencies ++ oldAttrs.optional-dependencies.all;
+    oldAttrs:
+    let
+      frontend = open-webui-py312.passthru.frontend.overrideAttrs (oldAttrs': {
+        # Apply patches to frontend
+        patches = (if (oldAttrs' ? patches) then oldAttrs'.patches else [ ]) ++ patches;
+        postPatch = oldAttrs'.postPatch + postPatch;
+      });
+    in
+    {
+      # Add all optional dependencies
+      dependencies = oldAttrs.dependencies ++ oldAttrs.optional-dependencies.all;
 
-        # Apply patches to backend
-        patches = (if (oldAttrs ? patches) then oldAttrs.patches else [ ]) ++ patches;
-        postPatch = oldAttrs.postPatch + postPatch;
-        makeWrapperArgs = [ "--set FRONTEND_BUILD_DIR ${frontend}/share/open-webui" ];
-        passthru = oldAttrs.passthru // {
-          inherit frontend;
-        };
-      }
-    );
+      # Apply patches to backend
+      patches = (if (oldAttrs ? patches) then oldAttrs.patches else [ ]) ++ patches;
+      postPatch = oldAttrs.postPatch + postPatch;
+      makeWrapperArgs = [ "--set FRONTEND_BUILD_DIR ${frontend}/share/open-webui" ];
+      passthru = oldAttrs.passthru // {
+        inherit frontend;
+      };
+    }
+  );
 }

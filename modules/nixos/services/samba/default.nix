@@ -70,6 +70,8 @@ in
           "fruit:metadata" = "stream";
           "fruit:nfs_aces" = "no";
           "fruit:zero_file_id" = "yes";
+          "fruit:veto_appledouble" = "no";
+          "fruit:delete_empty_adfiles" = "yes";
         };
       };
     };
