@@ -10,6 +10,7 @@ let
   unstablePkgs = import inputs.nixpkgs-unstable {
     inherit (super) system;
     config = {
+      allowBroken = true;
       allowUnfree = true;
       cudaSupport = lib.systems.inspect.predicates.isLinux system;
       rocmSupport = lib.systems.inspect.predicates.isLinux system;
