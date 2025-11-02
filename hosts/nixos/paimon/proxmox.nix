@@ -129,6 +129,11 @@ in
         ];
   };
 
+  # system packages
+  environment.systemPackages = with pkgs; [ 
+    swtpm # make qm work
+  ];
+
   # hookscript snippets
   environment.etc = {
     # CPU pinning for gaming VM
