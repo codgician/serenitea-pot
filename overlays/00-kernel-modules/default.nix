@@ -18,7 +18,7 @@ in
         lpself: lpsuper:
         lib.genAttrs [
           "mstflint_access"
-        ] (pkgName: unstablePkgs.linuxPackages.${pkgName}.override { inherit (lpsuper) kernel; })
+        ] (pkgName: unstablePkgs.linuxPackages.${pkgName}.override { inherit (lpsuper) kernel kernelModuleMakeFlags; })
       );
   };
 }
