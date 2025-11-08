@@ -74,5 +74,6 @@
     "obs"
     "obs-advanced-scene-switcher"
     "obs-backgroundremoval"
+    "ibkr"
   ];
 }
