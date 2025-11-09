@@ -65,6 +65,7 @@
             ollama
             nexttrace
             codex
+            claude-code
           ]
           ++ (with pkgs.nur.repos.codgician; [
             mtk_uartboot
@@ -89,7 +90,7 @@
     # SMB client settings
     etc."nsmb.conf".text = ''
       [default]
-      mc_on=no
+      mc_on=yes
       mc_prefer_wired=yes
     '';
   };

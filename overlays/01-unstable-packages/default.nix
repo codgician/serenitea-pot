@@ -15,5 +15,6 @@ in
     sing-geoip
     nexttrace
     codex
+    claude-code
     ;
 }
