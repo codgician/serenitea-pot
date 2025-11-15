@@ -7,10 +7,11 @@ in
 {
   imports = [
     ./deepseek-r1.nix
-    ./deepseek-v3.nix
+    ./deepseek-v3.1.nix
     ./flux-1.1-pro.nix
     ./flux.1-kontext-pro.nix
     ./gpt-4.1.nix
+    ./gpt-5.1-chat.nix
     ./gpt-5-chat.nix
     ./gpt-5-nano.nix
     # ./gpt-5-mini.nix (use GitHub Copilot instead)
