@@ -7,5 +7,6 @@ in
     inherit name;
     description = "samba user";
     isNormalUser = true;
+    createHome = false;
   };
 }

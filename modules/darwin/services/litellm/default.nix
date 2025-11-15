@@ -85,15 +85,8 @@ in
       chmod 700 '${cfg.stateDir}'
     '';
 
-    # Ensure system user and group exist for the daemon
-    users = {
-      knownUsers = [ serviceName ];
-      users.${serviceName} = {
-        description = "LiteLLM service user";
-        isHidden = true;
-        createHome = false;
-        uid = lib.mkDefault 450;
-      };
-    };
+    # Ensure the daemon user is known
+    users.knownUsers = [ serviceName ];
+    codgician.users.${serviceName}.enable = true;
   };
 }

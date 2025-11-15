@@ -8,6 +8,8 @@ let
   cfg = config.codgician.users;
   types = lib.types;
   inherit (pkgs.stdenvNoCC) isLinux;
+  hmModules = import lib.codgician.hmModulesDir { inherit lib; };
+  invalidHashedPasswordFile = pkgs.writeText "hashed-password" "!";
 
   # Use list of sub-folder names as list of available users
   dirs = builtins.readDir ./.;
@@ -17,14 +19,6 @@ let
   mkUserOptions = name: {
     "${name}" = {
       enable = lib.mkEnableOption ''Enable user "${name}".'';
-
-      createHome = lib.mkOption {
-        type = types.bool;
-        default = true;
-        description = ''
-          Whether or not to create home directory for user "${name}".
-        '';
-      };
 
       home = lib.mkOption {
         type = types.path;
@@ -77,7 +71,8 @@ let
     name:
     lib.mkIf cfg.${name}.enable [
       {
-        assertion = !isLinux || cfg.${name}.hashedPasswordAgeFile != null;
+        assertion =
+          !isLinux || config.users.users.${name}.isSystemUser || cfg.${name}.hashedPasswordAgeFile != null;
         message = ''User "${name}" must have `hashedPasswordAgeFile` specified.'';
       }
     ];
@@ -125,33 +120,31 @@ let
         {
           assertions = mkUserAssertions name;
           users.users.${name} = {
-            createHome = cfg.${name}.createHome;
-            home = cfg.${name}.home;
+            inherit (cfg.${name}) home;
           }
           // lib.optionalAttrs (cfg.${name} ? extraGroups) {
-            extraGroups = cfg.${name}.extraGroups;
+            inherit (cfg.${name}) extraGroups;
           }
           // lib.optionalAttrs isLinux {
             hashedPasswordFile =
-              config.age.secrets."${lib.codgician.getAgeSecretNameFromPath
-                cfg.${name}.hashedPasswordAgeFile
-              }".path;
+              if cfg.${name}.hashedPasswordAgeFile == null then
+                "${invalidHashedPasswordFile}/hashed-password"
+              else
+                config.age.secrets."${lib.codgician.getAgeSecretNameFromPath
+                  cfg.${name}.hashedPasswordAgeFile
+                }".path;
           };
         }
 
         # Mark as known users in nix-darwin
         { users = lib.optionalAttrs (users ? knownUsers) { knownUsers = [ name ]; }; }
 
-        # Import home-manager modules (only when createHome is enabled)
-        (lib.mkIf cfg.${name}.createHome {
+        # Import home-manager modules only when there are HM modules for this user
+        (lib.mkIf (hmModules ? "${name}") {
           home-manager.users.${name} =
-            { lib, ... }:
-            let
-              modules = import lib.codgician.hmModulesDir { inherit lib; };
-              platform = if isLinux then "nixos" else "darwin";
-            in
+            { ... }:
             {
-              imports = lib.optionals (modules ? "${name}") [ (modules.${name}.${platform}) ];
+              imports = [ hmModules.${name}.${if isLinux then "nixos" else "darwin"} ];
             };
         })
       ]

@@ -130,7 +130,7 @@ in
   };
 
   # system packages
-  environment.systemPackages = with pkgs; [ 
+  environment.systemPackages = with pkgs; [
     swtpm # make qm work
   ];
 

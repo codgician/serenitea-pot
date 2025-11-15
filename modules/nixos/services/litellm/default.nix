@@ -37,12 +37,14 @@ in
 
     stateDir = lib.mkOption {
       type = types.path;
-      default = "/var/lib/litellm";
+      default = "/var/lib/${serviceName}";
       description = ''
         Directory for LiteLLM to store state data.
       '';
     };
 
+    # Note: this is not working
+    # See: https://github.com/NixOS/nixpkgs/issues/432925
     adminUi = {
       enable = lib.mkEnableOption "LiteLLM Admin UI";
 
@@ -63,7 +65,7 @@ in
     reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
       inherit serviceName;
       defaultProxyPass = "http://${cfg.host}:${builtins.toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.litellm; http://$\{host}:$\{builtins.toString port}'';
+      defaultProxyPassText = ''with config.codgician.services.${serviceName}; http://$\{host}:$\{builtins.toString port}'';
     };
   };
 
@@ -87,12 +89,8 @@ in
         Group = group;
       };
 
-      # Create user
-      users.users.${user} = {
-        inherit group;
-        isSystemUser = true;
-      };
-      users.groups.${group} = { };
+      # Ensure litellm user is created
+      codgician.users.${serviceName}.enable = true;
 
       # Persist default data directory
       codgician.system.impermanence.extraItems = [

@@ -34,13 +34,13 @@
     };
 
     kernelModules = [ "kvm-amd" ];
+    kernelPackages = pkgs.linuxPackages_6_6;
 
     kernelParams = [
       "video=VGA-1:1600x900@60"
       "fbcon=map:0"
       "vfio-pci.ids=10de:2783,10de:22bc,10de:25b8,10de:2291"
       "amd_pstate=active"
-      "hugepagesz=2M"
       "hugepagesz=1G"
       "default_hugepagesz=1G"
       "hugepages=16"

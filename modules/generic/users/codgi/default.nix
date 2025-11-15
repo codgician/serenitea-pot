@@ -11,6 +11,7 @@ in
       inherit name;
       uid = if isDarwin then 501 else 1000;
       description = "Shijia Zhang";
+      createHome = true;
       shell = pkgs.zsh;
       openssh.authorizedKeys.keys = pubKeys.users.${name};
     }

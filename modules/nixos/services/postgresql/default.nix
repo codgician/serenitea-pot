@@ -12,6 +12,14 @@ in
   options.codgician.services.postgresql = {
     enable = lib.mkEnableOption "PostgreSQL";
 
+    enableTCPIP = lib.mkEnableOption "TCP/IP connections";
+
+    port = lib.mkOption {
+      type = types.port;
+      default = 5432;
+      description = "Port for PostgreSQL to listen on.";
+    };
+
     dataDir = lib.mkOption {
       type = types.path;
       default = "/var/lib/postgresql";
@@ -23,9 +31,11 @@ in
 
   config = lib.mkIf cfg.enable {
     services.postgresql = {
-      inherit (cfg) enable;
+      inherit (cfg) enable enableTCPIP;
       dataDir = "${cfg.dataDir}/${config.services.postgresql.package.psqlSchema}";
+      enableJIT = true;
       settings = {
+        inherit (cfg) port;
         full_page_writes = lib.mkIf cfg.zfsOptimizations false; # Not needed for ZFS
       };
     };

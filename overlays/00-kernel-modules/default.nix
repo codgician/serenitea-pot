@@ -16,9 +16,14 @@ in
       kernel:
       (super.linuxKernel.packagesFor kernel).extend (
         lpself: lpsuper:
-        lib.genAttrs [
-          "mstflint_access"
-        ] (pkgName: unstablePkgs.linuxPackages.${pkgName}.override { inherit (lpsuper) kernel kernelModuleMakeFlags; })
+        lib.genAttrs
+          [
+            "mstflint_access"
+          ]
+          (
+            pkgName:
+            unstablePkgs.linuxPackages.${pkgName}.override { inherit (lpsuper) kernel kernelModuleMakeFlags; }
+          )
       );
   };
 }
