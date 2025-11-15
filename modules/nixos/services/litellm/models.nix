@@ -76,6 +76,7 @@ rec {
         "gpt-5-codex"
         "gpt-5-mini"
         "gpt-5.1"
+        "gpt-5.1-codex"
         "o3"
       ];
 }
