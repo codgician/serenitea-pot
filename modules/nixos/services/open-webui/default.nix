@@ -102,7 +102,7 @@ in
             lib
             cfg
             ollamaEmbeddingModel
-            pgDbHost 
+            pgDbHost
             pgDbName
             ;
           doclingServeCfg = config.codgician.services.docling-serve;

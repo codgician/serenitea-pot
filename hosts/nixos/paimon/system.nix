@@ -26,15 +26,6 @@
         dataDir = "/xpool/llm/fish-speech";
       };
 
-      litellm = {
-        enable = true;
-        adminUi.enable = true;
-        reverseProxy = {
-          enable = true;
-          domains = [ "dendro.codgician.me" ];
-        };
-      };
-
       mcpo = {
         enable = true;
         dataDir = "/xpool/appdata/mcpo";
@@ -73,6 +64,16 @@
         reverseProxy = {
           enable = true;
           elementWeb = true;
+        };
+      };
+
+      litellm = {
+        enable = true;
+        backend = "container";
+        adminUi.enable = true;
+        reverseProxy = {
+          enable = true;
+          domains = [ "dendro.codgician.me" ];
         };
       };
 

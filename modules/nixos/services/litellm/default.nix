@@ -8,14 +8,37 @@
 let
   serviceName = "litellm";
   user = serviceName;
+  uid = config.users.users.${user}.uid;
   group = serviceName;
   cfg = config.codgician.services.litellm;
   types = lib.types;
   allModels = (import ./models.nix { inherit pkgs lib outputs; }).all;
+
+  # Environment variables
+  environment = {
+    "DO_NOT_TRACK" = "True";
+    "GITHUB_COPILOT_TOKEN_DIR" = "${cfg.stateDir}/github";
+  }
+  // (lib.mkIf (cfg.adminUi.enable) {
+    "PGHOST" = cfg.adminUi.dbHost; # Hack for prisma to connect postgres with unix socket
+    "DATABASE_URL" = "postgres://${user}@localhost/${cfg.adminUi.dbName}?host=/run/postgresql";
+  });
+
 in
 {
   options.codgician.services.litellm = {
     enable = lib.mkEnableOption "LiteLLM Proxy.";
+
+    backend = lib.mkOption {
+      type = lib.types.enum [
+        "nixpkgs"
+        "container"
+      ];
+      default = "nixpkgs";
+      description = ''
+        Backend to use for deploying LiteLLM.
+      '';
+    };
 
     host = lib.mkOption {
       type = types.str;
@@ -43,7 +66,7 @@ in
       '';
     };
 
-    # Note: this is not working
+    # Note: this is not working in nix variant
     # See: https://github.com/NixOS/nixpkgs/issues/432925
     adminUi = {
       enable = lib.mkEnableOption "LiteLLM Admin UI";
@@ -70,15 +93,13 @@ in
   };
 
   config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
+    # Nixpkgs backend
+    (lib.mkIf (cfg.enable && cfg.backend == "nixos") {
       services.litellm = {
         enable = true;
         inherit (cfg) host port stateDir;
         environmentFile = config.age.secrets.litellm-env.path;
-        environment = {
-          "DO_NOT_TRACK" = "True";
-          "GITHUB_COPILOT_TOKEN_DIR" = "${cfg.stateDir}/github";
-        };
+        inherit environment;
         settings.model_list = allModels;
       };
 
@@ -88,7 +109,37 @@ in
         User = user;
         Group = group;
       };
+    })
 
+    # Container backend
+    (lib.mkIf (cfg.enable && cfg.backend == "container") {
+      virtualisation.oci-containers.containers.${serviceName} = {
+        autoStart = true;
+        image = "ghcr.io/berriai/litellm:litellm_stable_release_branch-stable";
+        volumes = [
+          "${(pkgs.formats.yaml { }).generate "config.yaml" { model_list = allModels; }}:/config.yaml:ro"
+          "${cfg.stateDir}:/var/lib/litellm"
+          "/run/postgresql:/run/postgresql"
+        ];
+        extraOptions = [
+          "--pull=newer"
+          "--net=host"
+          "--uidmap=0:${builtins.toString uid}:1"
+          "--gidmap=0:${builtins.toString uid}:1"
+        ];
+        cmd = with cfg; [
+          "--port=${builtins.toString port}"
+          "--host=${host}"
+          "--config"
+          "/config.yaml"
+        ];
+        inherit environment;
+        environmentFiles = [ config.age.secrets.litellm-env.path ];
+      };
+    })
+
+    # User
+    (lib.mkIf (cfg.enable) {
       # Ensure litellm user is created
       codgician.users.${serviceName}.enable = true;
 
@@ -105,17 +156,14 @@ in
     # Configure PostgreSQL for LiteLLM Admin UI
     (lib.mkIf (cfg.enable && cfg.adminUi.enable) {
       codgician.services.postgresql.enable = true;
-      services = {
-        litellm.environment."DATABASE_URL" = "postgres:///${cfg.adminUi.dbName}?host=${cfg.adminUi.dbHost}";
-        postgresql = {
-          ensureDatabases = [ cfg.adminUi.dbName ];
-          ensureUsers = [
-            {
-              name = "litellm";
-              ensureDBOwnership = true;
-            }
-          ];
-        };
+      services.postgresql = {
+        ensureDatabases = [ cfg.adminUi.dbName ];
+        ensureUsers = [
+          {
+            name = "litellm";
+            ensureDBOwnership = true;
+          }
+        ];
       };
     })
 
