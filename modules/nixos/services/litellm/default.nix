@@ -17,11 +17,12 @@ let
   # Environment variables
   environment = {
     "DO_NOT_TRACK" = "True";
-    "GITHUB_COPILOT_TOKEN_DIR" = "${cfg.stateDir}/github";
+    "GITHUB_COPILOT_TOKEN_DIR" =
+      if cfg.backend == "nixpkgs" then "${cfg.stateDir}/github" else "/config/github";
   }
-  // (lib.mkIf (cfg.adminUi.enable) {
+  // (lib.optionalAttrs (cfg.adminUi.enable) {
     "PGHOST" = cfg.adminUi.dbHost; # Hack for prisma to connect postgres with unix socket
-    "DATABASE_URL" = "postgres://${user}@localhost/${cfg.adminUi.dbName}?host=/run/postgresql";
+    "DATABASE_URL" = "postgres://${user}@localhost/${cfg.adminUi.dbName}?host=${cfg.adminUi.dbHost}";
   });
 
 in
@@ -118,7 +119,7 @@ in
         image = "ghcr.io/berriai/litellm:litellm_stable_release_branch-stable";
         volumes = [
           "${(pkgs.formats.yaml { }).generate "config.yaml" { model_list = allModels; }}:/config.yaml:ro"
-          "${cfg.stateDir}:/var/lib/litellm"
+          "${cfg.stateDir}:/config"
           "/run/postgresql:/run/postgresql"
         ];
         extraOptions = [
