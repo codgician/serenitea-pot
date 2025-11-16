@@ -24,6 +24,7 @@ let
         ./io.nix
         ./reverse-proxy.nix
         ./secrets.nix
+        ./service.nix
         ./utils.nix
       ]
     )
