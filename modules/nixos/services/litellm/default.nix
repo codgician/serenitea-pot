@@ -94,7 +94,7 @@ in
 
   config = lib.mkMerge [
     # Nixpkgs backend
-    (lib.mkIf (cfg.enable && cfg.backend == "nixos") {
+    (lib.mkIf (cfg.enable && cfg.backend == "nixpkgs") {
       services.litellm = {
         enable = true;
         inherit (cfg) host port stateDir;

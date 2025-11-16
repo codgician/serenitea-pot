@@ -9,13 +9,134 @@ let
   serviceName = "open-webui";
   cfg = config.codgician.services.open-webui;
   types = lib.types;
+
+  webuiUrl =
+    if cfg.reverseProxy.enable then
+      "${if cfg.reverseProxy.https then "https" else "http"}://${builtins.head cfg.reverseProxy.domains}"
+    else
+      "${cfg.host}:${builtins.toString cfg.port}";
+
+  litellmCfg = config.codgician.services.litellm;
+  litellmBases = lib.optionals litellmCfg.enable [
+    "http://${litellmCfg.host}:${builtins.toString litellmCfg.port}"
+  ];
+
+  ollamaCfg = config.codgician.services.ollama;
   ollamaEmbeddingModel = "hf.co/jinaai/jina-embeddings-v4-text-retrieval-GGUF:Q4_K_M";
   pgDbName = "open-webui";
   pgDbHost = "/run/postgresql";
+
+  environment = {
+    # Enable CUDA
+    USE_CUDA_DOCKER = "True";
+    ENV = "prod";
+    WEBUI_AUTH = "True";
+    WEBUI_NAME = "Akasha";
+    WEBUI_URL = webuiUrl;
+    # OAuth
+    ENABLE_SIGNUP = "False";
+    ENABLE_LOGIN_FORM = "True";
+    DEFAULT_USER_ROLE = "pending";
+    ENABLE_OAUTH_SIGNUP = "False";
+    OAUTH_MERGE_ACCOUNTS_BY_EMAIL = "True";
+    OAUTH_CLIENT_ID = "akasha";
+    # OAUTH_CLIENT_SECRET provided in env
+    OPENID_REDIRECT_URI = "${webuiUrl}/oauth/oidc/callback";
+    OPENID_PROVIDER_URL = "https://auth.codgician.me/.well-known/openid-configuration";
+    OAUTH_PROVIDER_NAME = "Authelia";
+    OAUTH_SCOPES = "openid email profile groups";
+    ENABLE_OAUTH_ROLE_MANAGEMENT = "True";
+    OAUTH_ROLES_CLAIM = "groups";
+    OAUTH_ALLOWED_ROLES = "akasha-users,akasha-admins";
+    OAUTH_ADMIN_ROLES = "akasha-admins";
+    # Logging
+    # GLOBAL_LOG_LEVEL = "DEBUG";
+    ENABLE_CHANNELS = "True";
+    ENABLE_AUTOCOMPLETE_GENERATION = "True";
+    AUTOCOMPLETE_GENERATION_INPUT_MAX_LENGTH = "-1";
+    ENABLE_EVALUATION_ARENA_MODELS = "True";
+    ENABLE_MESSAGE_RATING = "True";
+    ENABLE_COMMUNITY_SHARING = "True";
+    ENABLE_TAGS_GENERATION = "True";
+    # Ollama
+    ENABLE_OLLAMA_API = if config.services.ollama.enable then "True" else "False";
+    OLLAMA_BASE_URL = lib.mkIf ollamaCfg.enable "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
+    # OpenAI (LiteLLM)
+    ENABLE_OPENAI_API = if litellmCfg.enable then "True" else "False";
+    OPENAI_API_BASE_URLS = lib.strings.concatStringsSep ";" litellmBases;
+    # OPENAI_API_KEYS should be defined in UI
+    # TTS
+    TTS_ENGINE = "transformers";
+    WHISPER_MODEL = "large-v3-turbo";
+    WHISPER_MODEL_AUTO_UPDATE = "True";
+    AUDIO_TTS_ENGINE = "transformers";
+    # Security
+    ENABLE_FORWARD_USER_INFO_HEADERS = "False";
+    ENABLE_RAG_LOCAL_WEB_FETCH = "True";
+    ENABLE_RAG_WEB_LOADER_SSL_VERIFICATION = "True";
+    WEBUI_SESSION_COOKIE_SAME_SITE = "lax";
+    RAG_FILE_MAX_SIZE = "100"; # MB
+    # Search
+    ENABLE_WEB_SEARCH = "True";
+    WEB_SEARCH_ENGINE = "google_pse";
+    WEB_SEARCH_RESULT_COUNT = "5";
+    WEB_SEARCH_CONCURRENT_REQUESTS = "10";
+    # RAG
+    ENABLE_RAG_HYBRID_SEARCH = "True";
+    PDF_EXTRACT_IMAGES = "True";
+    ENABLE_SEARCH_QUERY = "True";
+    ENABLE_RAG_WEB_SEARCH = "True";
+    RAG_WEB_SEARCH_ENGINE = "google_pse";
+    # RAG_EMBEDDING_MODEL = "jinaai/jina-embeddings-v3";
+    # RAG_RERANKING_MODEL = "jinaai/jina-reranker-v2-base-multilingual";
+    RAG_RERANKING_MODEL = "jinaai/jina-reranker-m0";
+    RAG_EMBEDDING_ENGINE = lib.mkIf ollamaCfg.enable "ollama";
+    RAG_EMBEDDING_MODEL = lib.mkIf ollamaCfg.enable ollamaEmbeddingModel;
+    RAG_OLLAMA_BASE_URL = lib.mkIf ollamaCfg.enable "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
+    RAG_TOP_K = "5";
+    RAG_TOP_K_RERANKER = "5";
+    RAG_RELEVANCE_THRESHOLD = "0.3";
+    # Image generation
+    IMAGE_GENERATION_ENGINE = "gemini";
+    ENABLE_IMAGE_GENERATION = "True";
+    ENABLE_IMAGE_PROMPT_GENERATION = "True";
+    IMAGE_GENERATION_MODEL = "imagen-4.0-generate-preview-06-06";
+    IMAGE_SIZE = "1024x1024";
+    IMAGES_GEMINI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
+    # Image edit
+    IMAGE_EDIT_ENGINE = "gemini";
+    IMAGE_EDIT_MODEL = "gemini-2.5-flash-image-preview";
+    IMAGE_EDIT_SIZE = "1024x1024";
+    # Redis
+    ENABLE_WEBSOCKET_SUPPORT = "True";
+    WEBSOCKET_MANAGER = "redis";
+    WEBSOCKET_REDIS_URL = "unix://${config.services.redis.servers.open-webui.unixSocket}";
+    # Database
+    DATABASE_URL = lib.mkIf (cfg.database == "postgresql") "postgresql:///${pgDbName}?host=${pgDbHost}";
+    # Vector Database
+    VECTOR_DB = lib.mkIf (cfg.database == "postgresql") "pgvector";
+  }
+  // (lib.optionalAttrs config.codgician.services.docling-serve.enable {
+    # Docling (PDF extraction engine)
+    CONTENT_EXTRACTION_ENGINE = "docling";
+    DOCLING_SERVER_URL =
+      with config.codgician.services.docling-serve;
+      "http://${host}:${builtins.toString port}";
+    DOCLING_OCR_ENGINE = "easyocr";
+    DOCLING_OCR_LANG = "en,ch_sim";
+  });
 in
 {
   options.codgician.services.open-webui = {
     enable = lib.mkEnableOption serviceName;
+
+    backend = lib.mkOption {
+      type = types.enum [ "nixpkgs" ];
+      default = "nixpkgs";
+      description = ''
+        Backend to use for deploying open-webui.
+      '';
+    };
 
     package = lib.mkPackageOption pkgs "open-webui" { };
 
@@ -47,8 +168,8 @@ in
 
     stateDir = lib.mkOption {
       type = types.path;
-      default = "/var/lib/open-webui";
-      description = "Directory to store ${serviceName} data.";
+      default = "/var/lib/${serviceName}";
+      description = "Directory to store open-webui data.";
     };
 
     openFirewall = lib.mkEnableOption "Open firewall for ${serviceName}";
@@ -86,7 +207,8 @@ in
   };
 
   config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
+    # Nixpkgs backend
+    (lib.mkIf (cfg.enable && cfg.backend == "nixpkgs") {
       services.open-webui = {
         enable = true;
         inherit (cfg)
@@ -96,24 +218,9 @@ in
           openFirewall
           package
           ;
+        inherit environment;
         environmentFile = config.age.secrets.open-webui-env.path;
-        environment = import ./environment.nix {
-          inherit
-            lib
-            cfg
-            ollamaEmbeddingModel
-            pgDbHost
-            pgDbName
-            ;
-          doclingServeCfg = config.codgician.services.docling-serve;
-          litellmCfg = config.codgician.services.litellm;
-          ollamaCfg = config.codgician.services.ollama;
-          redisCfg = config.services.redis;
-        };
       };
-
-      # Add embedding model to ollama
-      codgician.services.ollama.loadModels = [ ollamaEmbeddingModel ];
 
       systemd.services.open-webui.serviceConfig = {
         SupplementaryGroups = [
@@ -146,42 +253,147 @@ in
       };
     })
 
-    # Persist
-    (import ./persist.nix {
-      inherit
-        lib
-        cfg
-        options
-        serviceName
-        ;
+    # Common options
+    (lib.mkIf cfg.enable {
+      # Add embedding model to ollama
+      codgician.services.ollama.loadModels = [ ollamaEmbeddingModel ];
+
+      # Set up Redis
+      services.redis.servers.${serviceName} = {
+        enable = true;
+        unixSocketPerm = 660;
+      };
+
+      # Persist data when dataDir is default value
+      codgician.system.impermanence.extraItems =
+        lib.mkIf (cfg.stateDir == options.codgician.services.open-webui.stateDir.default)
+          [
+            {
+              type = "directory";
+              path = "/var/lib/${serviceName}";
+              user = serviceName;
+              group = serviceName;
+            }
+          ];
     })
 
     # User
-    (lib.codgician.mkServiceUserGroupLinux serviceName {
-      uid = 2026;
-      gid = 2026;
+    (lib.mkIf cfg.enable (
+      lib.codgician.mkServiceUserGroupLinux serviceName {
+        uid = 2026;
+        gid = 2026;
+      }
+    ))
+
+    # PostgreSQL
+    (lib.mkIf (cfg.enable && cfg.database == "postgresql") {
+      codgician.services.postgresql.enable = true;
+      services.postgresql = {
+        extensions =
+          ps: with ps; [
+            pgvector
+            pgvectorscale
+          ];
+        ensureDatabases = [ pgDbName ];
+        ensureUsers = [
+          {
+            name = serviceName;
+            ensureDBOwnership = true;
+          }
+        ];
+      };
     })
 
-    # PostgreSQL and Redis
-    (import ./database.nix {
-      inherit
-        lib
-        pkgs
-        cfg
-        pgDbName
-        serviceName
-        ;
-      pgCfg = config.services.postgresql;
-    })
+    # User
+    (lib.mkIf cfg.enable (
+      lib.codgician.mkServiceUserGroupLinux serviceName {
+        uid = 2026;
+        gid = 2026;
+      }
+    ))
 
     # Reverse proxy profile
-    (import ./reverse-proxy.nix {
-      inherit
-        lib
-        pkgs
-        cfg
-        serviceName
-        ;
+    (lib.codgician.mkServiceReverseProxyConfig {
+      inherit serviceName cfg;
+      extraVhostConfig.locations =
+        let
+          inherit (cfg.reverseProxy)
+            appIcon
+            favicon
+            splash
+            ;
+
+          convertImage = lib.codgician.convertImage pkgs;
+          resizeImage =
+            size: outName: image:
+            convertImage image {
+              args = "-background transparent -resize ${size}";
+              inherit outName;
+            };
+
+          faviconIco = convertImage favicon {
+            args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
+            outName = "favicon.ico";
+          };
+          favicon96 = resizeImage "96x96" "favicon-96x96.png" favicon;
+          favicon512 = resizeImage "512x512" "favicon" appIcon;
+
+          mkNginxLocationForStaticFile = path: {
+            root = builtins.dirOf path;
+            tryFiles = "/${builtins.baseNameOf path} =404";
+            extraConfig = ''
+              access_log off; 
+              log_not_found off;
+            '';
+          };
+        in
+        (lib.optionalAttrs (favicon != null) {
+          "= /favicon.png".passthru = mkNginxLocationForStaticFile favicon512;
+          "= /static/favicon.png".passthru = mkNginxLocationForStaticFile favicon512;
+          "= /static/favicon-dark.png".passthru = mkNginxLocationForStaticFile favicon512;
+          "= /static/favicon-96x96.png".passthru = mkNginxLocationForStaticFile favicon96;
+          "= /favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
+          "= /static/favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
+        })
+        // (lib.optionalAttrs (appIcon != null) {
+          "= /static/logo.png".passthru = mkNginxLocationForStaticFile appIcon;
+          "= /static/apple-touch-icon.png".passthru = mkNginxLocationForStaticFile (
+            resizeImage "180x180" "apple-touch-icon.png" appIcon
+          );
+          "= /static/web-app-manifest-192x192.png".passthru = mkNginxLocationForStaticFile (
+            resizeImage "192x192" "web-app-manifest-192x192.png" appIcon
+          );
+          "= /static/web-app-manifest-512x512.png".passthru = mkNginxLocationForStaticFile (
+            resizeImage "512x512" "web-app-manifest-512x512.png" appIcon
+          );
+        })
+        // (lib.optionalAttrs (splash != null) {
+          "= /static/splash.png".passthru = mkNginxLocationForStaticFile splash;
+          "= /static/splash-dark.png".passthru = mkNginxLocationForStaticFile splash;
+        })
+        // {
+          "/".passthru.extraConfig = ''
+            client_max_body_size 128M;
+            proxy_buffering off;
+            proxy_connect_timeout 300;
+            proxy_send_timeout 300;
+            proxy_read_timeout 300;
+            send_timeout 300;
+          '';
+          "~ ^/api/v1/files" = {
+            inherit (cfg.reverseProxy) lanOnly;
+            passthru = {
+              inherit (cfg.reverseProxy) proxyPass;
+              extraConfig = ''
+                client_max_body_size 128M;
+                proxy_connect_timeout 1800;
+                proxy_send_timeout 1800;
+                proxy_read_timeout 1800;
+                send_timeout 1800;
+              '';
+            };
+          };
+        };
     })
   ];
 }

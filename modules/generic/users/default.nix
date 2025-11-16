@@ -128,7 +128,7 @@ let
           // lib.optionalAttrs isLinux {
             hashedPasswordFile =
               if cfg.${name}.hashedPasswordAgeFile == null then
-                "${invalidHashedPasswordFile}/hashed-password"
+                invalidHashedPasswordFile.outPath
               else
                 config.age.secrets."${lib.codgician.getAgeSecretNameFromPath
                   cfg.${name}.hashedPasswordAgeFile
