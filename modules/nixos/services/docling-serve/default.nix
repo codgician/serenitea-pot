@@ -8,10 +8,34 @@ let
   serviceName = "docling-serve";
   cfg = config.codgician.services.${serviceName};
   types = lib.types;
+
+  environment = {
+    DOCLING_SERVE_ARTIFACTS_PATH = lib.mkIf (
+      cfg.artifactsDir != null && cfg.backend == "nixpkgs"
+    ) cfg.artifactsDir;
+    DOCLING_SERVE_ENABLE_UI = "true";
+    DOCLING_SERVE_ENABLE_REMOTE_SERVICES = "true";
+    DOCLING_SERVE_ALLOW_EXTERNAL_PLUGINS = "true";
+    DOCLING_SERVE_SINGLE_USE_RESULTS = "true";
+    DOCLING_SERVE_MAX_SYNC_WAIT = "1200"; # 20 minutes
+    DOCLING_SERVE_RESULT_REMOVAL_DELAY = "600"; # 10 minutes
+    DOCLING_DEVICE = "cuda:0";
+  };
 in
 {
   options.codgician.services.${serviceName} = {
     enable = lib.mkEnableOption serviceName;
+
+    backend = lib.mkOption {
+      type = lib.types.enum [
+        "nixpkgs"
+        "container"
+      ];
+      default = "nixpkgs";
+      description = ''
+        Backend to use for deploying ${serviceName}.
+      '';
+    };
 
     package = lib.mkPackageOption pkgs "docling-serve" { };
 
@@ -48,8 +72,8 @@ in
   };
 
   config = lib.mkMerge [
-    # docling-serve configurations
-    (lib.mkIf cfg.enable {
+    # Nixpkgs backend
+    (lib.mkIf (cfg.enable && cfg.backend == "nixpkgs") {
       services.docling-serve = {
         enable = true;
         inherit (cfg) host port stateDir;
@@ -58,18 +82,10 @@ in
         package = cfg.package.override {
           withTesserocr = true;
           withRapidocr = true;
+          withUI = true;
         };
 
-        environment = {
-          DOCLING_SERVE_ARTIFACTS_PATH = lib.mkIf (cfg.artifactsDir != null) cfg.artifactsDir;
-          DOCLING_SERVE_ENABLE_UI = "true";
-          DOCLING_SERVE_ENABLE_REMOTE_SERVICES = "true";
-          DOCLING_SERVE_ALLOW_EXTERNAL_PLUGINS = "true";
-          DOCLING_SERVE_SINGLE_USE_RESULTS = "true";
-          DOCLING_SERVE_MAX_SYNC_WAIT = "1200"; # 20 minutes
-          DOCLING_SERVE_RESULT_REMOVAL_DELAY = "600"; # 10 minutes
-          DOCLING_DEVICE = "cuda:0";
-        };
+        inherit environment;
       };
 
       systemd.services.docling-serve.serviceConfig = {
@@ -92,6 +108,42 @@ in
           "/dev/dxg"
         ];
       };
+    })
+
+    # Container backend
+    (lib.mkIf (cfg.enable && cfg.backend == "container") {
+      virtualisation.oci-containers.containers.docling-serve =
+        let
+          # See: https://github.com/llm-d/llm-d/issues/117
+          ldSoConfFile = pkgs.writeText "00-system-libs.conf" ''
+            /lib64
+            /usr/lib64
+          '';
+        in
+        {
+          autoStart = true;
+          image =
+            if config.hardware.nvidia-container-toolkit.enable then
+              "ghcr.io/docling-project/docling-serve-cu128:latest"
+            else
+              "ghcr.io/docling-project/docling-serve:latest";
+          volumes =
+            lib.optionals config.hardware.nvidia-container-toolkit.enable [
+              "${ldSoConfFile}:/etc/ld.so.conf.d/00-system-libs.conf:ro"
+            ]
+            ++ lib.optional (
+              cfg.artifactsDir != null
+            ) "${cfg.artifactsDir}:/opt/app-root/src/.cache/docling/models:rw";
+          ports = [ "${builtins.toString cfg.port}:5001" ];
+          inherit environment;
+          extraOptions = [
+            "--pull=newer"
+            "--net=host"
+          ]
+          ++ lib.optionals config.hardware.nvidia-container-toolkit.enable [ "--device=nvidia.com/gpu=all" ];
+        };
+
+      virtualisation.podman.enable = true;
     })
 
     # Reverse proxy profile
