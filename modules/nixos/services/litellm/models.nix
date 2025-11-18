@@ -47,6 +47,7 @@ rec {
         model_info.base_model = "gemini/${model_name}";
       })
       [
+        "gemini-3-pro-preview"
         "gemini-2.5-pro"
         "gemini-2.5-flash"
       ];
