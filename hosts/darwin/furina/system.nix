@@ -3,7 +3,7 @@
   # My settings
   codgician = {
     services = {
-      litellm.enable = true;
+      litellm.enable = false; # disable before pyarrow build is fixed
     };
     system = {
       brew = {
@@ -90,7 +90,7 @@
     # SMB client settings
     etc."nsmb.conf".text = ''
       [default]
-      mc_on=yes
+      mc_on=no
       mc_prefer_wired=yes
     '';
   };
