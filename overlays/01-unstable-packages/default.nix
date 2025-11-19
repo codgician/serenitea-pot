@@ -1,9 +1,9 @@
 { inputs, ... }:
 
-self: super:
+final: prev:
 let
   unstablePkgs = import inputs.nixpkgs-unstable {
-    inherit (super) system;
+    inherit (prev) system;
     config = {
       allowUnfree = true;
     };

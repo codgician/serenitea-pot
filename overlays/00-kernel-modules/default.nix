@@ -2,19 +2,19 @@
 
 { inputs, lib, ... }:
 
-self: super:
+final: prev:
 let
   unstablePkgs = import inputs.nixpkgs-unstable {
-    inherit (super) system;
+    inherit (prev) system;
     config.allowUnfree = true;
   };
 in
 {
   inherit (unstablePkgs) mstflint;
-  linuxKernel = super.linuxKernel // {
+  linuxKernel = prev.linuxKernel // {
     packagesFor =
       kernel:
-      (super.linuxKernel.packagesFor kernel).extend (
+      (prev.linuxKernel.packagesFor kernel).extend (
         lpself: lpsuper:
         lib.genAttrs
           [

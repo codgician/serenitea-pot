@@ -1,5 +1,5 @@
 { inputs, ... }:
 
-self: super: {
-  disko = inputs.disko.packages.${super.system}.default;
+final: prev: {
+  disko = inputs.disko.packages.${prev.system}.default;
 }

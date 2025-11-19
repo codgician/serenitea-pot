@@ -7,10 +7,10 @@
   ...
 }:
 
-self: super:
+final: prev:
 let
   unstablePkgs = import inputs.nixpkgs-unstable {
-    inherit (super) system;
+    inherit (prev) system;
     config = {
       allowUnfree = true;
       cudaSupport = lib.systems.inspect.predicates.isLinux system;
@@ -35,7 +35,7 @@ let
       'is an Open WebUI based solution for learning and sharing knowledge.'
   '';
 
-  open-webui-py312 = super.open-webui.override {
+  open-webui-py312 = prev.open-webui.override {
     python3Packages = unstablePkgs.python312Packages;
   };
 in

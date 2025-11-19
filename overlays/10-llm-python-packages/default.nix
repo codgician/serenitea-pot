@@ -5,10 +5,10 @@
   ...
 }:
 
-self: super:
+final: prev:
 let
   unstablePkgs = import inputs.nixpkgs-unstable {
-    inherit (super) system;
+    inherit (prev) system;
     config = {
       allowBroken = true;
       allowUnfree = true;
@@ -17,19 +17,14 @@ let
     };
   };
 
-  pythonNames = builtins.filter (x: builtins.match "(^python[0-9]*$)" x != null) (
-    builtins.attrNames super
-  );
-
-  # Produce a patched pythonPackages set
-  # Nothing to override for now
-  mkPatchedPythonPackages = pp: pp.override { };
-
-  # Always use LLM packages from unstable
-  mkPackageOverride =
-    pythonPackagesName:
-    (ppself: ppsuper: {
-      inherit (mkPatchedPythonPackages unstablePkgs.${pythonPackagesName})
+  # Extension to use specific python packages from unstable
+  pythonUnstableExtension =
+    pyfinal: pyprev:
+    let
+      pythonPackagesName = pyprev.python.pythonAttr + "Packages";
+    in
+    {
+      inherit (unstablePkgs.${pythonPackagesName})
         rapidocr-onnxruntime
         onnxruntime
         docling
@@ -41,26 +36,24 @@ let
         litellm
         vllm
         ;
-    });
+    };
+
 in
 {
   # Non-Python packages pulled directly from unstable
-  inherit (unstablePkgs) llama-cpp;
-  inherit (unstablePkgs) ollama ollama-cuda ollama-rocm;
+  inherit (unstablePkgs)
+    llama-cpp
+    ollama
+    ollama-cuda
+    ollama-rocm
+    docling
+    docling-serve
+    open-webui
+    litellm
+    vllm
+    ;
+
+  pythonPackagesExtensions = (prev.pythonPackagesExtensions or [ ]) ++ [
+    pythonUnstableExtension
+  ];
 }
-# Override Python applications to use patched python3Packages
-// (lib.genAttrs [ "docling" "docling-serve" "open-webui" "litellm" "vllm" ] (
-  pkgName:
-  unstablePkgs.${pkgName}.override {
-    python3Packages = mkPatchedPythonPackages unstablePkgs.python3Packages;
-  }
-))
-# Override each pythonXY interpreter to expose unstable + patched packages
-// builtins.listToAttrs (
-  builtins.map (pythonName: {
-    name = pythonName;
-    value = super.${pythonName}.override {
-      packageOverrides = mkPackageOverride (super.${pythonName}.pythonAttr + "Packages");
-    };
-  }) pythonNames
-)

@@ -1,5 +1,5 @@
 { inputs, ... }:
 
-self: super: {
-  agenix = inputs.agenix.packages.${super.system}.default;
+final: prev: {
+  agenix = inputs.agenix.packages.${prev.system}.default;
 }
