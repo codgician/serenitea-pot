@@ -1,14 +1,7 @@
-{ inputs, ... }:
+{ ... }:
 
-final: prev:
-let
-  unstablePkgs = import inputs.nixpkgs-unstable {
-    inherit (prev) system;
-    config.allowUnfree = true;
-  };
-in
-{
-  inherit (unstablePkgs)
+final: prev: {
+  inherit (prev.unstable)
     code-server
     openvscode-server
     vscode

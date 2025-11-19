@@ -1,14 +1,14 @@
 { outputs, ... }:
 
 let
-  inherit (outputs) lib libUnstable;
+  inherit (outputs) lib;
   getConfigurations =
     path:
     lib.pipe path [
       (lib.codgician.getFolderNames)
       (builtins.map (name: {
         inherit name;
-        value = import (path + "/${name}") { inherit lib libUnstable; };
+        value = import (path + "/${name}") { inherit lib; };
       }))
       builtins.listToAttrs
     ];

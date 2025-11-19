@@ -1,16 +1,9 @@
 # Use version from unstable for specified kernel modules
 
-{ inputs, lib, ... }:
+{ lib, ... }:
 
-final: prev:
-let
-  unstablePkgs = import inputs.nixpkgs-unstable {
-    inherit (prev) system;
-    config.allowUnfree = true;
-  };
-in
-{
-  inherit (unstablePkgs) mstflint;
+final: prev: {
+  inherit (prev.unstable) mstflint;
   linuxKernel = prev.linuxKernel // {
     packagesFor =
       kernel:
@@ -22,7 +15,7 @@ in
           ]
           (
             pkgName:
-            unstablePkgs.linuxPackages.${pkgName}.override { inherit (lpsuper) kernel kernelModuleMakeFlags; }
+            prev.unstable.linuxPackages.${pkgName}.override { inherit (lpsuper) kernel kernelModuleMakeFlags; }
           )
       );
   };

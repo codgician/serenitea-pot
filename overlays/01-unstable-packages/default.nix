@@ -1,16 +1,7 @@
-{ inputs, ... }:
+{ ... }:
 
-final: prev:
-let
-  unstablePkgs = import inputs.nixpkgs-unstable {
-    inherit (prev) system;
-    config = {
-      allowUnfree = true;
-    };
-  };
-in
-{
-  inherit (unstablePkgs)
+final: prev: {
+  inherit (prev.unstable)
     sing-box
     sing-geoip
     nexttrace

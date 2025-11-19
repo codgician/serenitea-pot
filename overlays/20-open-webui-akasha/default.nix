@@ -1,23 +1,9 @@
 # Apply patches and create open-webui-akasha package
 
-{
-  inputs,
-  lib,
-  system,
-  ...
-}:
+{ ... }:
 
 final: prev:
 let
-  unstablePkgs = import inputs.nixpkgs-unstable {
-    inherit (prev) system;
-    config = {
-      allowUnfree = true;
-      cudaSupport = lib.systems.inspect.predicates.isLinux system;
-      rocmSupport = lib.systems.inspect.predicates.isLinux system;
-    };
-  };
-
   patches = [
     # Add fish-speech support (#11230)
     ./fish-speech.patch
@@ -36,7 +22,7 @@ let
   '';
 
   open-webui-py312 = prev.open-webui.override {
-    python3Packages = unstablePkgs.python312Packages;
+    python3Packages = prev.unstable.python312Packages;
   };
 in
 {

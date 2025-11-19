@@ -5,15 +5,37 @@
   outputs,
   ...
 }:
-let
-  inherit (lib.codgician) stable;
-in
 rec {
+  # List of supported systems
+  darwinSystems = [
+    "aarch64-darwin"
+    "x86_64-darwin"
+  ];
+  linuxSystems = [
+    "aarch64-linux"
+    "x86_64-linux"
+  ];
+  isDarwinSystem = lib.hasSuffix "-darwin";
+  isLinuxSystem = lib.hasSuffix "-linux";
+  allSystems = darwinSystems ++ linuxSystems;
+
+  # Global instantiation of unstable pkgs
+  unstablePkgsMap = lib.genAttrs allSystems (
+    system:
+    import inputs.nixpkgs-unstable {
+      inherit system;
+      config.allowUnfree = true;
+    }
+  );
+
   # Get package overlays
   getOverlays =
     system:
     [
-      (self: super: { inherit lib; })
+      (final: prev: {
+        unstable = unstablePkgsMap.${system};
+        inherit lib;
+      })
       inputs.nur.overlays.default
       inputs.nix-vscode-extensions.overlays.default
       inputs.mlnx-ofed-nixos.overlays.default
@@ -35,13 +57,13 @@ rec {
 
   # Make home-manager module
   mkHomeManagerModules =
-    with inputs;
-    modulesName: sharedModules:
-    let
-      homeManager = if stable then home-manager else home-manager-unstable;
-    in
+    {
+      home-manager ? inputs.home-manager,
+      modulesName,
+      sharedModules,
+    }:
     [
-      (homeManager.${modulesName}.home-manager)
+      (home-manager.${modulesName}.home-manager)
       {
         home-manager = {
           useGlobalPkgs = true;
@@ -53,10 +75,17 @@ rec {
 
   # All Darwin modules for building system
   mkDarwinModules =
+    {
+      home-manager ? inputs.home-manager,
+    }:
     with inputs;
-    (mkHomeManagerModules "darwinModules" [
-      # Home Manager modules
-    ])
+    (mkHomeManagerModules {
+      inherit home-manager;
+      modulesName = "darwinModules";
+      sharedModules = [
+        # Home Manager modules
+      ];
+    })
     ++ [
       # Darwin modules
       outputs.modules.darwin
@@ -65,11 +94,18 @@ rec {
 
   # All NixOS modules for building system
   mkNixosModules =
+    {
+      home-manager ? inputs.home-manager,
+    }:
     with inputs;
-    (mkHomeManagerModules "nixosModules" [
-      # Home Manager modules
-      plasma-manager.homeModules.plasma-manager
-    ])
+    (mkHomeManagerModules {
+      inherit home-manager;
+      modulesName = "nixosModules";
+      sharedModules = [
+        # Home Manager modules
+        plasma-manager.homeModules.plasma-manager
+      ];
+    })
     ++ [
       # NixOS modules
       outputs.modules.nixos
@@ -103,7 +139,10 @@ rec {
       hostName,
       modules ? [ ],
       system,
-      nix-darwin ? inputs."${if stable then "darwin" else "darwin-unstable"}",
+      stable ? true,
+      nix-darwin ? if stable then inputs.darwin else inputs.darwin-unstable,
+      home-manager ? if stable then inputs.home-manager else inputs.home-manager-unstable,
+      ...
     }:
     nix-darwin.lib.darwinSystem {
       inherit system lib;
@@ -116,7 +155,7 @@ rec {
           ;
       };
       modules =
-        lib.codgician.mkDarwinModules
+        (lib.codgician.mkDarwinModules { inherit home-manager; })
         ++ modules
         ++ [
           (mkBaseConfig system hostName)
@@ -129,7 +168,9 @@ rec {
       hostName,
       modules ? [ ],
       system,
-      nixpkgs ? inputs."${if stable then "nixpkgs" else "nixpkgs-unstable"}",
+      stable ? true,
+      nixpkgs ? if stable then inputs.nixpkgs else inputs.nixpkgs-unstable,
+      home-manager ? if stable then inputs.home-manager else inputs.home-manager-unstable,
     }:
     nixpkgs.lib.nixosSystem {
       inherit system lib;
@@ -142,25 +183,12 @@ rec {
           ;
       };
       modules =
-        lib.codgician.mkNixosModules
+        (lib.codgician.mkNixosModules { inherit home-manager; })
         ++ modules
         ++ [
           (mkBaseConfig system hostName)
         ];
     };
-
-  # List of supported systems
-  darwinSystems = [
-    "aarch64-darwin"
-    "x86_64-darwin"
-  ];
-  linuxSystems = [
-    "aarch64-linux"
-    "x86_64-linux"
-  ];
-  isDarwinSystem = lib.hasSuffix "-darwin";
-  isLinuxSystem = lib.hasSuffix "-linux";
-  allSystems = darwinSystems ++ linuxSystems;
 
   # Generate attribution set for specified systems
   forSystems = systems: func: lib.genAttrs systems (system: func (mkPkgs system));

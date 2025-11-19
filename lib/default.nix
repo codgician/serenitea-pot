@@ -1,15 +1,11 @@
 args@{
   inputs,
-  stable ? true,
   ...
 }:
 
 let
-  # Whether the lib is stable variant
-  inherit stable;
-
   # Decide which nixpkgs input to use
-  nixpkgs = if stable then inputs.nixpkgs else inputs.nixpkgs-unstable;
+  nixpkgs = inputs.nixpkgs;
 
   # Concat attributes
   concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
@@ -18,7 +14,7 @@ let
   mkMyLib =
     { lib }:
     concatAttrs (
-      builtins.map (x: import x (args // { inherit lib stable nixpkgs; })) [
+      builtins.map (x: import x (args // { inherit lib nixpkgs; })) [
         ./consts.nix
         ./image.nix
         ./io.nix
@@ -29,7 +25,7 @@ let
       ]
     )
     // {
-      inherit concatAttrs stable;
+      inherit concatAttrs;
     };
 in
 nixpkgs.lib.extend (self: super: { codgician = mkMyLib { lib = self; }; })

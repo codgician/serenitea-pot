@@ -148,14 +148,10 @@
     inputs@{ self, ... }:
     let
       # Extending lib
-      mkLib =
-        stable:
-        (import ./lib {
-          inherit inputs stable;
-          outputs = self;
-        });
-      lib = mkLib true;
-      libUnstable = mkLib false;
+      lib = import ./lib {
+        inherit inputs;
+        outputs = self;
+      };
     in
     {
       # System configurations
@@ -172,7 +168,7 @@
       modules = import ./modules { inherit lib; };
 
       # Export custom library
-      inherit lib libUnstable;
+      inherit lib;
 
       # Apps: `nix run .#appName`
       apps = (
