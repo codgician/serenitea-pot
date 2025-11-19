@@ -62,10 +62,10 @@
             ghidra
             prismlauncher-unwrapped
             macmon
-            ollama
             nexttrace
             codex
             claude-code
+            antigravity
           ]
           ++ (with pkgs.nur.repos.codgician; [
             mtk_uartboot

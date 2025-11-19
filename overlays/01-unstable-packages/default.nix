@@ -7,5 +7,6 @@ final: prev: {
     nexttrace
     codex
     claude-code
+    antigravity
     ;
 }
