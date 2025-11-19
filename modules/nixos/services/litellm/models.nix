@@ -47,8 +47,9 @@ rec {
         model_info.base_model = "gemini/${model_name}";
       })
       [
-        "gemini-3-pro-preview"
-        "gemini-2.5-pro"
+        # Use GitHub Copilot
+        # "gemini-3-pro-preview"
+        # "gemini-2.5-pro"
         "gemini-2.5-flash"
       ];
 
@@ -73,11 +74,14 @@ rec {
         "claude-sonnet-4"
         "claude-sonnet-4.5"
         "claude-opus-41"
+        "gemini-3-pro-preview"
+        "gemini-2.5-pro"
         "gpt-5"
         "gpt-5-codex"
         "gpt-5-mini"
         "gpt-5.1"
         "gpt-5.1-codex"
+        "gpt-5.1-codex-mini"
         "o3"
       ];
 }
