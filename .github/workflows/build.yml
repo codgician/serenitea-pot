@@ -29,7 +29,7 @@ jobs:
           opt: true
           varcache: true
       - name: Checkout new change
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - uses: DeterminateSystems/nix-installer-action@main
@@ -67,7 +67,7 @@ jobs:
           varcache: true
           debug: true
       - name: Checkout new change
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - uses: cachix/install-nix-action@v31
@@ -96,7 +96,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Checkout new change
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
       - uses: cachix/install-nix-action@v31
