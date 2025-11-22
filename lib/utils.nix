@@ -25,6 +25,7 @@ rec {
     import inputs.nixpkgs-unstable {
       inherit system;
       config.allowUnfree = true;
+      overlays = [ inputs.nur.overlays.default ];
     }
   );
 
