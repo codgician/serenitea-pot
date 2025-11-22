@@ -25,23 +25,29 @@ rec {
     import inputs.nixpkgs-unstable {
       inherit system;
       config.allowUnfree = true;
-      overlays = [ inputs.nur.overlays.default ];
+      overlays = getCommonOverlays system;
     }
   );
 
   # Get package overlays
-  getOverlays =
+  getCommonOverlays =
     system:
     [
-      (final: prev: {
-        unstable = unstablePkgsMap.${system};
-        inherit lib;
-      })
       inputs.nur.overlays.default
       inputs.nix-vscode-extensions.overlays.default
       inputs.mlnx-ofed-nixos.overlays.default
     ]
-    ++ (lib.optional (isLinuxSystem system) inputs.proxmox-nixos.overlays.${system})
+    ++ (lib.optional (isLinuxSystem system) inputs.proxmox-nixos.overlays.${system});
+
+  getOverlays =
+    system:
+    (getCommonOverlays system)
+    ++ [
+      (final: prev: {
+        unstable = unstablePkgsMap.${system};
+        inherit lib;
+      })
+    ]
     ++ (builtins.map (x: import x { inherit inputs lib system; }) (
       with lib.codgician; getFolderPaths overlaysDir
     ));
