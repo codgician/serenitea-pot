@@ -20,16 +20,12 @@ let
       'is an open, extensible, user-friendly interface for AI that adapts to your workflow.' \
       'is an Open WebUI based solution for learning and sharing knowledge.'
   '';
-
-  open-webui-py312 = prev.open-webui.override {
-    python3Packages = prev.unstable.python312Packages;
-  };
 in
 {
-  open-webui-akasha = open-webui-py312.overridePythonAttrs (
+  open-webui-akasha = prev.open-webui.overridePythonAttrs (
     oldAttrs:
     let
-      frontend = open-webui-py312.passthru.frontend.overrideAttrs (oldAttrs': {
+      frontend = prev.open-webui.passthru.frontend.overrideAttrs (oldAttrs': {
         # Apply patches to frontend
         patches = (if (oldAttrs' ? patches) then oldAttrs'.patches else [ ]) ++ patches;
         postPatch = oldAttrs'.postPatch + postPatch;

@@ -8,5 +8,6 @@ final: prev: {
     codex
     claude-code
     antigravity
+    zfs_unstable
     ;
 }
