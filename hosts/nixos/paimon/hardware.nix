@@ -53,10 +53,6 @@
       "iomem=relaxed"
     ];
 
-    extraModprobeConfig = ''
-      options kvm ignore_msrs=1
-      options kvm report_ignored_msrs=0
-    '';
     extraModulePackages = with config.boot.kernelPackages; [ mstflint_access ];
     supportedFilesystems = [
       "vfat"
