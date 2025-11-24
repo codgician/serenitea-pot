@@ -8,7 +8,6 @@
 let
   serviceName = "litellm";
   user = serviceName;
-  uid = config.users.users.${user}.uid;
   group = serviceName;
   cfg = config.codgician.services.litellm;
   types = lib.types;
@@ -94,6 +93,21 @@ in
   };
 
   config = lib.mkMerge [
+    # Common configuration
+    (lib.mkIf cfg.enable {
+      # Ensure litellm user is created
+      codgician.users.${serviceName}.enable = true;
+
+      # Persist default data directory
+      codgician.system.impermanence.extraItems = [
+        {
+          type = "directory";
+          path = "/var/lib/${serviceName}";
+          inherit user group;
+        }
+      ];
+    })
+
     # Nixpkgs backend
     (lib.mkIf (cfg.enable && cfg.backend == "nixpkgs") {
       services.litellm = {
@@ -125,8 +139,7 @@ in
         extraOptions = [
           "--pull=newer"
           "--net=host"
-          "--uidmap=0:${builtins.toString uid}:1"
-          "--gidmap=0:${builtins.toString uid}:1"
+          "--userns=auto"
         ];
         cmd = with cfg; [
           "--port=${builtins.toString port}"
@@ -137,21 +150,6 @@ in
         inherit environment;
         environmentFiles = [ config.age.secrets.litellm-env.path ];
       };
-    })
-
-    # User
-    (lib.mkIf (cfg.enable) {
-      # Ensure litellm user is created
-      codgician.users.${serviceName}.enable = true;
-
-      # Persist default data directory
-      codgician.system.impermanence.extraItems = [
-        {
-          type = "directory";
-          path = "/var/lib/${serviceName}";
-          inherit user group;
-        }
-      ];
     })
 
     # Configure PostgreSQL for LiteLLM Admin UI

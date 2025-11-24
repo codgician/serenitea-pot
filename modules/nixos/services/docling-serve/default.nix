@@ -10,9 +10,9 @@ let
   types = lib.types;
 
   environment = {
-    DOCLING_SERVE_ARTIFACTS_PATH = lib.mkIf (
-      cfg.artifactsDir != null && cfg.backend == "nixpkgs"
-    ) cfg.artifactsDir;
+    DOCLING_SERVE_ARTIFACTS_PATH = lib.mkIf (cfg.artifactsDir != null) (
+      if cfg.backend == "nixpkgs" then cfg.artifactsDir else "/opt/app-root/src/models"
+    );
     DOCLING_SERVE_ENABLE_UI = "true";
     DOCLING_SERVE_ENABLE_REMOTE_SERVICES = "true";
     DOCLING_SERVE_ALLOW_EXTERNAL_PLUGINS = "true";
@@ -35,6 +35,13 @@ in
       description = ''
         Backend to use for deploying ${serviceName}.
       '';
+    };
+
+    cuda = lib.mkOption {
+      type = types.bool;
+      default = config.hardware.nvidia-container-toolkit.enable;
+      defaultText = "config.hardware.nvidia-container-toolkit.enable";
+      description = "Enable CUDA support for ${serviceName}.";
     };
 
     package = lib.mkPackageOption pkgs "docling-serve" { };
@@ -123,27 +130,30 @@ in
         {
           autoStart = true;
           image =
-            if config.hardware.nvidia-container-toolkit.enable then
+            if cfg.cuda then
               "ghcr.io/docling-project/docling-serve-cu128:latest"
             else
               "ghcr.io/docling-project/docling-serve:latest";
           volumes =
-            lib.optionals config.hardware.nvidia-container-toolkit.enable [
+            lib.optionals cfg.cuda [
               "${ldSoConfFile}:/etc/ld.so.conf.d/00-system-libs.conf:ro"
             ]
-            ++ lib.optional (
-              cfg.artifactsDir != null
-            ) "${cfg.artifactsDir}:/opt/app-root/src/.cache/docling/models:rw";
+            ++ lib.optional (cfg.artifactsDir != null) "${cfg.artifactsDir}:/opt/app-root/src/models:rw";
           ports = [ "${builtins.toString cfg.port}:5001" ];
           inherit environment;
           extraOptions = [
             "--pull=newer"
             "--net=host"
+            "--userns=auto"
           ]
-          ++ lib.optionals config.hardware.nvidia-container-toolkit.enable [ "--device=nvidia.com/gpu=all" ];
+          ++ lib.optionals cfg.cuda [ "--device=nvidia.com/gpu=all" ];
+          cmd = [
+            "--port"
+            "${builtins.toString cfg.port}"
+            "--host"
+            "${cfg.host}"
+          ];
         };
-
-      virtualisation.podman.enable = true;
     })
 
     # Reverse proxy profile

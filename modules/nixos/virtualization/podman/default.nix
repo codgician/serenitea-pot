@@ -36,6 +36,14 @@ in
     # Global packages
     environment.systemPackages = with pkgs; [ podman-tui ];
 
+    # Create containers user for rootful podman with userns=auto
+    users.users.containers = {
+      group = "containers";
+      isSystemUser = true;
+      autoSubUidGidRange = true;
+    };
+    users.groups.containers = { };
+
     # Persist data
     codgician.system.impermanence.extraItems = [
       {

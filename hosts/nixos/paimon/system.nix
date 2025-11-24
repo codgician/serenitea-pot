@@ -63,6 +63,7 @@
       docling-serve = {
         enable = true;
         backend = "container";
+        artifactsDir = "/xpool/llm/docling-serve/artifacts";
       };
 
       fish-speech = {

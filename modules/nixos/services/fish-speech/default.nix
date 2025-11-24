@@ -17,7 +17,14 @@ in
     cuda = lib.mkOption {
       type = types.bool;
       default = config.hardware.nvidia-container-toolkit.enable;
+      defaultText = "config.hardware.nvidia-container-toolkit.enable";
       description = "Enable CUDA support for ${serviceName}.";
+    };
+
+    host = lib.mkOption {
+      type = types.str;
+      default = "127.0.0.1";
+      description = "Host for ${serviceName} to listen on.";
     };
 
     port = lib.mkOption {
@@ -58,6 +65,7 @@ in
         extraOptions = [
           "--pull=newer"
           "--net=host"
+          "--userns=auto"
         ]
         ++ lib.optionals cfg.cuda [ "--device=nvidia.com/gpu=all" ];
         cmd = [
@@ -65,11 +73,9 @@ in
           "tools/api_server.py"
           "--compile"
           "--listen"
-          "127.0.0.1:${builtins.toString cfg.port}"
+          "${cfg.host}:${builtins.toString cfg.port}"
         ];
       };
-
-      virtualisation.podman.enable = true;
     })
 
     # Reverse proxy profile
