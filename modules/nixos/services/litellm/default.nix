@@ -9,6 +9,7 @@ let
   serviceName = "litellm";
   user = serviceName;
   group = serviceName;
+  uid = config.users.users.${user}.uid;
   cfg = config.codgician.services.litellm;
   types = lib.types;
   allModels = (import ./models.nix { inherit pkgs lib outputs; }).all;
@@ -133,13 +134,14 @@ in
         image = "ghcr.io/berriai/litellm:litellm_stable_release_branch-stable";
         volumes = [
           "${(pkgs.formats.yaml { }).generate "config.yaml" { model_list = allModels; }}:/config.yaml:ro"
-          "${cfg.stateDir}:/config"
+          "${cfg.stateDir}:/config:U"
           "/run/postgresql:/run/postgresql"
         ];
         extraOptions = [
           "--pull=newer"
           "--net=host"
-          "--userns=auto"
+          "--uidmap=0:${builtins.toString uid}:1"
+          "--gidmap=0:${builtins.toString uid}:1"
         ];
         cmd = with cfg; [
           "--port=${builtins.toString port}"

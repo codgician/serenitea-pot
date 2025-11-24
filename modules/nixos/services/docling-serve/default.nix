@@ -138,16 +138,16 @@ in
             lib.optionals cfg.cuda [
               "${ldSoConfFile}:/etc/ld.so.conf.d/00-system-libs.conf:ro"
             ]
-            ++ lib.optional (cfg.artifactsDir != null) "${cfg.artifactsDir}:/opt/app-root/src/models:rw";
-          ports = [ "${builtins.toString cfg.port}:5001" ];
+            ++ lib.optional (cfg.artifactsDir != null) "${cfg.artifactsDir}:/opt/app-root/src/models:U";
           inherit environment;
           extraOptions = [
             "--pull=newer"
             "--net=host"
-            "--userns=auto"
           ]
           ++ lib.optionals cfg.cuda [ "--device=nvidia.com/gpu=all" ];
           cmd = [
+            "docling-serve"
+            "run"
             "--port"
             "${builtins.toString cfg.port}"
             "--host"

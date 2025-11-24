@@ -37,10 +37,22 @@ in
     environment.systemPackages = with pkgs; [ podman-tui ];
 
     # Create containers user for rootful podman with userns=auto
+    # https://docs.podman.io/en/v5.7.0/markdown/podman-run.1.html#userns-mode
     users.users.containers = {
       group = "containers";
       isSystemUser = true;
-      autoSubUidGidRange = true;
+      subUidRanges = [
+        {
+          count = 2147483647;
+          startUid = 2147483648;
+        }
+      ];
+      subGidRanges = [
+        {
+          count = 2147483647;
+          startGid = 2147483648;
+        }
+      ];
     };
     users.groups.containers = { };
 

@@ -65,7 +65,6 @@ in
         extraOptions = [
           "--pull=newer"
           "--net=host"
-          "--userns=auto"
         ]
         ++ lib.optionals cfg.cuda [ "--device=nvidia.com/gpu=all" ];
         cmd = [
