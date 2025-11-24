@@ -10,6 +10,9 @@ with pubKeys.hosts;
   "authelia-main-storage.age".publicKeys = someHosts [ paimon ];
   "authelia-main-jwks.age".publicKeys = someHosts [ paimon ];
 
+  # Docker
+  "docker-pat.age".publicKeys = allServers;
+
   # Sasl XOAuth2 config
   "sasl-xoauth2.age" = {
     publicKeys = allServers;
