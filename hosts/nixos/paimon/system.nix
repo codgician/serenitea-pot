@@ -19,11 +19,6 @@
         };
       };
 
-      fish-speech = {
-        enable = true;
-        dataDir = "/xpool/llm/fish-speech";
-      };
-
       mcpo = {
         enable = true;
         dataDir = "/xpool/appdata/mcpo";
@@ -68,6 +63,13 @@
       docling-serve = {
         enable = true;
         backend = "container";
+      };
+
+      fish-speech = {
+        enable = true;
+        backend = "container";
+        referencesDir = "/xpool/llm/fish-speech/references";
+        checkpointsDir = "/xpool/llm/fish-speech/checkpoints";
       };
 
       litellm = {

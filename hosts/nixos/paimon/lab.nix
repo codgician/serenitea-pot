@@ -34,6 +34,13 @@ in
         hostPath = "/zroot/lab";
         isReadOnly = false;
       };
+
+      # There could be information leakage, but acceptable
+      # because we only run trusted code inside container.
+      "/nix/var/log/nix" = {
+        hostPath = "/nix/var/log/nix";
+        isReadOnly = true;
+      };
     }
     // (lib.genAttrs gpuDevs (node: {
       hostPath = node;
