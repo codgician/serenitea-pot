@@ -3,6 +3,26 @@ let
   serviceName = "fish-speech";
   inherit (lib) types;
   cfg = config.codgician.services.${serviceName};
+
+  # Helper function to generate container definitions
+  mkFishContainer = { role, extraEnv ? {} }: {
+    autoStart = true;
+    image = "docker.io/fishaudio/fish-speech:${role}-${if cfg.cuda then "cuda" else "cpu"}";
+    
+    volumes = [
+      "${cfg.referencesDir}:/app/references:U"
+      "${cfg.checkpointsDir}:/app/checkpoints:U"
+    ];
+
+    environment = {
+      COMPILE = if cfg.cuda then "1" else "0";
+    } // extraEnv;
+
+    extraOptions = [
+      "--pull=newer"
+      "--net=host"
+    ] ++ lib.optionals cfg.cuda [ "--device=nvidia.com/gpu=all" ];
+  };
 in
 {
   options.codgician.services.${serviceName} = {
@@ -71,38 +91,34 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf (cfg.enable && cfg.backend == "container") {
-      virtualisation.oci-containers.containers.${serviceName} = {
-        autoStart = true;
-        image =
-          let
-            tag = "${if cfg.gradio.enable then "webui" else "server"}-${if cfg.cuda then "cuda" else "cpu"}";
-          in
-          "docker.io/fishaudio/fish-speech:${tag}";
-        volumes = [
-          "${cfg.referencesDir}:/app/references:U"
-          "${cfg.checkpointsDir}:/app/checkpoints:U"
-        ];
-        environment = {
-          API_SERVER_NAME = cfg.host;
-          API_SERVER_PORT = builtins.toString cfg.port;
-          COMPILE = if cfg.cuda then "1" else "0";
-          GRADIO_SERVER_NAME = cfg.host;
-          GRADIO_SERVER_PORT = builtins.toString cfg.gradio.port;
+      virtualisation.oci-containers.containers = {
+        # 1. Main API Server Container
+        ${serviceName} = mkFishContainer {
+          role = "server";
+          extraEnv = {
+            API_SERVER_NAME = cfg.host;
+            API_SERVER_PORT = builtins.toString cfg.port;
+          };
         };
-        extraOptions = [
-          "--pull=newer"
-          "--net=host"
-        ]
-        ++ lib.optionals cfg.cuda [ "--device=nvidia.com/gpu=all" ];
-      };
+      } 
+      # 2. Optional Gradio WebUI Container
+      // (lib.optionalAttrs cfg.gradio.enable {
+        "${serviceName}-webui" = mkFishContainer {
+          role = "webui";
+          extraEnv = {
+            GRADIO_SERVER_NAME = cfg.host;
+            GRADIO_SERVER_PORT = builtins.toString cfg.gradio.port;
+          };
+        };
+      });
     })
 
-    # Reverse proxy profile
+    # Reverse proxy profile for API
     (lib.codgician.mkServiceReverseProxyConfig {
       inherit serviceName cfg;
     })
 
-    # Reverse proxy profile
+    # Reverse proxy profile for Gradio
     (lib.codgician.mkServiceReverseProxyConfig {
       serviceName = "${serviceName}-gradio";
       cfg = cfg.gradio;
