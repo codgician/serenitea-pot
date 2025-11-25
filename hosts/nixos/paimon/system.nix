@@ -66,6 +66,7 @@
         artifactsDir = "/xpool/llm/docling-serve/artifacts";
         reverseProxy = {
           enable = true;
+          authelia.enable = true;
           domains = [ "vision.codgician.me" ];
         };
       };
