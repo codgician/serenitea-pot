@@ -69,6 +69,7 @@
       fish-speech = {
         enable = true;
         backend = "container";
+        gradio.enable = true;
         referencesDir = "/xpool/llm/fish-speech/references";
         checkpointsDir = "/xpool/llm/fish-speech/checkpoints";
       };

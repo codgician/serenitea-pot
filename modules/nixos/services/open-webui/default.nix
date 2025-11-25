@@ -101,12 +101,12 @@ let
     IMAGE_GENERATION_ENGINE = "gemini";
     ENABLE_IMAGE_GENERATION = "True";
     ENABLE_IMAGE_PROMPT_GENERATION = "True";
-    IMAGE_GENERATION_MODEL = "imagen-4.0-generate-preview-06-06";
+    IMAGE_GENERATION_MODEL = "gemini-3-pro-image-preview";
     IMAGE_SIZE = "1024x1024";
     IMAGES_GEMINI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
     # Image edit
     IMAGE_EDIT_ENGINE = "gemini";
-    IMAGE_EDIT_MODEL = "gemini-2.5-flash-image-preview";
+    IMAGE_EDIT_MODEL = "gemini-3-pro-image-preview";
     IMAGE_EDIT_SIZE = "1024x1024";
     # Redis
     ENABLE_WEBSOCKET_SUPPORT = "True";
@@ -123,8 +123,8 @@ let
     DOCLING_SERVER_URL =
       with config.codgician.services.docling-serve;
       "http://${host}:${builtins.toString port}";
-    DOCLING_OCR_ENGINE = "easyocr";
-    DOCLING_OCR_LANG = "en,ch_sim";
+    DOCLING_OCR_ENGINE = "rapidocr";
+    DOCLING_OCR_LANG = "english,chinese";
   });
 in
 {

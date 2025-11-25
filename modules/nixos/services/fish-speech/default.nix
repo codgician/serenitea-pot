@@ -33,6 +33,15 @@ in
       description = "Port for ${serviceName} to listen on.";
     };
 
+    gradio = {
+      enable = lib.mkEnableOption "Enable Gradio interface for ${serviceName}.";
+      port = lib.mkOption {
+        type = types.port;
+        default = 8126;
+        description = "Port for Gradio interface to listen on.";
+      };
+    };
+
     referencesDir = lib.mkOption {
       type = types.path;
       default = "/var/lib/${serviceName}/references";
@@ -57,23 +66,27 @@ in
     (lib.mkIf (cfg.enable && cfg.backend == "container") {
       virtualisation.oci-containers.containers.${serviceName} = {
         autoStart = true;
-        image = "docker.io/fishaudio/fish-speech:webui-${if cfg.cuda then "cuda" else "cpu"}";
+        image =
+          let
+            tag = "${if cfg.gradio.enable then "webui" else "server"}-${if cfg.cuda then "cuda" else "cpu"}";
+          in
+          "docker.io/fishaudio/fish-speech:${tag}";
         volumes = [
           "${cfg.referencesDir}:/app/references:U"
           "${cfg.checkpointsDir}:/app/checkpoints:U"
         ];
+        environment = {
+          API_SERVER_NAME = cfg.host;
+          API_SERVER_PORT = builtins.toString cfg.port;
+          COMPILE = if cfg.cuda then "1" else "0";
+          GRADIO_SERVER_NAME = cfg.host;
+          GRADIO_SERVER_PORT = builtins.toString cfg.gradio.port;
+        };
         extraOptions = [
           "--pull=newer"
           "--net=host"
         ]
         ++ lib.optionals cfg.cuda [ "--device=nvidia.com/gpu=all" ];
-        cmd = [
-          "python"
-          "tools/api_server.py"
-          "--compile"
-          "--listen"
-          "${cfg.host}:${builtins.toString cfg.port}"
-        ];
       };
     })
 
