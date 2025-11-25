@@ -17,6 +17,8 @@
   "pve.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "saw.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "vanarana.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
+  "vision.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
+  "voice.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "xianyun.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "codgician.me".challengeProfile = ./profiles/codgician-me.nix;
 }

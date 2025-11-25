@@ -64,12 +64,23 @@
         enable = true;
         backend = "container";
         artifactsDir = "/xpool/llm/docling-serve/artifacts";
+        reverseProxy = {
+          enable = true;
+          domains = [ "vision.codgician.me" ];
+        };
       };
 
       fish-speech = {
         enable = true;
         backend = "container";
-        gradio.enable = true;
+        gradio = {
+          enable = true;
+          reverseProxy = {
+            enable = true;
+            authelia.enable = true;
+            domains = [ "voice.codgician.me" ];
+          };
+        };
         referencesDir = "/xpool/llm/fish-speech/references";
         checkpointsDir = "/xpool/llm/fish-speech/checkpoints";
       };

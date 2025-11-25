@@ -40,6 +40,13 @@ in
         default = 8126;
         description = "Port for Gradio interface to listen on.";
       };
+
+      # Reverse proxy profile for nginx
+      reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
+        serviceName = "${serviceName}-gradio";
+        defaultProxyPass = "http://127.0.0.1:${toString cfg.gradio.port}";
+        defaultProxyPassText = ''with config.codgician.services.${serviceName}; http://127.0.0.1:$\{toString gradio.port}'';
+      };
     };
 
     referencesDir = lib.mkOption {
@@ -93,6 +100,12 @@ in
     # Reverse proxy profile
     (lib.codgician.mkServiceReverseProxyConfig {
       inherit serviceName cfg;
+    })
+
+    # Reverse proxy profile
+    (lib.codgician.mkServiceReverseProxyConfig {
+      serviceName = "${serviceName}-gradio";
+      cfg = cfg.gradio;
     })
   ];
 }
