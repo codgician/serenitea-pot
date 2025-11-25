@@ -19,6 +19,8 @@ let
     "pve"
     "saw"
     "vanarana"
+    "vision"
+    "voice"
   ];
 in
 {
