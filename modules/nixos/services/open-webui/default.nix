@@ -37,6 +37,7 @@ let
     ENABLE_SIGNUP = "False";
     ENABLE_LOGIN_FORM = "True";
     DEFAULT_USER_ROLE = "pending";
+    ENABLE_OAUTH_PERSISTENT_CONFIG = "False";
     ENABLE_OAUTH_SIGNUP = "False";
     OAUTH_MERGE_ACCOUNTS_BY_EMAIL = "True";
     OAUTH_CLIENT_ID = "akasha";

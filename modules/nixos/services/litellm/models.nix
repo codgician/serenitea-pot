@@ -71,9 +71,8 @@ rec {
       })
       [
         "claude-haiku-4.5"
-        "claude-sonnet-4"
         "claude-sonnet-4.5"
-        "claude-opus-41"
+        "claude-opus-4.5"
         "gemini-3-pro-preview"
         "gemini-2.5-pro"
         "gpt-5"

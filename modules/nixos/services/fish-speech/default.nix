@@ -59,8 +59,8 @@ in
         autoStart = true;
         image = "docker.io/fishaudio/fish-speech:webui-${if cfg.cuda then "cuda" else "cpu"}";
         volumes = [
-          "${cfg.referencesDir}:/app/references"
-          "${cfg.checkpointsDir}:/app/checkpoints"
+          "${cfg.referencesDir}:/app/references:U"
+          "${cfg.checkpointsDir}:/app/checkpoints:U"
         ];
         extraOptions = [
           "--pull=newer"
