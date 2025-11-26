@@ -55,8 +55,6 @@ lib.optionalAttrs (lib.version >= "24.05") {
       };
     };
 
-    i18n.inputMethod.fcitx5.plasma6Support = true;
-
     # Enable dconf
     programs.dconf.enable = true;
 
@@ -90,7 +88,7 @@ lib.optionalAttrs (lib.version >= "24.05") {
             pciutils
             usbutils
             clinfo
-            glxinfo
+            mesa-demos
             vulkan-tools
             aha
             kdePackages.breeze-gtk

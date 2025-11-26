@@ -7,7 +7,7 @@
 
 inputs.terranix.lib.terranixConfiguration {
   inherit pkgs;
-  inherit (pkgs) system;
+  inherit (pkgs.stdenv.hostPlatform) system;
   extraArgs = { inherit lib; };
   modules = lib.codgician.getFolderPaths ./.;
 }
