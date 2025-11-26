@@ -44,9 +44,9 @@ jobs:
         id: get_matrix
         run: |
           linux=$(nix eval .\#nixosConfigurations --raw \
-            --apply "x: builtins.toJSON (map (y: { name = y; system = x.\${y}.pkgs.system; }) (builtins.attrNames x))")
+            --apply "x: builtins.toJSON (map (y: { name = y; system = x.\${y}.pkgs.stdenv.hostPlatform.system; }) (builtins.attrNames x))")
           darwin=$(nix eval .\#darwinConfigurations --raw \
-            --apply "x: builtins.toJSON (map (y: { name = y; system = x.\${y}.pkgs.system; }) (builtins.attrNames x))")
+            --apply "x: builtins.toJSON (map (y: { name = y; system = x.\${y}.pkgs.stdenv.hostPlatform.system; }) (builtins.attrNames x))")
           echo "linux=$linux" >> $GITHUB_OUTPUT
           echo "darwin=$darwin" >> $GITHUB_OUTPUT
   build-linux:
