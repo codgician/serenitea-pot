@@ -46,7 +46,7 @@ in
 
     # Enable OpenGL
     environment.systemPackages = with pkgs; [
-      glxinfo
+      mesa-demos
       vulkan-tools
     ];
 

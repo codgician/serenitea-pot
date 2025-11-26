@@ -21,7 +21,7 @@ let
   isoImage =
     (lib.codgician.mkNixosSystem {
       hostName = "nixos";
-      inherit (pkgs) system;
+      inherit (pkgs.stdenv.hostPlatform) system;
       modules = [
         (
           { modulesPath, ... }:

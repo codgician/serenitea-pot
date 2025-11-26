@@ -92,10 +92,10 @@
   };
 
   # Watchdog
-  systemd.watchdog = {
-    device = "/dev/watchdog0";
-    runtimeTime = "30s";
-    rebootTime = "600s";
+  systemd.settings.Manager = {
+    WatchdogDevice = "/dev/watchdog0";
+    RuntimeWatchdogSec = "30";
+    RebootWatchdogSec = "600";
   };
 
   # Firmware updates
