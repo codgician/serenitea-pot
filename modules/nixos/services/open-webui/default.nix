@@ -16,11 +16,6 @@ let
     else
       "${cfg.host}:${builtins.toString cfg.port}";
 
-  litellmCfg = config.codgician.services.litellm;
-  litellmBases = lib.optionals litellmCfg.enable [
-    "http://${litellmCfg.host}:${builtins.toString litellmCfg.port}"
-  ];
-
   ollamaCfg = config.codgician.services.ollama;
   ollamaEmbeddingModel = "hf.co/jinaai/jina-embeddings-v4-text-retrieval-GGUF:Q4_K_M";
   pgDbName = "open-webui";
@@ -63,9 +58,8 @@ let
     ENABLE_OLLAMA_API = if config.services.ollama.enable then "True" else "False";
     OLLAMA_BASE_URL = lib.mkIf ollamaCfg.enable "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
     # OpenAI (LiteLLM)
-    ENABLE_OPENAI_API = if litellmCfg.enable then "True" else "False";
-    OPENAI_API_BASE_URLS = lib.strings.concatStringsSep ";" litellmBases;
-    # OPENAI_API_KEYS should be defined in UI
+    ENABLE_OPENAI_API = "True";
+    # OPENAI_API_BASE_URLS, OPENAI_API_KEYS defined in environment
     # TTS
     TTS_ENGINE = "transformers";
     WHISPER_MODEL = "large-v3-turbo";

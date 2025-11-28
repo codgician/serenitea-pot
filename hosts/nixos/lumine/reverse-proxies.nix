@@ -71,12 +71,6 @@
         proxyPass = "https://192.168.0.8";
       };
 
-      litellm.reverseProxy = {
-        enable = true;
-        domains = [ "dendro.codgician.me" ];
-        proxyPass = "https://192.168.0.22";
-      };
-
       open-webui.reverseProxy = {
         enable = true;
         domains = [ "akasha.codgician.me" ];

@@ -4,6 +4,16 @@
   # My settings
   codgician = {
     services = {
+      litellm = {
+        enable = true;
+        backend = "container";
+        adminUi.enable = true;
+        reverseProxy = {
+          enable = true;
+          domains = [ "dendro.codgician.me" ];
+        };
+      };
+
       postgresql.zfsOptimizations = true;
       nixos-vscode-server.enable = true;
       wireguard = {

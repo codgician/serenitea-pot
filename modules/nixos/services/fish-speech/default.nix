@@ -5,24 +5,31 @@ let
   cfg = config.codgician.services.${serviceName};
 
   # Helper function to generate container definitions
-  mkFishContainer = { role, extraEnv ? {} }: {
-    autoStart = true;
-    image = "docker.io/fishaudio/fish-speech:${role}-${if cfg.cuda then "cuda" else "cpu"}";
-    
-    volumes = [
-      "${cfg.referencesDir}:/app/references:U"
-      "${cfg.checkpointsDir}:/app/checkpoints:U"
-    ];
+  mkFishContainer =
+    {
+      role,
+      extraEnv ? { },
+    }:
+    {
+      autoStart = true;
+      image = "docker.io/fishaudio/fish-speech:${role}-${if cfg.cuda then "cuda" else "cpu"}";
 
-    environment = {
-      COMPILE = if cfg.cuda then "1" else "0";
-    } // extraEnv;
+      volumes = [
+        "${cfg.referencesDir}:/app/references:U"
+        "${cfg.checkpointsDir}:/app/checkpoints:U"
+      ];
 
-    extraOptions = [
-      "--pull=newer"
-      "--net=host"
-    ] ++ lib.optionals cfg.cuda [ "--device=nvidia.com/gpu=all" ];
-  };
+      environment = {
+        COMPILE = if cfg.cuda then "1" else "0";
+      }
+      // extraEnv;
+
+      extraOptions = [
+        "--pull=newer"
+        "--net=host"
+      ]
+      ++ lib.optionals cfg.cuda [ "--device=nvidia.com/gpu=all" ];
+    };
 in
 {
   options.codgician.services.${serviceName} = {
@@ -100,7 +107,7 @@ in
             API_SERVER_PORT = builtins.toString cfg.port;
           };
         };
-      } 
+      }
       # 2. Optional Gradio WebUI Container
       // (lib.optionalAttrs cfg.gradio.enable {
         "${serviceName}-webui" = mkFishContainer {

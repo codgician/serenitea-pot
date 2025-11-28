@@ -83,6 +83,7 @@ with pubKeys.hosts;
   # LiteLLM secrets
   "litellm-env.age".publicKeys = someHosts [
     furina
+    lumine
     paimon
     wanderer
   ];
