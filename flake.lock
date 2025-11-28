@@ -308,23 +308,6 @@
         "type": "github"
       }
     },
-    "mobile-nixos": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1747566271,
-        "narHash": "sha256-f0xcey5dAn5vaKGREj9a9eNxZ3SufEwFbBwA34Q2GNw=",
-        "owner": "codgician",
-        "repo": "mobile-nixos",
-        "rev": "87bb7686401ec1d79f52a204670c2bc1a2fe8a6c",
-        "type": "github"
-      },
-      "original": {
-        "owner": "codgician",
-        "ref": "fix-depmod",
-        "repo": "mobile-nixos",
-        "type": "github"
-      }
-    },
     "nix-vscode-extensions": {
       "inputs": {
         "nixpkgs": [
@@ -572,16 +555,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1763908231,
+        "lastModified": 1764188113,
         "narHash": "sha256-Oq4aCjczgnFQqFNWZ6Ablg6x9579CO8tyBktYDYiZEs=",
-        "owner": "codgician",
+        "owner": "SaumonNet",
         "repo": "proxmox-nixos",
-        "rev": "3e81a7bd25037532306b2366ec0e029c8b09937e",
+        "rev": "3be878a84866b9ef9214b8ea6f53630f47f4b192",
         "type": "github"
       },
       "original": {
-        "owner": "codgician",
-        "ref": "yew",
+        "owner": "SaumonNet",
         "repo": "proxmox-nixos",
         "type": "github"
       }
@@ -600,7 +582,6 @@
         "impermanence": "impermanence",
         "lanzaboote": "lanzaboote",
         "mlnx-ofed-nixos": "mlnx-ofed-nixos",
-        "mobile-nixos": "mobile-nixos",
         "nix-vscode-extensions": "nix-vscode-extensions",
         "nixos-generators": "nixos-generators",
         "nixos-wsl": "nixos-wsl",
