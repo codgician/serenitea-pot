@@ -102,6 +102,10 @@ in
 
           session = {
             name = "authelia_session_${name}";
+            same_site = "lax";
+            expiration = "1h";
+            inactivity = "5m";
+            remember_me = "1M";
             cookies = [
               {
                 domain = cfg.sessionDomain;
@@ -122,8 +126,43 @@ in
           };
 
           access_control = {
-            # todo: define rules
             default_policy = "two_factor";
+            rules =
+              let
+                # Function to generate rules for a single reverse proxy config
+                mkProxyRules =
+                  name: proxyCfg:
+                  if !proxyCfg.authelia.enable then
+                    [ ]
+                  else
+                    let
+                      domains = proxyCfg.domains;
+                      # Map accessRules to Authelia rule format
+                      customRules = map (rule: {
+                        domain = domains;
+                        policy = rule.policy;
+                        subject = (map (u: "user:${u}") rule.users) ++ (map (g: "group:${g}") rule.groups);
+                      }) proxyCfg.authelia.rules;
+
+                      # Default policy rule for this domain (catch-all for this domain)
+                      defaultRule = [
+                        {
+                          domain = domains;
+                          policy = proxyCfg.authelia.defaultPolicy;
+                        }
+                      ];
+                    in
+                    customRules ++ defaultRule;
+
+                # Collect all rules from all proxies
+                nginxRules = lib.concatLists (
+                  lib.mapAttrsToList mkProxyRules config.codgician.services.nginx.reverseProxies
+                );
+              in
+              nginxRules
+              ++ [
+                # Manual rules can be added here if needed
+              ];
           };
 
           notifier = {

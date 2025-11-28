@@ -110,7 +110,15 @@
 
           "saw.codgician.me" = {
             enable = true;
-            authelia.enable = true;
+            authelia = {
+              enable = true;
+              rules = [
+                {
+                  groups = [ "saw" ];
+                  policy = "two_factor";
+                }
+              ];
+            };
             https = true;
             domains = [ "saw.codgician.me" ];
             locations."/".passthru = {

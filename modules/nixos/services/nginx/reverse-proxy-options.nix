@@ -7,6 +7,12 @@
 let
   types = lib.types;
   serviceName' = if serviceName == null then "this service" else serviceName;
+  autheliaPolicies = [
+    "bypass"
+    "one_factor"
+    "two_factor"
+    "deny"
+  ];
 in
 {
   options = {
@@ -20,6 +26,38 @@ in
         default = "https://auth.codgician.me";
         example = "https://auth.example.com";
         description = "The URL of the Authelia.";
+      };
+
+      defaultPolicy = lib.mkOption {
+        type = types.enum autheliaPolicies;
+        default = "deny";
+        description = "Default authentication policy for this service.";
+      };
+
+      rules = lib.mkOption {
+        type = types.listOf (
+          types.submodule {
+            options = {
+              users = lib.mkOption {
+                type = types.listOf types.str;
+                default = [ ];
+                description = "List of users.";
+              };
+              groups = lib.mkOption {
+                type = types.listOf types.str;
+                default = [ ];
+                description = "List of groups.";
+              };
+              policy = lib.mkOption {
+                type = types.enum autheliaPolicies;
+                default = "two_factor";
+                description = "Policy to apply.";
+              };
+            };
+          }
+        );
+        default = [ ];
+        description = "Access control rules for this service.";
       };
     };
 
