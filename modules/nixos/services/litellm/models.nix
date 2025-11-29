@@ -17,6 +17,7 @@ rec {
     (builtins.filter (x: !(lib.hasPrefix "flux" x.name)))
     (builtins.map (x: {
       model_name = x.name;
+      model_info.mode = "chat";
       litellm_params = {
         model = "azure_ai/${x.name}";
         api_base = "https://${azureSubdomain}.services.ai.azure.com";
@@ -29,6 +30,7 @@ rec {
   # Deepseek models
   deepseek = lib.map (model_name: {
     inherit model_name;
+    model_info.mode = "chat";
     litellm_params = {
       model = "deepseek/${model_name}";
       api_key = "os.environ/DEEPSEEK_API_KEY";
@@ -74,18 +76,42 @@ rec {
         }
       )
       [
-        { model_name = "claude-haiku-4.5"; }
-        { model_name = "claude-sonnet-4.5"; }
-        { model_name = "claude-opus-4.5"; }
-        { model_name = "gemini-3-pro-preview"; }
-        { model_name = "gemini-2.5-pro"; }
-        { model_name = "gpt-5"; }
+        {
+          model_name = "claude-haiku-4.5";
+          model_info.mode = "chat";
+        }
+        {
+          model_name = "claude-sonnet-4.5";
+          model_info.mode = "chat";
+        }
+        {
+          model_name = "claude-opus-4.5";
+          model_info.mode = "chat";
+        }
+        {
+          model_name = "gemini-3-pro-preview";
+          model_info.mode = "chat";
+        }
+        {
+          model_name = "gemini-2.5-pro";
+          model_info.mode = "chat";
+        }
+        {
+          model_name = "gpt-5";
+          model_info.mode = "chat";
+        }
         {
           model_name = "gpt-5-codex";
           model_info.mode = "responses";
         }
-        { model_name = "gpt-5-mini"; }
-        { model_name = "gpt-5.1"; }
+        {
+          model_name = "gpt-5-mini";
+          model_info.mode = "chat";
+        }
+        {
+          model_name = "gpt-5.1";
+          model_info.mode = "chat";
+        }
         {
           model_name = "gpt-5.1-codex";
           model_info.mode = "responses";
@@ -94,6 +120,21 @@ rec {
           model_name = "gpt-5.1-codex-mini";
           model_info.mode = "responses";
         }
-        { model_name = "o3"; }
+        {
+          model_name = "o3";
+          model_info.mode = "chat";
+        }
+        {
+          model_name = "text-embedding-ada-002";
+          model_info.mode = "embedding";
+        }
+        {
+          model_name = "text-embedding-3-small";
+          model_info.mode = "embedding";
+        }
+        {
+          model_name = "text-embedding-3-small-inference";
+          model_info.mode = "embedding";
+        }
       ];
 }
