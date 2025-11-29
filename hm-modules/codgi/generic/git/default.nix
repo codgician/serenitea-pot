@@ -14,27 +14,28 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    programs.git = rec {
+    programs.delta.enable = true;
+    programs.git = {
       enable = true;
-      delta.enable = true;
       lfs.enable = true;
       package = pkgs.gitFull;
 
-      userName = "codgician";
-      userEmail = "15964984+codgician@users.noreply.github.com";
-
-      extraConfig = rec {
+      settings = rec {
+        credential.helper = lib.mkIf (pkgs.stdenvNoCC.isDarwin) "osxkeychain";
         commit.gpgsign = true;
         tag.gpgsign = true;
         gpg = {
           format = "ssh";
           ssh.allowedSignersFile =
             (pkgs.writeText "allowed_signers" ''
-              ${userEmail} ${user.signingkey}
+              ${user.name} ${user.signingkey}
             '').outPath;
         };
-        user.signingkey = builtins.elemAt pubKeys.users.codgi 0;
-        credential.helper = lib.mkIf (pkgs.stdenvNoCC.isDarwin) "osxkeychain";
+        user = {
+          name = "codgician";
+          email = "15964984+codgician@users.noreply.github.com";
+          signingkey = builtins.elemAt pubKeys.users.codgi 0;
+        };
       };
     };
 

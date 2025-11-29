@@ -4,7 +4,9 @@
   outputs,
 }:
 let
-  terraformConf = builtins.fromJSON outputs.packages.${pkgs.system}.terraform-config.value;
+  terraformConf =
+    builtins.fromJSON
+      outputs.packages.${pkgs.stdenv.hostPlatform.system}.terraform-config.value;
   azureSubdomain = terraformConf.resource.azurerm_ai_services.akasha.custom_subdomain_name;
 in
 rec {

@@ -109,7 +109,7 @@ in
           
           cd "$dir"
           [ ! -e config.tf.json ] || rm -f config.tf.json
-          cp ${outputs.packages.${pkgs.system}.terraform-config} config.tf.json
+          cp ${outputs.packages.${pkgs.stdenv.hostPlatform.system}.terraform-config} config.tf.json
           terraform init
         }
 
