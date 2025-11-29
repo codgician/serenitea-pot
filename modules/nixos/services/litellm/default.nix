@@ -143,7 +143,7 @@ in
     (lib.mkIf (cfg.enable && cfg.backend == "container") {
       virtualisation.oci-containers.containers.${serviceName} = {
         autoStart = true;
-        image = "ghcr.io/berriai/litellm:litellm_stable_release_branch-stable";
+        image = "ghcr.io/berriai/litellm:${cfg.imageTag}";
         volumes = [
           "${(pkgs.formats.yaml { }).generate "config.yaml" { model_list = allModels; }}:/config.yaml:ro"
           "${cfg.stateDir}:/config:U"
