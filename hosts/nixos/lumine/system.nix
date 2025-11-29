@@ -7,6 +7,7 @@
       litellm = {
         enable = true;
         backend = "container";
+        imageTag = "main-dev";
         adminUi.enable = true;
         reverseProxy = {
           enable = true;

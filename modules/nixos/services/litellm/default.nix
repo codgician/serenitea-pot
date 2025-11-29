@@ -28,7 +28,7 @@ let
 in
 {
   options.codgician.services.litellm = {
-    enable = lib.mkEnableOption "LiteLLM Proxy.";
+    enable = lib.mkEnableOption serviceName;
 
     backend = lib.mkOption {
       type = lib.types.enum [
@@ -37,7 +37,19 @@ in
       ];
       default = "nixpkgs";
       description = ''
-        Backend to use for deploying LiteLLM.
+        Backend to use for deploying ${serviceName}.
+      '';
+    };
+
+    imageTag = lib.mkOption {
+      type = lib.types.enum [
+        "main-latest"
+        "main-dev"
+        "main-stable"
+      ];
+      default = "main-stable";
+      description = ''
+        Container image tag for ${serviceName}.
       '';
     };
 
@@ -45,7 +57,7 @@ in
       type = types.str;
       default = "127.0.0.1";
       description = ''
-        Host for LiteLLM to listen on.
+        Host for ${serviceName} to listen on.
       '';
     };
 
@@ -53,7 +65,7 @@ in
       type = types.port;
       default = 5483;
       description = ''
-        Port for LiteLLM to listen on.
+        Port for ${serviceName} to listen on.
       '';
     };
 
@@ -63,25 +75,25 @@ in
       type = types.path;
       default = "/var/lib/${serviceName}";
       description = ''
-        Directory for LiteLLM to store state data.
+        Directory for ${serviceName} to store state data.
       '';
     };
 
     # Note: this is not working in nix variant
     # See: https://github.com/NixOS/nixpkgs/issues/432925
     adminUi = {
-      enable = lib.mkEnableOption "LiteLLM Admin UI";
+      enable = lib.mkEnableOption "${serviceName} Admin UI";
 
       dbName = lib.mkOption {
         type = types.str;
         default = "litellm";
-        description = "Database name for LiteLLM Admin UI.";
+        description = "Database name for ${serviceName} Admin UI.";
       };
 
       dbHost = lib.mkOption {
         type = types.str;
         default = "/run/postgresql";
-        description = "Database host for LiteLLM Admin UI.";
+        description = "Database host for ${serviceName} Admin UI.";
       };
     };
 
