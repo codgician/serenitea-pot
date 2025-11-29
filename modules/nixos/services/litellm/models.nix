@@ -56,31 +56,44 @@ rec {
   # GitHub Copilot models
   github =
     lib.map
-      (model_name: {
-        inherit model_name;
-        litellm_params = {
-          model = "github_copilot/${model_name}";
-          extra_headers = {
-            editor-version = "vscode/${pkgs.vscode.version}";
-            editor-plugin-version = "copilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
-            Copilot-Integration-Id = "vscode-chat";
-            Copilot-Vision-Request = "true";
-            user-agent = "GithubCopilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
+      (
+        {
+          model_name,
+          model_info ? { },
+        }:
+        {
+          inherit model_name model_info;
+          litellm_params = {
+            model = "github_copilot/${model_name}";
+            extra_headers = {
+              editor-version = "vscode/${pkgs.vscode.version}";
+              editor-plugin-version = "copilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
+              user-agent = "GithubCopilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
+            };
           };
-        };
-      })
+        }
+      )
       [
-        "claude-haiku-4.5"
-        "claude-sonnet-4.5"
-        "claude-opus-4.5"
-        "gemini-3-pro-preview"
-        "gemini-2.5-pro"
-        "gpt-5"
-        "gpt-5-codex"
-        "gpt-5-mini"
-        "gpt-5.1"
-        "gpt-5.1-codex"
-        "gpt-5.1-codex-mini"
-        "o3"
+        { model_name = "claude-haiku-4.5"; }
+        { model_name = "claude-sonnet-4.5"; }
+        { model_name = "claude-opus-4.5"; }
+        { model_name = "gemini-3-pro-preview"; }
+        { model_name = "gemini-2.5-pro"; }
+        { model_name = "gpt-5"; }
+        {
+          model_name = "gpt-5-codex";
+          model_info.mode = "responses";
+        }
+        { model_name = "gpt-5-mini"; }
+        { model_name = "gpt-5.1"; }
+        {
+          model_name = "gpt-5.1-codex";
+          model_info.mode = "responses";
+        }
+        {
+          model_name = "gpt-5.1-codex-mini";
+          model_info.mode = "responses";
+        }
+        { model_name = "o3"; }
       ];
 }
