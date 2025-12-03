@@ -4,7 +4,7 @@
   options ?
     (lib.codgician.mkDarwinSystem {
       hostName = "darwin";
-      inherit (pkgs) system;
+      inherit (pkgs.stdenv.hostPlatform) system;
     }).options,
   docs-nixos,
   ...

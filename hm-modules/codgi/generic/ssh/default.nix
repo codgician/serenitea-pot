@@ -13,7 +13,7 @@ in
   config = lib.mkIf cfg.enable {
     programs.ssh = {
       enable = true;
-      addKeysToAgent = "yes";
+      enableDefaultConfig = false;
       extraConfig = ''
         IdentityFile ~/.ssh/id_ed25519
       ''
@@ -22,6 +22,9 @@ in
         UseKeychain yes
       '';
       matchBlocks = {
+        "*" = {
+          addKeysToAgent = "yes";
+        };
         "fischl" = {
           hostname = "fischl.lan";
           user = "codgi";

@@ -6,4 +6,6 @@ let
     (lib.mapAttrs (k: v: callPackage ./${k} args))
   ];
 in
-lib.filterAttrs (k: v: !(v.meta ? platforms) || (builtins.elem pkgs.system v.meta.platforms)) mypkgs
+lib.filterAttrs (
+  k: v: !(v.meta ? platforms) || (builtins.elem pkgs.stdenv.hostPlatform.system v.meta.platforms)
+) mypkgs

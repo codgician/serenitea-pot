@@ -4,7 +4,7 @@
   options ?
     (lib.codgician.mkNixosSystem {
       hostName = "nixos";
-      inherit (pkgs) system;
+      inherit (pkgs.stdenv.hostPlatform) system;
     }).options,
   ...
 }:

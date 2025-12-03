@@ -8,12 +8,15 @@ pkgs.mkShell {
     cf-terraforming
     jq
     hcl2json
-    (terraform.withPlugins (p: [
-      p.azurerm
-      p.cloudflare
-      p.proxmox
-      p.utils
-    ]))
+    (terraform.withPlugins (
+      p: with p; [
+        hashicorp_azurerm
+        hashicorp_google
+        cloudflare_cloudflare
+        telmate_proxmox
+        cloudposse_utils
+      ]
+    ))
   ];
   shellHook = ''
     echo "Welcome back to serenitea pot!"

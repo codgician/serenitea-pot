@@ -34,7 +34,7 @@
     };
 
     kernelModules = [ "kvm-amd" ];
-    kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages;
 
     kernelParams = [
       "video=VGA-1:1600x900@60"

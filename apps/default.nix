@@ -12,5 +12,7 @@ lib.codgician.forAllSystems (
       builtins.listToAttrs
     ];
   in
-  lib.filterAttrs (k: v: !(v.meta ? platforms) || (builtins.elem pkgs.system v.meta.platforms)) attrs
+  lib.filterAttrs (
+    k: v: !(v.meta ? platforms) || (builtins.elem pkgs.stdenv.hostPlatform.system v.meta.platforms)
+  ) attrs
 )
