@@ -1,17 +1,25 @@
 { pkgs, ... }:
+let
+  pciBase = "0000:43:00";
+  devName = "enp67s0";
+  getPfBase = x: "${devName}f${builtins.toString x}";
+  getPfName = x: "${getPfBase x}np${builtins.toString x}";
+  getVfName = x: y: "${getPfBase x}v${builtins.toString y}";
+  getVfRepName = x: y: "${getPfBase x}r${builtins.toString y}";
+in
 {
-
   # Set up SRIOV VF before running openvswitch
   systemd.services.mlx5-sriov = {
     enable = true;
     description = "Set up VFs for Mellanox ConnectX-5 NIC.";
     wantedBy = [ "network-pre.target" ];
+    before = [ "network-pre.target" ];
     after = [ "systemd-udev-settle.service" ];
     path = with pkgs; [ iproute2 ];
     # Doc: https://docs.nvidia.com/networking/display/mlnxofedv24100700/ovs+offload+using+asap²+direct
     script = ''
-      DEV_NAME=enp67s0f0np0
-      DEV_PCIBASE=0000:43:00
+      DEV_NAME=${getPfName 0}
+      DEV_PCIBASE=${pciBase}
 
       # Set number of VFs
       echo "Creating 6 VFs for $DEV_NAME ..."
@@ -57,13 +65,11 @@
 
   # Set route metric
   systemd.network = {
-    config.routeTables = {
-      failover = 2048;
-    };
+    config.routeTables.failover = 2048;
     networks = {
       # High speed NIC (first VF for host)
-      "10-enp67s0f0v0" = {
-        name = "enp67s0f0v0";
+      "10-${getVfName 0 0}" = {
+        name = getVfName 0 0;
         networkConfig = {
           DHCP = "yes";
           IPv6PrivacyExtensions = "kernel";
@@ -78,8 +84,8 @@
       };
 
       # Leave second VF unconfigured for container
-      "11-enp67s0f0v1" = {
-        name = "enp67s0f0v1";
+      "11-${getVfName 0 1}" = {
+        name = getVfName 0 1;
         linkConfig.Unmanaged = "yes";
       };
 
@@ -131,15 +137,16 @@
     ];
     switches.vs0 = {
       interfaces = {
-        enp67s0f0np0 = { };
-        enp67s0f1np1 = { };
+        # PFs
+        ${getPfName 0} = { };
+        ${getPfName 1} = { };
         # VFs
-        enp67s0f0r0 = { };
-        enp67s0f0r1 = { };
-        enp67s0f0r2 = { };
-        enp67s0f0r3 = { };
-        enp67s0f0r4 = { };
-        enp67s0f0r5 = { };
+        ${getVfRepName 0 0} = { };
+        ${getVfRepName 0 1} = { };
+        ${getVfRepName 0 2} = { };
+        ${getVfRepName 0 3} = { };
+        ${getVfRepName 0 4} = { };
+        ${getVfRepName 0 5} = { };
       };
     };
   };
