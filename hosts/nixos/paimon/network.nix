@@ -16,18 +16,33 @@ in
   systemd.services.mlx5-sriov = {
     description = "Set up VFs for Mellanox ConnectX-5 NIC.";
     before = [ "network-pre.target" ];
+    wantedBy = [
+      "network-pre.target"
+      "network.target"
+    ];
     after = [ "systemd-udevd.service" ];
     path = with pkgs; [
       iproute2
       coreutils
     ];
-    unitConfig.DefaultDependencies = false;
+    unitConfig = {
+      DefaultDependencies = false;
+      ConditionPathExists = "/sys/bus/pci/devices/${pciBase}.0";
+    };
     serviceConfig.Type = "oneshot";
 
     # Doc: https://docs.nvidia.com/networking/display/mlnxofedv24100700/ovs+offload+using+asap²+direct
     script = ''
       DEV_NAME=${getPfName 0}
       DEV_PCIBASE=${pciBase}
+
+      # Wait for device to appear
+      for i in {1..100}; do
+        if [ -e "/sys/class/net/$DEV_NAME" ]; then
+          break
+        fi
+        sleep 0.1
+      done
 
       # Set number of VFs
       echo "Creating 6 VFs for $DEV_NAME ..."

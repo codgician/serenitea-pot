@@ -33,7 +33,10 @@
       ];
     };
 
-    kernelModules = [ "kvm-amd" ];
+    kernelModules = [
+      "kvm-amd"
+      "dm-thin-pool"
+    ];
     kernelPackages = pkgs.linuxPackages_6_17;
 
     kernelParams = [
