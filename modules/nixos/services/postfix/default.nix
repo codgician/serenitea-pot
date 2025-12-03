@@ -87,7 +87,7 @@ in
           smtp_sasl_mechanism_filter = "xoauth2";
         };
 
-        master = {
+        master = lib.mkIf cfg.verbose {
           relay.args = [ "-v" ];
           smtp.args = [ "-v" ];
         };
