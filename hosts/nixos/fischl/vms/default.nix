@@ -2,6 +2,7 @@
 {
   # libvirtd
   virtualisation.libvirtd = {
+    enable = true;
     qemu.swtpm.enable = true;
     onBoot = "start";
     onShutdown = "shutdown";
