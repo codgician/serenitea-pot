@@ -203,6 +203,12 @@
   # Enable use of nvidia card in containers
   hardware.nvidia-container-toolkit.enable = true;
 
+  # todo: https://github.com/NixOS/nixpkgs/issues/463645
+  systemd.services.nvidia-container-toolkit-cdi-generator = {
+    unitConfig.DefaultDependencies = false;
+    after = lib.mkForce [ ];
+  };
+
   # Connected to UPS
   codgician.power.ups.devices.br1500g = {
     sku = "br1500g";

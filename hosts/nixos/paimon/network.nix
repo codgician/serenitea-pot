@@ -9,13 +9,21 @@ let
 in
 {
   # Set up SRIOV VF before running openvswitch
+  services.udev.extraRules = ''
+    ACTION=="add|move", SUBSYSTEM=="net", NAME=="${getPfName 0}", TAG+="systemd", ENV{SYSTEMD_WANTS}+="mlx5-sriov.service"
+  '';
+
   systemd.services.mlx5-sriov = {
-    enable = true;
     description = "Set up VFs for Mellanox ConnectX-5 NIC.";
-    wantedBy = [ "network-pre.target" ];
     before = [ "network-pre.target" ];
-    after = [ "systemd-udev-settle.service" ];
-    path = with pkgs; [ iproute2 ];
+    after = [ "systemd-udevd.service" ];
+    path = with pkgs; [
+      iproute2
+      coreutils
+    ];
+    unitConfig.DefaultDependencies = false;
+    serviceConfig.Type = "oneshot";
+
     # Doc: https://docs.nvidia.com/networking/display/mlnxofedv24100700/ovs+offload+using+asap²+direct
     script = ''
       DEV_NAME=${getPfName 0}
@@ -60,7 +68,6 @@ in
       echo "Binding second VF to host ..."
       echo ''${DEV_PCIBASE}.3 > /sys/bus/pci/drivers/mlx5_core/bind
     '';
-    serviceConfig.Type = "oneshot";
   };
 
   # Set route metric

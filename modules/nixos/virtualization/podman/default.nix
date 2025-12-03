@@ -6,7 +6,6 @@
 }:
 let
   cfg = config.codgician.virtualization.podman;
-  systemCfg = config.codgician.system;
 in
 {
   options.codgician.virtualization.podman.enable = lib.mkEnableOption "podman";
@@ -31,6 +30,7 @@ in
     hardware.nvidia-container-toolkit = {
       mount-nvidia-executables = true;
       mount-nvidia-docker-1-directories = true;
+      device-name-strategy = "index";
     };
 
     # Global packages
