@@ -52,7 +52,6 @@
             android-tools
             scrcpy
             pandoc
-            acpica-tools
             terraform
             smartmontools
             ffmpeg-full
@@ -62,7 +61,6 @@
             ghidra
             prismlauncher-unwrapped
             macmon
-            nexttrace
             codex
             claude-code
             antigravity
