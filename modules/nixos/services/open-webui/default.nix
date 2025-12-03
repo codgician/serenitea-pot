@@ -287,7 +287,12 @@ in
         extensions =
           ps: with ps; [
             pgvector
-            pgvectorscale
+            # todo: extraxt this hack to a generic overlay
+            (pgvectorscale.overrideAttrs (oldAttrs: {
+              env = (oldAttrs.env or { }) // {
+                RUSTFLAGS = (oldAttrs.env.RUSTFLAGS or "") + " -C target-feature=+avx2,+fma";
+              };
+            }))
           ];
         ensureDatabases = [ pgDbName ];
         ensureUsers = [
