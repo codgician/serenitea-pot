@@ -35,7 +35,6 @@
 
     kernelModules = [
       "kvm-amd"
-      "dm-thin-pool"
     ];
     kernelPackages = pkgs.linuxPackages_6_17;
 
