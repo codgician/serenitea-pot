@@ -8,7 +8,10 @@
         enable = true;
         backend = "container";
         imageTag = "main-dev";
-        adminUi.enable = true;
+        adminUi = {
+          enable = true;
+          authelia.enable = true;
+        };
         reverseProxy = {
           enable = true;
           domains = [ "dendro.codgician.me" ];

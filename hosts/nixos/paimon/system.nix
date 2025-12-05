@@ -102,16 +102,6 @@
         checkpointsDir = "/xpool/llm/fish-speech/checkpoints";
       };
 
-      litellm = {
-        enable = true;
-        backend = "container";
-        adminUi.enable = true;
-        reverseProxy = {
-          enable = true;
-          domains = [ "dendro.codgician.me" ];
-        };
-      };
-
       ollama = {
         enable = true;
         acceleration = "cuda";

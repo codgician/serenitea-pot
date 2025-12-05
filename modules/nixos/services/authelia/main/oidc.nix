@@ -165,5 +165,28 @@
       userinfo_signed_response_alg = "none";
       token_endpoint_auth_method = "client_secret_basic";
     }
+    {
+      client_id = "dendro";
+      client_name = "Dendro";
+      client_secret = "$pbkdf2-sha512$310000$grf.Pq3TUOod5EakUQSmTg$iipcfWR1/gOlLs0R9kO4agqDduU7iPf2LSPeSf1FZ8863rym4Yml624phldgbXKWqPOuJ8/v9qtR/Q2F/3fdcA";
+      public = false;
+      authorization_policy = "two_factor";
+      require_pkce = false;
+      pkce_challenge_method = "";
+      redirect_uris = [
+        "https://dendro.codgician.me/sso/callback"
+      ];
+      scopes = [
+        "openid"
+        "profile"
+        "email"
+        "groups"
+      ];
+      response_types = [ "code" ];
+      grant_types = [ "authorization_code" ];
+      access_token_signed_response_alg = "none";
+      userinfo_signed_response_alg = "none";
+      token_endpoint_auth_method = "client_secret_basic";
+    }
   ];
 }

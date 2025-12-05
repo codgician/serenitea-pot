@@ -17,6 +17,7 @@ let
   # LiteLLM settings
   settings = {
     general_settings = {
+      # enable_jwt_auth = true;
       store_model_in_db = true;
       store_prompts_in_spend_logs = true;
     };
@@ -30,10 +31,23 @@ let
       if cfg.backend == "nixpkgs" then "${cfg.stateDir}/github" else "/config/github";
   }
   // (lib.optionalAttrs (cfg.adminUi.enable) {
-    "PGHOST" = cfg.adminUi.dbHost; # Hack for prisma to connect postgres with unix socket
-    "DATABASE_URL" = "postgres://${user}@localhost/${cfg.adminUi.dbName}?host=${cfg.adminUi.dbHost}";
+    PGHOST = cfg.adminUi.dbHost; # Hack for prisma to connect postgres with unix socket
+    DATABASE_URL = "postgres://${user}@localhost/${cfg.adminUi.dbName}?host=${cfg.adminUi.dbHost}";
+  })
+  // (lib.optionalAttrs (cfg.adminUi.authelia.enable) {
+    PROXY_BASE_URL = "https://${builtins.head cfg.reverseProxy.domains}";
+    GENERIC_CLIENT_ID = "dendro";
+    # GENERIC_CLIENT_SECRET in environment file
+    GENERIC_AUTHORIZATION_ENDPOINT = "https://auth.codgician.me/api/oidc/authorization";
+    GENERIC_TOKEN_ENDPOINT = "https://auth.codgician.me/api/oidc/token";
+    GENERIC_USERINFO_ENDPOINT = "https://auth.codgician.me/api/oidc/userinfo";
+    GENERIC_INCLUDE_CLIENT_ID = "true";
+    # GENERIC_CLIENT_USE_PKCE = "true"; problematic with authelia
+    GENERIC_SCOPE = "openid email profile groups";
+    GENERIC_USER_ROLE_ATTRIBUTE = "groups";
+    # JWT_PUBLIC_KEY_URL = "https://auth.codgician.me/jwks.json";
+    # JWT_AUDIENCE = "dendro";
   });
-
 in
 {
   options.codgician.services.litellm = {
@@ -92,6 +106,8 @@ in
     # See: https://github.com/NixOS/nixpkgs/issues/432925
     adminUi = {
       enable = lib.mkEnableOption "${serviceName} Admin UI";
+
+      authelia.enable = lib.mkEnableOption "Authelia";
 
       dbName = lib.mkOption {
         type = types.str;
