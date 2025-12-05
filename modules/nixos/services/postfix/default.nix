@@ -59,7 +59,7 @@ in
 
       settings = {
         main = rec {
-          relayhost = [ "smtp.office365.com:587" ];
+          relayhost = [ "[smtp.office365.com]:587" ];
           mynetworks = [
             "127.0.0.0/8"
             "[::ffff:127.0.0.0]/104"
