@@ -14,6 +14,15 @@ let
   types = lib.types;
   allModels = (import ./models.nix { inherit pkgs lib outputs; }).all;
 
+  # LiteLLM settings
+  settings = {
+    general_settings = {
+      store_model_in_db = true;
+      store_prompts_in_spend_logs = true;
+    };
+    model_list = allModels;
+  };
+
   # Environment variables
   environment = {
     "DO_NOT_TRACK" = "True";
@@ -127,8 +136,7 @@ in
         enable = true;
         inherit (cfg) host port stateDir;
         environmentFile = config.age.secrets.litellm-env.path;
-        inherit environment;
-        settings.model_list = allModels;
+        inherit environment settings;
       };
 
       systemd.services.litellm.serviceConfig = {
@@ -145,7 +153,7 @@ in
         autoStart = true;
         image = "ghcr.io/berriai/litellm:${cfg.imageTag}";
         volumes = [
-          "${(pkgs.formats.yaml { }).generate "config.yaml" { model_list = allModels; }}:/config.yaml:ro"
+          "${(pkgs.formats.yaml { }).generate "config.yaml" settings}:/config.yaml:ro"
           "${cfg.stateDir}:/config:U"
           "/run/postgresql:/run/postgresql"
         ];
