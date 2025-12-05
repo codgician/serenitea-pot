@@ -115,6 +115,10 @@ rec {
           model_info.mode = "chat";
         }
         {
+          model_name = "gpt-5.1-codex-max";
+          model_info.mode = "responses";
+        }
+        {
           model_name = "gpt-5.1-codex";
           model_info.mode = "responses";
         }
