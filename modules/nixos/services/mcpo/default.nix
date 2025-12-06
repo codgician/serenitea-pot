@@ -8,7 +8,7 @@
 let
   serviceName = "mcpo";
   inherit (lib) types;
-  cfg = config.codgician.containers.mcpo;
+  cfg = config.codgician.services.mcpo;
   mcpoConfig.mcpServers = {
     amap-maps = {
       command = "npx";
@@ -21,23 +21,19 @@ let
     code-runner = {
       type = "streamable_http";
       url = "https://cpprunner.aiursoft.cn/mcp";
-      headers = {
-        "Content-Type" = "application/json";
-      };
+      headers."Content-Type" = "application/json";
     };
     context7 = {
-      command = "npx";
-      args = [
-        "-y"
-        "@upstash/context7-mcp"
-      ];
-      env.DEFAULT_MINIMUM_TOKENS = "10000";
+      type = "streamable_http";
+      url = "https://mcp.context7.com/mcp";
+      headers.CONTEXT7_API_KEY._secret = config.age.secrets.context7-api-key.path;
     };
     fetch = {
       command = "uvx";
       args = [
         "mcp-server-fetch"
         "--ignore-robots-txt"
+        "--user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\""
       ];
     };
     google-maps = {
@@ -47,6 +43,11 @@ let
         "@modelcontextprotocol/server-google-maps"
       ];
       env.GOOGLE_MAPS_API_KEY._secret = config.age.secrets.mcp-google-maps-api-key.path;
+    };
+    github = {
+      type = "streamable_http";
+      url = "https://api.githubcopilot.com/mcp/";
+      headers.Authorization._secret = config.age.secrets.github-auth-header.path;
     };
     paper-search = {
       command = "uv";
@@ -77,7 +78,7 @@ let
   };
 in
 {
-  options.codgician.containers.mcpo = {
+  options.codgician.services.mcpo = {
     enable = lib.mkEnableOption "mcpo container";
 
     port = lib.mkOption {
@@ -96,7 +97,7 @@ in
     reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
       inherit serviceName;
       defaultProxyPass = "http://127.0.0.1:${toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.containers.mcpo; http://127.0.0.1:$\{toString port}'';
+      defaultProxyPassText = ''with config.codgician.services.mcpo; http://127.0.0.1:$\{toString port}'';
     };
   };
 

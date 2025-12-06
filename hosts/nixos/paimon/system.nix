@@ -8,24 +8,31 @@
 
   # My settings
   codgician = {
-    containers = {
+    services = {
       comfyui = {
         enable = true;
         dataDir = "/xpool/appdata/comfyui";
         modelDir = "/xpool/llm/comfyui";
+        userDir = "/xpool/appdata/comfyui-user";
         reverseProxy = {
           enable = true;
           domains = [ "vanarana.codgician.me" ];
+          authelia = {
+            enable = true;
+            rules = [
+              {
+                groups = [ "vanarana" ];
+                policy = "two_factor";
+              }
+            ];
+          };
         };
       };
-
       mcpo = {
         enable = true;
         dataDir = "/xpool/appdata/mcpo";
       };
-    };
 
-    services = {
       # Auth
       authelia.instances.main = {
         enable = true;

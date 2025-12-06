@@ -19,6 +19,10 @@ with pubKeys.hosts;
     expiryDates = [ "2027-08-10" ];
   };
 
+  # MCP Servers
+  "context7-api-key.age".publicKeys = allHosts;
+  "github-auth-header.age".publicKeys = allServers;
+
   # OIDC secrets
   "grafana-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];
   "jellyfin-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];

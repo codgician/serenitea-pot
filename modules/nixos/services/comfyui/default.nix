@@ -1,13 +1,29 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   serviceName = "comfyui";
   inherit (lib) types;
-  cfg = config.codgician.containers.comfyui;
-  uid = 2024;
+  cfg = config.codgician.services.comfyui;
+
+  # See: https://github.com/llm-d/llm-d/issues/117
+  ldSoConfFile = pkgs.writeText "00-system-libs.conf" ''
+    /lib64
+    /usr/lib64
+  '';
 in
 {
-  options.codgician.containers.comfyui = {
+  options.codgician.services.comfyui = {
     enable = lib.mkEnableOption "ComfyUI container.";
+
+    imageTag = lib.mkOption {
+      type = types.str;
+      default = "cu128-slim";
+      description = "Container image tag.";
+    };
 
     port = lib.mkOption {
       type = types.port;
@@ -27,11 +43,17 @@ in
       description = "Model directory for ComfyUI.";
     };
 
+    userDir = lib.mkOption {
+      type = types.nullOr types.path;
+      default = null;
+      description = "User directory for ComfyUI.";
+    };
+
     # Reverse proxy profile for nginx
     reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
       inherit serviceName;
       defaultProxyPass = "http://127.0.0.1:${toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.containers.comfyui; http://127.0.0.1:$\{toString port}'';
+      defaultProxyPassText = ''with config.codgician.services.comfyui; http://127.0.0.1:$\{toString port}'';
     };
   };
 
@@ -39,36 +61,21 @@ in
     (lib.mkIf cfg.enable {
       virtualisation.oci-containers.containers.comfyui = {
         autoStart = true;
-        image = "docker.io/mmartial/comfyui-nvidia-docker:latest";
+        image = "docker.io/yanwk/comfyui-boot:${cfg.imageTag}";
         ports = [ "${builtins.toString cfg.port}:8188" ];
         volumes = [
-          "${cfg.dataDir}/basedir:/basedir"
-          "${cfg.dataDir}/run:/comfy/mnt"
+          "${cfg.dataDir}:/root:rw"
+          "${ldSoConfFile}:/etc/ld.so.conf.d/00-system-libs.conf:ro"
         ]
-        ++ (lib.optional (cfg.modelDir != null) "${cfg.modelDir}:/comfy/mnt/ComfyUI/models");
+        ++ (lib.optional (cfg.modelDir != null) "${cfg.modelDir}:/storage-models:rw")
+        ++ (lib.optional (cfg.userDir != null) "${cfg.userDir}:/storage-user:rw");
         extraOptions = [
           "--pull=newer"
-          "-e"
-          "SECURITY_LEVEL=normal"
-          "-e"
-          "WANTED_UID=${builtins.toString uid}"
-          "-e"
-          "WANTED_GID=${builtins.toString uid}"
         ]
         ++ lib.optionals config.hardware.nvidia-container-toolkit.enable [ "--device=nvidia.com/gpu=all" ];
       };
 
       virtualisation.podman.enable = true;
-
-      # Create user and group
-      users.users.comfyui = {
-        inherit uid;
-        isSystemUser = true;
-        group = "comfyui";
-      };
-      users.groups.comfyui = {
-        gid = uid;
-      };
     })
 
     # Reverse proxy profile
