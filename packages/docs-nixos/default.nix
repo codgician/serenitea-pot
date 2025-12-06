@@ -1,17 +1,18 @@
 {
   lib,
-  pkgs,
+  stdenv,
+  nixosOptionsDoc,
   options ?
     (lib.codgician.mkNixosSystem {
       hostName = "nixos";
-      inherit (pkgs.stdenv.hostPlatform) system;
+      inherit (stdenv.hostPlatform) system;
     }).options,
   ...
 }:
 
 let
   # Generate options documentation
-  optionsDoc = pkgs.nixosOptionsDoc {
+  optionsDoc = nixosOptionsDoc {
     inherit options;
     # Only document our custom options
     transformOptions =

@@ -29,7 +29,7 @@ let
         (
           { modulesPath, ... }:
           {
-            imports = [ (modulesPath + "/installer/cd-dvd/installation-cd-minimal.nix") ];
+            imports = [ (modulesPath + "/installer/cd-dvd/installation-cd-graphical-gnome.nix") ];
 
             # Override to use sudo-rs
             security.sudo.enable = lib.mkForce false;
@@ -66,7 +66,7 @@ let
     }).config.system.build.isoImage;
 in
 stdenv.mkDerivation {
-  pname = "installer-iso";
+  pname = "installer-iso-gui";
   version = pkgs.lib.version;
   src = isoImage;
   phases = [ "installPhase" ];
@@ -75,7 +75,7 @@ stdenv.mkDerivation {
     cp -r $src $out
   '';
   meta = {
-    description = "NixOS installation image customized by codgician";
+    description = "NixOS installation image (with GUI) customized by codgician";
     platforms = lib.platforms.linux;
     license = lib.licenses.mit;
   };

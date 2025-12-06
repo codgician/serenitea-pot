@@ -166,7 +166,7 @@ in
     programs = {
       mtr.enable = true;
       gnupg.agent.enable = true;
-      ssh.startAgent = true;
+      ssh.startAgent = lib.mkIf (!config.services.gnome.gcr-ssh-agent.enable) true;
     };
 
     security.pam.sshAgentAuth.enable = true;

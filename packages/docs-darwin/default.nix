@@ -1,10 +1,10 @@
 {
   lib,
-  pkgs,
+  stdenv,
   options ?
     (lib.codgician.mkDarwinSystem {
       hostName = "darwin";
-      inherit (pkgs.stdenv.hostPlatform) system;
+      inherit (stdenv.hostPlatform) system;
     }).options,
   docs-nixos,
   ...
