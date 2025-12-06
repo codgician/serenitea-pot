@@ -8,6 +8,7 @@ rec {
     nahida = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID+oF/2GvNR5Adz0y6RiNTg8UrcneQSEWualML5wAwer" ];
     paimon = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFljYcA+U1awv/K4xHx9pr8+WVH/YDAN73nPlEhE3zJr" ];
     raiden-ei = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIB0g+aVDhTxpSHq7XnLLZvK2Lm9nxLdBNggzyqrD2Hf" ];
+    sandrone = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIviqrRjXSzpnF6Q6gRfLGWwYEq5FsDiTLlMwnlUDQmS" ];
     wanderer = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMgX6g1a0atq3ObPNQz1A+hUnYpNEs1iGrfGWlXvszPD" ];
     xianyun = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDmOBQu1zv4bsSMw7uVvYkFhGz+jOUXwgJLOe8wAVz0P" ];
   };

@@ -24,7 +24,6 @@
 
   nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
 
-  nixpkgs.config.allowUnfreePredicate = pkg: builtins.elem (lib.getName pkg) [ "prl-tools" ];
   hardware.parallels.enable = true;
 
   nix.settings = {
@@ -33,13 +32,6 @@
       "/run/binfmt"
       # "/media/psf/RosettaLinux"
     ];
-  };
-
-  # Remove after switching to 25.11
-  systemd.user.services = {
-    prlcp.enable = lib.mkForce false;
-    prldnd.enable = lib.mkForce false;
-    prlshprof.enable = lib.mkForce false;
   };
 
   # prlbinfmtconfig.sh would only register binfmt when systemd-binfmt.service is enabled.
