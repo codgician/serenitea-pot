@@ -16,23 +16,32 @@ let
   azureModelDefinitions = [
     {
       model_name = "deepseek-r1";
+      provider = "azure_ai";
       model_info.mode = "chat";
       model_info.base_model = "azure_ai/deepseek-r1";
     }
     {
       model_name = "deepseek-v3.1";
+      provider = "azure_ai";
       model_info.mode = "chat";
       model_info.base_model = "azure_ai/deepseek-v3";
     }
     {
       model_name = "flux-1-1-pro";
+      provider = "azure_ai";
       model_info.mode = "image_generation";
       model_info.base_model = "azure_ai/FLUX-1.1-pro";
     }
     {
       model_name = "flux-1-kontext-pro";
+      provider = "azure_ai";
       model_info.mode = "image_generation";
       model_info.base_model = "azure_ai/FLUX.1-Kontext-pro";
+    }
+    {
+      model_name = "gpt-4o-transcribe-diarize";
+      model_info.mode = "audio_transcription";
+      model_info.base_model = "azure/gpt-4o-transcribe-diarize";
     }
     {
       model_name = "gpt-5.1-chat";
@@ -50,22 +59,41 @@ let
       model_info.base_model = "azure/gpt-5-nano";
     }
     {
+      model_name = "gpt-audio";
+      model_info.mode = "chat";
+      model_info.base_model = "azure/gpt-audio-2025-08-28";
+    }
+    {
+      model_name = "gpt-audio-mini";
+      model_info.mode = "chat";
+      model_info.base_model = "azure/gpt-audio-mini-2025-10-06";
+    }
+    {
       model_name = "gpt-oss-120b";
+      provider = "azure_ai";
       model_info.mode = "chat";
       model_info.base_model = "azure_ai/gpt-oss-120b";
     }
     {
+      model_name = "gpt-realtime";
+      model_info.mode = "realtime";
+      model_info.base_model = "azure/gpt-realtime-2025-08-28";
+    }
+    {
       model_name = "grok-3";
+      provider = "azure_ai";
       model_info.mode = "chat";
       model_info.base_model = "azure_ai/grok-3";
     }
     {
       model_name = "grok-4-fast-non-reasoning";
+      provider = "azure_ai";
       model_info.mode = "chat";
       model_info.base_model = "azure_ai/grok-4-fast-non-reasoning";
     }
     {
       model_name = "grok-4-fast-reasoning";
+      provider = "azure_ai";
       model_info.mode = "chat";
       model_info.base_model = "azure_ai/grok-4-fast-reasoning";
     }
@@ -92,11 +120,6 @@ let
       model_name = "gemini-2.5-flash-image";
       model_info.mode = "image_generation";
       model_info.base_model = "gemini/gemini-2.5-flash-image";
-    }
-    {
-      model_name = "gemini-2.5-flash-native-audio-latest";
-      model_info.mode = "audio_speech";
-      model_info.base_model = "gemini/gemini-2.5-flash-native-audio-latest";
     }
   ];
 
@@ -206,14 +229,17 @@ rec {
     {
       model_name,
       model_info ? { },
+      provider ? "azure",
+      litellm_params ? { },
     }:
     {
       inherit model_name model_info;
       litellm_params = {
-        model = "azure_ai/${model_name}";
+        model = "${provider}/${model_name}";
         api_base = "https://${azureSubdomain}.services.ai.azure.com";
         api_key = "os.environ/AZURE_AKASHA_API_KEY";
-      };
+      }
+      // litellm_params;
     }
   ) azureModelDefinitions;
 
@@ -228,28 +254,28 @@ rec {
   }) [ "deepseek-chat" ];
 
   # Google Cloud models
-  google =
-    builtins.map
-      (
-        {
-          model_name,
-          model_info ? { },
-        }:
-        {
-          inherit model_name model_info;
-          litellm_params = {
-            model = "gemini/${model_name}";
-            api_key = "os.environ/GEMINI_API_KEY";
-          };
-        }
-      )
-      googleModelDefinitions;
+  google = builtins.map (
+    {
+      model_name,
+      model_info ? { },
+      litellm_params ? { },
+    }:
+    {
+      inherit model_name model_info;
+      litellm_params = {
+        model = "gemini/${model_name}";
+        api_key = "os.environ/GEMINI_API_KEY";
+      }
+      // litellm_params;
+    }
+  ) googleModelDefinitions;
 
   # GitHub Copilot models
   github = builtins.map (
     {
       model_name,
       model_info ? { },
+      litellm_params ? { },
     }:
     {
       inherit model_name model_info;
@@ -260,7 +286,8 @@ rec {
           editor-plugin-version = "copilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
           user-agent = "GithubCopilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
         };
-      };
+      }
+      // litellm_params;
     }
   ) githubModelDefinitions;
 }
