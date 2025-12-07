@@ -379,6 +379,7 @@ in
             proxy_send_timeout 300;
             proxy_read_timeout 300;
             send_timeout 300;
+            add_header Cache-Control "no-cache";
           '';
           "~ ^/api/v1/files" = {
             inherit (cfg.reverseProxy) lanOnly;
