@@ -8,29 +8,217 @@ let
     builtins.fromJSON
       outputs.packages.${pkgs.stdenv.hostPlatform.system}.terraform-config.value;
   azureSubdomain = terraformConf.resource.azurerm_ai_services.akasha.custom_subdomain_name;
+  deployedModelNames = lib.mapAttrsToList (_: v: v.name) (
+    terraformConf.resource.azurerm_cognitive_deployment or { }
+  );
+
+  # Azure models
+  azureModelDefinitions = [
+    {
+      model_name = "deepseek-r1";
+      model_info.mode = "chat";
+      model_info.base_model = "azure_ai/deepseek-r1";
+    }
+    {
+      model_name = "deepseek-v3.1";
+      model_info.mode = "chat";
+      model_info.base_model = "azure_ai/deepseek-v3";
+    }
+    {
+      model_name = "flux-1-1-pro";
+      model_info.mode = "image_generation";
+      model_info.base_model = "azure_ai/FLUX-1.1-pro";
+    }
+    {
+      model_name = "flux-1-kontext-pro";
+      model_info.mode = "image_generation";
+      model_info.base_model = "azure_ai/FLUX.1-Kontext-pro";
+    }
+    {
+      model_name = "gpt-5.1-chat";
+      model_info.mode = "chat";
+      model_info.base_model = "azure/gpt-5.1-chat";
+    }
+    {
+      model_name = "gpt-5-chat";
+      model_info.mode = "chat";
+      model_info.base_model = "azure/gpt-5-chat";
+    }
+    {
+      model_name = "gpt-5-nano";
+      model_info.mode = "chat";
+      model_info.base_model = "azure/gpt-5-nano";
+    }
+    {
+      model_name = "gpt-oss-120b";
+      model_info.mode = "chat";
+      model_info.base_model = "azure_ai/gpt-oss-120b";
+    }
+    {
+      model_name = "grok-3";
+      model_info.mode = "chat";
+      model_info.base_model = "azure_ai/grok-3";
+    }
+    {
+      model_name = "grok-4-fast-non-reasoning";
+      model_info.mode = "chat";
+      model_info.base_model = "azure_ai/grok-4-fast-non-reasoning";
+    }
+    {
+      model_name = "grok-4-fast-reasoning";
+      model_info.mode = "chat";
+      model_info.base_model = "azure_ai/grok-4-fast-reasoning";
+    }
+    {
+      model_name = "o4-mini";
+      model_info.mode = "chat";
+      model_info.base_model = "azure/o4-mini";
+    }
+  ];
+
+  # Google models
+  googleModelDefinitions = [
+    {
+      model_name = "gemini-2.5-flash";
+      model_info.mode = "chat";
+      model_info.base_model = "gemini/gemini-2.5-flash";
+    }
+    {
+      model_name = "gemini-3-pro-image-preview";
+      model_info.mode = "image_generation";
+      model_info.base_model = "gemini/gemini-3-pro-image-preview";
+    }
+    {
+      model_name = "gemini-2.5-flash-image";
+      model_info.mode = "image_generation";
+      model_info.base_model = "gemini/gemini-2.5-flash-image";
+    }
+    {
+      model_name = "gemini-2.5-flash-native-audio-latest";
+      model_info.mode = "audio_speech";
+      model_info.base_model = "gemini/gemini-2.5-flash-native-audio-latest";
+    }
+  ];
+
+  # GitHub Copilot models
+  githubModelDefinitions = [
+    {
+      model_name = "claude-haiku-4.5";
+      model_info.mode = "chat";
+      model_info.base_model = "azure/claude-haiku-4-5";
+    }
+    {
+      model_name = "claude-sonnet-4.5";
+      model_info.mode = "chat";
+      model_info.base_model = "azure/claude-sonnet-4-5";
+    }
+    {
+      model_name = "claude-opus-4.5";
+      model_info.mode = "chat";
+      model_info.base_model = "azure/claude-opus-4-5";
+    }
+    {
+      model_name = "gemini-3-pro-preview";
+      model_info.mode = "chat";
+      model_info.base_model = "gemini-3-pro-preview";
+    }
+    {
+      model_name = "gemini-2.5-pro";
+      model_info.mode = "chat";
+      model_info.base_model = "gemini-2.5-pro";
+    }
+    {
+      model_name = "gpt-4.1";
+      model_info.mode = "chat";
+      model_info.base_model = "azure/gpt-4.1";
+    }
+    {
+      model_name = "gpt-5";
+      model_info.mode = "chat";
+      model_info.base_model = "azure/gpt-5";
+    }
+    {
+      model_name = "gpt-5-codex";
+      model_info.mode = "responses";
+      model_info.base_model = "azure/gpt-5-codex";
+    }
+    {
+      model_name = "gpt-5-mini";
+      model_info.mode = "chat";
+      model_info.base_model = "azure/gpt-5-mini";
+    }
+    {
+      model_name = "gpt-5.1";
+      model_info.mode = "chat";
+      model_info.base_model = "azure/gpt-5.1";
+    }
+    {
+      model_name = "gpt-5.1-codex-max";
+      model_info.mode = "responses";
+      model_info.base_model = "azure/gpt-5.1-codex-max";
+    }
+    {
+      model_name = "gpt-5.1-codex";
+      model_info.mode = "responses";
+      model_info.base_model = "azure/gpt-5.1-codex";
+    }
+    {
+      model_name = "gpt-5.1-codex-mini";
+      model_info.mode = "responses";
+      model_info.base_model = "azure/gpt-5.1-codex-mini";
+    }
+    {
+      model_name = "o3";
+      model_info.mode = "chat";
+      model_info.base_model = "azure/o3";
+    }
+    {
+      model_name = "text-embedding-ada-002";
+      model_info.mode = "embedding";
+      model_info.base_model = "azure/text-embedding-ada-002";
+    }
+    {
+      model_name = "text-embedding-3-small";
+      model_info.mode = "embedding";
+      model_info.base_model = "azure/text-embedding-3-small";
+    }
+    {
+      model_name = "text-embedding-3-small-inference";
+      model_info.mode = "embedding";
+      model_info.base_model = "azure/text-embedding-3-small";
+    }
+  ];
+
+  missingAzureModels = lib.filter (
+    m: !(builtins.elem m.model_name deployedModelNames)
+  ) azureModelDefinitions;
 in
+assert lib.assertMsg (missingAzureModels == [ ])
+  "The following Azure models are defined in LiteLLM but not found in Terraform configuration: ${
+    builtins.concatStringsSep ", " (map (m: m.model_name) missingAzureModels)
+  }";
 rec {
   # Everything
   all = azure ++ deepseek ++ google ++ github;
 
   # Azure AI models
-  azure = lib.pipe terraformConf.resource.azurerm_cognitive_deployment [
-    builtins.attrValues
-    (builtins.filter (x: !(lib.hasPrefix "flux" x.name)))
-    (builtins.map (x: {
-      model_name = x.name;
-      model_info.mode = "chat";
+  azure = builtins.map (
+    {
+      model_name,
+      model_info ? { },
+    }:
+    {
+      inherit model_name model_info;
       litellm_params = {
-        model = "azure_ai/${x.name}";
+        model = "azure_ai/${model_name}";
         api_base = "https://${azureSubdomain}.services.ai.azure.com";
         api_key = "os.environ/AZURE_AKASHA_API_KEY";
       };
-      model_info.base_model = "azure/${x.model.name}";
-    }))
-  ];
+    }
+  ) azureModelDefinitions;
 
   # Deepseek models
-  deepseek = lib.map (model_name: {
+  deepseek = builtins.map (model_name: {
     inherit model_name;
     model_info.mode = "chat";
     litellm_params = {
@@ -41,25 +229,7 @@ rec {
 
   # Google Cloud models
   google =
-    lib.map
-      (model_name: {
-        inherit model_name;
-        litellm_params = {
-          model = "gemini/${model_name}";
-          api_key = "os.environ/GEMINI_API_KEY";
-        };
-        model_info.base_model = "gemini/${model_name}";
-      })
-      [
-        # Use GitHub Copilot
-        # "gemini-3-pro-preview"
-        # "gemini-2.5-pro"
-        "gemini-2.5-flash"
-      ];
-
-  # GitHub Copilot models
-  github =
-    lib.map
+    builtins.map
       (
         {
           model_name,
@@ -68,79 +238,29 @@ rec {
         {
           inherit model_name model_info;
           litellm_params = {
-            model = "github_copilot/${model_name}";
-            extra_headers = {
-              editor-version = "vscode/${pkgs.vscode.version}";
-              editor-plugin-version = "copilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
-              user-agent = "GithubCopilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
-            };
+            model = "gemini/${model_name}";
+            api_key = "os.environ/GEMINI_API_KEY";
           };
         }
       )
-      [
-        {
-          model_name = "claude-haiku-4.5";
-          model_info.mode = "chat";
-        }
-        {
-          model_name = "claude-sonnet-4.5";
-          model_info.mode = "chat";
-        }
-        {
-          model_name = "claude-opus-4.5";
-          model_info.mode = "chat";
-        }
-        {
-          model_name = "gemini-3-pro-preview";
-          model_info.mode = "chat";
-        }
-        {
-          model_name = "gemini-2.5-pro";
-          model_info.mode = "chat";
-        }
-        {
-          model_name = "gpt-5";
-          model_info.mode = "chat";
-        }
-        {
-          model_name = "gpt-5-codex";
-          model_info.mode = "responses";
-        }
-        {
-          model_name = "gpt-5-mini";
-          model_info.mode = "chat";
-        }
-        {
-          model_name = "gpt-5.1";
-          model_info.mode = "chat";
-        }
-        {
-          model_name = "gpt-5.1-codex-max";
-          model_info.mode = "responses";
-        }
-        {
-          model_name = "gpt-5.1-codex";
-          model_info.mode = "responses";
-        }
-        {
-          model_name = "gpt-5.1-codex-mini";
-          model_info.mode = "responses";
-        }
-        {
-          model_name = "o3";
-          model_info.mode = "chat";
-        }
-        {
-          model_name = "text-embedding-ada-002";
-          model_info.mode = "embedding";
-        }
-        {
-          model_name = "text-embedding-3-small";
-          model_info.mode = "embedding";
-        }
-        {
-          model_name = "text-embedding-3-small-inference";
-          model_info.mode = "embedding";
-        }
-      ];
+      googleModelDefinitions;
+
+  # GitHub Copilot models
+  github = builtins.map (
+    {
+      model_name,
+      model_info ? { },
+    }:
+    {
+      inherit model_name model_info;
+      litellm_params = {
+        model = "github_copilot/${model_name}";
+        extra_headers = {
+          editor-version = "vscode/${pkgs.vscode.version}";
+          editor-plugin-version = "copilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
+          user-agent = "GithubCopilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
+        };
+      };
+    }
+  ) githubModelDefinitions;
 }

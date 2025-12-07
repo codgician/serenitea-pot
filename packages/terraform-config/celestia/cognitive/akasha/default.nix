@@ -10,12 +10,15 @@ in
     ./deepseek-v3.1.nix
     ./flux-1.1-pro.nix
     ./flux.1-kontext-pro.nix
-    ./gpt-4.1.nix
+    ./gpt-4o-transcribe-diarize.nix
     ./gpt-5.1-chat.nix
     ./gpt-5-chat.nix
     ./gpt-5-nano.nix
     # ./gpt-5-mini.nix (use GitHub Copilot instead)
+    ./gpt-audio-mini.nix
+    ./gpt-audio.nix
     ./gpt-oss-120b.nix
+    ./gpt-realtime.nix
     ./grok-3.nix
     ./grok-4-fast.nix
     ./o4-mini.nix
