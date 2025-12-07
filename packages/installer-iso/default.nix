@@ -36,7 +36,7 @@ let
             security.sudo-rs.enable = lib.mkForce true;
 
             # Allow password auth for openssh
-            services.openssh.settings.passwordAuthentication = lib.mkForce true;
+            services.openssh.settings.PasswordAuthentication = lib.mkForce true;
 
             # Add common utilities
             environment.systemPackages = [
