@@ -244,14 +244,23 @@ rec {
   ) azureModelDefinitions;
 
   # Deepseek models
-  deepseek = builtins.map (model_name: {
-    inherit model_name;
-    model_info.mode = "chat";
-    litellm_params = {
-      model = "deepseek/${model_name}";
-      api_key = "os.environ/DEEPSEEK_API_KEY";
-    };
-  }) [ "deepseek-chat" ];
+  deepseek =
+    builtins.map
+      (model_name: {
+        inherit model_name;
+        model_info = {
+          mode = "chat";
+          base_model = "deepseek/${model_name}";
+        };
+        litellm_params = {
+          model = "deepseek/${model_name}";
+          api_key = "os.environ/DEEPSEEK_API_KEY";
+        };
+      })
+      [
+        "deepseek-chat"
+        "deepseek-reasoner"
+      ];
 
   # Google Cloud models
   google = builtins.map (
