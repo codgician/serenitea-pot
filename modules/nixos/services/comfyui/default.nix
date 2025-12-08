@@ -67,7 +67,7 @@ in
           "${cfg.dataDir}:/root:rw"
           "${ldSoConfFile}:/etc/ld.so.conf.d/00-system-libs.conf:ro"
         ]
-        ++ (lib.optional (cfg.modelDir != null) "${cfg.modelDir}:/storage-models:rw")
+        ++ (lib.optional (cfg.modelDir != null) "${cfg.modelDir}:/root/ComfyUI/models:rw")
         ++ (lib.optional (cfg.userDir != null) "${cfg.userDir}:/storage-user:rw");
         extraOptions = [
           "--pull=newer"
