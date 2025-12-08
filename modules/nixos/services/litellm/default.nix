@@ -21,6 +21,7 @@ let
       store_model_in_db = true;
       store_prompts_in_spend_logs = true;
     };
+    litellm_settings.drop_params = true;
     model_list = allModels;
   };
 

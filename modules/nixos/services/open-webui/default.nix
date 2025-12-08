@@ -30,10 +30,11 @@ let
     WEBUI_URL = webuiUrl;
     # OAuth
     ENABLE_SIGNUP = "False";
-    ENABLE_LOGIN_FORM = "True";
+    ENABLE_LOGIN_FORM = "False";
     DEFAULT_USER_ROLE = "pending";
+    DEFAULT_GROUP_ID = "akasha-users";
     ENABLE_OAUTH_PERSISTENT_CONFIG = "False";
-    ENABLE_OAUTH_SIGNUP = "False";
+    ENABLE_OAUTH_SIGNUP = "True";
     OAUTH_MERGE_ACCOUNTS_BY_EMAIL = "True";
     OAUTH_CLIENT_ID = "akasha";
     # OAUTH_CLIENT_SECRET provided in env
@@ -42,6 +43,7 @@ let
     OAUTH_PROVIDER_NAME = "Authelia";
     OAUTH_SCOPES = "openid email profile groups";
     ENABLE_OAUTH_ROLE_MANAGEMENT = "True";
+    ENABLE_OAUTH_GROUP_MANAGEMENT = "True";
     OAUTH_ROLES_CLAIM = "groups";
     OAUTH_ALLOWED_ROLES = "akasha-users,akasha-admins";
     OAUTH_ADMIN_ROLES = "akasha-admins";
@@ -91,17 +93,6 @@ let
     RAG_TOP_K = "5";
     RAG_TOP_K_RERANKER = "5";
     RAG_RELEVANCE_THRESHOLD = "0.3";
-    # Image generation
-    IMAGE_GENERATION_ENGINE = "gemini";
-    ENABLE_IMAGE_GENERATION = "True";
-    ENABLE_IMAGE_PROMPT_GENERATION = "True";
-    IMAGE_GENERATION_MODEL = "gemini-3-pro-image-preview";
-    IMAGE_SIZE = "1024x1024";
-    IMAGES_GEMINI_API_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
-    # Image edit
-    IMAGE_EDIT_ENGINE = "gemini";
-    IMAGE_EDIT_MODEL = "gemini-3-pro-image-preview";
-    IMAGE_EDIT_SIZE = "1024x1024";
     # Redis
     ENABLE_WEBSOCKET_SUPPORT = "True";
     WEBSOCKET_MANAGER = "redis";
@@ -110,6 +101,8 @@ let
     DATABASE_URL = lib.mkIf (cfg.database == "postgresql") "postgresql:///${pgDbName}?host=${pgDbHost}";
     # Vector Database
     VECTOR_DB = lib.mkIf (cfg.database == "postgresql") "pgvector";
+    # Misc
+    ENABLE_CHAT_RESPONSE_BASE64_IMAGE_URL_CONVERSION = "True";
   }
   // (lib.optionalAttrs config.codgician.services.docling-serve.enable {
     # Docling (PDF extraction engine)
@@ -221,24 +214,6 @@ in
         SupplementaryGroups = [
           # Ensure access to Redis
           config.services.redis.servers.open-webui.group
-          # For ROCm
-          "render"
-        ];
-
-        # Allow access to GPU
-        DeviceAllow = [
-          # CUDA
-          # https://docs.nvidia.com/dgx/pdf/dgx-os-5-user-guide.pdf
-          "char-nvidiactl"
-          "char-nvidia-caps"
-          "char-nvidia-frontend"
-          "char-nvidia-uvm"
-          # ROCm
-          "char-drm"
-          "char-fb"
-          "char-kfd"
-          # WSL (Windows Subsystem for Linux)
-          "/dev/dxg"
         ];
 
         # Disable dynamic user
