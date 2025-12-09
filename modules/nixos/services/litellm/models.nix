@@ -294,6 +294,7 @@ rec {
           editor-version = "vscode/${pkgs.vscode.version}";
           editor-plugin-version = "copilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
           user-agent = "GithubCopilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
+          Copilot-Vision-Request = "true";
         };
       }
       // litellm_params;

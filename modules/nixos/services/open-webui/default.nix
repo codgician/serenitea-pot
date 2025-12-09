@@ -102,6 +102,7 @@ let
     # Vector Database
     VECTOR_DB = lib.mkIf (cfg.database == "postgresql") "pgvector";
     # Misc
+    ENABLE_REALTIME_CHAT_SAVE = "True";
     ENABLE_CHAT_RESPONSE_BASE64_IMAGE_URL_CONVERSION = "True";
   }
   // (lib.optionalAttrs config.codgician.services.docling-serve.enable {
