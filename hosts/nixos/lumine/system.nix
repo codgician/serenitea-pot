@@ -15,6 +15,11 @@
         reverseProxy = {
           enable = true;
           domains = [ "dendro.codgician.me" ];
+          favicon =
+            (pkgs.fetchurl {
+              url = "https://media.githubusercontent.com/media/codgician/assets/f541d8f18215690ed7b7bbc3b97aa54c6ef2f51e/images/dendro/logo.png";
+              sha256 = "sha256-XSikOX3CM4VvwzWkRsETYBLha2VgUHh5m/uxTzm2UQI=";
+            }).outPath;
         };
       };
 

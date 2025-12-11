@@ -299,6 +299,7 @@ in
             splash
             ;
 
+          inherit (lib.codgician) mkNginxLocationForStaticFile;
           convertImage = lib.codgician.convertImage pkgs;
           resizeImage =
             size: outName: image:
@@ -313,15 +314,6 @@ in
           };
           favicon96 = resizeImage "96x96" "favicon-96x96.png" favicon;
           favicon512 = resizeImage "512x512" "favicon" appIcon;
-
-          mkNginxLocationForStaticFile = path: {
-            root = builtins.dirOf path;
-            tryFiles = "/${builtins.baseNameOf path} =404";
-            extraConfig = ''
-              access_log off; 
-              log_not_found off;
-            '';
-          };
         in
         (lib.optionalAttrs (favicon != null) {
           "= /favicon.png".passthru = mkNginxLocationForStaticFile favicon512;
