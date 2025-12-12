@@ -191,6 +191,11 @@ let
       model_info.base_model = "azure/gpt-5.1-codex-mini";
     }
     {
+      model_name = "gpt-5.2";
+      model_info.mode = "chat";
+      model_info.base_model = "azure/gpt-5.2";
+    }
+    {
       model_name = "o3";
       model_info.mode = "chat";
       model_info.base_model = "azure/o3";
