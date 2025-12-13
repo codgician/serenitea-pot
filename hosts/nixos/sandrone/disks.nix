@@ -35,32 +35,41 @@
           root = {
             size = "100%";
             content = {
-              type = "btrfs";
-              extraArgs = [ "-f" ];
-              subvolumes = {
-                "root" = {
-                  mountpoint = "/";
-                  mountOptions = [
-                    "compress=zstd"
-                    "noatime"
-                    "discard=async"
-                  ];
-                };
-                "nix" = {
-                  mountpoint = "/nix";
-                  mountOptions = [
-                    "compress=zstd"
-                    "noatime"
-                    "discard=async"
-                  ];
-                };
-                "persist" = {
-                  mountpoint = "/persist";
-                  mountOptions = [
-                    "compress=zstd"
-                    "noatime"
-                    "discard=async"
-                  ];
+              type = "luks";
+              name = "crypted";
+              extraFormatArgs = [
+                "--cipher"
+                "aes-xts-plain64"
+              ];
+              settings.allowDiscards = true;
+              content = {
+                type = "btrfs";
+                extraArgs = [ "-f" ];
+                subvolumes = {
+                  "root" = {
+                    mountpoint = "/";
+                    mountOptions = [
+                      "compress=zstd"
+                      "noatime"
+                      "discard=async"
+                    ];
+                  };
+                  "nix" = {
+                    mountpoint = "/nix";
+                    mountOptions = [
+                      "compress=zstd"
+                      "noatime"
+                      "discard=async"
+                    ];
+                  };
+                  "persist" = {
+                    mountpoint = "/persist";
+                    mountOptions = [
+                      "compress=zstd"
+                      "noatime"
+                      "discard=async"
+                    ];
+                  };
                 };
               };
             };
