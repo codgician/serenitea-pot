@@ -10,7 +10,7 @@
     system = {
       auto-upgrade.enable = true;
       impermanence.enable = true;
-      secure-boot.enable = true;
+      secure-boot.enable = false;
       nix.useCnMirror = true;
     };
 
@@ -61,7 +61,7 @@
 
   # SDDM default scaling
   services.displayManager.sddm.settings.General = {
-    GreeterEnvironment = "QT_SCREEN_SCALE_FACTORS=2,QT_FONT_DPI=192";
+    # GreeterEnvironment = "QT_SCREEN_SCALE_FACTORS=2,QT_FONT_DPI=192";
   };
 
   # Use the systemd-boot EFI boot loader.
@@ -131,6 +131,7 @@
   # Global packages
   environment.systemPackages = with pkgs; [
     firefox
+    chromium
     kitty
   ];
 
