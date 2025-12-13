@@ -103,6 +103,12 @@ let
       model_info.base_model = "azure_ai/grok-4-fast-reasoning";
     }
     {
+      model_name = "kimi-k2-thinking";
+      provider = "azure_ai";
+      model_info.mode = "chat";
+      model_info.base_model = "azure_ai/kimi-k2-thinking";
+    }
+    {
       model_name = "o4-mini";
       model_info.mode = "chat";
       model_info.base_model = "azure/o4-mini";

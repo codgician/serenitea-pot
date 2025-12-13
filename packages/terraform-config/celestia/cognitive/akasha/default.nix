@@ -22,6 +22,7 @@ in
     ./gpt-realtime.nix
     ./grok-3.nix
     ./grok-4-fast.nix
+    ./kimi-k2-thinking.nix
     ./o4-mini.nix
   ];
 
