@@ -62,7 +62,6 @@
     "firefox"
     "figma"
     "balenaetcher"
-    "altserver"
     "element"
     "wireshark-app"
     "moonlight"
