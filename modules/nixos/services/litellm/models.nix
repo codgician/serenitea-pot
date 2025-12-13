@@ -44,6 +44,11 @@ let
       model_info.base_model = "azure/gpt-4o-transcribe-diarize";
     }
     {
+      model_name = "gpt-5.2-chat";
+      model_info.mode = "chat";
+      model_info.base_model = "azure/gpt-5.2-chat";
+    }
+    {
       model_name = "gpt-5.1-chat";
       model_info.mode = "chat";
       model_info.base_model = "azure/gpt-5.1-chat";
@@ -128,92 +133,74 @@ let
     {
       model_name = "claude-haiku-4.5";
       model_info.mode = "chat";
-      model_info.base_model = "azure/claude-haiku-4-5";
     }
     {
       model_name = "claude-sonnet-4.5";
       model_info.mode = "chat";
-      model_info.base_model = "azure/claude-sonnet-4-5";
     }
     {
       model_name = "claude-opus-4.5";
       model_info.mode = "chat";
-      model_info.base_model = "azure/claude-opus-4-5";
     }
     {
       model_name = "gemini-3-pro-preview";
       model_info.mode = "chat";
-      model_info.base_model = "gemini-3-pro-preview";
     }
     {
       model_name = "gemini-2.5-pro";
       model_info.mode = "chat";
-      model_info.base_model = "gemini-2.5-pro";
     }
     {
       model_name = "gpt-4.1";
       model_info.mode = "chat";
-      model_info.base_model = "azure/gpt-4.1";
     }
     {
       model_name = "gpt-5";
       model_info.mode = "chat";
-      model_info.base_model = "azure/gpt-5";
     }
     {
       model_name = "gpt-5-codex";
       model_info.mode = "responses";
-      model_info.base_model = "azure/gpt-5-codex";
     }
     {
       model_name = "gpt-5-mini";
       model_info.mode = "chat";
-      model_info.base_model = "azure/gpt-5-mini";
     }
     {
       model_name = "gpt-5.1";
       model_info.mode = "chat";
-      model_info.base_model = "azure/gpt-5.1";
     }
     {
       model_name = "gpt-5.1-codex-max";
       model_info.mode = "responses";
-      model_info.base_model = "azure/gpt-5.1-codex-max";
     }
     {
       model_name = "gpt-5.1-codex";
       model_info.mode = "responses";
-      model_info.base_model = "azure/gpt-5.1-codex";
     }
     {
       model_name = "gpt-5.1-codex-mini";
       model_info.mode = "responses";
-      model_info.base_model = "azure/gpt-5.1-codex-mini";
     }
     {
       model_name = "gpt-5.2";
       model_info.mode = "chat";
-      model_info.base_model = "azure/gpt-5.2";
     }
     {
       model_name = "o3";
       model_info.mode = "chat";
-      model_info.base_model = "azure/o3";
     }
     {
       model_name = "text-embedding-ada-002";
       model_info.mode = "embedding";
-      model_info.base_model = "azure/text-embedding-ada-002";
     }
     {
       model_name = "text-embedding-3-small";
       model_info.mode = "embedding";
-      model_info.base_model = "azure/text-embedding-3-small";
     }
     {
       model_name = "text-embedding-3-small-inference";
       model_info.mode = "embedding";
-      model_info.base_model = "azure/text-embedding-3-small";
     }
   ];
 

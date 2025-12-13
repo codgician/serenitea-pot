@@ -11,6 +11,7 @@ in
     ./flux-1.1-pro.nix
     ./flux.1-kontext-pro.nix
     ./gpt-4o-transcribe-diarize.nix
+    ./gpt-5.2-chat.nix
     ./gpt-5.1-chat.nix
     ./gpt-5-chat.nix
     ./gpt-5-nano.nix
