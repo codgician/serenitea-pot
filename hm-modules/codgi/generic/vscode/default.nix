@@ -81,7 +81,7 @@ in
             emptyState.history.enabled = true;
             mcp = {
               assisted.nuget.enabled = true;
-              gallery.enable = true;
+              gallery.enabled = true;
             };
           };
           editor = {
