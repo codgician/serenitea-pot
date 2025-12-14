@@ -21,15 +21,27 @@ let
       store_model_in_db = true;
       store_prompts_in_spend_logs = true;
     };
-    litellm_settings.drop_params = true;
+    litellm_settings = {
+      cache = true;
+      cache_params.type = "redis";
+      drop_params = true;
+    };
     model_list = allModels;
   };
+
+  # Redis socket path (different for container vs nixpkgs)
+  redisSocketPath =
+    if cfg.backend == "nixpkgs" then
+      config.services.redis.servers.${serviceName}.unixSocket
+    else
+      "/run/redis-${serviceName}/redis.sock";
 
   # Environment variables
   environment = {
     "DO_NOT_TRACK" = "True";
     "GITHUB_COPILOT_TOKEN_DIR" =
       if cfg.backend == "nixpkgs" then "${cfg.stateDir}/github" else "/config/github";
+    "REDIS_URL" = "unix://${redisSocketPath}";
   }
   // (lib.optionalAttrs (cfg.adminUi.enable) {
     PGHOST = cfg.adminUi.dbHost; # Hack for prisma to connect postgres with unix socket
@@ -146,6 +158,16 @@ in
       # Ensure litellm user is created
       codgician.users.${serviceName}.enable = true;
 
+      # Set up Redis (use litellm user/group for socket access)
+      services.redis.servers.${serviceName} = {
+        enable = true;
+        inherit user group;
+        unixSocketPerm = 660;
+      };
+
+      # Make Redis runtime directory traversable for container with user namespace
+      systemd.services."redis-${serviceName}".serviceConfig.RuntimeDirectoryMode = lib.mkForce "0755";
+
       # Persist default data directory
       codgician.system.impermanence.extraItems = [
         {
@@ -170,6 +192,8 @@ in
         DynamicUser = lib.mkForce false;
         User = user;
         Group = group;
+        # Ensure access to Redis socket
+        SupplementaryGroups = [ config.services.redis.servers.${serviceName}.group ];
       };
     })
 
@@ -182,6 +206,7 @@ in
           "${(pkgs.formats.yaml { }).generate "config.yaml" settings}:/config.yaml:ro"
           "${cfg.stateDir}:/config:U"
           "/run/postgresql:/run/postgresql"
+          "/run/redis-${serviceName}:/run/redis-${serviceName}"
         ];
         extraOptions = [
           "--pull=newer"
