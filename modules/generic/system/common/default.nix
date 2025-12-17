@@ -11,7 +11,7 @@ in
   options.codgician.system.common = {
     enable = lib.mkOption {
       default = true;
-      description = "Enable common options shared accross all systems.";
+      description = "Common options shared accross all systems.";
     };
   };
 

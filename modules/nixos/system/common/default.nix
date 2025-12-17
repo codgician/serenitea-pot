@@ -15,6 +15,13 @@ let
   };
 in
 {
+  options.codgician.system.common = {
+    audit.enable = lib.mkOption {
+      default = !config.boot.isContainer;
+      description = "Linux kernel audits";
+    };
+  };
+
   config = lib.mkIf cfg.enable {
     # Enable systemd in initrd
     boot.initrd.systemd.enable = lib.mkIf (!config.boot.isContainer) true;
@@ -119,10 +126,10 @@ in
     ];
 
     security = {
-      audit.enable = !config.boot.isContainer;
-      auditd.enable = !config.boot.isContainer;
+      audit.enable = cfg.audit.enable;
+      auditd.enable = cfg.audit.enable;
       apparmor = {
-        enable = !config.boot.isContainer;
+        enable = cfg.audit.enable;
         packages = with pkgs; [ apparmor-profiles ];
         killUnconfinedConfinables = true;
       };

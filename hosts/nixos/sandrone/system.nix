@@ -9,6 +9,7 @@
 
     system = {
       auto-upgrade.enable = true;
+      common.audit.enable = false;
       impermanence.enable = true;
       secure-boot.enable = false;
       nix.useCnMirror = true;

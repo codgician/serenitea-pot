@@ -14,7 +14,7 @@
     supportedFilesystems = [ "vfat" ];
     kernelModules = [ ];
     kernelParams = [ ];
-    kernelPackages = pkgs.linuxPackages_6_17;
+    kernelPackages = pkgs.linuxPackages_latest;
     extraModulePackages = [ ];
   };
 
