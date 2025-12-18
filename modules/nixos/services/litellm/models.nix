@@ -149,6 +149,10 @@ let
       model_info.mode = "chat";
     }
     {
+      model_name = "gemini-3-flash-preview";
+      model_info.mode = "chat";
+    }
+    {
       model_name = "gemini-3-pro-preview";
       model_info.mode = "chat";
     }
