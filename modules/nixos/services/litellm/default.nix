@@ -81,6 +81,7 @@ in
       type = lib.types.enum [
         "main-latest"
         "main-dev"
+        "main-rc"
         "main-stable"
       ];
       default = "main-stable";
