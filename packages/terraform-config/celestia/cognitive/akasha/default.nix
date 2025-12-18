@@ -7,7 +7,8 @@ in
 {
   imports = [
     ./deepseek-r1.nix
-    ./deepseek-v3.1.nix
+    ./deepseek-v3.2.nix
+    ./deepseek-v3.2-speciale.nix
     ./flux-1.1-pro.nix
     ./flux.1-kontext-pro.nix
     ./gpt-4o-transcribe-diarize.nix

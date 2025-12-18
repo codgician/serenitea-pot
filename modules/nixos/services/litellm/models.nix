@@ -21,10 +21,16 @@ let
       model_info.base_model = "azure_ai/deepseek-r1";
     }
     {
-      model_name = "deepseek-v3.1";
+      model_name = "deepseek-v3.2";
       provider = "azure_ai";
       model_info.mode = "chat";
-      model_info.base_model = "azure_ai/deepseek-v3";
+      model_info.base_model = "azure_ai/deepseek-v3.2";
+    }
+    {
+      model_name = "deepseek-v3.2-speciale";
+      provider = "azure_ai";
+      model_info.mode = "chat";
+      model_info.base_model = "azure_ai/deepseek-v3.2-speciale";
     }
     {
       model_name = "flux-1-1-pro";
