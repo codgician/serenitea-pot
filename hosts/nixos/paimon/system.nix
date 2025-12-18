@@ -114,10 +114,10 @@
         acceleration = "cuda";
         modelDir = "/xpool/llm/ollama/models";
         loadModels = [
-          "hf.co/unsloth/Qwen3-30B-A3B-Instruct-2507-GGUF:Q4_K_M"
-          "hf.co/unsloth/Qwen3-30B-A3B-Thinking-2507-GGUF:Q4_K_M"
-          "hf.co/unsloth/Qwen3-VL-30B-A3B-Instruct-GGUF:Q4_K_M"
-          "huihui_ai/qwen3-abliterated:30b-a3b-thinking-2507-q4_K_M"
+          "hf.co/unsloth/Qwen3-VL-30B-A3B-Instruct-GGUF:Q4_K_XL"
+          "hf.co/unsloth/Qwen3-VL-30B-A3B-Thinking-GGUF:Q4_K_XL"
+          "hf.co/unsloth/Qwen3-Next-80B-A3B-Instruct-GGUF:Q2_K_XL"
+          "hf.co/unsloth/Qwen3-Next-80B-A3B-Thinking-GGUF:Q2_K_XL"
         ];
       };
 
