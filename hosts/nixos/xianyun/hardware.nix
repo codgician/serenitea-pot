@@ -25,6 +25,7 @@ in
     ];
 
     kernelPackages = pkgs.linuxPackages_6_18;
+    zfs.package = pkgs.zfs_2_4;
 
     # Force RA acceptance when forwarding is enabled
     kernel.sysctl."net.ipv6.conf.eth0.accept_ra" = "2";

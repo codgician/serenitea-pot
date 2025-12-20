@@ -37,6 +37,7 @@
       "kvm-amd"
     ];
     kernelPackages = pkgs.linuxPackages_6_17;
+    zfs.package = pkgs.zfs_2_4;
 
     kernelParams = [
       "video=VGA-1:1600x900@60"
