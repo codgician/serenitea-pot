@@ -1,12 +1,16 @@
-{ modulesPath, ... }:
+{ modulesPath, pkgs, ... }:
 {
   imports = [ (modulesPath + "/virtualisation/azure-common.nix") ];
 
   # ZFS boot configs
-  boot.supportedFilesystems = [
-    "vfat"
-    "zfs"
-  ];
+  boot = {
+    supportedFilesystems = [
+      "vfat"
+      "zfs"
+    ];
+    kernelPackages = pkgs.linuxPackages_6_18;
+  };
+
   fileSystems."/persist".neededForBoot = true;
 
   # Enable Accelerated Networking

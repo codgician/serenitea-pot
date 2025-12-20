@@ -24,6 +24,8 @@ in
       "sr_mod"
     ];
 
+    kernelPackages = pkgs.linuxPackages_6_18;
+
     # Force RA acceptance when forwarding is enabled
     kernel.sysctl."net.ipv6.conf.eth0.accept_ra" = "2";
 

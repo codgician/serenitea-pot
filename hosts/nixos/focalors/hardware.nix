@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 {
   boot = {
     initrd = {
@@ -14,6 +14,7 @@
       "zfs"
     ];
     kernelModules = [ ];
+    kernelPackages = pkgs.linuxPackages_6_18;
     kernelParams = [ "video=Virtual-1:3024x1890@120" ];
     extraModulePackages = [ ];
   };
