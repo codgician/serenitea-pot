@@ -130,7 +130,7 @@ in
         enable = cfg.audit.enable;
         backlogLimit = 8192;
       };
-      
+
       auditd.enable = cfg.audit.enable;
       apparmor = {
         enable = cfg.audit.enable;
@@ -146,10 +146,15 @@ in
     };
 
     # Enlarge audit backlog limit
-    boot.kernelParams = [
-      "audit=1"
-      "audit_backlog_limit=${builtins.toString config.security.audit.backlogLimit}"
-    ];
+    boot.kernelParams =
+      if cfg.audit.enable then
+        [
+          "audit=1"
+          "audit_backlog_limit=${builtins.toString config.security.audit.backlogLimit}"
+          "lsm=landlock,lockdown,yama,integrity,safesetid,apparmor,bpf"
+        ]
+      else
+        [ "audit=0" ];
 
     # Enable fail2ban
     services.fail2ban.enable = config.networking.firewall.enable;
