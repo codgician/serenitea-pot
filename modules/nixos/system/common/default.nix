@@ -17,7 +17,7 @@ in
 {
   options.codgician.system.common = {
     audit.enable = lib.mkOption {
-      default = !config.boot.isContainer;
+      default = false;
       description = "Linux kernel audits";
     };
   };
