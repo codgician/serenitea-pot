@@ -28,6 +28,7 @@ let
     WEBUI_AUTH = "True";
     WEBUI_NAME = "Akasha";
     WEBUI_URL = webuiUrl;
+    WEBUI_BUILD_HASH = cfg.package.src.rev;
     # OAuth
     ENABLE_SIGNUP = "False";
     ENABLE_LOGIN_FORM = "False";

@@ -29,6 +29,9 @@ in
         # Apply patches to frontend
         patches = (if (oldAttrs' ? patches) then oldAttrs'.patches else [ ]) ++ patches;
         postPatch = oldAttrs'.postPatch + postPatch;
+        env = oldAttrs'.env // {
+          APP_BUILD_HASH = oldAttrs'.src.rev;
+        };
       });
     in
     {
