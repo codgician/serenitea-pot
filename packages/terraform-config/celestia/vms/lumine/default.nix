@@ -34,7 +34,7 @@ in
         {
           name = "lumine-sda";
           caching = "ReadWrite";
-          storage_account_type = "Standard_LRS";
+          storage_account_type = "StandardSSD_LRS";
         }
       ];
 
