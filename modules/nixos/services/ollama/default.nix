@@ -100,8 +100,8 @@ in
           OLLAMA_FLASH_ATTENTION = lib.mkIf (cfg.acceleration != false) "1";
           OLLAMA_KV_CACHE_TYPE = "q8_0";
           OLLAMA_NEW_ENGINE = "1";
-          # Increase default context length to 16K
-          OLLAMA_CONTEXT_LENGTH = "16384";
+          # Increase default context length to 32K
+          OLLAMA_CONTEXT_LENGTH = "32768";
           # Keep alive
           OLLAMA_KEEP_ALIVE = "-1";
         };

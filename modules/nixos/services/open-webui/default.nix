@@ -17,7 +17,7 @@ let
       "${cfg.host}:${builtins.toString cfg.port}";
 
   ollamaCfg = config.codgician.services.ollama;
-  ollamaEmbeddingModel = "hf.co/jinaai/jina-embeddings-v4-text-retrieval-GGUF:Q4_K_M";
+  ollamaEmbeddingModel = "hf.co/Qwen/Qwen3-Embedding-4B-GGUF:Q4_K_M";
   pgDbName = "open-webui";
   pgDbHost = "/run/postgresql";
 
@@ -84,9 +84,6 @@ let
     ENABLE_SEARCH_QUERY = "True";
     ENABLE_RAG_WEB_SEARCH = "True";
     RAG_WEB_SEARCH_ENGINE = "google_pse";
-    # RAG_EMBEDDING_MODEL = "jinaai/jina-embeddings-v3";
-    # RAG_RERANKING_MODEL = "jinaai/jina-reranker-v2-base-multilingual";
-    RAG_RERANKING_MODEL = "jinaai/jina-reranker-m0";
     RAG_EMBEDDING_ENGINE = lib.mkIf ollamaCfg.enable "ollama";
     RAG_EMBEDDING_MODEL = lib.mkIf ollamaCfg.enable ollamaEmbeddingModel;
     RAG_OLLAMA_BASE_URL = lib.mkIf ollamaCfg.enable "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";

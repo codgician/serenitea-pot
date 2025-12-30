@@ -114,6 +114,8 @@
         acceleration = "cuda";
         modelDir = "/xpool/llm/ollama/models";
         loadModels = [
+          "hf.co/unsloth/Qwen3-VL-8B-Instruct-GGUF:Q4_K_XL"
+          "hf.co/unsloth/Qwen3-VL-8B-Thinking-GGUF:Q4_K_XL"
           "hf.co/unsloth/Qwen3-VL-30B-A3B-Instruct-GGUF:Q4_K_XL"
           "hf.co/unsloth/Qwen3-VL-30B-A3B-Thinking-GGUF:Q4_K_XL"
           "hf.co/unsloth/Qwen3-Next-80B-A3B-Instruct-GGUF:Q2_K_XL"
