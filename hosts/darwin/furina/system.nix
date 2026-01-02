@@ -62,7 +62,7 @@
             prismlauncher-unwrapped
             macmon
             codex
-            claude-code
+            claude-code-wrapped
             antigravity
           ]
           ++ (with pkgs.nur.repos.codgician; [
