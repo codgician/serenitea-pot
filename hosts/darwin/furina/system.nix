@@ -63,6 +63,7 @@
             macmon
             codex
             claude-code-wrapped
+            opencode-with-config
             antigravity
           ]
           ++ (with pkgs.nur.repos.codgician; [

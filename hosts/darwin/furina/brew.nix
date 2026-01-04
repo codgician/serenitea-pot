@@ -73,6 +73,7 @@
     "obs"
     "obs-advanced-scene-switcher"
     "obs-backgroundremoval"
+    "opencode-desktop"
     "ibkr"
   ];
 }

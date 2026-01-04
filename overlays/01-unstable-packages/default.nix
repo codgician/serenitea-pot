@@ -8,6 +8,7 @@ final: prev: {
     nexttrace
     codex
     claude-code
+    opencode
     antigravity
     zfs_unstable
     ;

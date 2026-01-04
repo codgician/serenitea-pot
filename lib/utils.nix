@@ -48,7 +48,7 @@ rec {
         inherit lib;
       })
     ]
-    ++ (builtins.map (x: import x { inherit inputs lib system; }) (
+    ++ (builtins.map (x: import x { inherit inputs lib system outputs; }) (
       with lib.codgician; getFolderPaths overlaysDir
     ));
 
