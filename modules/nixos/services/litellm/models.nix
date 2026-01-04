@@ -220,6 +220,18 @@ let
     }
   ];
 
+  # Nvidia NIM models
+  nvidiaModelDefinitions = [
+    {
+      model_name = "z-ai/glm4.7";
+      model_info.mode = "chat";
+    }
+    {
+      model_name = "minimaxai/minimax-m2.1";
+      model_info.mode = "chat";
+    }
+  ];
+
   missingAzureModels = lib.filter (
     m: !(builtins.elem m.model_name deployedModelNames)
   ) azureModelDefinitions;
@@ -230,7 +242,7 @@ assert lib.assertMsg (missingAzureModels == [ ])
   }";
 rec {
   # Everything
-  all = azure ++ deepseek ++ google ++ github;
+  all = azure ++ deepseek ++ google ++ github ++ nvidia;
 
   # Azure AI models
   azure = builtins.map (
@@ -308,4 +320,21 @@ rec {
       // litellm_params;
     }
   ) githubModelDefinitions;
+
+  # Nvidia NIM models
+  nvidia = builtins.map (
+    {
+      model_name,
+      model_info ? { },
+      litellm_params ? { },
+    }:
+    {
+      inherit model_name model_info;
+      litellm_params = {
+        model = "nvidia_nim/${model_name}";
+        api_key = "os.environ/NVIDIA_NIM_API_KEY";
+      }
+      // litellm_params;
+    }
+  ) nvidiaModelDefinitions;
 }
