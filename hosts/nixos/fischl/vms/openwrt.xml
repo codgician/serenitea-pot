@@ -22,7 +22,7 @@
     <iothreadpin iothread="1" cpuset="0-1,6-7"/>
   </cputune>
   <os>
-    <type arch="x86_64" machine="pc-q35-9.2">hvm</type>
+    <type arch="x86_64" machine="pc-q35-10.1">hvm</type>
     <loader readonly="yes" type="pflash">/run/libvirt/nix-ovmf/edk2-x86_64-code.fd</loader>
     <nvram template="/run/libvirt/nix-ovmf/edk2-i386-vars.fd">/var/lib/libvirt/qemu/nvram/openwrt_VARS.fd</nvram>
     <boot dev="hd"/>
