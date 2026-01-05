@@ -48,9 +48,17 @@ rec {
         inherit lib;
       })
     ]
-    ++ (builtins.map (x: import x { inherit inputs lib system outputs; }) (
-      with lib.codgician; getFolderPaths overlaysDir
-    ));
+    ++ (builtins.map (
+      x:
+      import x {
+        inherit
+          inputs
+          lib
+          system
+          outputs
+          ;
+      }
+    ) (with lib.codgician; getFolderPaths overlaysDir));
 
   # Make package universe
   mkPkgs =

@@ -2,13 +2,14 @@
   config,
   lib,
   pkgs,
+  outputs,
   ...
 }:
 let
   cfg = config.codgician.users;
   types = lib.types;
   inherit (pkgs.stdenvNoCC) isLinux;
-  hmModules = import lib.codgician.hmModulesDir { inherit lib; };
+  hmModules = import lib.codgician.hmModulesDir { inherit lib outputs; };
   invalidHashedPasswordFile = pkgs.writeText "hashed-password" "!";
 
   # Use list of sub-folder names as list of available users
@@ -152,5 +153,12 @@ let
 in
 {
   options.codgician.users = lib.codgician.concatAttrs (builtins.map mkUserOptions users);
-  config = lib.mkMerge (builtins.map mkUserConfig users);
+  config = lib.mkMerge (
+    (builtins.map mkUserConfig users)
+    ++ [
+      {
+        home-manager.extraSpecialArgs.outputs = outputs;
+      }
+    ]
+  );
 }

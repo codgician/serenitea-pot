@@ -8,7 +8,7 @@ let
   cfg = config.codgician.codgi.pwsh;
 in
 {
-  options.codgician.codgi.pwsh.enable = lib.mkEnableOption "PowerShell and oh-my-posh.";
+  options.codgician.codgi.pwsh.enable = lib.mkEnableOption "PowerShell and oh-my-posh";
 
   config = lib.mkIf cfg.enable {
     home.packages = with pkgs; [ powershell ];
