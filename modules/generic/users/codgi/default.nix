@@ -24,4 +24,7 @@ in
 
   # Trust me
   nix.settings.trusted-users = [ name ];
+
+  # User-scope secrets
+  codgician.system.agenix.secrets."context7-api-key".owner = "codgi";
 }

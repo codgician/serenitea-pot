@@ -1,5 +1,6 @@
 {
   config,
+  osConfig,
   lib,
   ...
 }:
@@ -16,8 +17,7 @@ in
         context7 = {
           url = "https://mcp.context7.com/mcp";
           headers = {
-            # todo: configure in the future
-            # CONTEXT7_API_KEY = "{file:${config.age.secrets.context7-api-key.path}}";
+            CONTEXT7_API_KEY = "{file:${osConfig.age.secrets.context7-api-key.path}}";
           };
         };
       };
