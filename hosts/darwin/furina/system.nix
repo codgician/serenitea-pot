@@ -65,7 +65,7 @@
             macmon
             codex
             claude-code-wrapped
-            antigravity
+            beads
           ]
           ++ (with pkgs.nur.repos.codgician; [
             mtk_uartboot

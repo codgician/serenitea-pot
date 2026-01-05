@@ -6,6 +6,7 @@ final: prev: {
     sing-box
     sing-geoip
     nexttrace
+    beads
     codex
     claude-code
     opencode
