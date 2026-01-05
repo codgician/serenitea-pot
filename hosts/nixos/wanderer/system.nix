@@ -4,7 +4,6 @@
   # My settings
   codgician = {
     services = {
-      litellm.enable = true;
       nixos-vscode-server.enable = true;
     };
 
@@ -29,6 +28,8 @@
     {
       codgician.codgi = {
         dev.nix.enable = true;
+        opencode.enable = true;
+        mcp.enable = true;
         git.enable = true;
         pwsh.enable = true;
         ssh.enable = true;

@@ -25,7 +25,9 @@ let
   );
 in
 {
-  options.codgician.codgi.opencode.enable = lib.mkEnableOption "opencode";
+  options.codgician.codgi.opencode = {
+    enable = lib.mkEnableOption "opencode";
+  };
 
   config = lib.mkIf cfg.enable {
     programs.opencode = {
@@ -45,7 +47,17 @@ in
 
     # Add override for oh-my-opencode
     xdg.configFile."opencode/oh-my-opencode.json".text = builtins.toJSON {
-      agents.Sisyphus.model = "dendro/claude-opus-4.5";
+      "$schema" =
+        "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json";
+      agents = {
+        Sisyphus.model = "dendro/claude-opus-4.5";
+        librarian.model = "dendro/claude-sonnet-4.5";
+        explore.model = "dendro/gemini-3-flash-preview";
+        oracle.model = "dendro/gpt-5.2";
+        frontend-ui-ux-engineer.model = "dendro/gemini-3-pro-preview";
+        document-writer.model = "dendro/gemini-3-pro-preview";
+        multimodal-looker.model = "dendro/gemini-3-flash-preview";
+      };
     };
   };
 }
