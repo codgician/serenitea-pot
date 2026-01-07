@@ -19,16 +19,6 @@ rec {
   isLinuxSystem = lib.hasSuffix "-linux";
   allSystems = darwinSystems ++ linuxSystems;
 
-  # Global instantiation of unstable pkgs
-  unstablePkgsMap = lib.genAttrs allSystems (
-    system:
-    import inputs.nixpkgs-unstable {
-      inherit system;
-      config.allowUnfree = true;
-      overlays = getCommonOverlays system;
-    }
-  );
-
   # Get package overlays
   getCommonOverlays =
     system:
@@ -44,7 +34,17 @@ rec {
     (getCommonOverlays system)
     ++ [
       (final: prev: {
-        unstable = unstablePkgsMap.${system};
+        # Lazy unstable - only evaluated when pkgs.unstable.* is accessed
+        unstable = import inputs.nixpkgs-unstable {
+          inherit system;
+          config = {
+            allowUnfree = true;
+            # Inherit CUDA/ROCm config from the host's stable pkgs
+            cudaSupport = prev.config.cudaSupport or false;
+            rocmSupport = prev.config.rocmSupport or false;
+          };
+          overlays = getCommonOverlays system;
+        };
         inherit lib;
       })
     ]

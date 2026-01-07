@@ -41,6 +41,10 @@ in
         hostPath = "/nix/var/log/nix";
         isReadOnly = true;
       };
+      "/nix/var/nix/builds" = {
+        hostPath = "/nix/var/nix/builds";
+        isReadOnly = true;
+      };
     }
     // (lib.genAttrs gpuDevs (node: {
       hostPath = node;
