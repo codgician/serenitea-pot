@@ -22,10 +22,10 @@ let
   '';
 in
 {
-  open-webui-akasha = prev.open-webui.overridePythonAttrs (
+  open-webui-akasha = final.open-webui.overridePythonAttrs (
     oldAttrs:
     let
-      frontend = prev.open-webui.passthru.frontend.overrideAttrs (oldAttrs': {
+      frontend = final.open-webui.passthru.frontend.overrideAttrs (oldAttrs': {
         # Apply patches to frontend
         patches = (if (oldAttrs' ? patches) then oldAttrs'.patches else [ ]) ++ patches;
         postPatch = oldAttrs'.postPatch + postPatch;

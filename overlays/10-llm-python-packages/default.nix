@@ -18,7 +18,6 @@ let
     in
     {
       inherit (prev.unstable.${pythonPackagesName})
-        rapidocr-onnxruntime
         docling
         docling-ibm-models
         docling-core
@@ -28,21 +27,29 @@ let
         litellm
         ;
     }
-    // (lib.genAttrs [ "onnxruntime" "vllm" ] (
-      name: adapt prev.unstable.${pythonPackagesName}.${name}
-    ));
-
+    // (lib.genAttrs [ "vllm" ] (name: adapt prev.unstable.${pythonPackagesName}.${name}));
 in
 {
   # Non-Python packages pulled directly from unstable
   inherit (prev.unstable)
     ollama-cuda
     ollama-rocm
+    ollama-vulkan
     docling
     docling-serve
-    open-webui
     litellm
     ;
+
+  # Override open-webui to use rapidocr-onnxruntime with tests disabled
+  open-webui = prev.unstable.open-webui.override {
+    python3Packages = prev.unstable.python3Packages.overrideScope (
+      pyFinal: pyPrev: {
+        rapidocr-onnxruntime = pyPrev.rapidocr-onnxruntime.overridePythonAttrs (_: {
+          doCheck = false;
+        });
+      }
+    );
+  };
 
   pythonPackagesExtensions = (prev.pythonPackagesExtensions or [ ]) ++ [
     pythonUnstableExtension

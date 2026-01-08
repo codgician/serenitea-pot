@@ -68,6 +68,7 @@ in
           false
           "cuda"
           "rocm"
+          "vulkan"
         ]
       );
       default = null;
@@ -112,6 +113,8 @@ in
             pkgs.ollama-rocm
           else if cfg.acceleration == "cuda" then
             pkgs.ollama-cuda
+          else if cfg.acceleration == "vulkan" then
+            pkgs.ollama-vulkan
           else
             pkgs.ollama;
       };
