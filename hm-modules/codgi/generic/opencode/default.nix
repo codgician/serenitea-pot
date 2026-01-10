@@ -20,6 +20,22 @@ in
       settings = {
         theme = "github";
         plugin = [ "oh-my-opencode" ];
+        permission = {
+          read = {
+            "*" = "allow";
+            "*.env" = "deny";
+            "*.env.*" = "deny";
+            "*.env.example" = "allow";
+            "/run/agenix/**" = "deny";
+          };
+          edit = "allow";
+          bash = {
+            "*" = "allow";
+            "git *" = "allow";
+            "sudo*" = "ask";
+            "/nix/store/**" = "ask";
+          };
+        };
         provider.dendro = {
           npm = "@ai-sdk/openai-compatible";
           name = "dendro";
