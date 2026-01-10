@@ -3,15 +3,22 @@
   # My settings
   codgician = {
     services = {
-      code-server = {
+      openvscode-server = {
         enable = true;
         user = "codgi";
         group = "users";
-        hashedPassword = "$argon2i$v=19$m=4096,t=3,p=1$ZE03dWRrZ054QUlCVEhKOFdQYVlzNk93VEZZPQ$UEfayI2EAzwLfRCM7Ase4lqSYruQFGgo/EeReXpihXI";
         reverseProxy = {
           enable = true;
           domains = [ "leyline.codgician.me" ];
-          authelia.enable = true;
+          authelia = {
+            enable = true;
+            rules = [
+              {
+                users = [ "leyline" ];
+                policy = "two_factor";
+              }
+            ];
+          };
         };
       };
 

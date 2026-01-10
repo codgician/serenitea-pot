@@ -9,7 +9,7 @@
       };
     };
 
-    code-server.reverseProxy = {
+    openvscode-server.reverseProxy = {
       enable = true;
       domains = [ "leyline.codgician.me" ];
       proxyPass = "https://192.168.0.8";
