@@ -1,4 +1,4 @@
-{
+args@{
   config,
   lib,
   pkgs,
@@ -7,22 +7,6 @@
 }:
 let
   cfg = config.codgician.codgi.opencode;
-  allModels =
-    (import ../../../../modules/nixos/services/litellm/models.nix {
-      inherit lib pkgs outputs;
-    }).all;
-
-  models = lib.listToAttrs (
-    builtins.map (m: lib.nameValuePair m.model_name { name = m.model_name; }) (
-      lib.filter (
-        m:
-        builtins.elem (m.model_info.mode or "") [
-          "chat"
-          "responses"
-        ]
-      ) allModels
-    )
-  );
 in
 {
   options.codgician.codgi.opencode = {
@@ -40,7 +24,7 @@ in
           npm = "@ai-sdk/openai-compatible";
           name = "dendro";
           options.baseURL = "https://dendro.codgician.me/";
-          inherit models;
+          models = (import ./models.nix args).all;
         };
       };
     };

@@ -57,6 +57,7 @@ Auto-discovered via `lib.codgician.getFolderNames` - just create a folder with `
 | wanderer | WSL | x86_64-linux | Windows Subsystem |
 
 ### Host File Structure
+
 - `default.nix` - Entry point calling `mk*System { hostName, system, modules }`
 - `system.nix` - Core system config (required)
 - `hardware.nix` - Boot, drivers, kernel (NixOS)
@@ -69,6 +70,7 @@ Auto-discovered via `lib.codgician.getFolderNames` - just create a folder with `
 Custom library at `lib/` extending `nixpkgs.lib`.
 
 ### System Builders
+
 | Function | Purpose |
 |----------|---------|
 | `mkNixosSystem` | Build NixOS config with base modules (agenix, impermanence, disko) |
@@ -76,6 +78,7 @@ Custom library at `lib/` extending `nixpkgs.lib`.
 | `mkPkgs` | Create pkgs with overlays + allowUnfree |
 
 ### Iterators
+
 | Function | Purpose |
 |----------|---------|
 | `forAllSystems` | Generate attrs for all architectures |
@@ -83,6 +86,7 @@ Custom library at `lib/` extending `nixpkgs.lib`.
 | `isDarwinSystem` / `isLinuxSystem` | Check system type |
 
 ### Service Helpers
+
 | Function | Purpose |
 |----------|---------|
 | `mkServiceReverseProxyOptions` | Standard options for web services (HTTPS, Authelia) |
@@ -90,6 +94,7 @@ Custom library at `lib/` extending `nixpkgs.lib`.
 | `mkServiceUserGroupLinux` | Create system user/group |
 
 ### File Discovery
+
 | Function | Purpose |
 |----------|---------|
 | `getFolderPaths` / `getFolderNames` | Auto-discover subdirectories |
@@ -97,6 +102,7 @@ Custom library at `lib/` extending `nixpkgs.lib`.
 | `getAgeSecretPathFromName` | Map secret name to .age path |
 
 ### Utilities
+
 | Function | Purpose |
 |----------|---------|
 | `getOverlays` | Aggregate all overlays + lazy `pkgs.unstable` |
@@ -107,6 +113,7 @@ Custom library at `lib/` extending `nixpkgs.lib`.
 ## CONVENTIONS
 
 ### Naming (Genshin Impact theme)
+
 | Type | Rule | Examples |
 |------|------|----------|
 | VMs/Containers | Archons/Dragons | focalors, nahida |
@@ -116,6 +123,7 @@ Custom library at `lib/` extending `nixpkgs.lib`.
 | WSL/subsystems | Male characters | wanderer |
 
 ### Module Options Pattern
+
 ```nix
 options.codgician.<category>.<name> = { ... };
 # In let block:
@@ -123,6 +131,7 @@ cfg = config.codgician.<category>.<name>;
 ```
 
 ### Service Module Template
+
 ```nix
 options.codgician.services.<name> = {
   enable = lib.mkEnableOption "Service description";
@@ -138,6 +147,7 @@ config = lib.mkMerge [
 ```
 
 ### Secret Registration
+
 ```nix
 codgician.system.agenix.secrets = lib.genAttrs
   ["secret-name-1" "secret-name-2"]
@@ -145,6 +155,7 @@ codgician.system.agenix.secrets = lib.genAttrs
 ```
 
 ### Terranix Resource References
+
 ```nix
 # Use Nix attribute access instead of Terraform interpolation:
 storage_account_id = config.resource.azurerm_storage_account.primogems "id";
@@ -191,6 +202,6 @@ nix run .#tfmgr -- apply       # Apply changes
 - Binary cache: `codgician.cachix.org`
 - CI: Garnix (not GitHub Actions for builds)
 - `pkgs.unstable.*` available via lazy overlay
-- Pass `stable = false` to mk*System for nixpkgs-unstable
+- Pass `stable = false` to mk\*System for nixpkgs-unstable
 - Impermanence: Register paths with `codgician.system.impermanence.extraItems`
 - Terraform auth: Auto-decrypted by `tfmgr` from `secrets/terraform-env.age`
