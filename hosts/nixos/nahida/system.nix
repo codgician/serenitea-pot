@@ -26,7 +26,47 @@
         enable = true;
         notebookDir = "/lab/jupyter";
         user = "codgi";
-        extraKernels.ihaskell.enable = true;
+
+        # Enable venv kernel management (for rapid experimentation)
+        enableVenvKernels = true;
+
+        # Stable Haskell kernel (Nix-managed)
+        extraKernels.ihaskell = {
+          enable = true;
+          extraPackages = ps: with ps; [
+            # Core utilities (note: text, bytestring, containers, mtl, transformers, time
+            # are GHC core libraries - already included, don't need to be specified)
+            lens
+            lens-aeson
+            aeson
+            vector
+
+            # Data visualization
+            ihaskell-hvega
+            hvega
+            diagrams
+            diagrams-cairo
+            diagrams-svg
+
+            # Web & HTTP
+            wreq
+            http-client
+            http-client-tls
+
+            # Scientific computing
+            statistics
+            scientific
+
+            # Utilities
+            unordered-containers
+            hashable
+            uuid
+          ];
+        };
+
+        # Stable Python kernel (Nix-managed, data science baseline)
+        extraKernels.python-base.enable = true;
+
         reverseProxy = {
           enable = true;
           domains = [ "dragonspine.codgician.me" ];

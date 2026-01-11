@@ -243,7 +243,7 @@ in
             "= /.well-known/matrix/server" = lib.mkIf (!cfg.reverseProxy.proxyAll) {
               inherit (cfg.reverseProxy) lanOnly;
               passthru = {
-                return = ''200 '${builtins.toJSON serverConfig}' '';
+                return = "200 '${builtins.toJSON serverConfig}' ";
                 extraConfig = ''
                   add_header Content-Type application/json;
                   add_header Access-Control-Allow-Origin *;
@@ -254,7 +254,7 @@ in
             "= /.well-known/matrix/client" = lib.mkIf (!cfg.reverseProxy.proxyAll) {
               inherit (cfg.reverseProxy) lanOnly;
               passthru = {
-                return = ''200 '${builtins.toJSON clientConfig}' '';
+                return = "200 '${builtins.toJSON clientConfig}' ";
                 extraConfig = ''
                   add_header Content-Type application/json;
                   add_header Access-Control-Allow-Origin *;

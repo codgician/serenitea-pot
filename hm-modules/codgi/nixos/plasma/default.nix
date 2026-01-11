@@ -14,7 +14,7 @@ in
     enable = lib.mkOption {
       type = types.bool;
       default = osConfig.services.desktopManager.plasma6.enable;
-      description = ''Enable dotfiles for KDE plasma desktop.'';
+      description = "Enable dotfiles for KDE plasma desktop.";
     };
   };
 

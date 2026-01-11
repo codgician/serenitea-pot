@@ -55,7 +55,7 @@ in
       inherit serviceName;
       defaultProxyPass = "http://unix:/run/${serviceName}/${name}.sock";
       defaultDomains = [ "${cfg.domain}" ];
-      defaultDomainsText = ''with config.codgician.services.authelia.${name}; [ domain ]'';
+      defaultDomainsText = "with config.codgician.services.authelia.${name}; [ domain ]";
     };
   };
 
