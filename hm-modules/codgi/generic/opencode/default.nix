@@ -30,6 +30,7 @@ in
           bash = {
             "*" = "allow";
             "git *" = "allow";
+            "*git push*" = "ask";
             "sudo*" = "ask";
             "/nix/store*" = "ask";
           };
