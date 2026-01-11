@@ -1,10 +1,4 @@
-args@{
-  config,
-  lib,
-  pkgs,
-  outputs,
-  ...
-}:
+args@{ config, lib, pkgs, outputs, ... }:
 let
   cfg = config.codgician.codgi.opencode;
 in
@@ -26,14 +20,22 @@ in
             "*.env" = "deny";
             "*.env.*" = "deny";
             "*.env.example" = "allow";
-            "/run/agenix/**" = "deny";
+            "/run/agenix*" = "deny";
           };
           edit = "allow";
+          external_directory = {
+            "*" = "allow";
+            "/run/agenix*" = "deny";
+          };
           bash = {
             "*" = "allow";
             "git *" = "allow";
             "sudo*" = "ask";
-            "/nix/store/**" = "ask";
+            "/nix/store*" = "ask";
+          };
+          list = {
+            "*" = "allow";
+            "/run/agenix*" = "deny";
           };
         };
         provider.dendro = {

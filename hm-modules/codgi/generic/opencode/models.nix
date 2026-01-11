@@ -64,7 +64,6 @@ rec {
       name = x.model_name;
       value = {
         name = x.model_name;
-        variant = "xhigh";
         variants = gpt52Variants;
       };
     }))
@@ -77,7 +76,6 @@ rec {
       name = x.model_name;
       value = {
         name = x.model_name;
-        variant = "high";
         variants = gpt5Variants;
       };
     }))
@@ -90,7 +88,6 @@ rec {
       name = x.model_name;
       value = {
         name = x.model_name;
-        variant = "max";
         variants = claudeVariants;
       };
     }))
@@ -114,7 +111,6 @@ rec {
       name = x.model_name;
       value = {
         name = x.model_name;
-        variant = "high";
         variants = geminiProVariants;
       };
     }))
