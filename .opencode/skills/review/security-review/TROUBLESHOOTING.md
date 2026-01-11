@@ -1,103 +1,66 @@
 # Troubleshooting: Security Review
 
+> See AGENTS.md for global troubleshooting principles.
+
 ## "Permission denied" on secret at runtime
 
 **Symptom**: Eval succeeds, deploy succeeds, service fails
 
-**Causes & Fixes**:
+### Host pubkey missing
 
-### Host pubkey not in secrets/pubkeys.nix
-```bash
-grep <hostname> secrets/pubkeys.nix
-# Fix: Add to allHosts, then rekey
-agenix -r
-```
+**Diagnosis**: `grep <hostname> secrets/pubkeys.nix`
 
-### Secret owner/group mismatch
+**Fix**: Add key, then `agenix -r` (requires user approval).
+
+### Owner/group mismatch
+
+**Diagnosis**:
 ```bash
 ssh <host> stat /run/agenix/<secret>
 ssh <host> systemctl show <service> | grep ^User
-# Fix: Update owner in codgician.system.agenix.secrets
 ```
 
+**Fix**: Update `codgician.system.agenix.secrets`
+
 ### Impermanence identity path wrong
-```bash
-ssh <host> ls -la /etc/ssh/ssh_host_ed25519_key
-ssh <host> ls -la /persist/etc/ssh/
-```
+
+Check `/persist/etc/ssh/` has host key.
 
 ---
 
 ## Nginx 502 Bad Gateway
 
-**Causes**:
-
-### Service not listening
-```bash
-ssh <host> systemctl status <service>
-ssh <host> ss -tlnp | grep <port>
-```
-
-### Wrong port in reverseProxy
-Check `reverseProxy.localPort` matches service's listen port
-
-### Firewall blocking
-```bash
-ssh <host> iptables -L -n | grep <port>
-```
+| Cause | Check |
+|-------|-------|
+| Service not listening | `systemctl status <service>` |
+| Wrong port | `reverseProxy.localPort` matches service |
+| Firewall | `networking.firewall.allowedTCPPorts` |
 
 ---
 
 ## Terraform state drift
 
-```bash
-# Refresh state
-nix run .#tfmgr -- shell
-terraform refresh
-exit
-
-# Check specific resource
-terraform state show <resource>
-
-# Import if manually created
-terraform import <resource_type>.<name> <id>
-```
+All terraform operations inside `tfmgr shell`. State mutations require user approval.
 
 ---
 
 ## Public service without auth detected
 
-**Risk**: Unauthorized access to internal service
-
-**Fix options**:
+**Fix options** (present to user):
 1. Add Authelia: `authelia.enable = true`
 2. Make internal: `lanOnly = true`
-3. Document exception if intentionally public
+3. Document exception (user must confirm)
 
 ---
 
 ## Direct secret path found
 
-**Pattern detected**:
-```nix
-"/run/agenix/my-secret"  # BAD
-```
-
-**Fix**:
-```nix
-config.age.secrets.my-secret.path  # GOOD
-```
+**Bad**: `"/run/agenix/my-secret"`
+**Good**: `config.age.secrets.my-secret.path`
 
 ---
 
 ## Terraform interpolation found
 
-**Pattern detected**:
-```nix
-"${azurerm_storage.X.id}"  # BAD
-```
-
-**Fix**:
-```nix
-config.resource.azurerm_storage.X "id"  # GOOD
-```
+**Bad**: `"${azurerm_storage.X.id}"`
+**Good**: `config.resource.azurerm_storage.X "id"`

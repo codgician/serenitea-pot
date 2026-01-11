@@ -1,6 +1,8 @@
 # Troubleshooting: Add NixOS Host
 
-## Error: "attribute 'codgician' not found"
+> See AGENTS.md for global troubleshooting principles.
+
+## "attribute 'codgician' not found"
 
 **Cause**: Module not using `lib.codgician.mkNixosSystem`
 
@@ -12,11 +14,9 @@ lib.codgician.mkNixosSystem {
 }
 ```
 
-See [debug-eval](../debug-eval/SKILL.md) for detailed diagnosis.
-
 ---
 
-## Error: "No such file: /etc/nixos/configuration.nix"
+## "No such file: /etc/nixos/configuration.nix"
 
 **Cause**: Hardware config references `/etc/nixos`
 
@@ -24,43 +24,19 @@ See [debug-eval](../debug-eval/SKILL.md) for detailed diagnosis.
 
 ---
 
-## Error: "Permission denied" on secrets at runtime
-
-**Cause**: Host not in `secrets/pubkeys.nix`
-
-**Fix**:
-```bash
-# 1. Add host key to secrets/pubkeys.nix
-# 2. Rekey all secrets
-agenix -r
-# 3. Rebuild
-```
-
----
-
-## Error: Disko "Device busy"
+## Disko "Device busy"
 
 **Cause**: Disk is mounted or in use
 
-**Fix**:
+**Diagnosis**:
 ```bash
-# Unmount all partitions
-umount -R /mnt
-
-# Verify correct disk (CRITICAL - check SIZE, MODEL, SERIAL)
 lsblk -o NAME,SIZE,MODEL,SERIAL,TYPE,MOUNTPOINTS
-
-# Use /dev/disk/by-id/ for safety
-ls -la /dev/disk/by-id/
-
-# Clear partition table (DANGEROUS!)
-wipefs -a /dev/disk/by-id/<disk-id>
-
-# Run partprobe
-partprobe
-
-# Retry disko
+findmnt | grep <disk>
 ```
+
+**Safe steps**: `umount -R /mnt && partprobe`
+
+**Destructive** (`wipefs`): See [AGENTS.md] - requires explicit user approval after confirming correct disk.
 
 ---
 
@@ -78,43 +54,28 @@ codgician.system.impermanence.extraItems = [
 
 ---
 
-## Build fails: "infinite recursion encountered"
+## "infinite recursion encountered"
 
 **Cause**: Module option conflict or self-reference
 
-**Fix**: See [debug-eval](../debug-eval/SKILL.md) for diagnosis techniques.
+See [debug-eval](../debug-eval/SKILL.md) for diagnosis.
 
 ---
 
-## Error: "connection refused" during remote deploy
+## Boot fails after Disko
 
-**Causes**:
-1. Host not reachable (network)
-2. SSH not running
-3. SSH key not authorized
+**Causes**: Wrong bootloader, missing initrd modules, wrong disk device
 
-**Fix**:
-```bash
-# Test connectivity
-ping <hostname>
-ssh <hostname> echo "OK"
-
-# Check DNS
-dig <hostname>
-```
-
----
-
-## Error: Boot fails after Disko
-
-**Causes**:
-1. Wrong bootloader config
-2. Missing kernel modules in initrd
-3. Wrong disk device in config
-
-**Recovery**:
-1. Boot from NixOS installer USB
-2. Mount partitions manually
-3. Check `/mnt/etc/nixos/` (if copied) or re-run `nixos-install`
+**Safe recovery**: Boot installer USB → mount → inspect. Or select previous generation from bootloader.
 
 **Prevention**: Always test Disko config in VM first.
+
+---
+
+## Secret/agenix errors
+
+See [manage-agenix/TROUBLESHOOTING.md](../../secrets/manage-agenix/TROUBLESHOOTING.md)
+
+## Build/deploy errors
+
+See [build-deploy/TROUBLESHOOTING.md](../build-deploy/TROUBLESHOOTING.md)

@@ -1,71 +1,51 @@
 # Troubleshooting: Build and Deploy
 
-## Error: "connection refused" during remote deploy
+> See AGENTS.md for global troubleshooting principles.
 
-**Causes**:
-1. Host not reachable
-2. SSH not running
-3. Key not authorized
+## "connection refused" during remote deploy
 
-**Fix**:
-```bash
-ssh <host> echo "OK"
-ping <host>
-dig <host>
-```
+| Failure Type | Action |
+|--------------|--------|
+| Network unreachable | Report to user |
+| SSH auth failure | **Ask user** to resolve keys/access |
+| SSH not running | May need console access |
 
 ---
 
-## Error: Build fails on remote
+## Build fails on remote
 
-**Cause**: Building on remote but missing deps
-
-**Fix**: Build locally, push closure:
+**Safe alternative** (validate without deploying):
 ```bash
-nixos-rebuild switch --flake .#<host> \
-  --target-host <host> \
-  --build-host localhost \
-  --use-remote-sudo
+nix build .#nixosConfigurations.<host>.config.system.build.toplevel
 ```
+
+Deployment requires user approval per AGENTS.md principles.
 
 ---
 
-## Error: "out of disk space"
+## "out of disk space"
 
-**Cause**: Nix store full
-
-**Fix**:
+**Safe option** (keeps recent generations):
 ```bash
-ssh <host> sudo nix-collect-garbage -d
-
-# Or keep last 5 generations
 ssh <host> sudo nix-env --delete-generations +5 -p /nix/var/nix/profiles/system
 ssh <host> sudo nix-collect-garbage
 ```
+
+`nix-collect-garbage -d` removes ALL generations - requires user approval.
 
 ---
 
 ## Services fail after deploy
 
-**Diagnose**:
-```bash
-ssh <host> systemctl --failed
-ssh <host> journalctl -u <service> -n 50
-ssh <host> journalctl -xb
-```
+**Diagnosis**: `ssh <host> systemctl --failed`
 
-**Rollback if critical**:
-```bash
-ssh <host> sudo nixos-rebuild switch --rollback
-```
+Rollback (`nixos-rebuild switch --rollback`) requires user approval.
 
 ---
 
 ## Locked out (can't SSH)
 
-**Prevention**: Test SSH changes on non-critical host first.
-
-**Recovery**:
+**This requires user intervention.** Recovery options:
 1. Console access (IPMI, VM console, physical)
 2. Boot previous generation from bootloader
 3. Rescue boot with NixOS installer USB
@@ -73,8 +53,6 @@ ssh <host> sudo nixos-rebuild switch --rollback
 ---
 
 ## Darwin: "could not find any previously installed nix-darwin"
-
-**Cause**: First-time or broken state
 
 **Fix**:
 ```bash
@@ -86,27 +64,12 @@ nix build .#darwinConfigurations.<host>.system
 
 ## Slow deployment
 
-**Causes**:
-1. Large closure
-2. Slow network
-3. Building on remote
-
-**Fix**:
+**Fix**: Build locally first:
 ```bash
-# Build locally first
 nix build .#nixosConfigurations.<host>.config.system.build.toplevel
-
-# Use local build
-nixos-rebuild switch --flake .#<host> --target-host <host> --build-host localhost --use-remote-sudo
 ```
 
----
-
-## Generation not appearing
-
-**Cause**: `test` command doesn't create generation
-
-**Note**: `nixos-rebuild test` doesn't add generation, `switch` and `boot` do.
+Then deploy with `--build-host localhost`.
 
 ---
 
@@ -114,11 +77,5 @@ nixos-rebuild switch --flake .#<host> --target-host <host> --build-host localhos
 
 For aarch64 on x86_64:
 ```nix
-# Enable in config
 boot.binfmt.emulatedSystems = [ "aarch64-linux" ];
-```
-
-Or use remote builder:
-```bash
-nix build .#nixosConfigurations.lumine... --builders "ssh://aarch64-builder"
 ```

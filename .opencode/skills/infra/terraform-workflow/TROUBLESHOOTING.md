@@ -1,78 +1,53 @@
 # Troubleshooting: Terraform Workflow
 
-## Error: State drift (unexpected changes in plan)
+> See AGENTS.md for global troubleshooting principles.
+
+## State drift (unexpected changes in plan)
 
 **Cause**: Manual changes in cloud console
 
-**Fix**:
-```bash
-nix run .#tfmgr -- shell
-terraform refresh
-exit
-nix run .#tfmgr -- plan
-```
+**Fix**: `terraform refresh` inside `tfmgr shell` - requires user approval.
 
 ---
 
-## Error: Resource already exists
+## Resource already exists
 
 **Cause**: Resource created outside Terraform
 
-**Fix**: Import into state:
-```bash
-nix run .#tfmgr -- shell
-# Get resource ID from cloud console
-terraform import cloudflare_dns_record.myrecord <zone_id>/<record_id>
-exit
-```
+**Fix**: `terraform import` inside `tfmgr shell` - requires user approval with resource ID confirmation.
 
 ---
 
-## Error: Authentication failed
+## Authentication failed
 
-**Causes**:
-1. Credentials expired
-2. Secret missing
+**Action**: Ask user to resolve credentials. Do not rotate secrets automatically.
 
-**Check**:
-1. Secret exists: `secrets/terraform-env.age`
-2. Run `nix run .#chkexp` for expiry check
-3. Rotate if needed: `agenix -e secrets/terraform-env.age`
+After user confirms new credentials: ask approval to update `secrets/terraform-env.age`.
 
 ---
 
-## Error: "Invalid reference" in plan
+## "Invalid reference" in plan
 
 **Cause**: Using Terraform interpolation instead of Nix attribute access
 
-**Wrong**:
-```nix
-zone_id = "\${cloudflare_zone.codgician-me.id}";
-```
-
-**Correct**:
-```nix
-zone_id = config.resource.cloudflare_zone.codgician-me "id";
-```
+**Wrong**: `zone_id = "\${cloudflare_zone.codgician-me.id}";`
+**Correct**: `zone_id = config.resource.cloudflare_zone.codgician-me "id";`
 
 ---
 
-## Error: Resource replacement (-/+) unexpected
+## Resource replacement (-/+) unexpected
 
-**Cause**: Changing an immutable attribute
+**Cause**: Changing immutable attribute forces replacement
 
-**Action**:
-1. Review if replacement is acceptable
-2. If data loss risk, plan migration first
-3. If okay, proceed with apply
+**Action**: Stop and ask user - may cause data loss or downtime.
 
 ---
 
-## Error: "No such file" for .tf
+## "No such file" for .tf
 
 **Cause**: Terranix didn't generate config
 
-**Fix**: Check Nix syntax in terraform-config files:
+**Fix**: Check Nix syntax:
 ```bash
 nix eval .#packages.x86_64-linux.terraform-config
 ```
@@ -81,30 +56,14 @@ nix eval .#packages.x86_64-linux.terraform-config
 
 ## DNS not resolving after apply
 
-**Causes**:
-1. DNS propagation delay (wait 5-10 min)
-2. Wrong record type
-3. Cloudflare proxy settings
+**Causes**: Propagation delay (5-10 min), wrong record type, Cloudflare proxy settings
 
-**Check**:
-```bash
-# Direct query to Cloudflare
-dig @1.1.1.1 myservice.codgician.me
-
-# Check TTL
-dig +nocmd +noall +answer myservice.codgician.me
-```
+**Check**: `dig @1.1.1.1 myservice.codgician.me`
 
 ---
 
 ## Can't destroy resource
 
-**Cause**: Dependencies or protection
+`terraform state rm` and `terraform destroy -target` require user approval per AGENTS.md principles.
 
-**Fix**:
-```bash
-nix run .#tfmgr -- shell
-terraform state rm <resource>  # Remove from state only
-# OR
-terraform destroy -target=<resource>  # Actually destroy
-```
+Always run inside `tfmgr shell`.

@@ -1,10 +1,12 @@
 # Troubleshooting: Add Darwin Host
 
-## Error: "could not find any previously installed nix-darwin"
+> See AGENTS.md for global troubleshooting principles.
+
+## "could not find any previously installed nix-darwin"
 
 **Cause**: First-time installation needs bootstrap
 
-**Fix**: Use the built `darwin-rebuild`:
+**Fix**:
 ```bash
 nix build .#darwinConfigurations.<hostname>.system
 ./result/sw/bin/darwin-rebuild switch --flake .
@@ -12,42 +14,40 @@ nix build .#darwinConfigurations.<hostname>.system
 
 ---
 
-## Error: "Homebrew not found"
+## "Homebrew not found"
 
 **Cause**: Homebrew not installed
 
-**Fix**:
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+**Action**: Ask user to install Homebrew (requires running external script).
+
+After installed, manage packages via nix-darwin:
+```nix
+homebrew = {
+  enable = true;
+  brews = [ "mas" ];
+};
 ```
 
 ---
 
-## Error: "mas: command not found"
+## "mas: command not found"
 
-**Cause**: `mas` (Mac App Store CLI) not installed
-
-**Fix**:
-```bash
-brew install mas
+**Fix (Nix way)**: Add to nix-darwin config:
+```nix
+homebrew.brews = [ "mas" ];
 ```
 
 ---
 
-## Error: App Store app installation fails
+## App Store app installation fails
 
-**Causes**:
-1. Not signed into App Store
-2. App not purchased
+**Causes**: Not signed into App Store, app not purchased
 
-**Fix**:
-1. Sign into Mac App Store app
-2. Purchase/download manually first if needed
-3. Verify App ID: `mas search "App Name"`
+**Action**: Ask user to sign in and purchase/download manually first.
 
 ---
 
-## Error: "attribute 'codgician' not found"
+## "attribute 'codgician' not found"
 
 **Cause**: Not using `lib.codgician.mkDarwinSystem`
 
@@ -55,46 +55,22 @@ brew install mas
 ```nix
 lib.codgician.mkDarwinSystem {
   hostName = builtins.baseNameOf ./.;
-  # ...
 }
 ```
 
-See [debug-eval](../debug-eval/SKILL.md) for details.
-
 ---
 
-## Secrets don't decrypt
-
-**Causes**:
-1. Host key not in `secrets/pubkeys.nix`
-2. Wrong key path
-
-**Fix**:
-```bash
-# Verify host key exists
-ls -la /etc/ssh/ssh_host_ed25519_key
-
-# Check pubkeys.nix has the key
-grep <hostname> secrets/pubkeys.nix
-
-# Rekey if needed
-agenix -r
-```
-
----
-
-## Error: stateVersion type error
+## stateVersion type error
 
 **Cause**: Using string instead of integer
 
-**Wrong**:
-```nix
-system.stateVersion = "25.11";  # Wrong for Darwin!
-```
-
-**Correct**:
-```nix
-system.stateVersion = 6;  # Darwin uses integer
-```
+**Wrong**: `system.stateVersion = "25.11";`
+**Correct**: `system.stateVersion = 6;` (Darwin uses integer)
 
 Note: `home.stateVersion` still uses string format.
+
+---
+
+## Secret/agenix errors
+
+See [manage-agenix/TROUBLESHOOTING.md](../../secrets/manage-agenix/TROUBLESHOOTING.md)

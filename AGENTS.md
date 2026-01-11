@@ -102,9 +102,8 @@ config.resource.azurerm_storage_account.primogems "id"
 ## SKILLS
 
 Procedural workflows in `.opencode/skills/`. Each skill has:
-- `SKILL.md` - Quick start, procedure, exit criteria
-- `TROUBLESHOOTING.md` - Error patterns, recovery steps
-- `EXAMPLES.md` - Reference implementations
+- `SKILL.md` - Quick start, procedure, examples, exit criteria
+- `TROUBLESHOOTING.md` - Error patterns (skill-specific only; see principles above)
 
 ### Decision Logic
 
@@ -123,6 +122,18 @@ Procedural workflows in `.opencode/skills/`. Each skill has:
 
 Before ANY commit touching: `secrets/`, `modules/*/services/`, `packages/terraform-config/`, `hosts/`
 
+## TROUBLESHOOTING PRINCIPLES (Mandatory)
+
+These rules apply to ALL error recovery and troubleshooting:
+
+| Principle | Rule |
+|-----------|------|
+| **Auth errors** | Ask user to resolve. Never fix credentials, keys, or tokens automatically. |
+| **Nix way** | Use `nix develop`, flake changes, modules. Never run arbitrary install scripts. |
+| **Use nixpkgs** | Always prefer existing packages in nixpkgs. Ask user before creating overlays. |
+| **Repo-specific** | Skip generic advice (ping, journalctl basics). Focus on this repo's patterns. |
+| **No destructive actions** | `agenix -r`, `nixos-rebuild switch`, `terraform apply/destroy` require explicit user approval. |
+
 ## ANTI-PATTERNS
 
 - **NEVER** include secrets in ISO builds (`installer-iso*`)
@@ -130,6 +141,7 @@ Before ANY commit touching: `secrets/`, `modules/*/services/`, `packages/terrafo
 - **NEVER** bypass `mk*System` - it injects required modules
 - **NEVER** write raw `.tf` files - use Terranix expressions
 - **NEVER** run `terraform` directly - use `tfmgr` (terraform allowed only inside `tfmgr shell`)
+- **NEVER** create overlays without user approval - prefer nixpkgs packages
 
 ## COMMIT CONVENTIONS
 
