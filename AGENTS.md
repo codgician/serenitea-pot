@@ -37,7 +37,6 @@ serenitea-pot/
 | Add package overlay | `overlays/XX-name/default.nix` | XX = load order (00 first, 99 last) |
 | Add DNS record | `packages/terraform-config/cloudflare/zones/codgician-me/records/` | Terranix |
 | Add AI model | `packages/terraform-config/celestia/cognitive/akasha/<model>.nix` | Azure OpenAI |
-| Hypervisor VMs | `hosts/nixos/fischl/vms/*.xml` | Libvirt/NixVirt XML |
 
 ## HOSTS
 
@@ -47,7 +46,7 @@ Auto-discovered via `lib.codgician.getFolderNames` - just create a folder with `
 |------|------|----------|-------|
 | furina | Physical Mac | aarch64-darwin | M-series |
 | raiden-ei | Physical Mac | x86_64-darwin | Intel |
-| fischl | Bare metal | x86_64-linux | Hypervisor, has `vms/` |
+| fischl | Bare metal | x86_64-linux | Hypervisor |
 | paimon | Bare metal | x86_64-linux | Primary server |
 | sandrone | Bare metal | x86_64-linux | CIX 8180 |
 | focalors | VM | x86_64-linux | Parallels Desktop |
@@ -56,59 +55,17 @@ Auto-discovered via `lib.codgician.getFolderNames` - just create a folder with `
 | xianyun | Cloud VM | x86_64-linux | Tencent Cloud |
 | wanderer | WSL | x86_64-linux | Windows Subsystem |
 
-### Host File Structure
-
-- `default.nix` - Entry point calling `mk*System { hostName, system, modules }`
-- `system.nix` - Core system config (required)
-- `hardware.nix` - Boot, drivers, kernel (NixOS)
-- `disks.nix` - Disko partitioning (NixOS)
-- `network.nix` - Complex networking (SR-IOV, bridges)
-- `brew.nix` - Homebrew packages (Darwin)
-
 ## LIB.CODGICIAN FUNCTIONS
 
 Custom library at `lib/` extending `nixpkgs.lib`.
 
-### System Builders
-
 | Function | Purpose |
 |----------|---------|
-| `mkNixosSystem` | Build NixOS config with base modules (agenix, impermanence, disko) |
-| `mkDarwinSystem` | Build Darwin config with base modules |
-| `mkPkgs` | Create pkgs with overlays + allowUnfree |
-
-### Iterators
-
-| Function | Purpose |
-|----------|---------|
-| `forAllSystems` | Generate attrs for all architectures |
-| `forDarwinSystems` / `forLinuxSystems` | Platform-specific iteration |
-| `isDarwinSystem` / `isLinuxSystem` | Check system type |
-
-### Service Helpers
-
-| Function | Purpose |
-|----------|---------|
-| `mkServiceReverseProxyOptions` | Standard options for web services (HTTPS, Authelia) |
+| `mkNixosSystem` / `mkDarwinSystem` | Build system config with base modules |
+| `mkServiceReverseProxyOptions` | Standard options for web services |
 | `mkServiceReverseProxyConfig` | Generate Nginx vhost from options |
-| `mkServiceUserGroupLinux` | Create system user/group |
-
-### File Discovery
-
-| Function | Purpose |
-|----------|---------|
 | `getFolderPaths` / `getFolderNames` | Auto-discover subdirectories |
-| `getNixFilePaths` / `getNixFileNames` | Auto-discover .nix files |
 | `getAgeSecretPathFromName` | Map secret name to .age path |
-
-### Utilities
-
-| Function | Purpose |
-|----------|---------|
-| `getOverlays` | Aggregate all overlays + lazy `pkgs.unstable` |
-| `concatAttrs` | Merge list of attribute sets |
-| `convertImage` | ImageMagick wrapper for image conversion |
-| `mkNginxLocationForStaticFile` | Create nginx location for static files |
 
 ## CONVENTIONS
 
@@ -120,88 +77,111 @@ Custom library at `lib/` extending `nixpkgs.lib`.
 | Bare metal | Human characters | fischl, paimon, sandrone |
 | macOS | Female characters | furina, raiden-ei |
 | aarch64 | Fontaine/Descenders | furina, lumine |
-| WSL/subsystems | Male characters | wanderer |
 
 ### Module Options Pattern
 
 ```nix
 options.codgician.<category>.<name> = { ... };
-# In let block:
-cfg = config.codgician.<category>.<name>;
+cfg = config.codgician.<category>.<name>;  # In let block
 ```
 
-### Service Module Template
+### Secret Access
 
 ```nix
-options.codgician.services.<name> = {
-  enable = lib.mkEnableOption "Service description";
-  package = lib.mkPackageOption pkgs "<pkg-name>" { };
-  backend = lib.mkOption { type = lib.types.enum ["nixpkgs" "container"]; default = "nixpkgs"; };
-  reverseProxy = lib.codgician.mkServiceReverseProxyOptions { serviceName = "<name>"; ... };
-};
-
-config = lib.mkMerge [
-  (lib.mkIf cfg.enable { ... })
-  (lib.codgician.mkServiceReverseProxyConfig { serviceName = "<name>"; inherit cfg; })
-];
-```
-
-### Secret Registration
-
-```nix
-codgician.system.agenix.secrets = lib.genAttrs
-  ["secret-name-1" "secret-name-2"]
-  (name: { owner = cfg.user; group = cfg.group; mode = "0600"; });
+# Always use config.age.secrets, never direct paths
+config.age.secrets.<name>.path
 ```
 
 ### Terranix Resource References
 
 ```nix
-# Use Nix attribute access instead of Terraform interpolation:
-storage_account_id = config.resource.azurerm_storage_account.primogems "id";
+# Use Nix attribute access, never Terraform interpolation
+config.resource.azurerm_storage_account.primogems "id"
 ```
+
+## SKILLS
+
+Procedural workflows in `.opencode/skills/`. Each skill has:
+- `SKILL.md` - Quick start, procedure, exit criteria
+- `TROUBLESHOOTING.md` - Error patterns, recovery steps
+- `EXAMPLES.md` - Reference implementations
+
+### Decision Logic
+
+| If you are... | Use skill... |
+|---------------|--------------|
+| Adding/modifying secrets | [manage-agenix](.opencode/skills/secrets/manage-agenix/SKILL.md) |
+| Adding a NixOS host | [add-nixos-host](.opencode/skills/nix/add-nixos-host/SKILL.md) |
+| Adding a macOS host | [add-darwin-host](.opencode/skills/nix/add-darwin-host/SKILL.md) |
+| Adding a service module | [add-service](.opencode/skills/nix/add-service/SKILL.md) |
+| Changing Terranix/Terraform | [terraform-workflow](.opencode/skills/infra/terraform-workflow/SKILL.md) |
+| Deploying changes | [build-deploy](.opencode/skills/nix/build-deploy/SKILL.md) |
+| Fixing eval/build errors | [debug-eval](.opencode/skills/nix/debug-eval/SKILL.md) |
+| Before committing sensitive changes | [security-review](.opencode/skills/review/security-review/SKILL.md) |
+
+### When Security Review MUST Run
+
+Before ANY commit touching: `secrets/`, `modules/*/services/`, `packages/terraform-config/`, `hosts/`
 
 ## ANTI-PATTERNS
 
 - **NEVER** include secrets in ISO builds (`installer-iso*`)
-- **NEVER** stop before `git push` - work is NOT complete until pushed
-- **NEVER** say "ready to push when you are" - YOU must push
 - **NEVER** reference secrets directly - use `config.age.secrets.<name>.path`
 - **NEVER** bypass `mk*System` - it injects required modules
 - **NEVER** write raw `.tf` files - use Terranix expressions
-- Check RAID-1 status on `paimon`/`fischl` if boot warnings appear
+- **NEVER** run `terraform` directly - use `tfmgr` (terraform allowed only inside `tfmgr shell`)
 
-## COMMANDS
+## COMMIT CONVENTIONS
+
+### Format
+
+```
+<scope>: <imperative verb> <concise description>
+```
+
+- **NO** conventional commit prefixes (`feat:`, `fix:`, `chore:`)
+- Scope = component/host/module name (`overlays:`, `furina:`, `nixos/common:`)
+- Imperative verbs: `add`, `update`, `fix`, `remove`, `init`, `deploy`
+- Brief (3-8 words), lowercase, single-line
+
+### Examples
+
+```
+overlays: update fishspeech patch
+openvscode-server: init module
+paimon: deploy qwen3-vl:8b
+nixos/common: disable audit by default
+```
+
+### Commit/Push Protocol
+
+**ALWAYS obtain user approval before committing:**
+
+1. Show summary of changes (files modified, what was done)
+2. Propose commit message following format above
+3. **Wait for explicit approval** before `git commit`
+4. After commit, **wait for approval** before `git push`
+
+Work is complete only after changes are **approved and pushed**.
+
+## QUICK REFERENCE
 
 ```bash
-# Development
-nix develop -c $SHELL          # Enter dev shell
-nix develop .#repl             # REPL for inspecting values
-nix fmt                        # Format all code (treefmt)
-
-# Building
-nix build .#nixosConfigurations.<host>.config.system.build.toplevel
-nix build .#darwinConfigurations.<host>.system
-
-# Deploying
-sudo nixos-rebuild switch --flake .#<host>   # NixOS local
-darwin-rebuild switch --flake .#<host>       # Darwin local
-nixos-rebuild switch --flake .#<host> --target-host <host> --use-remote-sudo  # Remote
-
-# Secrets
-agenix -e secrets/<name>.age   # Edit/create secret
-
-# Terraform
-nix run .#tfmgr -- init        # Initialize
-nix run .#tfmgr -- plan        # Preview changes  
-nix run .#tfmgr -- apply       # Apply changes
+nix develop -c $SHELL              # Enter dev shell
+nix develop .#repl                 # REPL for inspecting values
+nix fmt                            # Format all code
+nix flake check                    # Validate configuration
+agenix -e secrets/<name>.age       # Edit secret
+nix run .#tfmgr -- plan            # Preview terraform changes
+nix run .#tfmgr -- apply           # Apply terraform changes
 ```
+
+For build/deploy commands, see [build-deploy](.opencode/skills/nix/build-deploy/SKILL.md) skill.
 
 ## NOTES
 
 - Binary cache: `codgician.cachix.org`
 - CI: Garnix (not GitHub Actions for builds)
 - `pkgs.unstable.*` available via lazy overlay
-- Pass `stable = false` to mk\*System for nixpkgs-unstable
 - Impermanence: Register paths with `codgician.system.impermanence.extraItems`
 - Terraform auth: Auto-decrypted by `tfmgr` from `secrets/terraform-env.age`

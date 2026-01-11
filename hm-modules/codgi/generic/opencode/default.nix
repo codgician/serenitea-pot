@@ -20,11 +20,13 @@ in
             "*.env" = "deny";
             "*.env.*" = "deny";
             "*.env.example" = "allow";
+            "/etc/ssh*" = "deny";
             "/run/agenix*" = "deny";
           };
           edit = "allow";
           external_directory = {
-            "*" = "allow";
+            "*" = "ask";
+            "/etc/ssh*" = "deny";
             "/run/agenix*" = "deny";
           };
           bash = {
