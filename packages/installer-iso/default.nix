@@ -7,6 +7,7 @@
   pciutils,
   iperf3,
   screen,
+  tmux,
   aria2,
   agenix,
   disko,
@@ -45,6 +46,7 @@ let
               pciutils
               iperf3
               screen
+              tmux
               aria2
               agenix
               disko

@@ -260,6 +260,7 @@
       home.stateVersion = "25.11";
       home.packages = with pkgs; [
         screen
+        tmux
         nur.repos.codgician.gddr6
       ];
     };
