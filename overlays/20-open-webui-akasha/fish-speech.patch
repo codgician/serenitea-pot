@@ -1,35 +1,48 @@
 diff --git a/backend/open_webui/routers/audio.py b/backend/open_webui/routers/audio.py
-index b1b715d44..bed5191b4 100644
+index 52e0182cad1..0dcfdbc0c4b 100644
 --- a/backend/open_webui/routers/audio.py
 +++ b/backend/open_webui/routers/audio.py
-@@ -541,7 +541,72 @@ async def speech(request: Request, user=Depends(get_verified_user)):
+@@ -65,6 +65,20 @@
+ MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024  # Convert MB to bytes
+ AZURE_MAX_FILE_SIZE_MB = 200
+ AZURE_MAX_FILE_SIZE = AZURE_MAX_FILE_SIZE_MB * 1024 * 1024  # Convert MB to bytes
++# Defaults for FishSpeech TTS payload; adjust here to tune synthesis behaviour
++FISHSPEECH_TTS_PARAMS = {
++    "chunk_length": 200,
++    "format": "mp3",
++    "references": [],
++    "seed": None,
++    "use_memory_cache": "on",
++    "normalize": True,
++    "streaming": False,
++    "max_new_tokens": 1024,
++    "top_p": 0.7,
++    "repetition_penalty": 1.2,
++    "temperature": 0.7,
++}
+ 
+ log = logging.getLogger(__name__)
+ 
+@@ -579,7 +593,64 @@ async def speech(request: Request, user=Depends(get_verified_user)):
              await f.write(json.dumps(payload))
  
          return FileResponse(file_path)
 +    
 +    elif request.app.state.config.TTS_ENGINE == "fishspeech":
++        r = None
 +        try:
++            fishspeech_payload = {
++                **FISHSPEECH_TTS_PARAMS,
++                "text": payload["input"],
++                "reference_id": request.app.state.config.TTS_VOICE,
++            }
 +            timeout = aiohttp.ClientTimeout(total=AIOHTTP_CLIENT_TIMEOUT)
 +            async with aiohttp.ClientSession(
 +                timeout=timeout, trust_env=True
 +            ) as session:
 +                async with session.post(
 +                    url=f"{request.app.state.config.TTS_OPENAI_API_BASE_URL}/tts",
-+                    json={
-+                        "text": payload["input"],
-+                        "chunk_length": 200,
-+                        "format": "mp3",
-+                        "references": [],
-+                        "reference_id": request.app.state.config.TTS_VOICE,
-+                        "seed": None,
-+                        "use_memory_cache": "on",
-+                        "normalize": True,
-+                        "streaming": False,
-+                        "max_new_tokens": 1024,
-+                        "top_p": 0.7,
-+                        "repetition_penalty": 1.2,
-+                        "temperature": 0.7
-+                    },
++                    json=fishspeech_payload,
 +                    headers={
 +                        "Content-Type": "application/json",
 +                        "Authorization": f"Bearer {request.app.state.config.TTS_API_KEY}",
@@ -46,7 +59,7 @@ index b1b715d44..bed5191b4 100644
 +                    },
 +                ) as r:
 +                    r.raise_for_status()
- 
++
 +                    async with aiofiles.open(file_path, "wb") as f:
 +                        await f.write(await r.read())
 +
@@ -60,9 +73,9 @@ index b1b715d44..bed5191b4 100644
 +            detail = None
 +
 +            try:
-+                if r.status != 200:
++                if r is not None:
 +                    res = await r.json()
-+
+ 
 +                    if "error" in res:
 +                        detail = f"External: {res['error'].get('message', '')}"
 +            except Exception:
@@ -73,13 +86,13 @@ index b1b715d44..bed5191b4 100644
 +                detail=detail if detail else "Open WebUI: Server Connection Error",
 +            )
  
- def transcription_handler(request, file_path, metadata):
+ def transcription_handler(request, file_path, metadata, user=None):
      filename = os.path.basename(file_path)
 diff --git a/src/lib/components/admin/Settings/Audio.svelte b/src/lib/components/admin/Settings/Audio.svelte
-index 3b465e7c7..bac79be2f 100644
+index 985baa0e9b0..42940820b4b 100644
 --- a/src/lib/components/admin/Settings/Audio.svelte
 +++ b/src/lib/components/admin/Settings/Audio.svelte
-@@ -444,6 +444,7 @@
+@@ -528,6 +528,7 @@
  							<option value="openai">{$i18n.t('OpenAI')}</option>
  							<option value="elevenlabs">{$i18n.t('ElevenLabs')}</option>
  							<option value="azure">{$i18n.t('Azure AI Speech')}</option>
@@ -87,7 +100,7 @@ index 3b465e7c7..bac79be2f 100644
  						</select>
  					</div>
  				</div>
-@@ -506,6 +507,20 @@
+@@ -585,6 +586,20 @@
  							</div>
  						</div>
  					</div>
@@ -99,7 +112,7 @@ index 3b465e7c7..bac79be2f 100644
 +								placeholder={$i18n.t('API Base URL')}
 +								bind:value={TTS_OPENAI_API_BASE_URL}
 +								required
-+								title="fishspeech api base url like https://api.fish.audio/v1"
++								title="FishSpeech API base url like https://api.fish.audio/v1"
 +							/>
 +
 +							<SensitiveInput placeholder={$i18n.t('API Key')} bind:value={TTS_API_KEY} />
@@ -108,68 +121,74 @@ index 3b465e7c7..bac79be2f 100644
  				{/if}
  
  				<div class="mb-2">
-@@ -696,7 +711,46 @@
+@@ -791,6 +806,41 @@
  								</div>
  							</div>
  						</div>
--					{/if}
 +					{:else if TTS_ENGINE === 'fishspeech'}
-+					<div class=" flex gap-2">
-+						<div class="w-full">
-+							<div class=" mb-1.5 text-sm font-medium">{$i18n.t('TTS Voice')}</div>
-+							<div class="flex w-full">
-+								<div class="flex-1">
-+									<input
-+										list="voice-list"
-+										class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-hidden"
-+										bind:value={TTS_VOICE}
-+										placeholder="Input fishspeech reference voice id"
-+									/>
++						<div class="flex gap-2">
++							<div class="w-full">
++								<div class=" mb-1.5 text-sm font-medium">{$i18n.t('TTS Voice')}</div>
++								<div class="flex w-full">
++									<div class="flex-1">
++										<input
++											list="voice-list"
++											class="w-full rounded-lg py-2 px-4 text-sm bg-gray-50 dark:text-gray-300 dark:bg-gray-850 outline-hidden"
++											bind:value={TTS_VOICE}
++											placeholder="Input FishSpeech reference voice id"
++										/>
++									</div>
++								</div>
++								<div class="mt-2 mb-1 text-xs text-gray-400 dark:text-gray-500">
++									Usage of the reference voice ID can be found in the FishSpeech documentation.
++									<a
++										class=" hover:underline dark:text-gray-200 text-gray-800"
++										href="https://docs.fish.audio/api-reference/endpoint/openapi-v1/text-to-speech#body-reference-id"
++										target="_blank"
++									>
++										{$i18n.t(`click here`)}.
++									</a>
++
++									To learn more about FishSpeech,
++									<a
++										class=" hover:underline dark:text-gray-200 text-gray-800"
++										href="https://fish.audio/"
++										target="_blank"
++									>
++										{$i18n.t(`click here`)}.
++									</a>
 +								</div>
 +							</div>
-+							<div class="mt-2 mb-1 text-xs text-gray-400 dark:text-gray-500">
-+								The usage of reference voice id can be found in the fishspeech documentation.,
-+								<a
-+									class=" hover:underline dark:text-gray-200 text-gray-800"
-+									href="https://docs.fish.audio/api-reference/endpoint/openapi-v1/text-to-speech#body-reference-id"
-+									target="_blank"
-+								>
-+									{$i18n.t(`click here`)}.
-+								</a>
-+
-+								To learn more about fishspeech,
-+	
-+								<a
-+									class=" hover:underline dark:text-gray-200 text-gray-800"
-+									href="https://fish.audio/"
-+									target="_blank"
-+								>
-+									{$i18n.t(`click here`, {
-+										name: 'fishspeech'
-+									})}.
-+								</a>
-+
-+							</div>
 +						</div>
-+					</div>
-+				{/if}
+ 					{/if}
  				</div>
  
- 				<div class="pt-0.5 flex w-full justify-between">
 diff --git a/src/lib/utils/index.ts b/src/lib/utils/index.ts
-index 2ee378101..a5c5bdecd 100644
+index 265c47cec2d..fcf7ff203c1 100644
 --- a/src/lib/utils/index.ts
 +++ b/src/lib/utils/index.ts
-@@ -889,7 +889,7 @@ export const extractSentences = (text: string) => {
+@@ -882,6 +882,8 @@ export const processDetails = (content) => {
+ 
+ // This regular expression matches code blocks marked by triple backticks
+ const codeBlockRegex = /```[\s\S]*?```/g;
++const CJK_REGEX = /[\u3040-\u30ff\u31f0-\u31ff\u3400-\u9fff\uAC00-\uD7AF\uF900-\uFAFF]/;
++const CJK_CHAR_DENSITY_MULTIPLIER = 10;
+ 
+ export const extractSentences = (text: string) => {
+ 	const codeBlocks: string[] = [];
+@@ -894,8 +896,9 @@ export const extractSentences = (text: string) => {
+ 		return placeholder;
  	});
  
- 	// Split the modified text into sentences based on common punctuation marks, avoiding these blocks
--	let sentences = text.split(/(?<=[.!?])\s+/);
-+	let sentences = text.split(/(?<=[.!?])\s+|(?<=[。！？])/);
+-	// Split the modified text into sentences based on common punctuation marks or newlines, avoiding these blocks
+-	let sentences = text.split(/(?<=[.!?])\s+|\n+/);
++	// Split the modified text into sentences based on common punctuation marks, avoiding these blocks
++	// Use optional whitespace for CJK punctuation because text often omits spaces after these marks
++	let sentences = text.split(/(?<=[.!?])\s+|(?<=[。！？])\s*/);
  
  	// Restore code blocks and process sentences
  	sentences = sentences.map((sentence) => {
-@@ -928,8 +928,14 @@ export const extractSentencesForAudio = (text: string) => {
+@@ -934,8 +937,15 @@ export const extractSentencesForAudio = (text: string) => {
  		const lastIndex = mergedTexts.length - 1;
  		if (lastIndex >= 0) {
  			const previousText = mergedTexts[lastIndex];
@@ -178,10 +197,11 @@ index 2ee378101..a5c5bdecd 100644
 +			let wordCount = previousText.split(/\s+/).length;
 +			let charCount = previousText.length;
 +
-+			const isCJK = /[\u4e00-\u9fa5\u3040-\u30ff\u31f0-\u31ff\u3400-\u4dbf\u4e00-\u9fff\uF900-\uFAFF]/.test(previousText);
++			const isCJK = CJK_REGEX.test(previousText);
 +			if (isCJK) {
++				// Treat CJK content as denser because it lacks whitespace delimiters
 +				wordCount = charCount;
-+				charCount = charCount * 10;
++				charCount = charCount * CJK_CHAR_DENSITY_MULTIPLIER;
 +			}
  			if (wordCount < 4 || charCount < 50) {
  				mergedTexts[lastIndex] = previousText + ' ' + currentText;
