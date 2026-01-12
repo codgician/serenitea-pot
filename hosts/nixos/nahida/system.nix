@@ -33,35 +33,36 @@
         # Stable Haskell kernel (Nix-managed)
         extraKernels.ihaskell = {
           enable = true;
-          extraPackages = ps: with ps; [
-            # Core utilities (note: text, bytestring, containers, mtl, transformers, time
-            # are GHC core libraries - already included, don't need to be specified)
-            lens
-            lens-aeson
-            aeson
-            vector
+          extraPackages =
+            ps: with ps; [
+              # Core utilities (note: text, bytestring, containers, mtl, transformers, time
+              # are GHC core libraries - already included, don't need to be specified)
+              lens
+              lens-aeson
+              aeson
+              vector
 
-            # Data visualization
-            ihaskell-hvega
-            hvega
-            diagrams
-            diagrams-cairo
-            diagrams-svg
+              # Data visualization
+              ihaskell-hvega
+              hvega
+              diagrams
+              diagrams-cairo
+              diagrams-svg
 
-            # Web & HTTP
-            wreq
-            http-client
-            http-client-tls
+              # Web & HTTP
+              wreq
+              http-client
+              http-client-tls
 
-            # Scientific computing
-            statistics
-            scientific
+              # Scientific computing
+              statistics
+              scientific
 
-            # Utilities
-            unordered-containers
-            hashable
-            uuid
-          ];
+              # Utilities
+              unordered-containers
+              hashable
+              uuid
+            ];
         };
 
         # Stable Python kernel (Nix-managed, data science baseline)

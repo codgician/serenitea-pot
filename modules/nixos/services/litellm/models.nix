@@ -329,7 +329,8 @@ rec {
       litellm_params ? { },
     }:
     {
-      inherit model_name model_info;
+      model_name = builtins.baseNameOf model_name;
+      inherit model_info;
       litellm_params = {
         model = "nvidia_nim/${model_name}";
         api_key = "os.environ/NVIDIA_NIM_API_KEY";

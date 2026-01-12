@@ -113,8 +113,7 @@ in
 
       # Compute tools to add to Jupyter PATH
       jupyterServiceTools =
-        lib.optional cfg.enableVenvKernels jupyterTools.venv-kernel-manager
-        ++ cfg.extraTools;
+        lib.optional cfg.enableVenvKernels jupyterTools.venv-kernel-manager ++ cfg.extraTools;
     in
     lib.mkMerge [
       # Jupyter configurations

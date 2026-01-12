@@ -1,4 +1,10 @@
-args@{ config, lib, pkgs, outputs, ... }:
+args@{
+  config,
+  lib,
+  pkgs,
+  outputs,
+  ...
+}:
 let
   cfg = config.codgician.codgi.opencode;
 in

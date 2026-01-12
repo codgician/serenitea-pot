@@ -9,7 +9,7 @@ excludes = []
 [formatter.md]
 command = "mdformat"
 includes = [ "*.md" ]
-excludes = [ "LICENSE.md" ]
+excludes = [ "LICENSE.md", "AGENTS.md", ".opencode/*" ]
 
 [formatter.yaml]
 command = "yamlfmt"

@@ -52,10 +52,7 @@ in
 
         # Override ihaskell with custom packages if provided
         ihaskellWithPackages =
-          if hasExtraPackages then
-            cfg.package.override { packages = cfg.extraPackages; }
-          else
-            cfg.package;
+          if hasExtraPackages then cfg.package.override { packages = cfg.extraPackages; } else cfg.package;
       in
       {
         displayName = "Haskell";

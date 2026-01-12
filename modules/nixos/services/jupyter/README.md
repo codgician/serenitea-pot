@@ -2,8 +2,8 @@
 
 This module provides a Jupyter notebook/lab service with a two-tier kernel architecture:
 
-1. **Stable kernels** (Nix-managed) - Reproducible, version-controlled environments
-2. **Experimental kernels** (user venvs) - Rapid prototyping with pip packages
+- **Stable kernels** (Nix-managed) - Reproducible, version-controlled environments
+- **Experimental kernels** (user venvs) - Rapid prototyping with pip packages
 
 ## Quick Start
 
@@ -118,9 +118,9 @@ jupyter-venv-kernel delete my-experiment
 #### Workflow
 
 1. **Experiment**: Create venv kernel, install packages with pip
-2. **Iterate**: Rapid try/install/discard cycle
-3. **Stabilize**: Once satisfied, add packages to Nix kernel config
-4. **Clean up**: Delete experimental kernel
+1. **Iterate**: Rapid try/install/discard cycle
+1. **Stabilize**: Once satisfied, add packages to Nix kernel config
+1. **Clean up**: Delete experimental kernel
 
 #### Example Session
 
@@ -201,6 +201,7 @@ These tools are **only available in Jupyter context**, not in regular SSH sessio
 The module enforces authentication via assertion. You must either:
 
 1. **Use Authelia** (recommended):
+
    ```nix
    reverseProxy = {
      enable = true;
@@ -208,10 +209,12 @@ The module enforces authentication via assertion. You must either:
    };
    ```
 
-2. **Use password**:
+1. **Use password**:
+
    ```nix
    password = "argon2:$argon2id$v=19$m=10240,t=10,p=8$...";
    ```
+
    Generate with: `python3 -c "from jupyter_server.auth import passwd; print(passwd())"`
 
 ### Isolation
@@ -256,8 +259,8 @@ Or use a notebook directory under `/home` which is typically persisted by defaul
 ### Kernel not showing up
 
 1. Refresh browser page
-2. Check kernel is registered: `jupyter kernelspec list`
-3. Check service status: `systemctl status jupyter`
+1. Check kernel is registered: `jupyter kernelspec list`
+1. Check service status: `systemctl status jupyter`
 
 ### Venv kernel tool not available
 
@@ -277,8 +280,8 @@ jupyter-venv-kernel  # command not found
 IHaskell is sensitive to GHC version. If packages fail to build:
 
 1. Check nixpkgs for compatible versions
-2. Try fewer packages
-3. Check IHaskell upstream issues
+1. Try fewer packages
+1. Check IHaskell upstream issues
 
 ### GPU not available in Python kernel
 
