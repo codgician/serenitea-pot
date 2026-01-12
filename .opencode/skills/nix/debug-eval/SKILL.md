@@ -11,8 +11,11 @@ blast_radius: LOW
 ## Quick Start
 
 ```bash
-# Get error trace
-nix build .#nixosConfigurations.<host>.config.system.build.toplevel --show-trace 2>&1 | head -100
+# Get error trace (save full output first)
+nix build .#nixosConfigurations.<host>.config.system.build.toplevel --show-trace > /tmp/nix-error.log 2>&1
+
+# View beginning of trace
+head -100 /tmp/nix-error.log
 
 # Interactive debugging
 nix develop .#repl
@@ -33,11 +36,12 @@ nix develop .#repl
 # Diagnostic Commands
 
 ```bash
-# Full trace
-nix build ... --show-trace 2>&1 | head -200
+# Full trace (save to file to avoid losing root cause)
+nix build ... --show-trace > /tmp/nix-error.log 2>&1
 
-# Save to file
-nix build ... --show-trace 2>&1 > /tmp/nix-error.log
+# View sections of the trace
+head -200 /tmp/nix-error.log
+grep "serenitea-pot" /tmp/nix-error.log
 
 # REPL debugging
 nix develop .#repl

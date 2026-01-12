@@ -107,7 +107,9 @@ lib.codgician.mkNixosSystem {
    };
    ```
 
-3. Rekey secrets:
+3. Rekey secrets (requires user approval):
+   
+   ⚠️ **STOP**: Ask user before rekeying.
    ```bash
    agenix -r
    ```
@@ -130,7 +132,9 @@ nix flake check
 nix build .#nixosConfigurations.<hostname>.config.system.build.toplevel
 ```
 
-## Phase 6: Deploy
+## Phase 6: Deploy (User Approval Required)
+
+⚠️ **STOP**: Deployment changes system state. Ask user before proceeding.
 
 ```bash
 # Local
@@ -138,8 +142,23 @@ sudo nixos-rebuild switch --flake .#<hostname>
 
 # Remote
 nixos-rebuild switch --flake .#<hostname> --target-host <hostname> --use-remote-sudo
+```
 
-# Fresh install with Disko
+### Fresh Install with Disko (DESTRUCTIVE)
+
+⚠️ **STOP**: Disko DESTROYS all data on target disk. Requires explicit user approval.
+
+**Mandatory verification before Disko**:
+```bash
+# Verify correct disk - check SIZE, MODEL, SERIAL
+lsblk -o NAME,SIZE,MODEL,SERIAL,TYPE,MOUNTPOINTS
+
+# Use /dev/disk/by-id/ paths for safety
+ls -la /dev/disk/by-id/
+```
+
+After user confirms correct disk:
+```bash
 nix run github:nix-community/disko -- --mode disko /path/to/disks.nix
 nixos-install --flake .#<hostname>
 ```
@@ -247,6 +266,11 @@ hosts/nixos/wanderer/
 ---
 
 # Commit (User Approval Required)
+
+First, format all code:
+```bash
+nix fmt
+```
 
 ⚠️ **STOP**: Present changes to user for review.
 

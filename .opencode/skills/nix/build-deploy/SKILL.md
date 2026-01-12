@@ -10,15 +10,14 @@ blast_radius: MEDIUM
 
 ## Quick Start
 
+> ⚠️ All deploy commands (`switch`, `boot`) require user approval. See "Deploy Commands" section.
+
 ```bash
-# NixOS local
+# Build first (safe, no system changes)
+nix build .#nixosConfigurations.<host>.config.system.build.toplevel
+
+# Then deploy (requires approval)
 sudo nixos-rebuild switch --flake .#<host>
-
-# NixOS remote
-nixos-rebuild switch --flake .#<host> --target-host <host> --use-remote-sudo
-
-# Darwin local
-darwin-rebuild switch --flake .#<host>
 ```
 
 ## Safety Rules
@@ -47,7 +46,9 @@ nixos-rebuild build-vm --flake .#<host>
 
 ---
 
-# Deploy Commands
+# Deploy Commands (User Approval Required)
+
+⚠️ **STOP**: Deployment changes system state. Ask user before running any `switch` command.
 
 ## NixOS
 
@@ -105,7 +106,9 @@ nix flake check
 nixos-rebuild dry-run --flake .#<host>
 ```
 
-## Phase 3: Deploy
+## Phase 3: Deploy (User Approval Required)
+
+⚠️ **STOP**: Ask user before deploying. Deployment changes system state.
 
 ```bash
 nixos-rebuild switch --flake .#<host> --target-host <host> --use-remote-sudo
@@ -121,7 +124,9 @@ ssh <host> nixos-rebuild list-generations | head -5
 
 ---
 
-# Rollback
+# Rollback (User Approval Required)
+
+⚠️ **STOP**: Rollback changes the running system. Ask user before proceeding.
 
 ```bash
 # Immediate rollback
@@ -150,6 +155,11 @@ ssh <host> sudo /nix/var/nix/profiles/system/bin/switch-to-configuration switch
 # Commit (User Approval Required)
 
 If config changes were made before deploying:
+
+First, format all code:
+```bash
+nix fmt
+```
 
 ⚠️ **STOP**: Present changes to user for review.
 

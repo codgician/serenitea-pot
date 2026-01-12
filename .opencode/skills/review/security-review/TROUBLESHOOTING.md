@@ -33,7 +33,7 @@ Check `/persist/etc/ssh/` has host key.
 | Cause | Check |
 |-------|-------|
 | Service not listening | `systemctl status <service>` |
-| Wrong port | `reverseProxy.localPort` matches service |
+| Wrong port | `reverseProxy.proxyPass` URL matches service port |
 | Firewall | `networking.firewall.allowedTCPPorts` |
 
 ---
@@ -56,7 +56,7 @@ All terraform operations inside `tfmgr shell`. State mutations require user appr
 ## Direct secret path found
 
 **Bad**: `"/run/agenix/my-secret"`
-**Good**: `config.age.secrets.my-secret.path`
+**Good**: `config.age.secrets."my-secret".path`
 
 ---
 

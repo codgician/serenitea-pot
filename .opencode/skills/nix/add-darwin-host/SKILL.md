@@ -118,15 +118,21 @@ Find App Store IDs: `mas search "App Name"` or `mas list`
 cat /etc/ssh/ssh_host_ed25519_key.pub
 
 # Add to secrets/pubkeys.nix
-# Rekey: agenix -r
+```
+
+If pubkeys.nix was modified, rekey requires user approval:
+```bash
+agenix -r  # Ask user before running
 ```
 
 ## Phase 4: Bootstrap
 
-```bash
-# Install Nix (if needed)
-curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+**Prerequisites (user-owned steps)**:
+- Nix must be installed. If not, ask user to install it (external installer requires user approval).
+- Homebrew must be installed. If not, ask user to install it from https://brew.sh.
+- User must be signed into Mac App Store for `masApps`.
 
+```bash
 # Build
 nix build .#darwinConfigurations.<hostname>.system
 
@@ -219,6 +225,11 @@ casks = [
 ---
 
 # Commit (User Approval Required)
+
+First, format all code:
+```bash
+nix fmt
+```
 
 ⚠️ **STOP**: Present changes to user for review.
 

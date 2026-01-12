@@ -151,14 +151,14 @@ Avoid mounting `/` or broad paths
     enable = lib.mkEnableOption "Example";
     reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
       serviceName = "example";
-      defaultHost = "example.codgician.me";
+      defaultProxyPass = "http://127.0.0.1:8080";
     };
   };
   
   config = lib.mkIf cfg.enable {
     # Secret via config.age (correct!)
     systemd.services.example.serviceConfig.EnvironmentFile = 
-      config.age.secrets.example-env.path;
+      config.age.secrets."example-env".path;
     
     # Proper ownership
     codgician.system.agenix.secrets = lib.genAttrs
@@ -221,7 +221,7 @@ codgician.system.agenix.secrets = lib.genAttrs
   (name: { owner = cfg.user; group = cfg.group; mode = "0600"; });
 
 systemd.services.myservice.serviceConfig.EnvironmentFile = 
-  config.age.secrets.service-secret.path;
+  config.age.secrets."service-secret".path;
 ```
 
 ### Public Service with Auth

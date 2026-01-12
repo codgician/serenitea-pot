@@ -86,7 +86,7 @@ config = lib.mkIf cfg.enable {
   
   # Use in service
   systemd.services.myservice.serviceConfig.EnvironmentFile = 
-    config.age.secrets.my-secret.path;
+    config.age.secrets."my-secret".path;
 };
 ```
 
@@ -103,13 +103,15 @@ ssh <host> stat /run/agenix/my-secret
 
 ---
 
-# Procedure: Rotate Secret
+# Procedure: Rotate Secret (User Approval Required)
+
+⚠️ **STOP**: Rotating secrets and deploying requires user approval.
 
 ```bash
 # Edit with new value
 agenix -e secrets/my-secret.age
 
-# Rebuild affected hosts
+# Rebuild affected hosts (requires approval)
 nixos-rebuild switch --flake .#<host> ...
 
 # Verify service works
@@ -118,9 +120,11 @@ ssh <host> systemctl status <service>
 
 ---
 
-# Procedure: Rekey All Secrets
+# Procedure: Rekey All Secrets (User Approval Required)
 
 When to rekey: Added/removed host from pubkeys.nix, changed access groups.
+
+⚠️ **STOP**: Rekeying re-encrypts all secrets. Ask user before proceeding.
 
 ```bash
 agenix -r
@@ -140,6 +144,11 @@ agenix -r
 ---
 
 # Commit (User Approval Required)
+
+First, format all code:
+```bash
+nix fmt
+```
 
 ⚠️ **STOP**: Present changes to user for review.
 
@@ -177,7 +186,7 @@ codgician.system.agenix.secrets = lib.genAttrs
 **Usage**:
 ```nix
 services.grafana.settings.security.admin_password = 
-  "$__file{${config.age.secrets.grafana-api-key.path}}";
+  "$__file{${config.age.secrets."grafana-api-key".path}}";
 ```
 
 ## Example 2: Environment File (Multiple Secrets)
@@ -202,7 +211,7 @@ SECRET_TOKEN=xyz789
 **Module**:
 ```nix
 systemd.services.myservice.serviceConfig.EnvironmentFile = 
-  config.age.secrets.myservice-env.path;
+  config.age.secrets."myservice-env".path;
 ```
 
 ## Example 3: Expiring Credential
@@ -234,7 +243,7 @@ codgician.system.agenix.secrets = lib.genAttrs
 **Usage**:
 ```nix
 networking.wireguard.interfaces.wg0 = {
-  privateKeyFile = config.age.secrets.wg-private-key-myhost.path;
+  privateKeyFile = config.age.secrets."wg-private-key-myhost".path;
 };
 ```
 
@@ -271,5 +280,5 @@ See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for error recovery.
 # Related Skills
 
 - [security-review](../../review/security-review/SKILL.md) — Audit before commit
-- [add-nixos-host](../nix/add-nixos-host/SKILL.md) — New hosts need pubkey
-- [add-service](../nix/add-service/SKILL.md) — Services need secrets
+- [add-nixos-host](../../nix/add-nixos-host/SKILL.md) — New hosts need pubkey
+- [add-service](../../nix/add-service/SKILL.md) — Services need secrets

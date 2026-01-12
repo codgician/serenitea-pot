@@ -36,7 +36,7 @@ findmnt | grep <disk>
 
 **Safe steps**: `umount -R /mnt && partprobe`
 
-**Destructive** (`wipefs`): See [AGENTS.md] - requires explicit user approval after confirming correct disk.
+**Destructive** (`wipefs`): Requires explicit user approval after confirming correct disk. See AGENTS.md principles.
 
 ---
 

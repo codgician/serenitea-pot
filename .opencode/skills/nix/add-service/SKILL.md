@@ -146,12 +146,17 @@ See [manage-agenix](../../secrets/manage-agenix/SKILL.md).
 
 See [terraform-workflow](../../infra/terraform-workflow/SKILL.md).
 
-## Phase 6: Validate
+## Phase 6: Validate and Deploy
 
 ```bash
+# Build (safe)
 nix flake check
 nix build .#nixosConfigurations.<host>.config.system.build.toplevel
+
+# Deploy (requires user approval)
 nixos-rebuild switch --flake .#<host> --target-host <host> --use-remote-sudo
+
+# Verify
 ssh <host> systemctl status <service>
 curl -I https://<service>.codgician.me
 ```
@@ -171,6 +176,11 @@ curl -I https://<service>.codgician.me
 ---
 
 # Commit (User Approval Required)
+
+First, format all code:
+```bash
+nix fmt
+```
 
 ⚠️ **STOP**: Present changes to user for review.
 

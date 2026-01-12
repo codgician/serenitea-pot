@@ -28,7 +28,7 @@ See [debug-eval](../debug-eval/SKILL.md) for diagnosis.
 ## 502 Bad Gateway (reverse proxy)
 
 **Repo-specific causes**:
-1. Service not listening on `reverseProxy.localPort`
+1. Service not listening on port specified in `reverseProxy.proxyPass`
 2. `mkServiceReverseProxyConfig` not in `lib.mkMerge`
 3. Service not started
 

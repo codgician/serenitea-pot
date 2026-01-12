@@ -32,7 +32,7 @@ serenitea-pot/
 | Add new host | `hosts/{darwin,nixos}/<name>/default.nix` | Auto-discovered; use `lib.codgician.mk{Darwin,Nixos}System` |
 | Add NixOS service | `modules/nixos/services/<name>/default.nix` | Must define `options.codgician.services.<name>` |
 | Add secret | `secrets/` | Edit `secrets.nix` + `pubkeys.nix`, run `agenix -e <name>.age` |
-| Modify user dotfiles | `hm-modules/codgi/` | Split by `generic/`, `darwin/`, `nixos/` |
+| Modify user dotfiles | `hm-modules/codgi/` | Split by `generic/`, `darwin/` (in the future), `nixos/` |
 | Add system module | `modules/{generic,darwin,nixos}/` | For system-level config (not user) |
 | Add package overlay | `overlays/XX-name/default.nix` | XX = load order (00 first, 99 last) |
 | Add DNS record | `packages/terraform-config/cloudflare/zones/codgician-me/records/` | Terranix |
@@ -90,6 +90,12 @@ cfg = config.codgician.<category>.<name>;  # In let block
 ```nix
 # Always use config.age.secrets, never direct paths
 config.age.secrets.<name>.path
+
+# Hyphenated names work without quotes (valid Nix identifiers)
+config.age.secrets.my-secret.path
+
+# Quotes required only for interpolation or special characters
+config.age.secrets."${serviceName}-env".path
 ```
 
 ### Terranix Resource References
@@ -132,7 +138,7 @@ These rules apply to ALL error recovery and troubleshooting:
 | **Nix way** | Use `nix develop`, flake changes, modules. Never run arbitrary install scripts. |
 | **Use nixpkgs** | Always prefer existing packages in nixpkgs. Ask user before creating overlays. |
 | **Repo-specific** | Skip generic advice (ping, journalctl basics). Focus on this repo's patterns. |
-| **No destructive actions** | `agenix -r`, `nixos-rebuild switch`, `terraform apply/destroy` require explicit user approval. |
+| **No destructive actions** | `agenix -r`, `nixos-rebuild switch`, `terraform apply/destroy/import/refresh` require explicit user approval. |
 
 ## ANTI-PATTERNS
 
@@ -169,10 +175,11 @@ nixos/common: disable audit by default
 
 **ALWAYS obtain user approval before committing:**
 
-1. Show summary of changes (files modified, what was done)
-2. Propose commit message following format above
-3. **Wait for explicit approval** before `git commit`
-4. After commit, **wait for approval** before `git push`
+1. Run `nix fmt` to format all Nix code
+2. Show summary of changes (files modified, what was done)
+3. Propose commit message following format above
+4. **Wait for explicit approval** before `git commit`
+5. After commit, **wait for approval** before `git push`
 
 Work is complete only after changes are **approved and pushed**.
 

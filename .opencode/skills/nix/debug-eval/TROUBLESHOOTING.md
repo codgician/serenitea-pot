@@ -20,7 +20,7 @@
 
 **Check locations**:
 - NixOS modules: `modules/nixos/services/<name>/default.nix`
-- Darwin modules: `modules/darwin/services/<name>/default.nix`
+- Darwin modules: `modules/darwin/services/<name>/default.nix` (rare; only create when needed)
 
 Auto-discovery uses `lib.codgician.getFolderPaths`.
 

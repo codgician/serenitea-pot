@@ -60,12 +60,16 @@ zone_id = "\${cloudflare_zone.codgician-me.id}";
 ```bash
 nix run .#tfmgr -- validate          # Validate config
 nix run .#tfmgr -- plan              # Preview changes
-nix run .#tfmgr -- apply             # Apply changes
-nix run .#tfmgr -- apply --auto-approve  # Skip confirmation
+nix run .#tfmgr -- apply             # Apply changes (requires approval)
 nix run .#tfmgr -- shell             # Advanced: terraform CLI access
 ```
 
+> ⚠️ `--auto-approve` exists but should only be used if user explicitly requests it.
+
 **Inside `tfmgr shell`** (for state/import operations):
+
+> ⚠️ State mutations (`import`, `refresh`, `state rm`) require user approval.
+
 ```bash
 terraform state list
 terraform state show <resource>
@@ -116,7 +120,9 @@ nix run .#tfmgr -- plan
 | `~` | Update |
 | `-/+` | ⚠️ Replace |
 
-## Phase 4: Apply
+## Phase 4: Apply (User Approval Required)
+
+⚠️ **STOP**: `terraform apply` changes infrastructure. Ask user before proceeding.
 
 ```bash
 nix run .#tfmgr -- apply
@@ -142,6 +148,11 @@ dig <name>.codgician.me
 ---
 
 # Commit (User Approval Required)
+
+First, format all code:
+```bash
+nix fmt
+```
 
 ⚠️ **STOP**: Present changes to user for review.
 
@@ -264,5 +275,5 @@ See [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) for error recovery.
 # Related Skills
 
 - [security-review](../../review/security-review/SKILL.md) — Reviews IAM changes
-- [add-service](../nix/add-service/SKILL.md) — Services need DNS
+- [add-service](../../nix/add-service/SKILL.md) — Services need DNS
 - [manage-agenix](../../secrets/manage-agenix/SKILL.md) — Terraform credentials
