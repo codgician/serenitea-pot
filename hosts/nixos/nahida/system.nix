@@ -27,10 +27,7 @@
         notebookDir = "/lab/jupyter";
         user = "codgi";
 
-        # Enable venv kernel management (for rapid experimentation)
-        enableVenvKernels = true;
-
-        # Stable Haskell kernel (Nix-managed)
+        # Haskell kernel (Nix-managed)
         extraKernels.ihaskell = {
           enable = true;
           extraPackages =
@@ -65,8 +62,21 @@
             ];
         };
 
-        # Stable Python kernel (Nix-managed, data science baseline)
-        extraKernels.python-base.enable = true;
+        # Python kernel (lazy pip-based for agile experimentation)
+        extraKernels.python-lazy = {
+          enable = true;
+          # Default packages installed on first kernel launch
+          # Add more via !pip install in notebooks
+          defaultPackages = [
+            "numpy"
+            "pandas"
+            "matplotlib"
+            "scipy"
+            "scikit-learn"
+            "torch"
+            "transformers"
+          ];
+        };
 
         reverseProxy = {
           enable = true;

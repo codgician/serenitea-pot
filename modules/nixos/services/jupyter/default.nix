@@ -8,9 +8,6 @@ let
   serviceName = "jupyter";
   cfg = config.codgician.services.jupyter;
   types = lib.types;
-
-  # Import internal tools
-  jupyterTools = import ./tools { inherit pkgs lib; };
 in
 {
   imports = [ ./kernels ];
@@ -62,27 +59,6 @@ in
       '';
     };
 
-    enableVenvKernels = lib.mkOption {
-      type = types.bool;
-      default = true;
-      description = ''
-        Enable support for user-created experimental venv kernels.
-
-        When enabled, provides the `jupyter-venv-kernel` command in
-        Jupyter terminals and notebooks for creating isolated Python
-        environments that can be used as kernels.
-
-        Useful for rapid experimentation with pip packages before
-        promoting them to the stable Nix-managed kernels.
-
-        Usage (in Jupyter terminal):
-          jupyter-venv-kernel create my-experiment
-          jupyter-venv-kernel create-from project requirements.txt
-          jupyter-venv-kernel delete my-experiment
-          jupyter-venv-kernel list
-      '';
-    };
-
     extraTools = lib.mkOption {
       type = types.listOf types.package;
       default = [ ];
@@ -102,7 +78,7 @@ in
     reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
       inherit serviceName;
       defaultProxyPass = "http://${cfg.ip}:${builtins.toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.jupyter; http://$\{ip}:$\{builtins.toString port}'';
+      defaultProxyPassText = ''with config.codgician.services.jupyter; http://''${ip}:''${builtins.toString port}'';
     };
   };
 
@@ -110,10 +86,6 @@ in
     let
       # Disable Jupyter auth when Authelia handles it
       disableJupyterAuth = cfg.password == null && cfg.reverseProxy.authelia.enable;
-
-      # Compute tools to add to Jupyter PATH
-      jupyterServiceTools =
-        lib.optional cfg.enableVenvKernels jupyterTools.venv-kernel-manager ++ cfg.extraTools;
     in
     lib.mkMerge [
       # Jupyter configurations
@@ -146,9 +118,9 @@ in
             '');
         };
 
-        # Add tools to Jupyter service PATH (only if there are any)
-        systemd.services.jupyter.path = lib.mkIf (jupyterServiceTools != [ ]) (
-          lib.mkAfter jupyterServiceTools
+        # Add extra tools to Jupyter service PATH
+        systemd.services.jupyter.path = lib.mkIf (cfg.extraTools != [ ]) (
+          lib.mkAfter cfg.extraTools
         );
 
         # Ensure authentication is configured
