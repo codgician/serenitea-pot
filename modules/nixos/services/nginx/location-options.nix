@@ -22,7 +22,7 @@ in
     ssl = {
       verify = lib.mkOption {
         type = types.bool;
-        default = false;
+        default = true;
         description = "Enable SSL verification for the reverse proxy.";
       };
 

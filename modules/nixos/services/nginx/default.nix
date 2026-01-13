@@ -27,11 +27,13 @@ let
               lib.optionalString locationCfg.ssl.proxySslName ''
                 proxy_ssl_server_name on;
                 proxy_ssl_name $host;
+                proxy_ssl_protocols TLSv1.3;
               ''
               + lib.optionalString locationCfg.ssl.verify ''
                 proxy_ssl_verify on;
                 proxy_ssl_trusted_certificate ${locationCfg.ssl.trustedCertificate};
-                proxy_ssl_certificate_cache max=1000;
+                proxy_ssl_verify_depth 2;
+                proxy_ssl_session_reuse off;
               ''
             )
           )
