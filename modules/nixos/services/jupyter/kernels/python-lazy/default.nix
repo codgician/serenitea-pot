@@ -11,77 +11,84 @@ let
 
   # Libraries needed for pip binary wheels to work on NixOS
   # These provide the shared libraries that manylinux wheels expect
-  fhsLibraries = with pkgs; [
-    # Core C/C++ runtime
-    stdenv.cc.cc.lib
-    glibc
-    zlib
-    zstd
+  fhsLibraries =
+    with pkgs;
+    [
+      # Core C/C++ runtime
+      stdenv.cc.cc.lib
+      glibc
+      zlib
+      zstd
 
-    # Common dependencies for scientific packages
-    blas
-    lapack
-    libffi
-    openssl
+      # Common dependencies for scientific packages
+      blas
+      lapack
+      libffi
+      openssl
 
-    # Graphics/GUI (for matplotlib, etc.)
-    libGL
-    libGLU
-    xorg.libX11
-    xorg.libXext
-    xorg.libXrender
-    xorg.libXcursor
-    xorg.libXi
-    xorg.libXrandr
-    xorg.libXinerama
-    xorg.libXxf86vm
-    xorg.libxcb
-    freetype
-    fontconfig
+      # Graphics/GUI (for matplotlib, etc.)
+      libGL
+      libGLU
+      xorg.libX11
+      xorg.libXext
+      xorg.libXrender
+      xorg.libXcursor
+      xorg.libXi
+      xorg.libXrandr
+      xorg.libXinerama
+      xorg.libXxf86vm
+      xorg.libxcb
+      freetype
+      fontconfig
 
-    # Image processing
-    libpng
-    libjpeg
-    libtiff
-    libwebp
+      # Image processing
+      libpng
+      libjpeg
+      libtiff
+      libwebp
 
-    # HDF5/data formats
-    hdf5
+      # HDF5/data formats
+      hdf5
 
-    # Audio (for some ML packages)
-    libsndfile
+      # Audio (for some ML packages)
+      libsndfile
 
-    # Misc
-    expat
-    glib
-    dbus
-  ] ++ lib.optionals cfg.enableCUDA [
-    # CUDA support - only include if explicitly enabled
-    linuxPackages.nvidia_x11
-    cudaPackages.cudatoolkit
-    cudaPackages.cudnn
-  ];
+      # Misc
+      expat
+      glib
+      dbus
+    ]
+    ++ lib.optionals cfg.enableCUDA [
+      # CUDA support - only include if explicitly enabled
+      linuxPackages.nvidia_x11
+      cudaPackages.cudatoolkit
+      cudaPackages.cudnn
+    ];
 
   # FHS environment that mimics a standard Linux distribution
   fhsEnv = pkgs.buildFHSEnv {
     name = "jupyter-fhs-python";
 
-    targetPkgs = _: with pkgs; [
-      # Python with pip/venv support
-      python3
-      python3Packages.pip
-      python3Packages.virtualenv
+    targetPkgs =
+      _:
+      with pkgs;
+      [
+        # Python with pip/venv support
+        python3
+        python3Packages.pip
+        python3Packages.virtualenv
 
-      # Essential build tools for compiling packages
-      gcc
-      gnumake
-      pkg-config
+        # Essential build tools for compiling packages
+        gcc
+        gnumake
+        pkg-config
 
-      # Git for pip installing from repos
-      git
+        # Git for pip installing from repos
+        git
 
-      # All the libraries
-    ] ++ fhsLibraries;
+        # All the libraries
+      ]
+      ++ fhsLibraries;
 
     # Additional packages available in the environment
     multiPkgs = _: [ ];
@@ -118,7 +125,7 @@ let
         "$VENV_DIR/bin/pip" install -r "${cfg.requirementsFile}"
       ''}
 
-      ${lib.optionalString (cfg.defaultPackages != []) ''
+      ${lib.optionalString (cfg.defaultPackages != [ ]) ''
         echo "📦 Installing default packages..." >&2
         "$VENV_DIR/bin/pip" install ${lib.escapeShellArgs cfg.defaultPackages}
       ''}
@@ -168,7 +175,11 @@ in
         "scipy"
         "scikit-learn"
       ];
-      example = [ "torch" "transformers" "langchain" ];
+      example = [
+        "torch"
+        "transformers"
+        "langchain"
+      ];
       description = ''
         Default pip packages to install on first kernel initialization.
         These can be overridden or extended as needed.

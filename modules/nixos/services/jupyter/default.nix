@@ -78,7 +78,7 @@ in
     reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
       inherit serviceName;
       defaultProxyPass = "http://${cfg.ip}:${builtins.toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.jupyter; http://''${ip}:''${builtins.toString port}'';
+      defaultProxyPassText = "with config.codgician.services.jupyter; http://\${ip}:\${builtins.toString port}";
     };
   };
 
@@ -119,9 +119,7 @@ in
         };
 
         # Add extra tools to Jupyter service PATH
-        systemd.services.jupyter.path = lib.mkIf (cfg.extraTools != [ ]) (
-          lib.mkAfter cfg.extraTools
-        );
+        systemd.services.jupyter.path = lib.mkIf (cfg.extraTools != [ ]) (lib.mkAfter cfg.extraTools);
 
         # Ensure authentication is configured
         assertions = [
