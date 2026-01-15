@@ -203,6 +203,10 @@ let
       model_info.mode = "chat";
     }
     {
+      model_name = "gpt-5.2-codex";
+      model_info.mode = "responses";
+    }
+    {
       model_name = "o3";
       model_info.mode = "chat";
     }
