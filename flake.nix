@@ -136,6 +136,11 @@
         flake-parts.follows = "flake-parts";
       };
     };
+
+    superpowers = {
+      url = "github:obra/superpowers";
+      flake = false;
+    };
   };
 
   outputs =

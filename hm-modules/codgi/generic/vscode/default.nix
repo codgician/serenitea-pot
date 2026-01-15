@@ -61,7 +61,6 @@ in
             ms-vscode-remote.remote-containers
             dnicolson.binary-plist
             mkhl.direnv
-            rooveterinaryinc.roo-cline
           ]
           ++ (with pkgs.vscode-marketplace-release; [
             github.copilot

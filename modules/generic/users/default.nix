@@ -2,6 +2,7 @@
   config,
   lib,
   pkgs,
+  inputs,
   outputs,
   ...
 }:
@@ -154,6 +155,7 @@ in
 {
   options.codgician.users = lib.codgician.concatAttrs (builtins.map mkUserOptions users);
   config = lib.mkMerge (
-    (builtins.map mkUserConfig users) ++ [ { home-manager.extraSpecialArgs.outputs = outputs; } ]
+    (builtins.map mkUserConfig users)
+    ++ [ { home-manager.extraSpecialArgs = { inherit inputs outputs; }; } ]
   );
 }
