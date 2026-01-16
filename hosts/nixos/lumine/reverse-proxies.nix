@@ -1,11 +1,20 @@
 { pkgs, ... }:
 {
   codgician.services = {
+    # Global Anubis configuration
+    anubis = {
+      enable = true;
+      cookieDomain = "codgician.me";
+      defaultDifficulty = 4;
+      defaultOgPassthrough = true;
+    };
+
     authelia.instances.main = {
       domain = "auth.codgician.me";
       reverseProxy = {
         enable = true;
         proxyPass = "https://192.168.0.22";
+        anubis.enable = true; # Phase 1: Protected
       };
     };
 
@@ -47,6 +56,7 @@
       reverseProxy = {
         enable = true;
         proxyPass = "https://192.168.0.22";
+        anubis.enable = true; # Phase 1: Protected
       };
     };
 
@@ -54,6 +64,7 @@
       enable = true;
       domains = [ "lumenstone.codgician.me" ];
       proxyPass = "http://192.168.0.22";
+      anubis.enable = true; # Phase 1: Protected
     };
 
     jellyfin.reverseProxy = {
@@ -134,6 +145,7 @@
             "codgician.me"
             "*.codgician.me"
           ];
+          # Note: Anubis not enabled for static sites (no backend to protect)
           locations."/".passthru.root = import ./lumine-web.nix { inherit pkgs; };
         };
       };

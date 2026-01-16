@@ -1,0 +1,4 @@
+{ ... }:
+{
+  # Placeholder for paperless module
+}

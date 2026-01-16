@@ -6,37 +6,58 @@
 }:
 let
   cfg = config.codgician.services.nginx;
+  anubisCfg = config.codgician.services.anubis;
   types = lib.types;
   autheliaApiPath = "/internal/authelia/authz";
 
+  # Sanitize name for Anubis instance reference
+  sanitizeName = name: builtins.replaceStrings [ "." ] [ "-" ] name;
+
+  # Get the Anubis socket path for a given reverse proxy name
+  getAnubisSocketPath =
+    name:
+    let
+      instanceName = sanitizeName name;
+    in
+    "/run/anubis/anubis-${instanceName}/anubis.sock";
+
+  # Determine the actual proxyPass - either Anubis socket or original target
+  getEffectiveProxyPass =
+    name: hostCfg: locationCfg:
+    if hostCfg.anubis.enable && anubisCfg.enable then
+      "http://unix:${getAnubisSocketPath name}"
+    else
+      locationCfg.passthru.proxyPass or null;
+
   # Make location configuration
   mkLocationConfig =
-    hostCfg: locationCfg:
+    name: hostCfg: locationCfg:
+    let
+      effectiveProxyPass = getEffectiveProxyPass name hostCfg locationCfg;
+      originalProxyPass = locationCfg.passthru.proxyPass or null;
+      isHttpsOriginal = originalProxyPass != null && lib.hasPrefix "https://" originalProxyPass;
+      # When using Anubis, we proxy to a local socket, not HTTPS
+      isHttpsEffective = effectiveProxyPass != null && lib.hasPrefix "https://" effectiveProxyPass;
+    in
     lib.mkMerge [
-      locationCfg.passthru
+      (locationCfg.passthru // { proxyPass = effectiveProxyPass; })
       {
         proxyWebsockets = true;
         extraConfig =
-          # Enhance https reverse proxy security
-          (lib.optionalString
-            (
-              locationCfg.passthru.proxyPass or null != null
-              && lib.hasPrefix "https://" locationCfg.passthru.proxyPass
-            )
-            (
-              lib.optionalString locationCfg.ssl.proxySslName ''
-                proxy_ssl_server_name on;
-                proxy_ssl_name $host;
-                proxy_ssl_protocols TLSv1.3;
-              ''
-              + lib.optionalString locationCfg.ssl.verify ''
-                proxy_ssl_verify on;
-                proxy_ssl_trusted_certificate ${locationCfg.ssl.trustedCertificate};
-                proxy_ssl_verify_depth 2;
-                proxy_ssl_session_reuse off;
-              ''
-            )
-          )
+          # Enhance https reverse proxy security (only when NOT going through Anubis)
+          (lib.optionalString isHttpsEffective (
+            lib.optionalString locationCfg.ssl.proxySslName ''
+              proxy_ssl_server_name on;
+              proxy_ssl_name $host;
+              proxy_ssl_protocols TLSv1.3;
+            ''
+            + lib.optionalString locationCfg.ssl.verify ''
+              proxy_ssl_verify on;
+              proxy_ssl_trusted_certificate ${locationCfg.ssl.trustedCertificate};
+              proxy_ssl_verify_depth 2;
+              proxy_ssl_session_reuse off;
+            ''
+          ))
           # If only allow connections from lan
           + (lib.optionalString locationCfg.lanOnly ''
             allow 10.0.0.0/8;
@@ -71,13 +92,20 @@ let
     ];
 
   # Make virtual host configuration
-  mkVirtualHostConfig = _: hostCfg: rec {
+  mkVirtualHostConfig = name: hostCfg: rec {
     serverName = builtins.head hostCfg.domains;
     serverAliases = builtins.tail hostCfg.domains;
     locations = lib.mkMerge (
       [
-        (builtins.mapAttrs (_: locationCfg: mkLocationConfig hostCfg locationCfg) hostCfg.locations)
+        (builtins.mapAttrs (_: locationCfg: mkLocationConfig name hostCfg locationCfg) hostCfg.locations)
       ]
+      # Anubis static assets - must be proxied to Anubis
+      ++ (lib.optional (hostCfg.anubis.enable && anubisCfg.enable) {
+        "/.within.website/" = {
+          proxyPass = "http://unix:${getAnubisSocketPath name}";
+          proxyWebsockets = true;
+        };
+      })
       ++ (lib.optional (hostCfg.robots != null) {
         "/robots.txt".return = ''200 "${lib.replaceStrings [ "\n" ] [ "\\n" ] hostCfg.robots}"'';
       })
