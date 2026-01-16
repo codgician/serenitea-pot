@@ -10,6 +10,9 @@ with pubKeys.hosts;
   "authelia-main-storage.age".publicKeys = someHosts [ paimon ];
   "authelia-main-jwks.age".publicKeys = someHosts [ paimon ];
 
+  # Anubis
+  "anubis-private-key.age".publicKeys = someHosts [ lumine ];
+
   # Claude Code
   "claude-code-env.age".publicKeys = allHosts;
 

@@ -7,6 +7,7 @@
 let
   cfg = config.codgician.services.anubis;
   nginxCfg = config.codgician.services.nginx;
+  ageCfg = config.age.secrets;
   types = lib.types;
   jsonFormat = pkgs.formats.json { };
 
@@ -57,6 +58,8 @@ let
         OG_PASSTHROUGH = ogPassthrough;
         SERVE_ROBOTS_TXT = cfg.defaultServeRobotsTxt;
         COOKIE_PARTITIONED = true;
+        COOKIE_SECURE = true;
+        COOKIE_SAME_SITE = "Lax";
         # Skip TLS verification for self-signed certs on internal backends
         TARGET_INSECURE_SKIP_VERIFY = isHttpsTarget;
       }
@@ -143,13 +146,16 @@ in
       ) anubisEnabledProxies;
     };
 
-    # NOTE: To share challenge cookies across subdomains (recommended), you need to:
-    #   1. Add to secrets/secrets.nix: "anubis-private-key.age".publicKeys = someHosts [ lumine ];
-    #   2. Create the secret file: agenix -e anubis-private-key.age
-    #   3. Content should be: ED25519_PRIVATE_KEY_HEX=<64-char-hex>
-    #   4. Generate key with: openssl rand -hex 32
-    #   5. Configure in lumine: codgician.system.agenix.secrets.anubis-private-key.owner = "anubis";
-    #   6. Add to each Anubis service: systemd.services.anubis-<name>.serviceConfig.EnvironmentFile
+    # Configure agenix secret for signing key (enables cross-subdomain cookie sharing)
+    codgician.system.agenix.secrets.anubis-private-key.owner = "anubis";
+
+    # Add EnvironmentFile to all Anubis instances for the signing key
+    systemd.services = lib.mapAttrs' (
+      name: _:
+      lib.nameValuePair "anubis-${sanitizeName name}" {
+        serviceConfig.EnvironmentFile = [ ageCfg.anubis-private-key.path ];
+      }
+    ) anubisEnabledProxies;
 
     # Assertions
     assertions = lib.mapAttrsToList (name: hostCfg: {
