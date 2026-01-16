@@ -11,7 +11,7 @@ with pubKeys.hosts;
   "authelia-main-jwks.age".publicKeys = someHosts [ paimon ];
 
   # Anubis
-  "anubis-private-key.age".publicKeys = someHosts [ lumine ];
+  "anubis-env.age".publicKeys = someHosts [ lumine ];
 
   # Claude Code
   "claude-code-env.age".publicKeys = allHosts;

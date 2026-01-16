@@ -60,8 +60,8 @@ let
         COOKIE_PARTITIONED = true;
         COOKIE_SECURE = true;
         COOKIE_SAME_SITE = "Lax";
-        # Skip TLS verification for self-signed certs on internal backends
-        TARGET_INSECURE_SKIP_VERIFY = isHttpsTarget;
+        # For HTTPS backends: use Host header for SNI (backends have valid certs for their hostnames)
+        TARGET_SNI = if isHttpsTarget then "auto" else null;
       }
       // lib.optionalAttrs (cfg.cookieDomain != null) { COOKIE_DOMAIN = cfg.cookieDomain; }
       // lib.optionalAttrs (cfg.webmasterEmail != null) { WEBMASTER_EMAIL = cfg.webmasterEmail; };
@@ -147,13 +147,13 @@ in
     };
 
     # Configure agenix secret for signing key (enables cross-subdomain cookie sharing)
-    codgician.system.agenix.secrets.anubis-private-key.owner = "anubis";
+    codgician.system.agenix.secrets.anubis-env.owner = "anubis";
 
     # Add EnvironmentFile to all Anubis instances for the signing key
     systemd.services = lib.mapAttrs' (
       name: _:
       lib.nameValuePair "anubis-${sanitizeName name}" {
-        serviceConfig.EnvironmentFile = [ ageCfg.anubis-private-key.path ];
+        serviceConfig.EnvironmentFile = [ ageCfg.anubis-env.path ];
       }
     ) anubisEnabledProxies;
 
