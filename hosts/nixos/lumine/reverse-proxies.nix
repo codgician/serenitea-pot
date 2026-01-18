@@ -83,7 +83,7 @@
       enable = true;
       openFirewall = true;
       reverseProxies = {
-        "opencode-web" = {
+        "fragments.codgician.me" = {
           enable = true;
           domains = [ "fragments.codgician.me" ];
           locations."/".passthru.proxyPass = "https://192.168.0.8";
