@@ -8,10 +8,27 @@ args@{
 }:
 let
   cfg = config.codgician.codgi.opencode;
+  inherit (lib) types;
 in
 {
   options.codgician.codgi.opencode = {
     enable = lib.mkEnableOption "opencode";
+
+    web = {
+      enable = lib.mkEnableOption "opencode web interface";
+
+      hostname = lib.mkOption {
+        type = types.str;
+        default = "127.0.0.1";
+        description = "Hostname for opencode web interface to listen on.";
+      };
+
+      port = lib.mkOption {
+        type = types.port;
+        default = 3030;
+        description = "Port for opencode web interface to listen on.";
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable {

@@ -84,7 +84,25 @@
           authelia.enable = true;
         };
       };
-      nginx.openFirewall = true;
+
+      nginx = {
+        enable = true;
+        openFirewall = true;
+        reverseProxies.opencode-web = {
+          enable = true;
+          domains = [ "fragments.codgician.me" ];
+          authelia = {
+            enable = true;
+            rules = [
+              {
+                users = [ "codgi" ];
+                policy = "two_factor";
+              }
+            ];
+          };
+          locations."/".passthru.proxyPass = "http://127.0.0.1:3030";
+        };
+      };
     };
 
     system = {
@@ -108,7 +126,10 @@
         dev.nix.enable = true;
         git.enable = true;
         mcp.enable = true;
-        opencode.enable = true;
+        opencode = {
+          enable = true;
+          web.enable = true;
+        };
         pwsh.enable = true;
         ssh.enable = true;
         zsh.enable = true;

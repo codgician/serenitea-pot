@@ -11,6 +11,7 @@ let
     "dendro"
     "dragonspine"
     "fin"
+    "fragments"
     "git"
     "hass"
     "leyline"

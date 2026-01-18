@@ -8,6 +8,7 @@
   "dendro.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "dragonspine.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "fin.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
+  "fragments.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "git.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "hass.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "leyline.codgician.me".challengeProfile = ./profiles/codgician-me.nix;

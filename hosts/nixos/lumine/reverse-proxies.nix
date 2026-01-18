@@ -79,22 +79,16 @@
       proxyPass = "https://192.168.0.8";
     };
 
-    open-webui.reverseProxy = {
-      enable = true;
-      domains = [ "akasha.codgician.me" ];
-      proxyPass = "https://192.168.0.22";
-    };
-
-    meshcentral.reverseProxy = {
-      enable = true;
-      domains = [ "amt.codgician.me" ];
-      proxyPass = "https://192.168.0.10";
-    };
-
     nginx = {
       enable = true;
       openFirewall = true;
       reverseProxies = {
+        "opencode-web" = {
+          enable = true;
+          domains = [ "fragments.codgician.me" ];
+          locations."/".passthru.proxyPass = "https://192.168.0.8";
+        };
+
         "bubbles.codgician.me" = {
           enable = true;
           https = true;
