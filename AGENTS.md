@@ -148,6 +148,8 @@ These rules apply to ALL error recovery and troubleshooting:
 - **NEVER** write raw `.tf` files - use Terranix expressions
 - **NEVER** run `terraform` directly - use `tfmgr` (terraform allowed only inside `tfmgr shell`)
 - **NEVER** create overlays without user approval - prefer nixpkgs packages
+- **NEVER** use `config.services.*` or `config.programs.*` when `config.codgician.*` equivalents exist - always prefer the repository's custom option namespace
+- **NEVER** forget to `git add` new files before `nix eval`/`nix build` - flakes only see tracked files
 
 ## COMMIT CONVENTIONS
 

@@ -77,7 +77,7 @@ in
 
         settings = {
           theme = "auto";
-          server.address = "unix:///run/${serviceName}/${name}.sock?umask=0000";
+          server.address = "unix:///run/${serviceName}/${name}.sock?umask=0117";
           default_2fa_method = "webauthn";
 
           # Identity providers
@@ -228,6 +228,9 @@ in
         RuntimeDirectory = serviceName;
         RuntimeDirectoryMode = "0755";
       };
+
+      # Add nginx to authelia group for socket access (only when nginx is enabled)
+      users.groups.${cfg.group}.members = lib.mkIf config.codgician.services.nginx.enable [ "nginx" ];
 
       # Redis
       services.redis.servers.${serviceName} = {
