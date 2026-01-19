@@ -75,5 +75,6 @@
     "obs-backgroundremoval"
     "opencode-desktop"
     "ibkr"
+    "trader-workstation"
   ];
 }

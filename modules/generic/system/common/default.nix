@@ -22,6 +22,7 @@ in
     # Fonts
     fonts.packages = with pkgs; [
       cascadia-code
+      nerd-fonts.caskaydia-mono
       noto-fonts
       noto-fonts-cjk-sans
       noto-fonts-color-emoji
