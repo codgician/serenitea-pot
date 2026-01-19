@@ -19,6 +19,7 @@ in
     # Linux-specific configurations
     (lib.mkIf pkgs.stdenvNoCC.isLinux {
       isNormalUser = true;
+      linger = true; 
     })
   ];
 
