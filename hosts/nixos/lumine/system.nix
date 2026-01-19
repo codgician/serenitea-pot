@@ -7,7 +7,7 @@
       litellm = {
         enable = true;
         backend = "container";
-        imageTag = "main-rc";
+        imageTag = "main-dev";
         adminUi = {
           enable = true;
           authelia.enable = true;
