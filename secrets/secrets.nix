@@ -27,7 +27,7 @@ with pubKeys.hosts;
 
   # MCP Servers
   "context7-api-key.age".publicKeys = allHosts;
-  "github-auth-header.age".publicKeys = allServers;
+  "github-auth-header.age".publicKeys = allHosts;
 
   # OIDC secrets
   "grafana-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];

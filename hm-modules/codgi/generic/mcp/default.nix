@@ -2,6 +2,7 @@
   config,
   osConfig,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -15,10 +16,15 @@ in
       enable = true;
       servers = {
         context7 = {
-          url = "https://mcp.context7.com/mcp";
-          headers = {
-            CONTEXT7_API_KEY = "{file:${osConfig.age.secrets.context7-api-key.path}}";
-          };
+          url = "https://mcp.context7.com/mcp/";
+          headers.CONTEXT7_API_KEY = "{file:${osConfig.age.secrets.context7-api-key.path}}";
+        };
+        github = {
+          url = "https://api.githubcopilot.com/mcp/";
+          headers.Authorization = "{file:${osConfig.age.secrets.github-auth-header.path}}";
+        };
+        playwright = {
+          command = lib.getExe pkgs.playwright-mcp;
         };
       };
     };
