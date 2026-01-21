@@ -2,7 +2,6 @@
   config,
   osConfig,
   lib,
-  pkgs,
   ...
 }:
 let
@@ -22,9 +21,6 @@ in
         github = {
           url = "https://api.githubcopilot.com/mcp/";
           headers.Authorization = "{file:${osConfig.age.secrets.github-auth-header.path}}";
-        };
-        playwright = {
-          command = lib.getExe pkgs.playwright-mcp;
         };
       };
     };

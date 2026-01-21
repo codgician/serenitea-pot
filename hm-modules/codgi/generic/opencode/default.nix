@@ -32,6 +32,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    home.packages = with pkgs.nur.repos.codgician; [ agent-browser ];
     programs.opencode = {
       enable = true;
       enableMcpIntegration = config.codgician.codgi.mcp.enable;
@@ -77,9 +78,15 @@ in
     };
 
     xdg.configFile = {
-      # Register superpowers
+      # Register superpowers + agent-browser skill
       "opencode/skill" = {
-        source = "${inputs.superpowers}/skills";
+        source = pkgs.symlinkJoin {
+          name = "opencode-skills";
+          paths = [
+            "${inputs.superpowers}/skills"
+            "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
+          ];
+        };
         recursive = true;
         force = true;
       };
