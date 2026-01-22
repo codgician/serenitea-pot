@@ -650,6 +650,7 @@
         "nur": "nur",
         "plasma-manager": "plasma-manager",
         "proxmox-nixos": "proxmox-nixos",
+        "skills": "skills",
         "superpowers": "superpowers",
         "terranix": "terranix",
         "vscode-server": "vscode-server"
@@ -673,6 +674,22 @@
       "original": {
         "owner": "oxalica",
         "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "skills": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1766254184,
+        "narHash": "sha256-pllFZoWRdtLliz/5pLWks0V9nKFMzeWoRcmFgu2UWi8=",
+        "owner": "anthropics",
+        "repo": "skills",
+        "rev": "69c0b1a0674149f27b61b2635f935524b6add202",
+        "type": "github"
+      },
+      "original": {
+        "owner": "anthropics",
+        "repo": "skills",
         "type": "github"
       }
     },

@@ -137,6 +137,11 @@
       };
     };
 
+    skills = {
+      url = "github:anthropics/skills";
+      flake = false;
+    };
+
     superpowers = {
       url = "github:obra/superpowers";
       flake = false;

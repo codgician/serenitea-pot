@@ -84,6 +84,7 @@ in
           name = "opencode-skills";
           paths = [
             "${inputs.superpowers}/skills"
+            "${inputs.skills}/skills"
             "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
           ];
         };
