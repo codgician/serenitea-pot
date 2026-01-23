@@ -24,7 +24,7 @@ let
   gpt5Variants = {
     high = {
       reasoningEffort = "high";
-      textVerbosity = "low";
+      textVerbosity = "high";
     };
     medium.reasoningEffort = "medium";
     low.reasoningEffort = "low";
@@ -35,7 +35,7 @@ let
   gpt52Variants = gpt5Variants // {
     xhigh = {
       reasoningEffort = "xhigh";
-      textVerbosity = "low";
+      textVerbosity = "high";
     };
   };
 
