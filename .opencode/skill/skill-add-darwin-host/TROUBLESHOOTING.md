@@ -73,4 +73,4 @@ Note: `home.stateVersion` still uses string format.
 
 ## Secret/agenix errors
 
-See [manage-agenix/TROUBLESHOOTING.md](../../secrets/manage-agenix/TROUBLESHOOTING.md)
+See [manage-agenix/TROUBLESHOOTING.md](../skill-manage-agenix/TROUBLESHOOTING.md)

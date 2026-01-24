@@ -6,6 +6,7 @@ pkgs.mkShell {
     direnv
     git
     nixd
+    opencode
   ];
   shellHook = ''
     echo "Welcome to serenitea pot!"

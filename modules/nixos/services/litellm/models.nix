@@ -207,10 +207,6 @@ let
       model_info.mode = "responses";
     }
     {
-      model_name = "o3";
-      model_info.mode = "chat";
-    }
-    {
       model_name = "text-embedding-ada-002";
       model_info.mode = "embedding";
     }

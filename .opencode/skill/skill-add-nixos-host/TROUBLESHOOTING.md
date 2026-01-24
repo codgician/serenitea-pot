@@ -58,7 +58,7 @@ codgician.system.impermanence.extraItems = [
 
 **Cause**: Module option conflict or self-reference
 
-See [debug-eval](../debug-eval/SKILL.md) for diagnosis.
+See [debug-eval](../skill-debug-eval/SKILL.md) for diagnosis.
 
 ---
 
@@ -74,8 +74,8 @@ See [debug-eval](../debug-eval/SKILL.md) for diagnosis.
 
 ## Secret/agenix errors
 
-See [manage-agenix/TROUBLESHOOTING.md](../../secrets/manage-agenix/TROUBLESHOOTING.md)
+See [manage-agenix/TROUBLESHOOTING.md](../skill-manage-agenix/TROUBLESHOOTING.md)
 
 ## Build/deploy errors
 
-See [build-deploy/TROUBLESHOOTING.md](../build-deploy/TROUBLESHOOTING.md)
+See [build-deploy/TROUBLESHOOTING.md](../skill-build-deploy/TROUBLESHOOTING.md)

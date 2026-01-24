@@ -10,7 +10,7 @@
 - Module is in `modules/nixos/services/<name>/default.nix`
 - File has correct structure (let/in with options and config)
 
-See [debug-eval](../debug-eval/SKILL.md) for diagnosis.
+See [debug-eval](../skill-debug-eval/SKILL.md) for diagnosis.
 
 ---
 
@@ -68,4 +68,4 @@ codgician.system.impermanence.extraItems = [
 
 ## Secret errors
 
-See [manage-agenix/TROUBLESHOOTING.md](../../secrets/manage-agenix/TROUBLESHOOTING.md)
+See [manage-agenix/TROUBLESHOOTING.md](../skill-manage-agenix/TROUBLESHOOTING.md)
