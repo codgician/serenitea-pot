@@ -142,17 +142,78 @@ let
 
   # GitHub Copilot models
   githubModelDefinitions = [
+    # Claude models
     {
       model_name = "claude-haiku-4.5";
-      model_info.mode = "chat";
-    }
-    {
-      model_name = "claude-sonnet-4.5";
-      model_info.mode = "chat";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 128000;
+        max_output_tokens = 16000;
+        max_tokens = 16000;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_vision = true;
+      };
     }
     {
       model_name = "claude-opus-4.5";
-      model_info.mode = "chat";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 128000;
+        max_output_tokens = 16000;
+        max_tokens = 16000;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_vision = true;
+      };
+    }
+    {
+      model_name = "claude-opus-41";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 80000;
+        max_output_tokens = 16000;
+        max_tokens = 16000;
+        supports_vision = true;
+      };
+    }
+    {
+      model_name = "claude-sonnet-4";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 128000;
+        max_output_tokens = 16000;
+        max_tokens = 16000;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_vision = true;
+      };
+    }
+    {
+      model_name = "claude-sonnet-4.5";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 128000;
+        max_output_tokens = 16000;
+        max_tokens = 16000;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_vision = true;
+      };
+    }
+
+    # Gemini models
+    {
+      model_name = "gemini-2.5-pro";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 128000;
+        max_output_tokens = 64000;
+        max_tokens = 64000;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_vision = true;
+      };
     }
     {
       model_name = "gemini-3-flash-preview";
@@ -160,19 +221,184 @@ let
     }
     {
       model_name = "gemini-3-pro-preview";
-      model_info.mode = "chat";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 128000;
+        max_output_tokens = 64000;
+        max_tokens = 64000;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_vision = true;
+      };
+    }
+
+    # GPT-3.5 models
+    {
+      model_name = "gpt-3.5-turbo";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 16384;
+        max_output_tokens = 4096;
+        max_tokens = 4096;
+        supports_function_calling = true;
+      };
     }
     {
-      model_name = "gemini-2.5-pro";
-      model_info.mode = "chat";
+      model_name = "gpt-3.5-turbo-0613";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 16384;
+        max_output_tokens = 4096;
+        max_tokens = 4096;
+        supports_function_calling = true;
+      };
+    }
+
+    # GPT-4 models
+    {
+      model_name = "gpt-4";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 32768;
+        max_output_tokens = 4096;
+        max_tokens = 4096;
+        supports_function_calling = true;
+      };
+    }
+    {
+      model_name = "gpt-4-0613";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 32768;
+        max_output_tokens = 4096;
+        max_tokens = 4096;
+        supports_function_calling = true;
+      };
+    }
+    {
+      model_name = "gpt-4-o-preview";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 64000;
+        max_output_tokens = 4096;
+        max_tokens = 4096;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+      };
     }
     {
       model_name = "gpt-4.1";
-      model_info.mode = "chat";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 128000;
+        max_output_tokens = 16384;
+        max_tokens = 16384;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_response_schema = true;
+        supports_vision = true;
+      };
     }
     {
+      model_name = "gpt-4.1-2025-04-14";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 128000;
+        max_output_tokens = 16384;
+        max_tokens = 16384;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_response_schema = true;
+        supports_vision = true;
+      };
+    }
+    {
+      model_name = "gpt-41-copilot";
+      model_info.mode = "completion";
+    }
+    {
+      model_name = "gpt-4o";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 64000;
+        max_output_tokens = 4096;
+        max_tokens = 4096;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_vision = true;
+      };
+    }
+    {
+      model_name = "gpt-4o-2024-05-13";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 64000;
+        max_output_tokens = 4096;
+        max_tokens = 4096;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_vision = true;
+      };
+    }
+    {
+      model_name = "gpt-4o-2024-08-06";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 64000;
+        max_output_tokens = 16384;
+        max_tokens = 16384;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+      };
+    }
+    {
+      model_name = "gpt-4o-2024-11-20";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 64000;
+        max_output_tokens = 16384;
+        max_tokens = 16384;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_vision = true;
+      };
+    }
+    {
+      model_name = "gpt-4o-mini";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 64000;
+        max_output_tokens = 4096;
+        max_tokens = 4096;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+      };
+    }
+    {
+      model_name = "gpt-4o-mini-2024-07-18";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 64000;
+        max_output_tokens = 4096;
+        max_tokens = 4096;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+      };
+    }
+
+    # GPT-5 models
+    {
       model_name = "gpt-5";
-      model_info.mode = "chat";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 128000;
+        max_output_tokens = 128000;
+        max_tokens = 128000;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_response_schema = true;
+        supports_vision = true;
+      };
     }
     {
       model_name = "gpt-5-codex";
@@ -180,19 +406,46 @@ let
     }
     {
       model_name = "gpt-5-mini";
-      model_info.mode = "chat";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 128000;
+        max_output_tokens = 64000;
+        max_tokens = 64000;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_response_schema = true;
+        supports_vision = true;
+      };
     }
     {
       model_name = "gpt-5.1";
-      model_info.mode = "chat";
-    }
-    {
-      model_name = "gpt-5.1-codex-max";
-      model_info.mode = "responses";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 128000;
+        max_output_tokens = 64000;
+        max_tokens = 64000;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_response_schema = true;
+        supports_vision = true;
+      };
     }
     {
       model_name = "gpt-5.1-codex";
       model_info.mode = "responses";
+    }
+    {
+      model_name = "gpt-5.1-codex-max";
+      model_info = {
+        mode = "responses";
+        max_input_tokens = 128000;
+        max_output_tokens = 128000;
+        max_tokens = 128000;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_response_schema = true;
+        supports_vision = true;
+      };
     }
     {
       model_name = "gpt-5.1-codex-mini";
@@ -200,23 +453,46 @@ let
     }
     {
       model_name = "gpt-5.2";
-      model_info.mode = "chat";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 128000;
+        max_output_tokens = 64000;
+        max_tokens = 64000;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_response_schema = true;
+        supports_vision = true;
+      };
     }
     {
       model_name = "gpt-5.2-codex";
       model_info.mode = "responses";
     }
-    {
-      model_name = "text-embedding-ada-002";
-      model_info.mode = "embedding";
-    }
+
+    # Embedding models
     {
       model_name = "text-embedding-3-small";
-      model_info.mode = "embedding";
+      model_info = {
+        mode = "embedding";
+        max_input_tokens = 8191;
+        max_tokens = 8191;
+      };
     }
     {
       model_name = "text-embedding-3-small-inference";
-      model_info.mode = "embedding";
+      model_info = {
+        mode = "embedding";
+        max_input_tokens = 8191;
+        max_tokens = 8191;
+      };
+    }
+    {
+      model_name = "text-embedding-ada-002";
+      model_info = {
+        mode = "embedding";
+        max_input_tokens = 8191;
+        max_tokens = 8191;
+      };
     }
   ];
 

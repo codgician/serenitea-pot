@@ -20,7 +20,33 @@ let
         inherit lib pkgs outputs;
       }).all;
 
-  # Define variants for GPT-5.x
+  # Convert model_info to OpenCode limit schema
+  mkLimit =
+    info:
+    let
+      limit =
+        lib.optionalAttrs (info ? max_input_tokens) { context = info.max_input_tokens; }
+        // lib.optionalAttrs (info ? max_output_tokens) { output = info.max_output_tokens; };
+    in
+    lib.optionalAttrs (limit != { }) { inherit limit; };
+
+  # Helper to create model entries from filtered models
+  mkModels =
+    filter: extraAttrs:
+    lib.pipe allModels [
+      (builtins.filter filter)
+      (map (x: {
+        name = x.model_name;
+        value = {
+          name = x.model_name;
+        }
+        // extraAttrs
+        // mkLimit (x.model_info or { });
+      }))
+      builtins.listToAttrs
+    ];
+
+  # Variants
   gpt5Variants = {
     high = {
       reasoningEffort = "high";
@@ -39,7 +65,6 @@ let
     };
   };
 
-  # Define variants for Claude models
   claudeVariants = {
     high.thinking = {
       type = "enabled";
@@ -51,98 +76,33 @@ let
     };
   };
 
-  # Define variants for Gemini Pro models
   geminiProVariants = {
     high.reasoningEffort = "high";
     low.reasoningEffort = "low";
   };
 in
 rec {
-  gpt52 = lib.pipe allModels [
-    (builtins.filter (x: lib.hasPrefix "gpt-5.2" x.model_name))
-    (builtins.map (x: {
-      name = x.model_name;
-      value = {
-        name = x.model_name;
-        variants = gpt52Variants;
-      };
-    }))
-    builtins.listToAttrs
-  ];
+  gpt52 = mkModels (x: lib.hasPrefix "gpt-5.2" x.model_name) { variants = gpt52Variants; };
+  gpt51 = mkModels (x: lib.hasPrefix "gpt-5.1" x.model_name) { variants = gpt5Variants; };
 
-  gpt51 = lib.pipe allModels [
-    (builtins.filter (x: lib.hasPrefix "gpt-5.1" x.model_name))
-    (builtins.map (x: {
-      name = x.model_name;
-      value = {
-        name = x.model_name;
-        variants = gpt5Variants;
-      };
-    }))
-    builtins.listToAttrs
-  ];
+  claude45ThinkingModels = mkModels (
+    x: x.model_name == "claude-opus-4.5" || x.model_name == "claude-sonnet-4.5"
+  ) { variants = claudeVariants; };
 
-  claude45ThinkingModels = lib.pipe allModels [
-    (builtins.filter (x: x.model_name == "claude-opus-4.5" || x.model_name == "claude-sonnet-4.5"))
-    (builtins.map (x: {
-      name = x.model_name;
-      value = {
-        name = x.model_name;
-        variants = claudeVariants;
-      };
-    }))
-    builtins.listToAttrs
-  ];
+  claude45NonThinkingModels = mkModels (x: x.model_name == "claude-haiku-4.5") { };
 
-  claude45NonThinkingModels = lib.pipe allModels [
-    (builtins.filter (x: x.model_name == "claude-haiku-4.5"))
-    (builtins.map (x: {
-      name = x.model_name;
-      value = {
-        name = x.model_name;
-      };
-    }))
-    builtins.listToAttrs
-  ];
+  geminiProModels = mkModels (x: lib.hasPrefix "gemini-3-pro" x.model_name) {
+    variants = geminiProVariants;
+  };
 
-  geminiProModels = lib.pipe allModels [
-    (builtins.filter (x: lib.hasPrefix "gemini-3-pro" x.model_name))
-    (builtins.map (x: {
-      name = x.model_name;
-      value = {
-        name = x.model_name;
-        variants = geminiProVariants;
-      };
-    }))
-    builtins.listToAttrs
-  ];
+  geminiFlashModels = mkModels (x: lib.hasPrefix "gemini-3-flash" x.model_name) { };
 
-  geminiFlashModels = lib.pipe allModels [
-    (builtins.filter (x: lib.hasPrefix "gemini-3-flash" x.model_name))
-    (builtins.map (x: {
-      name = x.model_name;
-      value = {
-        name = x.model_name;
-      };
-    }))
-    builtins.listToAttrs
-  ];
-
-  chinaModels = lib.pipe allModels [
-    (builtins.filter (
-      x:
-      lib.hasInfix "glm" x.model_name
-      || lib.hasPrefix "minimax" x.model_name
-      || lib.hasPrefix "deepseek" x.model_name
-    ))
-    (builtins.map (x: {
-      name = x.model_name;
-      value = {
-        name = x.model_name;
-      };
-    }))
-    builtins.listToAttrs
-  ];
+  chinaModels = mkModels (
+    x:
+    lib.hasInfix "glm" x.model_name
+    || lib.hasPrefix "minimax" x.model_name
+    || lib.hasPrefix "deepseek" x.model_name
+  ) { };
 
   all = lib.mergeAttrsList [
     gpt52
