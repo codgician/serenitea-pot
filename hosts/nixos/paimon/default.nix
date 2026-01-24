@@ -10,5 +10,6 @@ lib.codgician.mkNixosSystem {
     ./network.nix
     ./lab.nix
     ./proxmox.nix
+    ./monitoring.nix
   ];
 }

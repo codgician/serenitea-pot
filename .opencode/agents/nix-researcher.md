@@ -2,7 +2,7 @@
 description: Research NixOS options, nixpkgs modules, and documentation. Invoke when you need to understand what options exist for a service or feature.
 mode: subagent
 model: dendro/gpt-5.2
-reasoningEffort: xhigh
+reasoningEffort: high
 tools:
   write: false
   edit: false

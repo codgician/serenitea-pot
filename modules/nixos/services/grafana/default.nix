@@ -2,6 +2,7 @@
   config,
   options,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -11,6 +12,26 @@ let
 
   scheme = if cfg.reverseProxy.https then "https" else "http";
   url = "${scheme}://${builtins.head cfg.reverseProxy.domains}";
+
+  # Dashboard derivation that bundles all dashboard JSON files
+  dashboardsDir = pkgs.runCommand "grafana-dashboards" { } ''
+    mkdir -p $out
+    ${lib.concatMapStrings (
+      dashboard:
+      let
+        dashboardFile =
+          if builtins.isPath dashboard then
+            dashboard
+          else if builtins.isAttrs dashboard && dashboard ? path then
+            dashboard.path
+          else
+            throw "Dashboard must be a path or an attrset with 'path' key";
+      in
+      ''
+        cp ${dashboardFile} $out/
+      ''
+    ) cfg.provision.dashboards}
+  '';
 in
 {
   options.codgician.services.grafana = {
@@ -20,6 +41,47 @@ in
       type = types.path;
       default = "/var/lib/grafana";
       description = "Data directory for Grafana.";
+    };
+
+    provision = {
+      prometheus = {
+        enable = lib.mkEnableOption "Provision Prometheus as a datasource";
+
+        url = lib.mkOption {
+          type = types.str;
+          default = "http://localhost:${toString config.services.prometheus.port}";
+          description = "URL of the Prometheus server.";
+        };
+
+        isDefault = lib.mkOption {
+          type = types.bool;
+          default = true;
+          description = "Whether Prometheus should be the default datasource.";
+        };
+      };
+
+      dashboards = lib.mkOption {
+        type = types.listOf (
+          types.either types.path (
+            types.submodule {
+              options = {
+                path = lib.mkOption {
+                  type = types.path;
+                  description = "Path to the dashboard JSON file.";
+                };
+              };
+            }
+          )
+        );
+        default = [ ];
+        description = "List of dashboard JSON files to provision.";
+        example = lib.literalExpression ''
+          [
+            ./dashboards/nginx.json
+            { path = ./dashboards/node.json; }
+          ]
+        '';
+      };
     };
 
     # Reverse proxy profile for nginx
@@ -103,6 +165,37 @@ in
             allow_sign_up = false;
             allow_org_create = false;
           };
+        };
+
+        # Provisioning configuration
+        provision = {
+          enable = true;
+
+          # Provision Prometheus datasource
+          datasources.settings.datasources = lib.mkIf cfg.provision.prometheus.enable [
+            {
+              name = "Prometheus";
+              type = "prometheus";
+              access = "proxy";
+              url = cfg.provision.prometheus.url;
+              isDefault = cfg.provision.prometheus.isDefault;
+              editable = false;
+              jsonData = {
+                timeInterval = "15s";
+                httpMethod = "POST";
+              };
+            }
+          ];
+
+          # Provision dashboards
+          dashboards.settings.providers = lib.mkIf (cfg.provision.dashboards != [ ]) [
+            {
+              name = "default";
+              options.path = dashboardsDir;
+              disableDeletion = true;
+              allowUiUpdates = false;
+            }
+          ];
         };
       };
 
