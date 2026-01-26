@@ -232,7 +232,6 @@ in
           "--host=${host}"
           "--config"
           "/config.yaml"
-          "--detailed_debug"
         ];
         inherit environment;
         environmentFiles = [ config.age.secrets.litellm-env.path ];
