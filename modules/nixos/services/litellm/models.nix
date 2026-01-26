@@ -12,6 +12,13 @@ let
     terraformConf.resource.azurerm_cognitive_deployment or { }
   );
 
+  # Anthropic models
+  anthropicModelDefinitions = [
+    "claude-opus-4-5-20251101"
+    "claude-haiku-4-5-20251001"
+    "claude-sonnet-4-5-20250929"
+  ];
+
   # Azure models
   azureModelDefinitions = [
     {
@@ -121,6 +128,12 @@ let
     }
   ];
 
+  # Deepseek models
+  deepseekModelDefinitions = [
+    "deepseek-chat"
+    "deepseek-reasoner"
+  ];
+
   # Google models
   googleModelDefinitions = [
     {
@@ -157,28 +170,6 @@ let
     }
     {
       model_name = "claude-opus-4.5";
-      model_info = {
-        mode = "chat";
-        max_input_tokens = 128000;
-        max_output_tokens = 16000;
-        max_tokens = 16000;
-        supports_function_calling = true;
-        supports_parallel_function_calling = true;
-        supports_vision = true;
-      };
-    }
-    {
-      model_name = "claude-opus-41";
-      model_info = {
-        mode = "chat";
-        max_input_tokens = 80000;
-        max_output_tokens = 16000;
-        max_tokens = 16000;
-        supports_vision = true;
-      };
-    }
-    {
-      model_name = "claude-sonnet-4";
       model_info = {
         mode = "chat";
         max_input_tokens = 128000;
@@ -241,60 +232,7 @@ let
       };
     }
 
-    # GPT-3.5 models
-    {
-      model_name = "gpt-3.5-turbo";
-      model_info = {
-        mode = "chat";
-        max_input_tokens = 16384;
-        max_output_tokens = 4096;
-        max_tokens = 4096;
-        supports_function_calling = true;
-      };
-    }
-    {
-      model_name = "gpt-3.5-turbo-0613";
-      model_info = {
-        mode = "chat";
-        max_input_tokens = 16384;
-        max_output_tokens = 4096;
-        max_tokens = 4096;
-        supports_function_calling = true;
-      };
-    }
-
-    # GPT-4 models
-    {
-      model_name = "gpt-4";
-      model_info = {
-        mode = "chat";
-        max_input_tokens = 32768;
-        max_output_tokens = 4096;
-        max_tokens = 4096;
-        supports_function_calling = true;
-      };
-    }
-    {
-      model_name = "gpt-4-0613";
-      model_info = {
-        mode = "chat";
-        max_input_tokens = 32768;
-        max_output_tokens = 4096;
-        max_tokens = 4096;
-        supports_function_calling = true;
-      };
-    }
-    {
-      model_name = "gpt-4-o-preview";
-      model_info = {
-        mode = "chat";
-        max_input_tokens = 64000;
-        max_output_tokens = 4096;
-        max_tokens = 4096;
-        supports_function_calling = true;
-        supports_parallel_function_calling = true;
-      };
-    }
+    # GPT-4.1 models
     {
       model_name = "gpt-4.1";
       model_info = {
@@ -306,92 +244,6 @@ let
         supports_parallel_function_calling = true;
         supports_response_schema = true;
         supports_vision = true;
-      };
-    }
-    {
-      model_name = "gpt-4.1-2025-04-14";
-      model_info = {
-        mode = "chat";
-        max_input_tokens = 128000;
-        max_output_tokens = 16384;
-        max_tokens = 16384;
-        supports_function_calling = true;
-        supports_parallel_function_calling = true;
-        supports_response_schema = true;
-        supports_vision = true;
-      };
-    }
-    {
-      model_name = "gpt-41-copilot";
-      model_info.mode = "completion";
-    }
-    {
-      model_name = "gpt-4o";
-      model_info = {
-        mode = "chat";
-        max_input_tokens = 64000;
-        max_output_tokens = 4096;
-        max_tokens = 4096;
-        supports_function_calling = true;
-        supports_parallel_function_calling = true;
-        supports_vision = true;
-      };
-    }
-    {
-      model_name = "gpt-4o-2024-05-13";
-      model_info = {
-        mode = "chat";
-        max_input_tokens = 64000;
-        max_output_tokens = 4096;
-        max_tokens = 4096;
-        supports_function_calling = true;
-        supports_parallel_function_calling = true;
-        supports_vision = true;
-      };
-    }
-    {
-      model_name = "gpt-4o-2024-08-06";
-      model_info = {
-        mode = "chat";
-        max_input_tokens = 64000;
-        max_output_tokens = 16384;
-        max_tokens = 16384;
-        supports_function_calling = true;
-        supports_parallel_function_calling = true;
-      };
-    }
-    {
-      model_name = "gpt-4o-2024-11-20";
-      model_info = {
-        mode = "chat";
-        max_input_tokens = 64000;
-        max_output_tokens = 16384;
-        max_tokens = 16384;
-        supports_function_calling = true;
-        supports_parallel_function_calling = true;
-        supports_vision = true;
-      };
-    }
-    {
-      model_name = "gpt-4o-mini";
-      model_info = {
-        mode = "chat";
-        max_input_tokens = 64000;
-        max_output_tokens = 4096;
-        max_tokens = 4096;
-        supports_function_calling = true;
-        supports_parallel_function_calling = true;
-      };
-    }
-    {
-      model_name = "gpt-4o-mini-2024-07-18";
-      model_info = {
-        mode = "chat";
-        max_input_tokens = 64000;
-        max_output_tokens = 4096;
-        max_tokens = 4096;
-        supports_function_calling = true;
-        supports_parallel_function_calling = true;
       };
     }
 
@@ -545,7 +397,33 @@ assert lib.assertMsg (missingAzureModels == [ ])
   }";
 rec {
   # Everything
-  all = azure ++ deepseek ++ google ++ github ++ nvidia;
+  all = anthropic ++ azure ++ deepseek ++ google ++ github ++ nvidia;
+
+  # Anthropic models
+  anthropic =
+    let
+      stripSuffix =
+        name:
+        let
+          parts = lib.splitString "-" name;
+        in
+        if builtins.length parts <= 1 then name else builtins.concatStringsSep "-" (lib.init parts);
+    in
+    builtins.map (model_name: {
+      model_name = stripSuffix model_name;
+      model_info = {
+        mode = "chat";
+        base_model = "anthropic/${model_name}";
+        access_groups = [
+          "anthropic"
+          "microsoft"
+        ];
+      };
+      litellm_params = {
+        model = "anthropic/${model_name}";
+        api_key = "os.environ/ANTHROPIC_API_KEY";
+      };
+    }) anthropicModelDefinitions;
 
   # Azure AI models
   azure = builtins.map (
@@ -556,7 +434,10 @@ rec {
       litellm_params ? { },
     }:
     {
-      inherit model_name model_info;
+      inherit model_name;
+      model_info = model_info // {
+        access_groups = [ "azure" ];
+      };
       litellm_params = {
         model = "${provider}/${model_name}";
         api_base = "https://${azureSubdomain}.services.ai.azure.com";
@@ -567,23 +448,18 @@ rec {
   ) azureModelDefinitions;
 
   # Deepseek models
-  deepseek =
-    builtins.map
-      (model_name: {
-        inherit model_name;
-        model_info = {
-          mode = "chat";
-          base_model = "deepseek/${model_name}";
-        };
-        litellm_params = {
-          model = "deepseek/${model_name}";
-          api_key = "os.environ/DEEPSEEK_API_KEY";
-        };
-      })
-      [
-        "deepseek-chat"
-        "deepseek-reasoner"
-      ];
+  deepseek = builtins.map (model_name: {
+    inherit model_name;
+    model_info = {
+      mode = "chat";
+      base_model = "deepseek/${model_name}";
+      access_groups = [ "deepseek" ];
+    };
+    litellm_params = {
+      model = "deepseek/${model_name}";
+      api_key = "os.environ/DEEPSEEK_API_KEY";
+    };
+  }) deepseekModelDefinitions;
 
   # Google Cloud models
   google = builtins.map (
@@ -593,7 +469,10 @@ rec {
       litellm_params ? { },
     }:
     {
-      inherit model_name model_info;
+      inherit model_name;
+      model_info = model_info // {
+        access_groups = [ "google" ];
+      };
       litellm_params = {
         model = "gemini/${model_name}";
         api_key = "os.environ/GEMINI_API_KEY";
@@ -610,7 +489,13 @@ rec {
       litellm_params ? { },
     }:
     {
-      inherit model_name model_info;
+      inherit model_name;
+      model_info = model_info // {
+        access_groups = [
+          "github"
+          "microsoft"
+        ];
+      };
       litellm_params = {
         model = "github_copilot/${model_name}";
         extra_headers = {
@@ -633,7 +518,9 @@ rec {
     }:
     {
       model_name = builtins.baseNameOf model_name;
-      inherit model_info;
+      model_info = model_info // {
+        access_groups = [ "nvidia" ];
+      };
       litellm_params = {
         model = "nvidia_nim/${model_name}";
         api_key = "os.environ/NVIDIA_NIM_API_KEY";
