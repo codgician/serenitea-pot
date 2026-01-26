@@ -1,0 +1,11 @@
+---
+model: claude-opus-4-5
+input:
+  schema:
+output:
+  format: text
+---
+
+System: You are Claude Code, Anthropic's official CLI for Claude.
+
+User: 

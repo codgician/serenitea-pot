@@ -27,6 +27,16 @@ let
       drop_params = true;
     };
     model_list = allModels;
+    prompts = [
+      {
+        prompt_id = "claude-code";
+        litellm_params = {
+          prompt_id = "claude-code";
+          prompt_integration = "dotprompt";
+          dotprompt_content = builtins.readFile ./claude-code.prompt;
+        };
+      }
+    ];
   };
 
   # Redis socket path (different for container vs nixpkgs)
@@ -83,6 +93,8 @@ in
         "main-dev"
         "main-rc"
         "main-stable"
+        "litellm_rc_branch-rc"
+        "litellm_rc_branch-dev"
       ];
       default = "main-stable";
       description = ''
@@ -220,6 +232,7 @@ in
           "--host=${host}"
           "--config"
           "/config.yaml"
+          "--detailed_debug"
         ];
         inherit environment;
         environmentFiles = [ config.age.secrets.litellm-env.path ];

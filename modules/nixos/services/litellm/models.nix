@@ -14,9 +14,9 @@ let
 
   # Anthropic models
   anthropicModelDefinitions = [
-    "claude-opus-4-5-20251101"
-    "claude-haiku-4-5-20251001"
-    "claude-sonnet-4-5-20250929"
+    "claude-opus-4-5"
+    "claude-haiku-4-5"
+    "claude-sonnet-4-5"
   ];
 
   # Azure models
@@ -400,30 +400,27 @@ rec {
   all = anthropic ++ azure ++ deepseek ++ google ++ github ++ nvidia;
 
   # Anthropic models
-  anthropic =
-    let
-      stripSuffix =
-        name:
-        let
-          parts = lib.splitString "-" name;
-        in
-        if builtins.length parts <= 1 then name else builtins.concatStringsSep "-" (lib.init parts);
-    in
-    builtins.map (model_name: {
-      model_name = stripSuffix model_name;
-      model_info = {
-        mode = "chat";
-        base_model = "anthropic/${model_name}";
-        access_groups = [
-          "anthropic"
-          "microsoft"
-        ];
+  anthropic = builtins.map (model_name: {
+    model_name = model_name;
+    model_info = {
+      mode = "chat";
+      base_model = "anthropic/${model_name}";
+      access_groups = [
+        "anthropic"
+        "microsoft"
+      ];
+    };
+    litellm_params = {
+      model = "anthropic/${model_name}";
+      api_key = "os.environ/ANTHROPIC_API_KEY";
+      prompt_id = "claude-code";
+      extra_headers = {
+        "User-Agent" = "claude-cli/${pkgs.claude-code.version} (external, cli)";
+        "anthropic-beta" =
+          "oauth-2025-04-20,interleaved-thinking-2025-05-14,claude-code-20250219,context-1m-2025-08-07,fine-grained-tool-streaming-2025-05-14";
       };
-      litellm_params = {
-        model = "anthropic/${model_name}";
-        api_key = "os.environ/ANTHROPIC_API_KEY";
-      };
-    }) anthropicModelDefinitions;
+    };
+  }) anthropicModelDefinitions;
 
   # Azure AI models
   azure = builtins.map (
