@@ -400,27 +400,38 @@ rec {
   all = anthropic ++ azure ++ deepseek ++ google ++ github ++ nvidia;
 
   # Anthropic models
-  anthropic = builtins.map (model_name: {
-    model_name = model_name;
-    model_info = {
-      mode = "chat";
-      base_model = "anthropic/${model_name}";
-      access_groups = [
-        "anthropic"
-        "microsoft"
-      ];
-    };
-    litellm_params = {
-      model = "anthropic/${model_name}";
-      api_key = "os.environ/ANTHROPIC_API_KEY";
-      prompt_id = "claude-code";
-      extra_headers = {
-        "User-Agent" = "claude-cli/${pkgs.claude-code.version} (external, cli)";
-        "anthropic-beta" =
-          "oauth-2025-04-20,interleaved-thinking-2025-05-14,claude-code-20250219,context-1m-2025-08-07,fine-grained-tool-streaming-2025-05-14";
+  anthropic = builtins.map (
+    model_name:
+    let
+      replaceLastDashWithDot =
+        s:
+        let
+          m = builtins.match "^(.*)-([^-]+)$" s;
+        in
+        if m == null then s else "${builtins.elemAt m 0}.${builtins.elemAt m 1}";
+    in
+    {
+      model_name = replaceLastDashWithDot model_name;
+      model_info = {
+        mode = "chat";
+        base_model = "anthropic/${model_name}";
+        access_groups = [
+          "anthropic"
+          "microsoft"
+        ];
       };
-    };
-  }) anthropicModelDefinitions;
+      litellm_params = {
+        model = "anthropic/${model_name}";
+        api_key = "os.environ/ANTHROPIC_API_KEY";
+        prompt_id = "claude-code";
+        extra_headers = {
+          "User-Agent" = "claude-cli/${pkgs.claude-code.version} (external, cli)";
+          "anthropic-beta" =
+            "oauth-2025-04-20,interleaved-thinking-2025-05-14,claude-code-20250219,context-1m-2025-08-07,fine-grained-tool-streaming-2025-05-14";
+        };
+      };
+    }
+  ) anthropicModelDefinitions;
 
   # Azure AI models
   azure = builtins.map (
