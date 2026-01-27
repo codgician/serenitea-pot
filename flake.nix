@@ -39,7 +39,7 @@
     };
 
     proxmox-nixos = {
-      url = "github:codgician/proxmox-nixos/bootstrap";
+      url = "github:SaumonNet/proxmox-nixos";
       inputs = {
         nixpkgs-stable.follows = "nixpkgs-prev";
         nixpkgs-unstable.follows = "nixpkgs-unstable";

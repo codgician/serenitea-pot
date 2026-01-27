@@ -453,9 +453,10 @@
         "type": "github"
       },
       "original": {
-        "id": "nixpkgs",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
         "rev": "e6f23dc08d3624daab7094b701aa3954923c6bbb",
-        "type": "indirect"
+        "type": "github"
       }
     },
     "nixpkgs-prev": {
@@ -604,24 +605,20 @@
         "nixpkgs-stable": [
           "nixpkgs-prev"
         ],
-        "nixpkgs-unstable": [
-          "nixpkgs-unstable"
-        ],
         "utils": [
           "flake-utils"
         ]
       },
       "locked": {
-        "lastModified": 1764787245,
-        "narHash": "sha256-pYpfTiqaMa94fdkbwhmvFYSUARPkPBIiCZck501x2wE=",
-        "owner": "codgician",
+        "lastModified": 1769352489,
+        "narHash": "sha256-+eFH8gMuNaf7QlFLpavdSljqrXj1uwXA5Gjyp9dZduc=",
+        "owner": "SaumonNet",
         "repo": "proxmox-nixos",
-        "rev": "71ab11ec38529e3c77c00810b48d306ba67f6198",
+        "rev": "21e34e05380f451b257e3d2c5fe7da67c975cfaf",
         "type": "github"
       },
       "original": {
-        "owner": "codgician",
-        "ref": "bootstrap",
+        "owner": "SaumonNet",
         "repo": "proxmox-nixos",
         "type": "github"
       }

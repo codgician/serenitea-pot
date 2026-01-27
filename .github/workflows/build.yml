@@ -15,7 +15,7 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
   validate:
-    runs-on: ubuntu-slim
+    runs-on: ubuntu-latest
     outputs:
       darwin: ${{ steps.get_matrix.outputs.darwin }}
       linux: ${{ steps.get_matrix.outputs.linux }}
