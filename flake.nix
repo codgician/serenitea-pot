@@ -42,7 +42,6 @@
       url = "github:SaumonNet/proxmox-nixos";
       inputs = {
         nixpkgs-stable.follows = "nixpkgs-prev";
-        nixpkgs-unstable.follows = "nixpkgs-unstable";
         flake-compat.follows = "flake-compat";
         utils.follows = "flake-utils";
       };

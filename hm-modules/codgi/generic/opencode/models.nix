@@ -66,13 +66,17 @@ let
   };
 
   claudeVariants = {
-    high.thinking = {
-      type = "enabled";
-      budgetTokens = 8000;
+    high = {
+      thinking = {
+        type = "enabled";
+        budget_tokens = 16000;
+      };
     };
-    max.thinking = {
-      type = "enabled";
-      budgetTokens = 16000;
+    max = {
+      thinking = {
+        type = "enabled";
+        budget_tokens = 31999;
+      };
     };
   };
 
