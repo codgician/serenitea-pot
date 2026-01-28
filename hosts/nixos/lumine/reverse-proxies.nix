@@ -56,7 +56,7 @@
       reverseProxy = {
         enable = true;
         proxyPass = "https://192.168.0.22";
-        anubis.enable = true; # Phase 1: Protected
+        anubis.enable = true;
       };
     };
 
@@ -64,7 +64,7 @@
       enable = true;
       domains = [ "lumenstone.codgician.me" ];
       proxyPass = "http://192.168.0.22";
-      anubis.enable = true; # Phase 1: Protected
+      anubis.enable = true;
     };
 
     jellyfin.reverseProxy = {
@@ -77,6 +77,12 @@
       enable = true;
       domains = [ "dragonspine.codgician.me" ];
       proxyPass = "https://192.168.0.8";
+    };
+
+    open-webui.reverseProxy = {
+      enable = true;
+      domains = [ "akasha.codgician.me" ];
+      proxyPass = "https://192.168.0.22";
     };
 
     nginx = {
