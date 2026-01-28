@@ -25,6 +25,7 @@ let
       cache = true;
       cache_params.type = "redis";
       drop_params = true;
+      modify_params = true;
     };
     model_list = allModels;
     prompts = [
