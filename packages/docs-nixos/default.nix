@@ -19,7 +19,8 @@ let
       opt: if lib.hasPrefix "codgician" opt.name then opt else opt // { visible = false; };
   };
 in
-optionsDoc.optionsCommonMark // {
+optionsDoc.optionsCommonMark
+// {
   meta = with lib; {
     description = "Documentation for serenitea-pot on NixOS";
     maintainers = with maintainers; [ codgician ];

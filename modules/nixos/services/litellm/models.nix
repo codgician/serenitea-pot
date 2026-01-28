@@ -423,7 +423,7 @@ rec {
       litellm_params = {
         model = "anthropic/${model_name}";
         api_key = "os.environ/ANTHROPIC_API_KEY";
-        prompt_id = "claude-code";
+        prompt_id = lib.mkIf (lib.hasInfix "haiku" model_name) "claude-code";
         extra_headers = {
           "User-Agent" = "claude-cli/${pkgs.claude-code.version} (external, cli)";
           "anthropic-beta" =
