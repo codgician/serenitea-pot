@@ -39,9 +39,9 @@
     };
 
     proxmox-nixos = {
-      url = "github:SaumonNet/proxmox-nixos";
+      url = "github:codgician/proxmox-nixos/pve-9-1";
       inputs = {
-        nixpkgs-stable.follows = "nixpkgs-prev";
+        nixpkgs-stable.follows = "nixpkgs";
         flake-compat.follows = "flake-compat";
         utils.follows = "flake-utils";
       };
