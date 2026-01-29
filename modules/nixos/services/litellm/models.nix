@@ -385,6 +385,10 @@ let
       model_name = "minimaxai/minimax-m2.1";
       model_info.mode = "chat";
     }
+    {
+      model_name = "moonshotai/kimi-k2.5";
+      model_info.mode = "chat";
+    }
   ];
 
   missingAzureModels = lib.filter (
