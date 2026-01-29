@@ -36,7 +36,7 @@
     kernelModules = [
       "kvm-amd"
     ];
-    kernelPackages = pkgs.linuxPackages_6_6;
+    kernelPackages = pkgs.linuxPackages_6_12;
     zfs.package = pkgs.zfs_2_4;
 
     kernelParams = [
