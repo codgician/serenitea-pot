@@ -64,7 +64,7 @@
             prismlauncher-unwrapped
             macmon
             codex
-            claude-code-wrapped
+            claude-code
             beads
           ]
           ++ (with pkgs.nur.repos.codgician; [

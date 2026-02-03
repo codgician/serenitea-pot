@@ -61,6 +61,10 @@ in
           hostname = "raiden-ei.lan";
           user = "codgi";
         };
+        "sandrone" = {
+          hostname = "sandrone.lan";
+          user = "codgi";
+        };
         "xianyun" = {
           hostname = "xianyun.codgician.me";
           user = "codgi";

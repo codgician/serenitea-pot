@@ -139,7 +139,7 @@
       home.packages = with pkgs; [
         screen
         tmux
-        claude-code-wrapped
+        claude-code
       ];
     };
 
