@@ -97,10 +97,10 @@ in
         "$schema" =
           "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json";
         agents = {
-          Sisyphus.model = "dendro/claude-opus-4.5";
+          Sisyphus.model = "dendro/claude-opus-4.6";
           librarian.model = "dendro/claude-sonnet-4.5";
           explore.model = "dendro/gemini-3-flash-preview";
-          oracle.model = "dendro/gpt-5.2-codex";
+          oracle.model = "dendro/gpt-5.2";
           frontend-ui-ux-engineer.model = "dendro/gemini-3-pro-preview";
           document-writer.model = "dendro/gemini-3-pro-preview";
           multimodal-looker.model = "dendro/gemini-3-flash-preview";

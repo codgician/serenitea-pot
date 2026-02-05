@@ -89,11 +89,11 @@ rec {
   gpt52 = mkModels (x: lib.hasPrefix "gpt-5.2" x.model_name) { variants = gpt52Variants; };
   gpt51 = mkModels (x: lib.hasPrefix "gpt-5.1" x.model_name) { variants = gpt5Variants; };
 
-  claude45ThinkingModels = mkModels (
-    x: x.model_name == "claude-opus-4.5" || x.model_name == "claude-sonnet-4.5"
+  claudeThinkingModels = mkModels (
+    x: lib.hasPrefix "claude-opus" x.model_name || lib.hasPrefix "claude-sonnet" x.model_name
   ) { variants = claudeVariants; };
 
-  claude45NonThinkingModels = mkModels (x: x.model_name == "claude-haiku-4.5") { };
+  claudeNonThinkingModels = mkModels (x: lib.hasPrefix "claude-haiku" x.model_name) { };
 
   geminiProModels = mkModels (x: lib.hasPrefix "gemini-3-pro" x.model_name) {
     variants = geminiProVariants;
@@ -111,8 +111,8 @@ rec {
   all = lib.mergeAttrsList [
     gpt52
     gpt51
-    claude45ThinkingModels
-    claude45NonThinkingModels
+    claudeThinkingModels
+    claudeNonThinkingModels
     geminiProModels
     geminiFlashModels
     chinaModels

@@ -14,6 +14,7 @@ let
 
   # Anthropic models
   anthropicModelDefinitions = [
+    "claude-opus-4-6"
     "claude-opus-4-5"
     "claude-haiku-4-5"
     "claude-sonnet-4-5"
@@ -163,6 +164,18 @@ let
         max_input_tokens = 128000;
         max_output_tokens = 16000;
         max_tokens = 16000;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_vision = true;
+      };
+    }
+    {
+      model_name = "claude-opus-4.6";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 128000;
+        max_output_tokens = 64000;
+        max_tokens = 64000;
         supports_function_calling = true;
         supports_parallel_function_calling = true;
         supports_vision = true;
