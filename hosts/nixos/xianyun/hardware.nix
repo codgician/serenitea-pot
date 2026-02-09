@@ -27,9 +27,6 @@ in
     kernelPackages = pkgs.linuxPackages_6_18;
     zfs.package = pkgs.zfs_2_4;
 
-    # Force RA acceptance when forwarding is enabled
-    kernel.sysctl."net.ipv6.conf.eth0.accept_ra" = "2";
-
     supportedFilesystems = [
       "vfat"
       "zfs"
@@ -41,31 +38,34 @@ in
 
   fileSystems."/persist".neededForBoot = true;
 
-  networking.useDHCP = lib.mkDefault true;
-
   # Enable cloud-init
   services.cloud-init.enable = true;
   systemd.services.cloud-config.serviceConfig.Restart = "on-failure";
 
-  # Manually configure ipv6 network on Tencent Cloud
-  networking = {
-    usePredictableInterfaceNames = false;
-    interfaces.eth0.ipv6 = {
-      addresses = [
-        {
-          address = publicIpv6;
-          prefixLength = 128;
-        }
-      ];
-      routes = [
-        {
-          address = "::";
-          prefixLength = 0;
-          via = "fe80::feee:ffff:feff:ffff";
-          options.onlink = true;
-        }
-      ];
+  # Manually configure IPv6 network using systemd-networkd
+  networking.usePredictableInterfaceNames = false;
+  systemd.network.networks."40-eth0" = {
+    matchConfig.Name = "eth0";
+    networkConfig = {
+      DHCP = "yes";
+      # Disable Duplicate Address Detection - Tencent Cloud assigns addresses
+      # that may trigger false DAD failures in virtualized environments
+      IPv6DuplicateAddressDetection = 0;
+      # Accept Router Advertisements even with forwarding enabled (needed for gateway discovery)
+      IPv6AcceptRA = true;
     };
+    # Static IPv6 address from Tencent Cloud
+    addresses = [
+      { Address = "${publicIpv6}/128"; }
+    ];
+    # IPv6 default route via Tencent Cloud's link-local gateway
+    routes = [
+      {
+        Destination = "::/0";
+        Gateway = "fe80::feee:ffff:feff:ffff";
+        GatewayOnLink = true;
+      }
+    ];
   };
 
   # Override distro in cloud-init
