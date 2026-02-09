@@ -97,7 +97,7 @@ in
         "$schema" =
           "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json";
         agents = {
-          Sisyphus.model = "dendro/claude-opus-4.6";
+          sisyphus.model = "dendro/claude-opus-4.6";
           librarian.model = "dendro/claude-sonnet-4.5";
           explore.model = "dendro/gemini-3-flash-preview";
           oracle.model = "dendro/gpt-5.2";
