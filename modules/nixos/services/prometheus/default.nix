@@ -9,12 +9,13 @@ let
   types = lib.types;
 
   # Default scrape configs when self-monitoring is enabled
+  # Use explicit 127.0.0.1 to match listenAddress binding (avoids IPv6 resolution issues)
   defaultScrapeConfigs = lib.optionals cfg.scrapeConfigs.prometheus [
     {
       job_name = "prometheus";
       static_configs = [
         {
-          targets = [ "localhost:${toString config.services.prometheus.port}" ];
+          targets = [ "127.0.0.1:${toString config.services.prometheus.port}" ];
           labels = {
             instance = config.networking.hostName;
           };
@@ -30,7 +31,7 @@ let
       static_configs = [
         {
           targets = [
-            "localhost:${toString config.services.prometheus.exporters.nginx.port}"
+            "127.0.0.1:${toString config.services.prometheus.exporters.nginx.port}"
           ];
           labels = {
             instance = config.networking.hostName;
@@ -47,7 +48,7 @@ let
       static_configs = [
         {
           targets = [
-            "localhost:${toString config.services.prometheus.exporters.nginxlog.port}"
+            "127.0.0.1:${toString config.services.prometheus.exporters.nginxlog.port}"
           ];
           labels = {
             instance = config.networking.hostName;
@@ -93,6 +94,7 @@ in
   config = lib.mkIf cfg.enable {
     services.prometheus = {
       enable = true;
+      listenAddress = "127.0.0.1"; # Security: bind to localhost only
       stateDir = cfg.stateDirName;
       scrapeConfigs =
         defaultScrapeConfigs

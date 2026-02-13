@@ -8,7 +8,9 @@ let
   nginxAccessLogPath = "/var/log/nginx/access.log";
 
   # Nginxlog exporter log format matching our nginx config
-  # Format: $remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_time $upstream_response_time $request_length
+  # IMPORTANT: We use mapped variables that convert "-" to "0" for numeric fields
+  # because nginx outputs "-" when there's no upstream (e.g., static files, errors)
+  # Format: $remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_time $upstream_time_or_zero $request_length
   nginxlogFormat = "$remote_addr - $remote_user [$time_local] \"$request\" $status $body_bytes_sent \"$http_referer\" \"$http_user_agent\" $request_time $upstream_response_time $request_length";
 in
 {
@@ -31,6 +33,7 @@ in
   services.prometheus.exporters.nginxlog = {
     enable = true;
     group = "nginx";
+    listenAddress = "127.0.0.1"; # Security: bind to localhost only
     settings = {
       namespaces = [
         {
@@ -57,16 +60,28 @@ in
     };
   };
 
+  # Security: bind nginx exporter to localhost only
+  services.prometheus.exporters.nginx.listenAddress = "127.0.0.1";
+
   # Configure nginx to write access logs with the appropriate format
   # Note: commonHttpConfig is evaluated BEFORE appendHttpConfig in nginx config generation
-  # So log_format must be in commonHttpConfig, and access_log in appendHttpConfig
+  # So map directives and log_format must be in commonHttpConfig, and access_log in appendHttpConfig
   services.nginx = {
-    # Define log format first (commonHttpConfig comes before appendHttpConfig)
+    # Define map directive to convert "-" to "0" for upstream_response_time
+    # This is needed because nginx outputs "-" when there's no upstream (static files, errors, etc.)
+    # The nginxlog exporter parser expects numeric values and fails on "-"
+    # Also define log format here (commonHttpConfig comes before appendHttpConfig)
     commonHttpConfig = ''
+      # Map upstream_response_time: convert "-" to "0" for metrics parsing
+      map $upstream_response_time $upstream_time_or_zero {
+        "-" 0;
+        default $upstream_response_time;
+      }
+
       log_format metrics '$remote_addr - $remote_user [$time_local] '
                         '"$request" $status $body_bytes_sent '
                         '"$http_referer" "$http_user_agent" '
-                        '$request_time $upstream_response_time $request_length';
+                        '$request_time $upstream_time_or_zero $request_length';
     '';
 
     # Then use the log format (appendHttpConfig comes after commonHttpConfig)
