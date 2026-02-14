@@ -159,7 +159,7 @@ in
     # Enable fail2ban
     services.fail2ban.enable = config.networking.firewall.enable;
 
-    # Limit journal size 
+    # Limit journal size
     services.journald.extraConfig = ''
       SystemMaxUse=1G
       SystemMaxFileSize=32M

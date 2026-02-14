@@ -18,7 +18,6 @@ in
     # ./gpt-5-mini.nix (use GitHub Copilot instead)
     ./gpt-audio-mini.nix
     ./gpt-audio.nix
-    ./gpt-oss-120b.nix
     ./gpt-realtime.nix
     ./grok-3.nix
     ./grok-4-fast.nix

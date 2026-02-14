@@ -24,97 +24,94 @@ let
   mkLimit =
     info:
     let
-      limit =
-        lib.optionalAttrs (info ? max_input_tokens) { context = info.max_input_tokens; }
-        // lib.optionalAttrs (info ? max_output_tokens) { output = info.max_output_tokens; };
+      limit = lib.filterAttrs (_: v: v != null) {
+        context = info.max_input_tokens or null;
+        output = info.max_output_tokens or null;
+      };
     in
     lib.optionalAttrs (limit != { }) { inherit limit; };
 
+  # Variant generator: takes model name, returns variants attr set
+  getVariants =
+    name:
+    let
+      m = builtins.match "^gpt-([0-9]+(\\.[0-9]+)?)(-codex.*)?$" name;
+      gptVersion = if m == null then null else builtins.elemAt m 0;
+    in
+    # GPT-5+ family models (no suffix or -codex suffix only)
+    if gptVersion != null && lib.versionAtLeast gptVersion "5" then
+      {
+        high = {
+          reasoningEffort = "high";
+          textVerbosity = "high";
+        };
+        medium.reasoningEffort = "medium";
+        low.reasoningEffort = "low";
+        minimal.reasoningEffort = "minimal";
+        none.reasoningEffort = "none";
+      }
+      // lib.optionalAttrs (lib.versionAtLeast gptVersion "5.2") {
+        xhigh = {
+          reasoningEffort = "xhigh";
+          textVerbosity = "high";
+        };
+      }
+    # Claude thinking models (opus/sonnet)
+    else if lib.hasPrefix "claude-opus" name || lib.hasPrefix "claude-sonnet" name then
+      {
+        high.thinking = {
+          type = "enabled";
+          budget_tokens = 16000;
+        };
+        max.thinking = {
+          type = "enabled";
+          budget_tokens = 31999;
+        };
+      }
+    # Gemini Pro models
+    else if lib.hasPrefix "gemini-3-pro" name then
+      {
+        high.reasoningEffort = "high";
+        low.reasoningEffort = "low";
+      }
+    # No variants for other models
+    else
+      { };
+
   # Helper to create model entries from filtered models
   mkModels =
-    filter: extraAttrs:
-    lib.pipe allModels [
-      (builtins.filter filter)
-      (map (x: {
-        name = x.model_name;
-        value = {
+    pred:
+    builtins.listToAttrs (
+      map (
+        x:
+        let
           name = x.model_name;
-        }
-        // extraAttrs
-        // mkLimit (x.model_info or { });
-      }))
-      builtins.listToAttrs
-    ];
+          variants = getVariants name;
+        in
+        lib.nameValuePair name (
+          {
+            inherit name;
+          }
+          // lib.optionalAttrs (variants != { }) { inherit variants; }
+          // mkLimit (x.model_info or { })
+        )
+      ) (builtins.filter pred allModels)
+    );
 
-  # Variants
-  gpt5Variants = {
-    high = {
-      reasoningEffort = "high";
-      textVerbosity = "high";
-    };
-    medium.reasoningEffort = "medium";
-    low.reasoningEffort = "low";
-    minimal.reasoningEffort = "minimal";
-    none.reasoningEffort = "none";
+  # Model family predicates
+  families = {
+    gpt = x: lib.hasPrefix "gpt-" x.model_name;
+    claude = x: lib.hasPrefix "claude-" x.model_name;
+    gemini = x: lib.hasPrefix "gemini-3-" x.model_name;
+    china =
+      x:
+      lib.any (p: p x.model_name) [
+        (lib.hasInfix "glm")
+        (lib.hasPrefix "minimax")
+        (lib.hasPrefix "deepseek")
+      ];
   };
 
-  gpt52Variants = gpt5Variants // {
-    xhigh = {
-      reasoningEffort = "xhigh";
-      textVerbosity = "high";
-    };
-  };
-
-  claudeVariants = {
-    high = {
-      thinking = {
-        type = "enabled";
-        budget_tokens = 16000;
-      };
-    };
-    max = {
-      thinking = {
-        type = "enabled";
-        budget_tokens = 31999;
-      };
-    };
-  };
-
-  geminiProVariants = {
-    high.reasoningEffort = "high";
-    low.reasoningEffort = "low";
-  };
+  grouped = lib.mapAttrs (_: mkModels) families;
 in
-rec {
-  gpt52 = mkModels (x: lib.hasPrefix "gpt-5.2" x.model_name) { variants = gpt52Variants; };
-  gpt51 = mkModels (x: lib.hasPrefix "gpt-5.1" x.model_name) { variants = gpt5Variants; };
-
-  claudeThinkingModels = mkModels (
-    x: lib.hasPrefix "claude-opus" x.model_name || lib.hasPrefix "claude-sonnet" x.model_name
-  ) { variants = claudeVariants; };
-
-  claudeNonThinkingModels = mkModels (x: lib.hasPrefix "claude-haiku" x.model_name) { };
-
-  geminiProModels = mkModels (x: lib.hasPrefix "gemini-3-pro" x.model_name) {
-    variants = geminiProVariants;
-  };
-
-  geminiFlashModels = mkModels (x: lib.hasPrefix "gemini-3-flash" x.model_name) { };
-
-  chinaModels = mkModels (
-    x:
-    lib.hasInfix "glm" x.model_name
-    || lib.hasPrefix "minimax" x.model_name
-    || lib.hasPrefix "deepseek" x.model_name
-  ) { };
-
-  all = lib.mergeAttrsList [
-    gpt52
-    gpt51
-    claudeThinkingModels
-    claudeNonThinkingModels
-    geminiProModels
-    geminiFlashModels
-    chinaModels
-  ];
-}
+grouped // { all = lib.mergeAttrsList (builtins.attrValues grouped); }

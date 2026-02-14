@@ -82,12 +82,6 @@ let
       model_info.base_model = "azure/gpt-audio-mini-2025-10-06";
     }
     {
-      model_name = "gpt-oss-120b";
-      provider = "azure_ai";
-      model_info.mode = "chat";
-      model_info.base_model = "azure_ai/gpt-oss-120b";
-    }
-    {
       model_name = "gpt-realtime";
       model_info.mode = "realtime";
       model_info.base_model = "azure/gpt-realtime-2025-08-28";
@@ -321,6 +315,19 @@ let
     }
     {
       model_name = "gpt-5.2-codex";
+      model_info = {
+        mode = "responses";
+        max_input_tokens = 272000;
+        max_output_tokens = 128000;
+        max_tokens = 128000;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_response_schema = true;
+        supports_vision = true;
+      };
+    }
+    {
+      model_name = "gpt-5.3-codex";
       model_info = {
         mode = "responses";
         max_input_tokens = 272000;
