@@ -23,6 +23,7 @@ let
     };
     litellm_settings = {
       cache = true;
+      enable_caching_on_provider_specific_optional_params = true;
       cache_params.type = "redis";
       drop_params = true;
       modify_params = true;
