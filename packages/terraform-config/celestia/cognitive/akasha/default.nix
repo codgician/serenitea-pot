@@ -6,7 +6,6 @@ let
 in
 {
   imports = [
-    ./deepseek-r1.nix
     ./deepseek-v3.2.nix
     ./deepseek-v3.2-speciale.nix
     ./flux-1.1-pro.nix
@@ -23,7 +22,7 @@ in
     ./gpt-realtime.nix
     ./grok-3.nix
     ./grok-4-fast.nix
-    ./kimi-k2-thinking.nix
+    ./kimi-k2.5.nix
     ./o4-mini.nix
   ];
 

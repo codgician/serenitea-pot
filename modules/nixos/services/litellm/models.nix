@@ -23,12 +23,6 @@ let
   # Azure models
   azureModelDefinitions = [
     {
-      model_name = "deepseek-r1";
-      provider = "azure_ai";
-      model_info.mode = "chat";
-      model_info.base_model = "azure_ai/deepseek-r1";
-    }
-    {
       model_name = "deepseek-v3.2";
       provider = "azure_ai";
       model_info.mode = "chat";
@@ -117,10 +111,10 @@ let
       model_info.base_model = "azure_ai/grok-4-fast-reasoning";
     }
     {
-      model_name = "kimi-k2-thinking";
+      model_name = "kimi-k2.5";
       provider = "azure_ai";
       model_info.mode = "chat";
-      model_info.base_model = "azure_ai/kimi-k2-thinking";
+      model_info.base_model = "azure_ai/kimi-k2.5";
     }
     {
       model_name = "o4-mini";
@@ -137,11 +131,6 @@ let
 
   # Google models
   googleModelDefinitions = [
-    {
-      model_name = "gemini-2.5-flash";
-      model_info.mode = "chat";
-      model_info.base_model = "gemini/gemini-2.5-flash";
-    }
     {
       model_name = "gemini-3-pro-image-preview";
       model_info.mode = "image_generation";
@@ -374,7 +363,7 @@ let
   # Nvidia NIM models
   nvidiaModelDefinitions = [
     {
-      model_name = "z-ai/glm4.7";
+      model_name = "z-ai/glm5";
       model_info.mode = "chat";
     }
     {
