@@ -68,6 +68,7 @@
             beads
           ]
           ++ (with pkgs.nur.repos.codgician; [
+            droid
             mtk_uartboot
             nanokvm-usb
           ]);
