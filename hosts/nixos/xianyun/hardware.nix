@@ -42,21 +42,30 @@ in
   services.cloud-init.enable = true;
   systemd.services.cloud-config.serviceConfig.Restart = "on-failure";
 
-  # Manually configure IPv6 network using systemd-networkd
+  # Manually configure IPv6 network on Tencent Cloud using systemd-networkd
+  #
+  # Tencent Cloud's virtual gateway (fe80::feee:ffff:feff:ffff / fe:ee:0f:11:b8:0a)
+  # responds to DAD Neighbor Solicitations for addresses it has assigned, causing
+  # false "duplicate address detected" failures. We must disable DAD entirely:
+  # - IPv6DuplicateAddressDetection=0: don't send DAD probes (systemd-networkd)
+  # - accept_dad=0: don't process incoming DAD responses (kernel sysctl)
+  boot.kernel.sysctl."net.ipv6.conf.eth0.accept_dad" = 0;
+
   networking.usePredictableInterfaceNames = false;
   systemd.network.networks."40-eth0" = {
     matchConfig.Name = "eth0";
     networkConfig = {
       DHCP = "yes";
-      # Disable Duplicate Address Detection - Tencent Cloud assigns addresses
-      # that may trigger false DAD failures in virtualized environments
       IPv6DuplicateAddressDetection = 0;
       # Accept Router Advertisements even with forwarding enabled (needed for gateway discovery)
       IPv6AcceptRA = true;
     };
     # Static IPv6 address from Tencent Cloud
     addresses = [
-      { Address = "${publicIpv6}/128"; }
+      {
+        Address = "${publicIpv6}/128";
+        DuplicateAddressDetection = "none";
+      }
     ];
     # IPv6 default route via Tencent Cloud's link-local gateway
     routes = [

@@ -90,6 +90,7 @@ rec {
 
   # All Darwin modules for building system
   mkDarwinModules =
+    system:
     {
       home-manager ? inputs.home-manager,
     }:
@@ -109,6 +110,7 @@ rec {
 
   # All NixOS modules for building system
   mkNixosModules =
+    system:
     {
       home-manager ? inputs.home-manager,
     }:
@@ -134,7 +136,8 @@ rec {
       mlnx-ofed-nixos.nixosModules.default
       vscode-server.nixosModules.default
       proxmox-nixos.nixosModules.proxmox-ve
-    ];
+    ]
+    ++ (builtins.attrValues nur.legacyPackages."${system}".repos.codgician.modules);
 
   # Base configs for all platforms
   mkBaseConfig =
@@ -170,7 +173,7 @@ rec {
           ;
       };
       modules =
-        (lib.codgician.mkDarwinModules { inherit home-manager; })
+        (lib.codgician.mkDarwinModules system { inherit home-manager; })
         ++ modules
         ++ [
           (mkBaseConfig system hostName)
@@ -198,7 +201,7 @@ rec {
           ;
       };
       modules =
-        (lib.codgician.mkNixosModules { inherit home-manager; })
+        (lib.codgician.mkNixosModules system { inherit home-manager; })
         ++ modules
         ++ [
           (mkBaseConfig system hostName)
