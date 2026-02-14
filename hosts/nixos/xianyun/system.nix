@@ -5,6 +5,20 @@
     services = {
       nixos-vscode-server.enable = true;
 
+      nginx = {
+        enable = true;
+        openFirewall = true;
+        reverseProxies."codgi.cn" = {
+          enable = true;
+          https = true;
+          domains = [
+            "codgi.cn"
+            "*.codgi.cn"
+          ];
+          locations."/".passthru.root = import ./xianyun-web.nix { inherit pkgs; };
+        };
+      };
+
       sing-box = {
         enable = true;
         domain = "xianyun.codgician.me";

@@ -58,6 +58,9 @@ with pubKeys.hosts;
   # Cloudflare token
   "cloudflare-credential.age".publicKeys = allServers;
 
+  # Tencent Cloud DNS
+  "tencent-dns-credential.age".publicKeys = someHosts [ xianyun ];
+
   # Nix access tokens
   "nix-access-tokens.age" = {
     publicKeys = allHosts;

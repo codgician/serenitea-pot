@@ -21,4 +21,5 @@
   "voice.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "xianyun.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "codgician.me".challengeProfile = ./profiles/codgician-me.nix;
+  "codgi.cn".challengeProfile = ./profiles/codgi-cn.nix;
 }
