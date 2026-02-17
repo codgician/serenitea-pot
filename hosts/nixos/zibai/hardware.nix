@@ -4,14 +4,13 @@
   ...
 }:
 let
-  # Shared network configuration for wired interface (used in both initrd and regular boot)
-  # Using Type = "ether" to match any ethernet adapter (interface name may differ in initrd)
   ethernetConfig = {
     matchConfig.Type = "ether";
     networkConfig = {
       DHCP = "yes";
       IPv6AcceptRA = true;
     };
+    linkConfig.RequiredForOnline = "routable";
   };
 in
 {
@@ -38,12 +37,17 @@ in
       systemd.network = {
         enable = true;
         networks."10-ethernet" = ethernetConfig;
+        wait-online = {
+          enable = true;
+          timeout = 0;
+        };
       };
 
       # Tang-based auto-unlock for zroot
       # Generate JWE: nix run .#mkjwe -- tang --url http://192.168.6.1:9090
       clevis = {
         enable = true;
+        useTang = true;
         devices."zroot".secretFile = ./zroot.jwe;
       };
     };

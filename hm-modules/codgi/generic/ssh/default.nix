@@ -69,6 +69,10 @@ in
           hostname = "xianyun.codgician.me";
           user = "codgi";
         };
+        "zibai" = {
+          hostname = "zibai.cdu";
+          user = "codgi";
+        };
       };
     };
   };
