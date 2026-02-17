@@ -37,9 +37,6 @@
       };
 
       home.stateVersion = "25.11";
-      home.packages = with pkgs; [
-        iperf3
-      ];
     };
 
   # Global packages

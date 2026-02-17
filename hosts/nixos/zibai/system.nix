@@ -51,10 +51,6 @@
       };
 
       home.stateVersion = "25.11";
-      home.packages = with pkgs; [
-        iperf3
-        tmux
-      ];
     };
 
   # Customize zfs auto snapshot cadence

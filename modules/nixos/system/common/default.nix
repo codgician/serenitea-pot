@@ -104,11 +104,12 @@ in
       vim
       fastfetch
       wget
-      xterm
+      tmux
       htop
       aria2
       iperf3
       dnsutils
+      net-tools
     ];
 
     # Fonts

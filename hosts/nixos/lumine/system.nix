@@ -67,10 +67,6 @@
       };
 
       home.stateVersion = "25.11";
-      home.packages = with pkgs; [
-        screen
-        tmux
-      ];
     };
 
   # Use the systemd-boot EFI boot loader

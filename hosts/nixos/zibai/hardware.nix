@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -80,6 +81,18 @@ in
   networking.useNetworkd = true;
   systemd.network.networks."10-ethernet" = ethernetConfig;
 
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  hardware.graphics.enable = true;
+
+  environment.systemPackages = with pkgs; [
+    intel-gpu-tools
+    lm_sensors
+    clevis
+    jose
+  ];
+
+  networking.useDHCP = lib.mkDefault true;
+
   hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+
+  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

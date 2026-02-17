@@ -137,9 +137,10 @@
 
       home.stateVersion = "25.11";
       home.packages = with pkgs; [
-        screen
-        tmux
         claude-code
+        acpica-tools
+        uefitool
+        binwalk
       ];
     };
 
