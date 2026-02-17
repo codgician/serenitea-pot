@@ -23,23 +23,27 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    # Include sbctl package
-    environment.systemPackages = [ pkgs.sbctl ];
+  config = lib.mkMerge [
+    {
+      # Persist /etc/secureboot, do it regardless of enablement
+      codgician.system.impermanence.extraItems = [
+        {
+          path = "/var/lib/sbctl";
+          type = "directory";
+        }
+      ];
 
-    # Lanzaboote will replace the systemd-boot module.
-    boot.loader.systemd-boot.enable = lib.mkForce false;
-    boot.lanzaboote = {
-      enable = true;
-      pkiBundle = cfg.pkiBundle;
-    };
+      # Include sbctl package
+      environment.systemPackages = [ pkgs.sbctl ];
+    }
 
-    # Persist /etc/secureboot
-    codgician.system.impermanence.extraItems = [
-      {
-        path = "/var/lib/sbctl";
-        type = "directory";
-      }
-    ];
-  };
+    (lib.mkIf cfg.enable {
+      # Lanzaboote will replace the systemd-boot module.
+      boot.loader.systemd-boot.enable = lib.mkForce false;
+      boot.lanzaboote = {
+        enable = true;
+        pkiBundle = cfg.pkiBundle;
+      };
+    })
+  ];
 }
