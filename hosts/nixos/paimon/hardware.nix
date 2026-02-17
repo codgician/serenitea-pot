@@ -7,8 +7,8 @@
 {
   boot = {
     initrd = {
-      # The root partition decryption key encrypted with tpm
-      # `nix run .#mkjwe`
+      # TPM-based auto-unlock for zroot
+      # Generate JWE: nix run .#mkjwe -- tpm > zroot.jwe
       clevis = {
         enable = true;
         devices."zroot".secretFile = ./zroot.jwe;
@@ -37,7 +37,6 @@
       "kvm-amd"
     ];
     kernelPackages = pkgs.linuxPackages_6_6;
-    zfs.package = pkgs.zfs_2_4;
 
     kernelParams = [
       "video=VGA-1:1600x900@60"
@@ -70,6 +69,7 @@
       ];
       forceImportAll = true;
       requestEncryptionCredentials = [ "zroot" ];
+      package = pkgs.zfs_2_4;
     };
   };
 

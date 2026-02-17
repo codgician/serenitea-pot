@@ -7,8 +7,8 @@
 {
   boot = {
     initrd = {
-      # The root partition decryption key encrypted with tpm
-      # `nix run .#mkjwe -- --pcr-bank sha384 --pcr-ids 7`
+      # TPM-based auto-unlock for zroot
+      # Generate JWE: nix run .#mkjwe -- tpm --pcr-bank sha384 --pcr-ids 7 > zroot.jwe
       clevis = {
         enable = true;
         devices."zroot".secretFile = ./zroot.jwe;
