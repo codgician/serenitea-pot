@@ -36,7 +36,7 @@ with pubKeys.hosts;
   "proxmox-ve-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];
 
   # Wireless credentials
-  "wireless-env.age".publicKeys = someHosts [ ];
+  "wireless-env.age".publicKeys = someHosts [ zibai ];
 
   # User password
   "codgi-password.age".publicKeys = someHosts [ paimon ];

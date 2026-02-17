@@ -11,6 +11,7 @@ rec {
     sandrone = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIviqrRjXSzpnF6Q6gRfLGWwYEq5FsDiTLlMwnlUDQmS" ];
     wanderer = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMgX6g1a0atq3ObPNQz1A+hUnYpNEs1iGrfGWlXvszPD" ];
     xianyun = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDmOBQu1zv4bsSMw7uVvYkFhGz+jOUXwgJLOe8wAVz0P" ];
+    zibai = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBz7WFyT4JCS8LkOnNhwBcaWuFnap1/x4VJFqBz4vXnP" ];
   };
 
   users = {

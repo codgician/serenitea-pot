@@ -116,8 +116,6 @@
         loadModels = [
           "hf.co/Qwen/Qwen3-VL-8B-Instruct-GGUF:Q4_K_M"
           "hf.co/unsloth/GLM-4.7-Flash-GGUF:Q4_K_XL"
-          "hf.co/unsloth/Qwen3-Next-80B-A3B-Instruct-GGUF:Q2_K_XL"
-          "hf.co/unsloth/Qwen3-Next-80B-A3B-Thinking-GGUF:Q2_K_XL"
         ];
       };
 
