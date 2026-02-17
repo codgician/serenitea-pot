@@ -18,6 +18,11 @@
     extraModulePackages = [ ];
   };
 
+  powerManagement = {
+    cpuFreqGovernor = "powersave";
+    powertop.enable = true;
+  };
+
   fileSystems."/persist".neededForBoot = true;
 
   # Boot loader - using systemd-boot

@@ -26,7 +26,7 @@
             };
 
             zroot = {
-              size = "-160G"; # Leave 160GB at end for L2ARC
+              size = "732G";
               content = {
                 type = "zfs";
                 pool = "zroot";
@@ -34,7 +34,7 @@
             };
 
             l2arc = {
-              size = "100%";
+              size = "100%"; 
               # No content - raw partition for ZFS L2ARC cache
               # Add to dpool after installation:
               #   zpool add dpool cache /dev/disk/by-partlabel/disk-main-l2arc
