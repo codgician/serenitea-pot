@@ -51,7 +51,7 @@
           echo
           echo "Examples:"
           echo "  ${name} tpm --pcr-ids 7"
-          echo "  ${name} tang --url http://192.168.6.1:7500"
+          echo "  ${name} tang --url http://192.168.6.1:9090"
         }
 
         # Display TPM subcommand help
@@ -84,7 +84,7 @@
           echo "                  If not provided, will prompt to trust the server"
           echo
           echo "Example:"
-          echo "  ${name} tang --url http://192.168.6.1:7500"
+          echo "  ${name} tang --url http://192.168.6.1:9090"
         }
 
         # TPM encryption
