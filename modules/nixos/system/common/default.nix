@@ -6,6 +6,7 @@
 }:
 let
   cfg = config.codgician.system.common;
+  pubKeys = import (lib.codgician.secretsDir + "/pubkeys.nix");
   configureNetworking =
     !(config ? proxmoxLXC) || !config.proxmoxLXC.enable || config.proxmoxLXC.manageNetwork;
   networkConfig = {
@@ -25,6 +26,15 @@ in
   config = lib.mkIf cfg.enable {
     # Enable systemd in initrd
     boot.initrd.systemd.enable = lib.mkIf (!config.boot.isContainer) true;
+
+    # SSH in initrd for emergency remote access (e.g., disk unlock)
+    # Usage: ssh -p 2222 root@<host> "zfs load-key <pool> && exit"
+    # Enable per-host with: boot.initrd.network.ssh.enable = true;
+    boot.initrd.network.ssh = {
+      port = lib.mkDefault 2222;
+      hostKeys = [ ./initrd_ssh_host_ed25519_key ];
+      authorizedKeys = lib.mkDefault pubKeys.users.codgi;
+    };
 
     # Console
     console = {

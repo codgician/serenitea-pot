@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 let
@@ -26,7 +25,9 @@ in
       ];
       kernelModules = [ ];
 
-      # Network in initrd for Tang-based disk unlock (shares config with regular boot)
+      # SSH in initrd for emergency remote unlock if Tang fails
+      network.ssh.enable = true;
+
       systemd.network = {
         enable = true;
         networks."10-eno1" = eno1Config;
@@ -36,6 +37,7 @@ in
       # Generate JWE: nix run .#mkjwe -- tang --url http://qiaoying.cdu:9090
       clevis = {
         enable = true;
+        useTang = true;
         devices."zroot".secretFile = ./zroot.jwe;
       };
     };
