@@ -109,6 +109,7 @@ in
         tmux
         htop
         aria2
+        iftop
         iperf3
         dnsutils
         net-tools
