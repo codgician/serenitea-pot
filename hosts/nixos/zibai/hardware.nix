@@ -4,16 +4,6 @@
   pkgs,
   ...
 }:
-let
-  ethernetConfig = {
-    matchConfig.Type = "ether";
-    networkConfig = {
-      DHCP = "yes";
-      IPv6AcceptRA = true;
-    };
-    linkConfig.RequiredForOnline = "routable";
-  };
-in
 {
   boot = {
     initrd = {
@@ -28,27 +18,10 @@ in
       ];
       kernelModules = [ ];
 
-      # SSH in initrd for emergency remote unlock if Tang fails
-      # Usage: ssh -p 2222 root@zibai "zfs load-key zroot && exit"
-      network = {
-        enable = true;
-        ssh.enable = true;
-      };
-
-      systemd.network = {
-        enable = true;
-        networks."10-ethernet" = ethernetConfig;
-        wait-online = {
-          enable = true;
-          timeout = 0;
-        };
-      };
-
-      # Tang-based auto-unlock for zroot
-      # Generate JWE: nix run .#mkjwe -- tang --url http://192.168.6.1:9090
+      # TPM-based auto-unlock for zroot
+      # Generate JWE: nix run .#mkjwe -- tpm > zroot.jwe
       clevis = {
         enable = true;
-        useTang = true;
         devices."zroot".secretFile = ./zroot.jwe;
       };
     };
@@ -79,7 +52,6 @@ in
 
   # Use systemd-networkd for network management
   networking.useNetworkd = true;
-  systemd.network.networks."10-ethernet" = ethernetConfig;
 
   hardware.graphics.enable = true;
 
