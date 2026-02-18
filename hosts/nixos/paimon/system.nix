@@ -285,23 +285,10 @@
   services.fwupd.enable = true;
 
   # Global packages
-  environment.systemPackages =
-    (with pkgs; [
-      lm_sensors
-      smartmontools
-      pciutils
-      nvme-cli
-      usbutils
-      ethtool
-      sysstat
-      powertop
-      nvtopPackages.nvidia
-      libhugetlbfs
-      authelia
-    ])
-    ++ (with config.boot.kernelPackages; [
-      turbostat
-    ]);
+  environment.systemPackages = with pkgs; [
+    authelia
+    libhugetlbfs
+  ];
 
   # Use networkd
   networking.useNetworkd = true;

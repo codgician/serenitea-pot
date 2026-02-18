@@ -107,6 +107,12 @@
   # Hardware-specific global packages
   environment.systemPackages = with pkgs; [
     lm_sensors
+    pciutils
+    smartmontools
+    nvme-cli
+    usbutils
+    powertop
+    nvtopPackages.nvidia
     clevis
     jose
     tpm2-tools

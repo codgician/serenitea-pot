@@ -100,17 +100,23 @@ in
     };
 
     # Common global packages
-    environment.systemPackages = with pkgs; [
-      vim
-      fastfetch
-      wget
-      tmux
-      htop
-      aria2
-      iperf3
-      dnsutils
-      net-tools
-    ];
+    environment.systemPackages =
+      (with pkgs; [
+        ethtool
+        vim
+        fastfetch
+        wget
+        tmux
+        htop
+        aria2
+        iperf3
+        dnsutils
+        net-tools
+        sysstat
+      ])
+      ++ (with config.boot.kernelPackages; [
+        turbostat
+      ]);
 
     # Fonts
     fonts = {

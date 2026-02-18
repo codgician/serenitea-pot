@@ -102,22 +102,9 @@
   services.fwupd.enable = true;
 
   # Global packages
-  environment.systemPackages =
-    (with pkgs; [
-      lm_sensors
-      smartmontools
-      pciutils
-      nvme-cli
-      usbutils
-      ethtool
-      sysstat
-      powertop
-      nvtopPackages.intel
-      libhugetlbfs
-    ])
-    ++ (with config.boot.kernelPackages; [
-      turbostat
-    ]);
+  environment.systemPackages = with pkgs; [
+    libhugetlbfs
+  ];
 
   # Enable zram swap
   zramSwap.enable = true;

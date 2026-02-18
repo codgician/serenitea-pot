@@ -62,10 +62,18 @@
   hardware.graphics.enable = true;
 
   environment.systemPackages = with pkgs; [
-    intel-gpu-tools
     lm_sensors
+    pciutils
+    smartmontools
+    nvme-cli
+    usbutils
+    ethtool
+    sysstat
+    powertop
+    nvtopPackages.intel
     clevis
     jose
+    tpm2-tools
   ];
 
   networking.useDHCP = lib.mkDefault true;

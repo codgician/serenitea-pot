@@ -84,12 +84,15 @@
   # Enable graphics
   hardware.graphics.enable = true;
 
-  # Hardware-specific global packages
+  # Global packages
   environment.systemPackages = with pkgs; [
-    libhugetlbfs
-    intel-gpu-tools
-    virglrenderer
     lm_sensors
+    smartmontools
+    pciutils
+    nvme-cli
+    usbutils
+    powertop
+    nvtopPackages.intel
     clevis
     jose
     tpm2-tools
