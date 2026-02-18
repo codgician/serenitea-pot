@@ -87,6 +87,7 @@ in
     systemd.services.samba-smbd.serviceConfig.ExecStartPre = lib.getExe (
       pkgs.writeShellApplication {
         name = "samba-password-refresh";
+        runtimeInputs = [ config.services.samba.package ];
         text =
           let
             mkCommand =
@@ -97,13 +98,25 @@ in
               in
               ''
                 echo "Refreshing samba password for: ${user}"
-                (cat ${passwordFile}; cat ${passwordFile};) | ${config.services.samba.package}/bin/smbpasswd -s -a "${user}"
+                (cat ${passwordFile}; cat ${passwordFile};) | smbpasswd -s -a "${user}"
               '';
           in
-          lib.pipe cfg.users [
-            (builtins.map mkCommand)
-            (builtins.concatStringsSep "\n")
-          ];
+          ''
+            # Ensure samba private directory structure exists
+            mkdir -p /var/lib/samba/private/msg.sock
+            chmod 700 /var/lib/samba/private
+
+            # Initialize passdb if it doesn't exist
+            if [ ! -f /var/lib/samba/private/passdb.tdb ]; then
+              echo "Initializing samba passdb..."
+              pdbedit -L > /dev/null 2>&1 || true
+            fi
+
+            ${lib.pipe cfg.users [
+              (builtins.map mkCommand)
+              (builtins.concatStringsSep "\n")
+            ]}
+          '';
       }
     );
 

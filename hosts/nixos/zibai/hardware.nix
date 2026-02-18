@@ -29,6 +29,12 @@
     kernelModules = [ "kvm-intel" ];
     extraModulePackages = [ ];
 
+    plymouth = {
+      enable = true;
+      theme = "nixos-bgrt";
+      themePackages = [ pkgs.nixos-bgrt-plymouth ];
+    };
+
     zfs = {
       extraPools = [ "dpool" ];
       forceImportAll = true;

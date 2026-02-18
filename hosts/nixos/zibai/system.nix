@@ -10,6 +10,24 @@
   codgician = {
     services = {
       nixos-vscode-server.enable = true;
+
+      samba = {
+        enable = true;
+        users = [ "smb" ];
+        shares = {
+          "share" = {
+            path = "/dpool/share";
+            browsable = "yes";
+            writeable = "yes";
+            "force user" = "smb";
+            "valid users" = "smb";
+            "read only" = "no";
+            "guest ok" = "no";
+            "create mask" = "0644";
+            "directory mask" = "0755";
+          };
+        };
+      };
     };
 
     system = {
@@ -22,10 +40,18 @@
       nix.useCnMirror = true;
     };
 
-    users.codgi = with lib.codgician; {
-      enable = true;
-      hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
-      extraGroups = [ "wheel" ];
+    users = with lib.codgician; {
+      codgi = {
+        enable = true;
+        hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
+        extraGroups = [ "wheel" ];
+      };
+
+      smb = {
+        enable = true;
+        hashedPasswordAgeFile = getAgeSecretPathFromName "smb-qiaoying-hashed-password";
+        passwordAgeFile = getAgeSecretPathFromName "smb-qiaoying-password";
+      };
     };
   };
 

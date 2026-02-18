@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 let
   name = builtins.baseNameOf ./.;
 in
@@ -6,7 +6,9 @@ in
   users.users.smb = {
     inherit name;
     description = "samba user";
-    isNormalUser = true;
+    isSystemUser = true;
+    group = "nogroup";
     createHome = false;
+    shell = "${pkgs.shadow}/bin/nologin";
   };
 }

@@ -43,6 +43,8 @@ with pubKeys.hosts;
   "codgi-hashed-password.age".publicKeys = allHosts;
   "smb-password.age".publicKeys = someHosts [ paimon ];
   "smb-hashed-password.age".publicKeys = someHosts [ paimon ];
+  "smb-qiaoying-password.age".publicKeys = someHosts [ zibai ];
+  "smb-qiaoying-hashed-password.age".publicKeys = someHosts [ zibai ];
   "kiosk-hashed-password.age".publicKeys = someHosts [ ];
 
   # NUT password
