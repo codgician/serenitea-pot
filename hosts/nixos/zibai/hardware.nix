@@ -46,7 +46,7 @@
   systemd.services."zfs-mount".preStart = "${lib.getExe config.boot.zfs.package} load-key -a";
 
   powerManagement = {
-    cpuFreqGovernor = "schedutil";  # No HWP support for Haswell
+    cpuFreqGovernor = "schedutil"; # No HWP support for Haswell
     powertop.enable = true;
   };
 
