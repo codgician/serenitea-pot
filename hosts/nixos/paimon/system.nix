@@ -274,13 +274,6 @@
 
   networking.hostId = "a7f3fe2e";
 
-  # TPM
-  security.tpm2 = {
-    enable = true;
-    abrmd.enable = true;
-    pkcs11.enable = true;
-  };
-
   # Firmware updates
   services.fwupd.enable = true;
 

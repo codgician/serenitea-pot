@@ -84,13 +84,6 @@
 
   networking.hostId = "4b6c6565";
 
-  # TPM
-  security.tpm2 = {
-    enable = true;
-    abrmd.enable = true;
-    pkcs11.enable = true;
-  };
-
   # Watchdog
   systemd.settings.Manager = {
     WatchdogDevice = "/dev/watchdog0";

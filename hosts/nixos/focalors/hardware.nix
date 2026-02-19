@@ -28,6 +28,13 @@
 
   hardware.parallels.enable = true;
 
+  # TPM
+  security.tpm2 = {
+    enable = true;
+    abrmd.enable = true;
+    pkcs11.enable = true;
+  };
+
   nix.settings = {
     extra-platforms = [ "x86_64-linux" ];
     extra-sandbox-paths = [
