@@ -37,7 +37,7 @@
               size = "100%";
               # No content - raw partition for ZFS L2ARC cache
               # Add to dpool after installation:
-              #   zpool add dpool cache /dev/disk/by-partlabel/disk-main-l2arc
+              # zpool add dpool cache /dev/disk/by-partlabel/disk-main-l2arc
             };
           };
         };
@@ -76,7 +76,12 @@
           persist = {
             type = "zfs_fs";
             mountpoint = "/persist";
-            options."com.sun:auto-snapshot" = "true";
+            options = {
+              "com.sun:auto-snapshot" = "true";
+              # Enable POSIX ACLs for Android/Waydroid compatibility
+              # Android's vold requires setfacl operations on /data directories
+              acltype = "posixacl";
+            };
           };
         };
       };

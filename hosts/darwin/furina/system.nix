@@ -66,10 +66,10 @@
             codex
             claude-code
             beads
+            mtk-uartboot
           ]
           ++ (with pkgs.nur.repos.codgician; [
             droid
-            mtk_uartboot
             nanokvm-usb
           ]);
 

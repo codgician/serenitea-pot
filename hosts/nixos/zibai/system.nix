@@ -91,9 +91,6 @@
 
   networking.hostId = "02821ba1";
 
-  # Global packages
-  environment.systemPackages = [ ];
-
   # Enable zram swap
   zramSwap.enable = true;
 

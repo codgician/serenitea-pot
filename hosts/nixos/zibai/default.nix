@@ -7,5 +7,6 @@ lib.codgician.mkNixosSystem {
     ./disks.nix
     ./system.nix
     ./hardware.nix
+    ./waydroid.nix
   ];
 }

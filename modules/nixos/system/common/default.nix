@@ -124,6 +124,9 @@ in
       enableGhostscriptFonts = true;
     };
 
+    # Use nftables for firewall
+    networking.nftables.enable = true;
+
     # Open firewall for iperf3 and mDNS
     networking.firewall = {
       allowedTCPPorts = [ 5201 ];
