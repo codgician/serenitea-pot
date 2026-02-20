@@ -227,6 +227,18 @@ let
         supports_vision = true;
       };
     }
+    {
+      model_name = "gemini-3.1-pro-preview";
+      model_info = {
+        mode = "chat";
+        max_input_tokens = 128000;
+        max_output_tokens = 64000;
+        max_tokens = 64000;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_vision = true;
+      };
+    }
 
     # GPT-4.1 models
     {

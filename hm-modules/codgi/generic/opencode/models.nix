@@ -69,7 +69,7 @@ let
         };
       }
     # Gemini Pro models
-    else if lib.hasPrefix "gemini-3-pro" name then
+    else if lib.hasPrefix "gemini-3" name && lib.hasInfix "pro" name then
       {
         high.reasoningEffort = "high";
         low.reasoningEffort = "low";
@@ -102,7 +102,7 @@ let
   families = {
     gpt = x: lib.hasPrefix "gpt-" x.model_name;
     claude = x: lib.hasPrefix "claude-" x.model_name;
-    gemini = x: lib.hasPrefix "gemini-3-" x.model_name;
+    gemini = x: lib.hasPrefix "gemini-3" x.model_name;
     china =
       x:
       lib.any (p: p x.model_name) [
