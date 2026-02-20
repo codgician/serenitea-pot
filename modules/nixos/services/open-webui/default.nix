@@ -366,7 +366,8 @@ in
             proxy_send_timeout 300;
             proxy_read_timeout 300;
             send_timeout 300;
-            add_header Cache-Control "no-cache";
+            # Prevent stale frontend after upgrades - browser must always fetch fresh HTML
+            add_header Cache-Control "no-store, no-cache, must-revalidate" always;
           '';
         };
     })
