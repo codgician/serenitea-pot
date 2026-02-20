@@ -47,7 +47,19 @@
 
   powerManagement = {
     cpuFreqGovernor = "schedutil"; # No HWP support for Haswell
-    powertop.enable = true;
+    powertop = {
+      enable = true;
+      # Disable runtime PM for Intel 8 Series xHCI (Lynx Point)
+      # Workaround for USB 3.0 hotplug detection issue when no device connected at boot
+      postStart = ''
+        for dev in /sys/bus/pci/devices/*; do
+          if [ "$(cat "$dev/vendor" 2>/dev/null)" = "0x8086" ] && \
+             [ "$(cat "$dev/device" 2>/dev/null)" = "0x8c31" ]; then
+            echo on > "$dev/power/control"
+          fi
+        done
+      '';
+    };
   };
 
   fileSystems."/persist".neededForBoot = true;
