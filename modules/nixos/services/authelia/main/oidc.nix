@@ -184,7 +184,7 @@
       ];
       response_types = [ "code" ];
       grant_types = [ "authorization_code" ];
-      access_token_signed_response_alg = "none";
+      access_token_signed_response_alg = "RS256";
       userinfo_signed_response_alg = "none";
       token_endpoint_auth_method = "client_secret_basic";
     }
