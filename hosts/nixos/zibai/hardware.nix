@@ -71,7 +71,10 @@
   # Use systemd-networkd for network management
   networking.useNetworkd = true;
 
-  hardware.graphics.enable = true;
+  hardware.graphics = {
+    enable = true;
+    extraPackages = with pkgs; [ intel-vaapi-driver ];
+  };
 
   environment.systemPackages = with pkgs; [
     lm_sensors
