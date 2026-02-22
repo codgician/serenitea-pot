@@ -255,6 +255,7 @@ in
 
             serviceConfig = {
               Type = "oneshot";
+              RemainAfterExit = true;
               ExecStart = pcrExtendScript;
             };
           };

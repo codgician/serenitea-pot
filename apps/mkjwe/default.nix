@@ -54,6 +54,9 @@
           echo "  ${name} tang --url http://192.168.6.1:9090"
         }
 
+        # Default PCR IDs for TPM binding
+        DEFAULT_PCR_IDS="1,7,12,14,15"
+
         # Display TPM subcommand help
         function show_tpm_help {
           echo "${name} tpm - encrypt with TPM2"
@@ -63,7 +66,7 @@
           echo "Options:"
           echo "  -h, --help      Show this screen"
           echo "  -v, --verbose   Print verbose logs"
-          echo "  --pcr-ids IDS   Comma-separated list of PCR IDs (default: 1,2,7,12,14,15)"
+          echo "  --pcr-ids IDS   Comma-separated list of PCR IDs (default: $DEFAULT_PCR_IDS)"
           echo "  --pcr-bank BANK PCR bank to use (default: sha256)"
           echo
           echo "NOTE: PCR 15 should be included for filesystem confusion attack mitigation."
@@ -91,7 +94,7 @@
 
         # TPM encryption
         function do_tpm {
-          local pcr_ids="1,2,7,12,14,15"
+          local pcr_ids="$DEFAULT_PCR_IDS"
           local pcr_bank="sha256"
 
           while [[ $# -gt 0 ]]; do
