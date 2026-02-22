@@ -21,7 +21,7 @@
       text = ''
         VERBOSE=0
         function log_verbose() {
-          if [ "$VERBOSE" -eq 1 ]; then echo "[VERBOSE] $*"; fi
+          if [ "$VERBOSE" -eq 1 ]; then echo "[VERBOSE] $*" >&2; fi
         }
 
         function warn() {
@@ -56,7 +56,50 @@
 
         # Default PCR IDs for TPM binding
         DEFAULT_PCR_IDS="1,7,12,14,15"
+        # PCR hash sizes in bytes for each bank
+        declare -A PCR_HASH_SIZES=(
+          [sha1]=20
+          [sha256]=32
+          [sha384]=48
+          [sha512]=64
+        )
 
+        # Build PCR digest with PCR 15 forced to zeros
+        # This is necessary because at enrollment time PCR 15 may already be extended,
+        # but at initrd decryption time it will still be zeros (pre-extension state)
+        function build_pcr_digest {
+          local pcr_bank="$1"
+          local pcr_ids="$2"
+          local tmpdir
+          tmpdir=$(mktemp -d)
+          trap 'rm -rf "$tmpdir"' RETURN
+
+          # Build the concatenated PCR values in PCR ID order
+          # For PCR 15, use zeros; for others, read from TPM
+          local digest_file="$tmpdir/pcr.digest"
+          true > "$digest_file"
+
+          # Sort PCR IDs numerically and iterate
+          local sorted_ids
+          sorted_ids=$(echo "$pcr_ids" | tr ',' '\n' | sort -n | tr '\n' ',' | sed 's/,$//')
+
+          IFS=',' read -ra pcr_array <<< "$sorted_ids"
+          for pcr_id in "''${pcr_array[@]}"; do
+            if [[ "$pcr_id" == "15" ]]; then
+              # Use zeros for PCR 15 (pre-extension state)
+              log_verbose "PCR 15: using zeros (pre-extension state)"
+              dd if=/dev/zero bs="''${PCR_HASH_SIZES[$pcr_bank]}" count=1 2>/dev/null >> "$digest_file"
+            else
+              # Read current value from TPM
+              log_verbose "PCR $pcr_id: reading from TPM"
+              tpm2_pcrread -Q "$pcr_bank:$pcr_id" -o "$tmpdir/pcr_$pcr_id.bin"
+              cat "$tmpdir/pcr_$pcr_id.bin" >> "$digest_file"
+            fi
+          done
+
+          # Output base64url-encoded digest (jose uses base64url, not standard base64)
+          jose b64 enc -I "$digest_file"
+        }
         # Display TPM subcommand help
         function show_tpm_help {
           echo "${name} tpm - encrypt with TPM2"
@@ -69,7 +112,8 @@
           echo "  --pcr-ids IDS   Comma-separated list of PCR IDs (default: $DEFAULT_PCR_IDS)"
           echo "  --pcr-bank BANK PCR bank to use (default: sha256)"
           echo
-          echo "NOTE: PCR 15 should be included for filesystem confusion attack mitigation."
+          echo "NOTE: PCR 15 is automatically enrolled with its pre-extension (zero) value,"
+          echo "      so the policy will match during initrd before PCR 15 is extended."
           echo
           echo "Example:"
           echo "  ${name} tpm --pcr-bank sha384 --pcr-ids 7,15"
@@ -131,10 +175,22 @@
           read -s -r -p "Enter password: " password
           echo >&2
           echo "Password entered." >&2
-
           log_verbose "PCR Bank: $pcr_bank"
           log_verbose "PCR IDs: $pcr_ids"
-          echo "$password" | clevis encrypt tpm2 "{\"pcr_bank\":\"$pcr_bank\",\"pcr_ids\":\"$pcr_ids\"}"
+          # Build clevis config
+          local clevis_config
+          if [[ ",$pcr_ids," =~ ,15, ]]; then
+            # PCR 15 is included - use pcr_digest to specify pre-extension (zero) value
+            local pcr_digest
+            pcr_digest=$(build_pcr_digest "$pcr_bank" "$pcr_ids")
+            log_verbose "PCR Digest (base64): $pcr_digest"
+            clevis_config="{\"pcr_bank\":\"$pcr_bank\",\"pcr_ids\":\"$pcr_ids\",\"pcr_digest\":\"$pcr_digest\"}"
+          else
+            # No PCR 15 - use current TPM values
+            clevis_config="{\"pcr_bank\":\"$pcr_bank\",\"pcr_ids\":\"$pcr_ids\"}"
+          fi
+
+          echo "$password" | clevis encrypt tpm2 "$clevis_config"
         }
 
         # Tang encryption

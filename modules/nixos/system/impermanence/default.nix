@@ -1,7 +1,34 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  utils,
+  ...
+}:
 let
   inherit (lib) types;
+  inherit (utils) escapeSystemdPath;
   cfg = config.codgician.system.impermanence;
+  persistCfg = config.environment.persistence.${cfg.path};
+  persistFs = config.fileSystems.${cfg.path} or null;
+  isZfs = persistFs != null && persistFs.fsType == "zfs";
+  persistMountUnit = "${escapeSystemdPath cfg.path}.mount";
+
+  # Extract directory paths from final persistence config (includes all modules' additions)
+  dirPaths = map (
+    d: if builtins.isString d then d else d.directory or d.dirPath
+  ) persistCfg.directories;
+
+  # Generate shutdown ordering dropins
+  shutdownOrderDropins = pkgs.runCommand "impermanence-shutdown-order-dropins" { } (
+    lib.concatMapStrings (dir: ''
+      mkdir -p "$out/lib/systemd/system/${escapeSystemdPath dir}.mount.d"
+      cat > "$out/lib/systemd/system/${escapeSystemdPath dir}.mount.d/impermanence-shutdown-order.conf" << 'EOF'
+        [Unit]
+        Before=${persistMountUnit}
+      EOF
+    '') dirPaths
+  );
 
   extraDirectories = lib.pipe cfg.extraItems [
     (builtins.filter (x: x.type == "directory"))
@@ -113,9 +140,21 @@ in
       ++ extraFiles;
     };
 
-    # Suppress systemd-machine-id-commit service
-    systemd.suppressedSystemUnits = lib.mkIf cfg.enable [
-      "systemd-machine-id-commit.service"
-    ];
+    # Install shutdown ordering dropins so bind mounts unmount before persist path
+    systemd.packages = lib.mkIf cfg.enable [ shutdownOrderDropins ];
+    # Make persist path private to prevent mirror mounts from being created.
+    # ZFS mounts bypass systemd mount options, so we run this after zfs-mount.service.
+    systemd.services."impermanence-make-persist-private" = lib.mkIf (cfg.enable && isZfs) {
+      description = "Make ${cfg.path} mount private to prevent propagation issues";
+      wantedBy = [ "local-fs.target" ];
+      after = [ "zfs-mount.service" ];
+      before = [ "local-fs.target" ];
+      unitConfig.ConditionPathIsMountPoint = cfg.path;
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = "/run/current-system/sw/bin/mount --make-private ${cfg.path}";
+      };
+    };
   };
 }
