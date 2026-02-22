@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 {
@@ -55,13 +54,47 @@
     };
   };
 
-  # Wireless configuration
+  # Wireless configuration (wpa_supplicant)
   networking.wireless = {
     enable = true;
     secretsFile = config.age.secrets.wireless-env.path;
     networks."grassland".pskRaw = "ext:GRASSLAND_PASS";
+    extraConfig = ''
+      ap_scan=1
+      autoscan=periodic:30
+    '';
   };
 
+  # systemd-networkd configuration: prefer ethernet over wireless
+  systemd.network.networks = {
+    # Ethernet - lower metric = preferred
+    "10-ethernet" = {
+      matchConfig.Type = "ether";
+      networkConfig = {
+        DHCP = "yes";
+        IPv6AcceptRA = true;
+      };
+      dhcpV4Config.RouteMetric = 100;
+      dhcpV6Config.RouteMetric = 100;
+      linkConfig.RequiredForOnline = "no-carrier";
+    };
+
+    # Wireless (USB adapter) - higher metric = fallback
+    "20-wireless" = {
+      matchConfig.Type = "wlan";
+      networkConfig = {
+        DHCP = "yes";
+        IPv6AcceptRA = true;
+        IgnoreCarrierLoss = "5s";
+      };
+      dhcpV4Config = {
+        RouteMetric = 600;
+        UseMTU = true;
+      };
+      dhcpV6Config.RouteMetric = 600;
+      linkConfig.RequiredForOnline = "no-carrier";
+    };
+  };
   # Home manager
   home-manager.users.codgi =
     { ... }:

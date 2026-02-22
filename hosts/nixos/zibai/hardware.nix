@@ -71,6 +71,9 @@
   # Use systemd-networkd for network management
   networking.useNetworkd = true;
 
+  # USB WiFi adapter mode switching (CD-ROM -> WiFi)
+  hardware.usb-modeswitch.enable = true;
+
   hardware.graphics = {
     enable = true;
     extraPackages = with pkgs; [ intel-vaapi-driver ];
