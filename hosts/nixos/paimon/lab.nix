@@ -8,7 +8,6 @@ let
     "/dev/nvidia-uvm-tools"
     "/dev/nvidia0"
     "/dev/nvidiactl"
-    "/dev/nvram"
   ];
 in
 {

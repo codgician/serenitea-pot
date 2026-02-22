@@ -63,11 +63,13 @@
           echo "Options:"
           echo "  -h, --help      Show this screen"
           echo "  -v, --verbose   Print verbose logs"
-          echo "  --pcr-ids IDS   Comma-separated list of PCR IDs (default: 1,2,7,12,14)"
+          echo "  --pcr-ids IDS   Comma-separated list of PCR IDs (default: 1,2,7,12,14,15)"
           echo "  --pcr-bank BANK PCR bank to use (default: sha256)"
           echo
+          echo "NOTE: PCR 15 should be included for filesystem confusion attack mitigation."
+          echo
           echo "Example:"
-          echo "  ${name} tpm --pcr-bank sha384 --pcr-ids 7"
+          echo "  ${name} tpm --pcr-bank sha384 --pcr-ids 7,15"
         }
 
         # Display Tang subcommand help
@@ -89,7 +91,7 @@
 
         # TPM encryption
         function do_tpm {
-          local pcr_ids="1,2,7,12,14"
+          local pcr_ids="1,2,7,12,14,15"
           local pcr_bank="sha256"
 
           while [[ $# -gt 0 ]]; do
@@ -115,6 +117,13 @@
                 ;;
             esac
           done
+
+          # Warn if PCR 15 is not included (filesystem confusion mitigation)
+          if [[ ! ",$pcr_ids," =~ ,15, ]]; then
+            warn "WARNING: PCR 15 not included in --pcr-ids."
+            warn "         This leaves the system vulnerable to filesystem confusion attacks."
+            warn ""
+          fi
 
           read -s -r -p "Enter password: " password
           echo >&2

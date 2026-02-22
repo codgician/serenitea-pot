@@ -5,15 +5,15 @@
   ...
 }:
 {
+  # Clevis TPM2 auto-unlock for zroot with PCR 15 mitigation
+  # Generate JWE: nix run .#mkjwe -- tpm --pcr-ids 1,2,7,12,14,15 > zroot.jwe
+  codgician.system.clevis = {
+    enable = true;
+    devices.zroot.secretFile = ./zroot.jwe;
+  };
+
   boot = {
     initrd = {
-      # TPM-based auto-unlock for zroot
-      # Generate JWE: nix run .#mkjwe -- tpm > zroot.jwe
-      clevis = {
-        enable = true;
-        devices."zroot".secretFile = ./zroot.jwe;
-      };
-
       availableKernelModules = [
         "xhci_pci"
         "ahci"
