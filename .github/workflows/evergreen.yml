@@ -25,6 +25,11 @@ jobs:
             builders-use-substitutes = true
       - name: Update nix flake
         run: nix flake update >> $GITHUB_STEP_SUMMARY
+      - name: Set timezone (UTC+8)
+        run: |
+          sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+          echo "Asia/Shanghai" | sudo tee /etc/timezone
+          date
       - name: Push changes
         id: push
         run: |
