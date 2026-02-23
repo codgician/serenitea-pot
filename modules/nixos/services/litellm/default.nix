@@ -50,6 +50,7 @@ let
 
   # Environment variables
   environment = {
+    "AUTO_REDIRECT_UI_LOGIN_TO_SSO" = "True";
     "DO_NOT_TRACK" = "True";
     "GITHUB_COPILOT_TOKEN_DIR" =
       if cfg.backend == "nixpkgs" then "${cfg.stateDir}/github" else "/config/github";
