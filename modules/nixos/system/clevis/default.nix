@@ -242,17 +242,24 @@ in
 
           services.clevis-pcr15-extend = {
             description = "Extend PCR 15 after Clevis unlock (anti-replay mitigation)";
-
-            # Wait for all detected device services + any custom services
             after = deviceWaitServices ++ cfg.tpm2.pcrExtend.afterServices;
-
-            # Must complete before mounting root filesystem
-            before = [ "initrd-root-fs.target" ];
+            # Must complete before mounting root filesystem and switch-root
+            before = [
+              "initrd-root-fs.target"
+              "initrd-switch-root.target"
+              "shutdown.target"
+            ];
             wantedBy = [ "initrd-root-fs.target" ];
+            # Proper initrd service configuration to avoid switch-root race
+            conflicts = [
+              "initrd-switch-root.target"
+              "shutdown.target"
+            ];
 
-            # Only run if TPM is available
-            unitConfig.ConditionPathExists = "/dev/tpm0";
-
+            unitConfig = {
+              ConditionPathExists = "/dev/tpm0";
+              DefaultDependencies = false;
+            };
             serviceConfig = {
               Type = "oneshot";
               RemainAfterExit = true;
