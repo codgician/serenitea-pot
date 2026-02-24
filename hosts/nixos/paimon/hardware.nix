@@ -5,11 +5,11 @@
   ...
 }:
 {
-  # Clevis TPM2 auto-unlock for zroot with PCR 15 mitigation
-  # Generate JWE: nix run .#mkjwe -- tpm --pcr-ids 1,2,7,12,14,15 > zroot.jwe
-  codgician.system.clevis = {
+  # TPM2-based ZFS root unlock
+  # Generate credential: nix run .#mkzfscred -- zroot > zroot.cred
+  codgician.system.zfs-unlock = {
     enable = true;
-    devices.zroot.secretFile = ./zroot.jwe;
+    devices.zroot.credentialFile = ./zroot.cred;
   };
 
   boot = {
@@ -68,7 +68,7 @@
         "xpool"
       ];
       forceImportAll = true;
-      requestEncryptionCredentials = [ "zroot" ];
+      # requestEncryptionCredentials handled by zfs-unlock module; other pools by zfs-mount preStart
       package = pkgs.zfs_2_4;
     };
   };

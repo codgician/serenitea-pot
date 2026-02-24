@@ -149,7 +149,10 @@ in
       wantedBy = [ "local-fs.target" ];
       after = [ "zfs-mount.service" ];
       before = [ "local-fs.target" ];
-      unitConfig.ConditionPathIsMountPoint = cfg.path;
+      unitConfig = {
+        ConditionPathIsMountPoint = cfg.path;
+        DefaultDependencies = false;
+      };
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = true;

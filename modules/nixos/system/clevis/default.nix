@@ -247,14 +247,10 @@ in
             before = [
               "initrd-root-fs.target"
               "initrd-switch-root.target"
-              "shutdown.target"
             ];
             wantedBy = [ "initrd-root-fs.target" ];
-            # Proper initrd service configuration to avoid switch-root race
-            conflicts = [
-              "initrd-switch-root.target"
-              "shutdown.target"
-            ];
+            # Prevent starting during switch-root
+            conflicts = [ "initrd-switch-root.target" ];
 
             unitConfig = {
               ConditionPathExists = "/dev/tpm0";
