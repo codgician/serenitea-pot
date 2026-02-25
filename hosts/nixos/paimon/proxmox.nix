@@ -95,6 +95,9 @@ in
     ipAddress = "192.168.0.21";
   };
 
+  # Enable dm-thin-pool kernel module for LVM thin provisioning
+  boot.kernelModules = [ "dm-thin-pool" ];
+
   # Reverse proxy
   codgician = {
     services.nginx = {
