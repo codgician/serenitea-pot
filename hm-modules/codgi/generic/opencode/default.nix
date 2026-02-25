@@ -79,7 +79,7 @@ in
 
     xdg.configFile = {
       # Register superpowers + agent-browser skill
-      "opencode/skill" = {
+      "opencode/skills" = {
         source = pkgs.symlinkJoin {
           name = "opencode-skills";
           paths = [
