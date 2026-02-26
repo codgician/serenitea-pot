@@ -57,11 +57,15 @@
   # Wireless configuration (wpa_supplicant)
   networking.wireless = {
     enable = true;
+    scanOnLowSignal = true;
     secretsFile = config.age.secrets.wireless-env.path;
-    networks."grassland".pskRaw = "ext:GRASSLAND_PASS";
+    networks."grassland" = {
+      pskRaw = "ext:GRASSLAND_PASS";
+    };
     extraConfig = ''
       ap_scan=1
-      autoscan=periodic:30
+      autoscan=periodic:10
+      disable_scan_offload=1
     '';
   };
 

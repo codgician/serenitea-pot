@@ -27,7 +27,7 @@
 
   # Waydroid container (auto-selects waydroid-nftables when nftables is enabled)
   virtualisation.waydroid.enable = true;
-
+  
   # PipeWire for audio (required for Waydroid audio passthrough)
   services.pipewire = {
     enable = true;

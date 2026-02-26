@@ -5,6 +5,13 @@
   ...
 }:
 {
+  # TPM2-based ZFS root unlock
+  # Generate credential: nix run .#mkzfscreds -- zroot > zroot.cred
+  codgician.system.zfs-unlock = {
+    enable = true;
+    devices.zroot.credentialFile = ./zroot.cred;
+  };
+
   boot = {
     initrd = {
       availableKernelModules = [
@@ -17,17 +24,11 @@
         "e1000e"
       ];
       kernelModules = [ ];
-
-      # TPM-based auto-unlock for zroot
-      # Generate JWE: nix run .#mkjwe -- tpm > zroot.jwe
-      clevis = {
-        enable = true;
-        devices."zroot".secretFile = ./zroot.jwe;
-      };
     };
 
     kernelModules = [ "kvm-intel" ];
-    extraModulePackages = [ ];
+    kernelPackages = pkgs.linuxPackages_6_18;
+    zfs.package = pkgs.zfs_2_4;
 
     plymouth = {
       enable = true;
@@ -38,7 +39,6 @@
     zfs = {
       extraPools = [ "dpool" ];
       forceImportAll = true;
-      requestEncryptionCredentials = [ "zroot" ];
     };
   };
 

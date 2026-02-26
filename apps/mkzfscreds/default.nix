@@ -31,8 +31,8 @@ let
   # mkcreds binary path
   mkcredsBin = "${inputs.mkcreds.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/mkcreds";
 
-  # Default PCRs: 1 (firmware), 7 (secure boot), 12 (kernel cmdline), 14 (shim MOK), 15 (zfs fingerprint)
-  defaultPcrIds = "1,7,12,14,15";
+  # Default PCRs
+  defaultPcrIds = "1,2,7,12,14,15";
 in
 {
   type = "app";
