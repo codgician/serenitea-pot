@@ -153,6 +153,11 @@
       url = "github:obra/superpowers";
       flake = false;
     };
+
+    mkcreds = {
+      url = "github:codgician/mkcreds";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =

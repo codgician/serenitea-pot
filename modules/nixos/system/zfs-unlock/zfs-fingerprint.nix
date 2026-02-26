@@ -2,7 +2,7 @@
 #
 # Used by both:
 #   - zfs-unlock service (initrd) for PCR 15 extension
-#   - mkzfscred tool for expected PCR 15 computation
+#   - mkzfscreds tool for expected PCR 15 computation
 #
 # Fingerprint = sha256(DSL_CRYPTO_GUID || DSL_CRYPTO_MAC)
 #
@@ -25,8 +25,6 @@
 let
   zdb = "${zfsPackage}/bin/zdb";
   grep = "${pkgs.gnugrep}/bin/grep";
-  openssl = "${pkgs.openssl}/bin/openssl";
-  xxd = "${pkgs.xxd}/bin/xxd";
 
   script = pkgs.writeShellScript "zfs-fingerprint" ''
     set -euo pipefail
@@ -66,9 +64,8 @@ let
       exit 1
     fi
 
-    # Compute fingerprint: sha256(guid || mac)
-    echo -n "''${guid}''${mac}" \
-      | ${openssl} dgst -"$bank" -binary | ${xxd} -p -c256
+    # Compute fingerprint: hash(guid || mac)
+    echo -n "''${guid}''${mac}" | "''${bank}sum" | cut -d' ' -f1
   '';
 in
 {
@@ -77,7 +74,5 @@ in
     script
     zdb
     grep
-    openssl
-    xxd
   ];
 }
