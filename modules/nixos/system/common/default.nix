@@ -38,7 +38,7 @@ in
 
     # Console
     console = {
-      font = "${pkgs.terminus_font}/share/consolefonts/ter-u14n.psf.gz";
+      font = "${pkgs.terminus_font}/share/consolefonts/ter-u16n.psf.gz";
       earlySetup = true;
       useXkbConfig = true;
     };
