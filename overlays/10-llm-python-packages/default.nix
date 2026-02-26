@@ -40,17 +40,6 @@ in
     litellm
     ;
 
-  # Override open-webui to use rapidocr-onnxruntime with tests disabled
-  open-webui = prev.unstable.open-webui.override {
-    python3Packages = prev.unstable.python3Packages.overrideScope (
-      pyFinal: pyPrev: {
-        rapidocr-onnxruntime = pyPrev.rapidocr-onnxruntime.overridePythonAttrs (_: {
-          doCheck = false;
-        });
-      }
-    );
-  };
-
   pythonPackagesExtensions = (prev.pythonPackagesExtensions or [ ]) ++ [
     pythonUnstableExtension
   ];
