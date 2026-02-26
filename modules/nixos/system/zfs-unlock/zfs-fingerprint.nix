@@ -1,23 +1,9 @@
-# Shared ZFS crypto fingerprint computation
+# ZFS crypto fingerprint: hash(GUID || MAC) from encryption metadata
 #
-# Used by both:
-#   - zfs-unlock service (initrd) for PCR 15 extension
-#   - mkzfscreds tool for expected PCR 15 computation
+# Security: MAC is AES-GCM auth tag (unforgeable without key),
+# GUID is unique per encryption root. Together they identify legitimate volumes.
 #
-# Fingerprint = sha256(DSL_CRYPTO_GUID || DSL_CRYPTO_MAC)
-#
-# Security rationale:
-#   - DSL_CRYPTO_MAC: AES-GCM auth tag, cannot be forged without passphrase
-#   - DSL_CRYPTO_GUID: Unique per encryption root, included as AAD in MAC
-#   - Together they uniquely identify a legitimate encrypted volume
-#
-# Performance: Uses targeted object queries instead of full pool scan
-#   - Object 1 (MOS directory) -> root_dataset
-#   - root_dataset -> crypto_key_obj
-#   - crypto_key_obj -> GUID + MAC
-#   Total: ~1-2 seconds vs ~15+ seconds for full -dddd scan
-#
-# Returns: { script, storePaths }
+# Performance: Targeted zdb queries (~1-2s) vs full scan (~15s)
 {
   pkgs,
   zfsPackage ? pkgs.zfs,

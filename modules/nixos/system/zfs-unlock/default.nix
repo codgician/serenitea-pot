@@ -1,16 +1,9 @@
-# ZFS TPM2 unlock module with filesystem confusion attack protection
+# ZFS TPM2 unlock with anti-confusion and anti-replay protection
 #
-# Security model:
-#   - PCR 15 is extended with ZFS crypto metadata fingerprints BEFORE unsealing
-#   - Fingerprints computed in deterministic (sorted) order
-#   - If fingerprint doesn't match (fake volume), PCR 15 differs, unseal fails
-#
-# Enrollment workflow:
-#   1. Configure devices (enable can be false)
-#   2. Rebuild and reboot (PCR 15 gets extended)
-#   3. Run: nix run .#mkzfscreds -- <dataset>
-#   4. Set enable = true, add credentialFile, rebuild
-#   5. Reboot - automatic unlock works
+# Anti-confusion: PCR 15 extended with ZFS fingerprints BEFORE unseal.
+#   Fake volumes -> wrong fingerprint -> PCR mismatch -> unseal fails.
+# Anti-replay: PCR 15 extended with zeros AFTER unseal.
+#   Credential cannot be unsealed again until next reboot.
 {
   config,
   lib,
@@ -21,28 +14,23 @@ let
   cfg = config.codgician.system.zfs-unlock;
   zfs = config.boot.zfs.package;
 
-  # Credential parser for extracting PCR bank
-  credParser = import ./parse-creds.nix { inherit pkgs; };
-
-  # Shared fingerprint script and its dependencies
+  parseCredsPcrBank = import ./parse-creds.nix { inherit pkgs; };
   zfsFingerprint = import ./zfs-fingerprint.nix {
     inherit pkgs;
     zfsPackage = zfs;
   };
 
-  # Build device info list (sorted, with all derived values)
+  # Device info: sorted list with derived values computed once
   devices = map (name: rec {
     inherit name;
     safeName = lib.replaceStrings [ "/" ] [ "_" ] name;
-    pcrBank = credParser.parseCredentialPcrBank cfg.devices.${name}.credentialFile;
+    pcrBank = parseCredsPcrBank cfg.devices.${name}.credentialFile;
     credPath = "/etc/zfs-unlock/${safeName}.cred";
     credentialFile = cfg.devices.${name}.credentialFile;
   }) (lib.sort (a: b: a < b) (lib.attrNames cfg.devices));
 
-  # Unique PCR banks for anti-replay
   usedBanks = lib.unique (map (d: d.pcrBank) devices);
 
-  # Zeros string for anti-replay extension (per bank)
   pcrZerosForBank =
     bank:
     lib.concatStrings (
@@ -57,13 +45,12 @@ let
         "0"
     );
 
-  # Helper paths
   tpm2_pcrextend = "${pkgs.tpm2-tools}/bin/tpm2_pcrextend";
   systemd-creds = "${pkgs.systemd}/bin/systemd-creds";
   systemd-ask-password = "${pkgs.systemd}/bin/systemd-ask-password";
 
   unlockScript = pkgs.writeShellScript "zfs-tpm-unlock" ''
-    set -uo pipefail  # Note: no -e, we handle errors manually for resilience
+    set -uo pipefail
 
     pcr_ok=1
     echo "zfs-unlock: Extending PCR 15 with device fingerprints..."
@@ -81,7 +68,7 @@ let
       fi
     '') devices}
 
-    # TPM unlock (only if PCR extension succeeded)
+    # TPM unlock
     if [[ "$pcr_ok" -eq 1 ]]; then
       ${lib.concatMapStrings (d: ''
         if [[ "$(${zfs}/bin/zfs get -Ho value keystatus "${d.name}" 2>/dev/null)" == "unavailable" ]]; then
@@ -100,7 +87,7 @@ let
       echo "zfs-unlock: Skipping TPM unlock due to PCR errors"
     fi
 
-    # Password fallback for remaining locked datasets
+    # Password fallback
     ${lib.concatMapStrings (d: ''
       if [[ "$(${zfs}/bin/zfs get -Ho value keystatus "${d.name}" 2>/dev/null)" == "unavailable" ]]; then
         kl=$(${zfs}/bin/zfs get -Ho value keylocation "${d.name}" 2>/dev/null)
@@ -118,7 +105,7 @@ let
       fi
     '') devices}
 
-    # Verify all datasets unlocked
+    # Verify unlock
     all_ok=1
     ${lib.concatMapStrings (d: ''
       if [[ "$(${zfs}/bin/zfs get -Ho value keystatus "${d.name}" 2>/dev/null)" == "unavailable" ]]; then
@@ -128,9 +115,8 @@ let
     '') devices}
     [[ "$all_ok" -eq 1 ]] || exit 1
 
-    # Anti-replay: extend PCR 15 for all used banks after successful unlock
-    # This "consumes" the PCR state - subsequent unseal attempts will fail
-    echo "zfs-unlock: Extending PCR 15 to prevent replay attacks..."
+    # Anti-replay: extend PCR 15 with zeros to invalidate credential
+    echo "zfs-unlock: Anti-replay PCR 15 extension..."
     ${lib.concatMapStrings (bank: ''
       if ! ${tpm2_pcrextend} "15:${bank}=${pcrZerosForBank bank}" 2>&1; then
         echo "zfs-unlock: WARNING: Post-unlock PCR extend failed for bank ${bank}"
