@@ -42,9 +42,11 @@
         type = "zpool";
         mountpoint = "/zroot";
         rootFsOptions = {
+          acltype = "posixacl";
           atime = "off";
-          compression = "on";
           "com.sun:auto-snapshot" = "false";
+          compression = "on";
+          xattr = "sa";
         };
 
         options = {

@@ -47,12 +47,14 @@
         type = "zpool";
         mountpoint = "/zroot";
         rootFsOptions = {
+          acltype = "posixacl";
           atime = "off";
+          "com.sun:auto-snapshot" = "false";
           compression = "zstd";
           encryption = "aes-256-gcm";
           keyformat = "passphrase";
           keylocation = "prompt";
-          "com.sun:auto-snapshot" = "false";
+          xattr = "sa";
         };
 
         options = {
@@ -78,9 +80,6 @@
             mountpoint = "/persist";
             options = {
               "com.sun:auto-snapshot" = "true";
-              # Enable POSIX ACLs for Android/Waydroid compatibility
-              # Android's vold requires setfacl operations on /data directories
-              acltype = "posixacl";
             };
           };
         };

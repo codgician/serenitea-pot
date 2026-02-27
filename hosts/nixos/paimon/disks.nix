@@ -54,12 +54,14 @@ in
         mode = "mirror";
         mountpoint = "/zroot";
         rootFsOptions = {
+          acltype = "posixacl";
           atime = "off";
+          "com.sun:auto-snapshot" = "false";
           compression = "off";
           encryption = "aes-256-gcm";
           keyformat = "passphrase";
           keylocation = "prompt";
-          "com.sun:auto-snapshot" = "false";
+          xattr = "sa";
         };
 
         options = {
