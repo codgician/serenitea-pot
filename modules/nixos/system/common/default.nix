@@ -175,6 +175,14 @@ in
       else
         [ "audit=0" ];
 
+    # systemd-boot common configurations
+    boot.loader.systemd-boot = {
+      configurationLimit = 10;    
+      edk2-uefi-shell.enable = true;
+      memtest86.enable = true;
+      netbootxyz.enable = true;
+    };
+
     # Enable fail2ban
     services.fail2ban.enable = config.networking.firewall.enable;
 
