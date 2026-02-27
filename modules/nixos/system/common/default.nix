@@ -27,6 +27,9 @@ in
     # Enable systemd in initrd
     boot.initrd.systemd.enable = lib.mkIf (!config.boot.isContainer) true;
 
+    # Use zstd compression for initrd to save ESP space
+    boot.initrd.compressor = "zstd";
+
     # SSH in initrd for emergency remote access (e.g., disk unlock)
     # Usage: ssh -p 2222 root@<host> "zfs load-key <pool> && exit"
     # Enable per-host with: boot.initrd.network.ssh.enable = true;
@@ -177,9 +180,9 @@ in
 
     # systemd-boot common configurations
     boot.loader.systemd-boot = {
-      configurationLimit = 10;    
+      configurationLimit = 10;
       edk2-uefi-shell.enable = true;
-      memtest86.enable = true;
+      memtest86.enable = pkgs.stdenv.hostPlatform.isx86;
       netbootxyz.enable = true;
     };
 
