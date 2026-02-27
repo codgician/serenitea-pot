@@ -131,6 +131,11 @@ let
       model_info.base_model = "gemini/gemini-3-pro-image-preview";
     }
     {
+      model_name = "gemini-3.1-flash-image-preview";
+      model_info.mode = "image_generation";
+      model_info.base_model = "gemini/gemini-3.1-flash-image-preview";
+    }
+    {
       model_name = "gemini-2.5-flash-image";
       model_info.mode = "image_generation";
       model_info.base_model = "gemini/gemini-2.5-flash-image";
