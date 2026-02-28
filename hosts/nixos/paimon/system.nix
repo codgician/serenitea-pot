@@ -62,10 +62,6 @@
         domain = "matrix.codgician.me";
         dataPath = "/opool/tuwunel";
         zfsOptimizations = true;
-        sso = {
-          enable = true;
-          clientSecretFile = config.age.secrets.tuwunel-oidc-secret-authelia-main.path;
-        };
         reverseProxy = {
           enable = true;
           elementWeb = true;

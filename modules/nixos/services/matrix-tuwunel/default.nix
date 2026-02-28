@@ -37,23 +37,6 @@ in
 
     zfsOptimizations = lib.mkEnableOption "RocksDB optimizations for ZFS (disables direct I/O, uses zstd compression).";
 
-    settings = lib.mkOption {
-      type = types.attrsOf types.anything;
-      default = { };
-      description = "Additional settings to pass to Tuwunel's global config section.";
-    };
-
-    # SSO/OIDC configuration
-    sso = {
-      enable = lib.mkEnableOption "SSO/OIDC authentication via Authelia.";
-
-      clientSecretFile = lib.mkOption {
-        type = types.nullOr types.path;
-        default = null;
-        description = "Path to file containing the OIDC client secret for Authelia.";
-      };
-    };
-
     # Reverse proxy profile for nginx
     reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
       inherit serviceName;
@@ -110,13 +93,13 @@ in
             rocksdb_direct_io = false;
             rocksdb_compression_algo = "zstd";
           }
-          // lib.optionalAttrs cfg.sso.enable {
-            # SSO/OIDC configuration for Authelia (must be a list)
+          // {
+            # SSO/OIDC configuration for Authelia
             identity_provider = [
               {
                 brand = "authelia";
                 client_id = serviceName;
-                client_secret_file = cfg.sso.clientSecretFile;
+                client_secret_file = config.age.secrets.tuwunel-oidc-secret-authelia-main.path;
                 issuer_url = autheliaUrl;
                 callback_url = "https://${cfg.domain}/_matrix/client/unstable/login/sso/callback/${serviceName}";
                 default = true;
@@ -129,8 +112,7 @@ in
                 ];
               }
             ];
-          }
-          // cfg.settings;
+          };
         };
 
         # Override systemd service for custom data path

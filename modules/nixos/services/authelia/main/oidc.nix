@@ -191,7 +191,7 @@
     {
       client_id = "matrix-tuwunel";
       client_name = "Matrix";
-      client_secret = "$pbkdf2-sha512$310000$n7DeRefAoyncwq0Kmafcqw$6s2AmNwSksQQpUofHklKeyrLxf0/ujnpXNkeMMRKbNgYiZZK2C90wH3XWwH/a9Zkvtjr/YSp4pafSfUZ/yDTfw";
+      client_secret = "$pbkdf2-sha512$310000$j/2TAny/IrIx0RAfLa049Q$JTikgW/VAT6323BVxgDh30ZPzHrlaAUoOJ4uaWPstI8DsKALlC5PbF5JMVAFu.Yhiq4A9B4rqQ9QZJHh3IHYuw";
       public = false;
       authorization_policy = "two_factor";
       require_pkce = true;
@@ -205,8 +205,12 @@
         "email"
         "groups"
       ];
+      response_modes = [ "form_post" ];
       response_types = [ "code" ];
-      grant_types = [ "authorization_code" ];
+      grant_types = [
+        "authorization_code"
+        "refresh_token"
+      ];
       access_token_signed_response_alg = "none";
       userinfo_signed_response_alg = "none";
       token_endpoint_auth_method = "client_secret_post";
