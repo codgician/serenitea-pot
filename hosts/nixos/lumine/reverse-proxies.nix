@@ -30,7 +30,7 @@
       proxyPass = "https://192.168.0.22";
     };
 
-    dendrite = {
+    matrix-tuwunel = {
       domain = "matrix.codgician.me";
       reverseProxy = {
         enable = true;

@@ -84,9 +84,9 @@ with pubKeys.hosts;
   "grafana-admin-password.age".publicKeys = someHosts [ paimon ];
   "grafana-secret-key.age".publicKeys = someHosts [ paimon ];
 
-  # Matrix secrets
-  "matrix-global-private-key.age".publicKeys = someHosts [ paimon ];
-  "matrix-env.age".publicKeys = someHosts [ paimon ];
+  # Tuwunel secrets
+  "tuwunel-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];
+  "tuwunel-turn-secret.age".publicKeys = someHosts [ paimon ];
 
   # mcp secrets
   "mcp-amap-api-key.age".publicKeys = someHosts [ paimon ];

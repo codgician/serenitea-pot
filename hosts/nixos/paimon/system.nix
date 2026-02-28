@@ -57,10 +57,15 @@
       nixos-vscode-server.enable = true;
 
       # Chat
-      dendrite = {
+      matrix-tuwunel = {
         enable = true;
         domain = "matrix.codgician.me";
-        dataPath = "/xpool/appdata/dendrite";
+        dataPath = "/opool/tuwunel";
+        zfsOptimizations = true;
+        sso = {
+          enable = true;
+          clientSecretFile = config.age.secrets.tuwunel-oidc-secret-authelia-main.path;
+        };
         reverseProxy = {
           enable = true;
           elementWeb = true;

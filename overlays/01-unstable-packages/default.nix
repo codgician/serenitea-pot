@@ -12,5 +12,6 @@ final: prev: {
     opencode
     antigravity
     zfs_unstable
+    matrix-tuwunel
     ;
 }
