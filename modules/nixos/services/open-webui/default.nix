@@ -63,7 +63,7 @@ let
     ENABLE_OPENAI_API = "True";
     # OPENAI_API_BASE_URLS, OPENAI_API_KEYS defined in environment
     # Enlarge chunk for image generation
-    CHAT_STREAM_RESPONSE_CHUNK_MAX_BUFFER_SIZE = 20971520; # 20MB
+    CHAT_STREAM_RESPONSE_CHUNK_MAX_BUFFER_SIZE = "20971520"; # 20MB
     # Security
     ENABLE_FORWARD_USER_INFO_HEADERS = "False";
     ENABLE_RAG_LOCAL_WEB_FETCH = "True";

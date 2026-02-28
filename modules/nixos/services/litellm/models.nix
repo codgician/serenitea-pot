@@ -391,7 +391,7 @@ let
       model_info.mode = "chat";
     }
     {
-      model_name = "minimaxai/minimax-m2.1";
+      model_name = "minimaxai/minimax-m2.5";
       model_info.mode = "chat";
     }
     {
