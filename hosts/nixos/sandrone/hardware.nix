@@ -42,6 +42,8 @@
     pkcs11.enable = true;
   };
 
+  hardware.enableRedistributableFirmware = true;
+
   fileSystems."/persist".neededForBoot = true;
 
   networking.useDHCP = lib.mkDefault true;

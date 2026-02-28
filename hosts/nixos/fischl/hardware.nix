@@ -100,7 +100,11 @@
 
   networking.useDHCP = lib.mkDefault true;
 
-  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  hardware = {
+    enableRedistributableFirmware = true;
+    cpu.intel.updateMicrocode = true;
+  };
+
   powerManagement.cpuFreqGovernor = "powersave";
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";

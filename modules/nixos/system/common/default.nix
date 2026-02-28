@@ -67,10 +67,6 @@ in
       enableCompletion = true;
     };
 
-    # Enable redistributable firmware
-    hardware.enableAllFirmware = true;
-    hardware.enableRedistributableFirmware = true;
-
     # Enable resolved
     services.resolved = {
       enable = true;
@@ -141,7 +137,13 @@ in
 
     # Security
     users.mutableUsers = false;
-    users.users.root.hashedPassword = "!";
+    # Lock root unless another password mechanism is set
+    users.users.root.hashedPassword = lib.mkIf (
+      config.users.users.root.initialPassword == null
+      && config.users.users.root.initialHashedPassword == null
+      && config.users.users.root.password == null
+      && config.users.users.root.hashedPasswordFile == null
+    ) "!";
     nix.settings.trusted-users = [
       "root"
       "@wheel"

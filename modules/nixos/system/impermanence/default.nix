@@ -57,6 +57,20 @@ in
       '';
     };
 
+    wipeOnBoot.zfs = {
+      enable = lib.mkEnableOption "Wipe ZFS dataset on boot.";
+
+      dataset = lib.mkOption {
+        type = lib.types.str;
+        default = "zroot/persist";
+        description = ''
+          The ZFS dataset to wipe on boot. A blank snapshot will be created
+          and rolled back to on each boot. The previous state is preserved
+          in the @last snapshot for recovery.
+        '';
+      };
+    };
+
     extraItems = lib.mkOption {
       type =
         with types;
@@ -112,52 +126,90 @@ in
     };
   };
 
-  config = {
-    environment.persistence.${cfg.path} = {
-      inherit (cfg) enable;
-      hideMounts = true;
-      directories = [
-        "/var/log"
-        "/var/lib/acme"
-        "/var/lib/bluetooth"
-        "/var/lib/nixos"
-        {
-          directory = "/var/lib/private";
-          mode = "0700";
-        }
-        "/var/lib/systemd/coredump"
-        "/etc/NetworkManager/system-connections"
-        "/home"
-      ]
-      ++ lib.optionals (config.services.fail2ban.enable) [ "/var/lib/fail2ban" ]
-      ++ lib.optionals (config.services.fwupd.enable) [ "/var/lib/fwupd" ]
-      ++ extraDirectories;
-      files = [
-        "/etc/machine-id"
-        "/etc/ssh/ssh_host_ed25519_key"
-        "/etc/ssh/ssh_host_ed25519_key.pub"
-      ]
-      ++ extraFiles;
-    };
+  config = lib.mkMerge [
+    {
+      environment.persistence.${cfg.path} = {
+        inherit (cfg) enable;
+        hideMounts = true;
+        directories = [
+          "/var/log"
+          "/var/lib/acme"
+          "/var/lib/bluetooth"
+          "/var/lib/nixos"
+          {
+            directory = "/var/lib/private";
+            mode = "0700";
+          }
+          "/var/lib/systemd/coredump"
+          "/etc/NetworkManager/system-connections"
+          "/home"
+        ]
+        ++ lib.optionals (config.services.fail2ban.enable) [ "/var/lib/fail2ban" ]
+        ++ lib.optionals (config.services.fwupd.enable) [ "/var/lib/fwupd" ]
+        ++ extraDirectories;
+        files = [
+          "/etc/machine-id"
+          "/etc/ssh/ssh_host_ed25519_key"
+          "/etc/ssh/ssh_host_ed25519_key.pub"
+        ]
+        ++ extraFiles;
+      };
 
-    # Install shutdown ordering dropins so bind mounts unmount before persist path
-    systemd.packages = lib.mkIf cfg.enable [ shutdownOrderDropins ];
-    # Make persist path private to prevent mirror mounts from being created.
-    # ZFS mounts bypass systemd mount options, so we run this after zfs-mount.service.
-    systemd.services."impermanence-make-persist-private" = lib.mkIf (cfg.enable && isZfs) {
-      description = "Make ${cfg.path} mount private to prevent propagation issues";
-      wantedBy = [ "local-fs.target" ];
-      after = [ "zfs-mount.service" ];
-      before = [ "local-fs.target" ];
-      unitConfig = {
-        ConditionPathIsMountPoint = cfg.path;
-        DefaultDependencies = false;
+      # Install shutdown ordering dropins so bind mounts unmount before persist path
+      systemd.packages = lib.mkIf cfg.enable [ shutdownOrderDropins ];
+
+      # Make persist path private to prevent mirror mounts from being created.
+      # ZFS mounts bypass systemd mount options, so we run this after zfs-mount.service.
+      systemd.services."impermanence-make-persist-private" = lib.mkIf (cfg.enable && isZfs) {
+        description = "Make ${cfg.path} mount private to prevent propagation issues";
+        wantedBy = [ "local-fs.target" ];
+        after = [ "zfs-mount.service" ];
+        before = [ "local-fs.target" ];
+        unitConfig = {
+          ConditionPathIsMountPoint = cfg.path;
+          DefaultDependencies = false;
+        };
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+          ExecStart = "/run/current-system/sw/bin/mount --make-private ${cfg.path}";
+        };
       };
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = true;
-        ExecStart = "/run/current-system/sw/bin/mount --make-private ${cfg.path}";
+    }
+
+    # ZFS wipe-on-boot service
+    (lib.mkIf cfg.wipeOnBoot.zfs.enable {
+      boot.initrd.systemd.services.impermanence-wipe-zfs = {
+        description = "Snapshot and rollback ${cfg.wipeOnBoot.zfs.dataset}";
+        wantedBy = [ "initrd.target" ];
+        after = [ "zfs-import-zroot.service" ];
+        before = [ "sysroot.mount" ];
+        path = [ config.boot.zfs.package ];
+        unitConfig.DefaultDependencies = false;
+        serviceConfig.Type = "oneshot";
+        script = ''
+          dataset="${cfg.wipeOnBoot.zfs.dataset}"
+
+          if zfs list -t snapshot "$dataset@blank" >/dev/null 2>&1; then
+            # Normal path: backup and rollback
+            zfs destroy "$dataset@last" 2>/dev/null || true
+            zfs snapshot "$dataset@last"
+            zfs rollback "$dataset@blank"
+          else
+            # Bootstrap (one-time): snapshot current, wipe, create blank
+            echo "No @blank snapshot found - bootstrapping"
+
+            zfs snapshot "$dataset@last"
+
+            mkdir -p /mnt/persist-wipe
+            mount -t zfs "$dataset" /mnt/persist-wipe
+            rm -rf /mnt/persist-wipe/* /mnt/persist-wipe/.[!.]* /mnt/persist-wipe/..?* 2>/dev/null || true
+            umount /mnt/persist-wipe
+
+            zfs snapshot "$dataset@blank"
+          fi
+        '';
       };
-    };
-  };
+    })
+  ];
 }

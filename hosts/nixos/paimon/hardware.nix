@@ -231,10 +231,13 @@
 
   networking.useDHCP = lib.mkDefault true;
 
-  hardware.cpu.amd = {
-    # sev.enable = true;
-    # sevGuest.enable = true;
-    updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
+  hardware = {
+    enableRedistributableFirmware = true;
+    cpu.amd = {
+      # sev.enable = true;
+      # sevGuest.enable = true;
+      updateMicrocode = true;
+    };
   };
 
   powerManagement = {

@@ -226,5 +226,14 @@
           outputs = self;
         }
       );
+
+      # NixOS VM tests: `nix build .#checks.<system>.<testName>`
+      checks = lib.codgician.forLinuxSystems (
+        pkgs:
+        import ./tests {
+          inherit lib pkgs inputs;
+          outputs = self;
+        }
+      );
     };
 }
