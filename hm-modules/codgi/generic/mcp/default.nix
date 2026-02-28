@@ -18,6 +18,7 @@ in
           url = "https://mcp.context7.com/mcp/";
           headers.CONTEXT7_API_KEY = "{file:${osConfig.age.secrets.context7-api-key.path}}";
         };
+        grep_app.url = "https://mcp.grep.app";
         github = {
           url = "https://api.githubcopilot.com/mcp/";
           headers.Authorization = "{file:${osConfig.age.secrets.github-auth-header.path}}";

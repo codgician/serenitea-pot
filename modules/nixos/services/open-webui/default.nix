@@ -62,11 +62,8 @@ let
     # OpenAI (LiteLLM)
     ENABLE_OPENAI_API = "True";
     # OPENAI_API_BASE_URLS, OPENAI_API_KEYS defined in environment
-    # TTS
-    TTS_ENGINE = "transformers";
-    WHISPER_MODEL = "large-v3-turbo";
-    WHISPER_MODEL_AUTO_UPDATE = "True";
-    AUDIO_TTS_ENGINE = "transformers";
+    # Enlarge chunk for image generation
+    CHAT_STREAM_RESPONSE_CHUNK_MAX_BUFFER_SIZE = 20971520; # 20MB
     # Security
     ENABLE_FORWARD_USER_INFO_HEADERS = "False";
     ENABLE_RAG_LOCAL_WEB_FETCH = "True";

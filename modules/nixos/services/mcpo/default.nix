@@ -18,11 +18,6 @@ let
       ];
       env.AMAP_MAPS_API_KEY._secret = config.age.secrets.mcp-amap-api-key.path;
     };
-    code-runner = {
-      type = "streamable_http";
-      url = "https://cpprunner.aiursoft.cn/mcp";
-      headers."Content-Type" = "application/json";
-    };
     context7 = {
       type = "streamable_http";
       url = "https://mcp.context7.com/mcp";
@@ -35,6 +30,10 @@ let
         "--ignore-robots-txt"
         "--user-agent=\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36\""
       ];
+    };
+    grep_app = {
+      type = "streamable_http";
+      url = "https://mcp.grep.app/";
     };
     google-maps = {
       command = "npx";
@@ -59,13 +58,6 @@ let
         "python"
         "-m"
         "paper_search_mcp.server"
-      ];
-    };
-    sequential-thinking = {
-      command = "npx";
-      args = [
-        "-y"
-        "@modelcontextprotocol/server-sequential-thinking"
       ];
     };
     time = {
