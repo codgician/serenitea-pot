@@ -49,10 +49,8 @@
       "kvm_amd.npt=1"
       "kvm_amd.avic=1"
       "kvm_amd.force_avic=1"
-      "amd_iommu=on"
       "iommu=pt"
       "amd_iommu_intr=vapic"
-      "iomem=relaxed"
     ];
 
     extraModulePackages = with config.boot.kernelPackages; [ mstflint_access ];
