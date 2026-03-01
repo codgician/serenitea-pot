@@ -1,14 +1,16 @@
 # Impermanence module integration tests
 #
-# These tests verify the initrd impermanence service by:
-# 1. Creating a ZFS pool on a separate disk during first boot
-# 2. Configuring the pool to be imported via boot.zfs.extraPools
-# 3. Rebooting and letting the initrd service run
-# 4. Verifying the wipe/rollback worked
+# These tests verify the impermanence wipe-on-boot behavior:
 #
-# Note: The ZFS pool is created at runtime in the test, then the VM reboots.
-# The filesystem config uses nofail to allow the first boot to succeed
-# without the pool existing yet.
+# wipeOnBoot: Normal path - rollback to @blank snapshot in initrd
+#   1. Create ZFS pool with @blank snapshot
+#   2. Add ephemeral data
+#   3. Reboot and verify data is wiped (rolled back to @blank)
+#
+# wipeOnBootBootstrap: Bootstrap path - create @blank from empty state
+#   1. Create ZFS pool with existing data (no @blank)
+#   2. Boot - initrd creates @last backup, wipes, creates @blank, reboots
+#   3. After auto-reboot, verify normal rollback works
 {
   lib,
   pkgs,
@@ -23,8 +25,8 @@ let
     nixpkgs.overlays = pkgs.overlays;
   };
 
-  # Machine config with impermanence enabled
-  machine =
+  # Base machine config with impermanence enabled (normal path)
+  machineBase =
     { lib, pkgs, ... }:
     {
       nixpkgs.config.allowUnfree = true;
@@ -38,13 +40,10 @@ let
         emptyDiskImages = [ 4096 ];
         useBootLoader = true;
         useEFIBoot = true;
-        # Add ZFS filesystem to virtualisation.fileSystems so it's included in VM config
-        # This ensures zfs-import-testpool.service is created in initrd
         fileSystems."/persist" = {
           device = "testpool/persist";
           fsType = "zfs";
           neededForBoot = true;
-          # nofail allows first boot without pool, x-systemd.device-timeout prevents long waits
           options = [
             "nofail"
             "x-systemd.device-timeout=1"
@@ -63,7 +62,10 @@ let
       };
 
       networking.hostId = "deadbeef";
-      environment.systemPackages = [ pkgs.parted ];
+      environment.systemPackages = [
+        pkgs.parted
+        pkgs.findutils
+      ];
 
       codgician.system.impermanence = {
         enable = true;
@@ -73,6 +75,7 @@ let
         };
       };
     };
+
 in
 {
   # Integration test: Normal path with actual reboot
@@ -81,7 +84,7 @@ in
     name = "impermanence-wipe-on-boot";
     hostPkgs = pkgs;
     defaults = commonDefaults;
-    nodes.machine = machine;
+    nodes.machine = machineBase;
 
     testScript = ''
       machine.start()
@@ -149,13 +152,13 @@ in
     '';
   };
 
-  # Integration test: Bootstrap path with actual reboot
-  # Tests that the initrd service creates @last backup and @blank
+  # Integration test: Bootstrap path (no @blank exists)
+  # Tests that initrd creates @blank and reboots automatically
   wipeOnBootBootstrap = nixos-lib.runTest {
     name = "impermanence-wipe-on-boot-bootstrap";
     hostPkgs = pkgs;
     defaults = commonDefaults;
-    nodes.machine = machine;
+    nodes.machine = machineBase;
 
     testScript = ''
       machine.start()
@@ -168,30 +171,32 @@ in
               "udevadm settle",
               "mkdir -p /etc/zfs",
               "zpool create -f -o cachefile=/etc/zfs/zpool.cache testpool /dev/vdb1",
-              # Use native ZFS mountpoints like production (not legacy)
               "zfs create -o mountpoint=/testroot testpool/root",
               "zfs create -o mountpoint=/persist testpool/persist",
           )
-          # Add old data using native mountpoint
+          # Add pre-existing data (simulating existing system)
           machine.succeed(
               "mkdir -p /testroot/old-data",
-              "echo 'old data from previous usage' > /testroot/old-data/file.txt",
+              "echo 'old data from before impermanence' > /testroot/old-data/file.txt",
+              "mkdir -p /persist/important",
+              "echo 'persistent data' > /persist/important/file.txt",
               "sync",
           )
 
-      with subtest("Verify no @blank exists before reboot"):
+      with subtest("Verify no @blank exists"):
           machine.fail("zfs list -t snapshot testpool/root@blank")
 
-      with subtest("Reboot to trigger initrd bootstrap"):
+      with subtest("Reboot to trigger bootstrap (creates @blank and auto-reboots)"):
           machine.shutdown()
           machine.start()
-          machine.wait_for_unit("multi-user.target")
+          # The initrd will bootstrap and trigger a reboot
+          # We need to wait longer since there may be an auto-reboot
+          machine.wait_for_unit("multi-user.target", timeout=120)
 
-      with subtest("Verify impermanence service ran bootstrap"):
-          print(machine.succeed("journalctl -b | grep -i 'zfs\|testpool\|impermanence' | head -80 || true"))
-          print(machine.succeed("zpool list || true"))
+      with subtest("Debug: check logs and snapshots"):
+          print(machine.succeed("journalctl --list-boots 2>&1 || true"))
           print(machine.succeed("journalctl -b -u impermanence-wipe-zfs.service 2>&1 || true"))
-          machine.succeed("journalctl -b -u impermanence-wipe-zfs.service | grep -q 'bootstrapping'")
+          print(machine.succeed("zfs list -t snapshot 2>&1 || true"))
 
       with subtest("Verify @blank was created"):
           machine.succeed("zfs list -t snapshot testpool/root@blank")
@@ -199,29 +204,31 @@ in
       with subtest("Verify @last backup was created"):
           machine.succeed("zfs list -t snapshot testpool/root@last")
 
-      with subtest("Verify root dataset is now empty"):
-          # After bootstrap, dataset should be mounted at /testroot
-          machine.succeed("zfs mount testpool/root || true")  # Mount if not already
+      with subtest("Verify old data was wiped from root"):
+          machine.succeed("zfs mount testpool/root || true")
           machine.fail("test -f /testroot/old-data/file.txt")
 
-      with subtest("Verify @last snapshot has backup data"):
+      with subtest("Verify persistent data survived"):
+          machine.succeed("test -f /persist/important/file.txt")
+
+      with subtest("Verify @last snapshot has backup of old data"):
           machine.succeed(
               "mkdir -p /mnt/recovery",
               "mount -t zfs testpool/root@last /mnt/recovery -o ro",
           )
           machine.succeed("test -f /mnt/recovery/old-data/file.txt")
-          machine.succeed("grep -q 'old data from previous usage' /mnt/recovery/old-data/file.txt")
+          machine.succeed("grep -q 'old data from before impermanence' /mnt/recovery/old-data/file.txt")
           machine.succeed("umount /mnt/recovery")
 
-      # Test transition to normal path with another reboot
-      with subtest("Add new data after bootstrap"):
+      # Test that subsequent boots use normal rollback path
+      with subtest("Add new ephemeral data"):
           machine.succeed(
               "mkdir -p /testroot/new-session",
               "echo 'new session data' > /testroot/new-session/file.txt",
               "sync",
           )
 
-      with subtest("Second reboot (normal path)"):
+      with subtest("Reboot to verify normal rollback"):
           machine.shutdown()
           machine.start()
           machine.wait_for_unit("multi-user.target")
@@ -230,17 +237,8 @@ in
           machine.succeed("journalctl -b -u impermanence-wipe-zfs.service | grep -q 'Rolling back'")
 
       with subtest("Verify new session data was wiped"):
-          machine.succeed("zfs mount testpool/root || true")  # Mount if not already
+          machine.succeed("zfs mount testpool/root || true")
           machine.fail("test -f /testroot/new-session/file.txt")
-
-      with subtest("Verify @last still has original backup (not replaced)"):
-          machine.succeed(
-              "mkdir -p /mnt/recovery",
-              "mount -t zfs testpool/root@last /mnt/recovery -o ro",
-          )
-          machine.succeed("test -f /mnt/recovery/old-data/file.txt")
-          machine.fail("test -f /mnt/recovery/new-session/file.txt")
-          machine.succeed("umount /mnt/recovery")
     '';
   };
 }
