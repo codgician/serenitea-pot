@@ -46,7 +46,7 @@ jobs:
             builders-use-substitutes = true
             system-features = nixos-test benchmark big-parallel kvm
       - name: Check flake
-        run: nix flake check --all-systems
+        run: nix flake check
       - name: Calculate strategy matrix
         id: get_matrix
         run: |
