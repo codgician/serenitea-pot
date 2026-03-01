@@ -14,7 +14,7 @@ let
   isZfs = persistFs != null && persistFs.fsType == "zfs";
   persistMountUnit = "${escapeSystemdPath cfg.path}.mount";
 
-  # Extract directory paths from final persistence config (includes all modules' additions)
+  # Extract directory paths from persistence config
   dirPaths = map (
     d: if builtins.isString d then d else d.directory or d.dirPath
   ) persistCfg.directories;
@@ -37,6 +37,7 @@ let
       inherit (x) user group mode;
     }))
   ];
+
   extraFiles = lib.pipe cfg.extraItems [
     (builtins.filter (x: x.type == "file"))
     (builtins.map (x: {
@@ -50,79 +51,65 @@ in
     enable = lib.mkEnableOption "Impermanence.";
 
     path = lib.mkOption {
-      type = lib.types.path;
+      type = types.path;
       default = "/persist";
-      description = ''
-        The path where all persistent files should be stored.
-      '';
+      description = "The path where all persistent files should be stored.";
     };
 
     wipeOnBoot.zfs = {
-      enable = lib.mkEnableOption "Wipe ZFS dataset on boot.";
+      enable = lib.mkEnableOption "Wipe ZFS root datasets on boot.";
 
-      dataset = lib.mkOption {
-        type = lib.types.str;
-        default = "zroot/persist";
+      datasets = lib.mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        example = [ "zroot/root" ];
         description = ''
-          The ZFS dataset to wipe on boot. A blank snapshot will be created
-          and rolled back to on each boot. The previous state is preserved
-          in the @last snapshot for recovery.
+          List of ZFS root datasets to wipe on boot (e.g., the dataset mounted
+          at /). For each dataset, a @blank snapshot will be created and rolled
+          back to on each boot. The previous state is preserved in the @last
+          snapshot for recovery.
+
+          NOTE: Do NOT include your persist dataset here - only ephemeral root
+          datasets that should be reset on every boot.
         '';
       };
     };
 
     extraItems = lib.mkOption {
-      type =
-        with types;
-        listOf (submodule {
+      type = types.listOf (
+        types.submodule {
           options = {
             path = lib.mkOption {
               type = types.path;
               description = "Path to the directory or file to persist.";
             };
-
             type = lib.mkOption {
               type = types.enum [
                 "file"
                 "directory"
               ];
-              description = ''
-                Type of the item to persist.
-                If set to "file", the item will be treated as a file.
-                If set to "directory", the item will be treated as a directory.
-              '';
+              description = "Type of the item to persist.";
             };
-
             user = lib.mkOption {
               type = types.str;
               default = "root";
-              description = ''
-                Owner of the item to persist.
-                This will be used to set the ownership of the item after it is copied.
-              '';
+              description = "Owner of the item.";
             };
-
             group = lib.mkOption {
               type = types.str;
               default = "root";
-              description = ''
-                Group of the item to persist.
-              '';
+              description = "Group of the item.";
             };
-
             mode = lib.mkOption {
               type = types.str;
               default = "0750";
-              description = ''
-                Permission mode of the item to persist.
-              '';
+              description = "Permission mode of the item.";
             };
           };
-        });
+        }
+      );
       default = [ ];
-      description = ''
-        List of extra items to persist.
-      '';
+      description = "List of extra items to persist.";
     };
   };
 
@@ -144,8 +131,8 @@ in
           "/etc/NetworkManager/system-connections"
           "/home"
         ]
-        ++ lib.optionals (config.services.fail2ban.enable) [ "/var/lib/fail2ban" ]
-        ++ lib.optionals (config.services.fwupd.enable) [ "/var/lib/fwupd" ]
+        ++ lib.optionals config.services.fail2ban.enable [ "/var/lib/fail2ban" ]
+        ++ lib.optionals config.services.fwupd.enable [ "/var/lib/fwupd" ]
         ++ extraDirectories;
         files = [
           "/etc/machine-id"
@@ -155,12 +142,10 @@ in
         ++ extraFiles;
       };
 
-      # Install shutdown ordering dropins so bind mounts unmount before persist path
       systemd.packages = lib.mkIf cfg.enable [ shutdownOrderDropins ];
 
-      # Make persist path private to prevent mirror mounts from being created.
-      # ZFS mounts bypass systemd mount options, so we run this after zfs-mount.service.
-      systemd.services."impermanence-make-persist-private" = lib.mkIf (cfg.enable && isZfs) {
+      # Make persist path private to prevent mirror mounts (ZFS bypasses systemd mount options)
+      systemd.services.impermanence-make-persist-private = lib.mkIf (cfg.enable && isZfs) {
         description = "Make ${cfg.path} mount private to prevent propagation issues";
         wantedBy = [ "local-fs.target" ];
         after = [ "zfs-mount.service" ];
@@ -180,7 +165,7 @@ in
     # ZFS wipe-on-boot service
     (lib.mkIf cfg.wipeOnBoot.zfs.enable {
       boot.initrd.systemd.services.impermanence-wipe-zfs = {
-        description = "Snapshot and rollback ${cfg.wipeOnBoot.zfs.dataset}";
+        description = "Snapshot and rollback ZFS datasets for impermanence";
         wantedBy = [ "initrd.target" ];
         after = [ "zfs-import-zroot.service" ];
         before = [ "sysroot.mount" ];
@@ -188,26 +173,37 @@ in
         unitConfig.DefaultDependencies = false;
         serviceConfig.Type = "oneshot";
         script = ''
-          dataset="${cfg.wipeOnBoot.zfs.dataset}"
+          wipe_dataset() {
+            local dataset="$1"
 
-          if zfs list -t snapshot "$dataset@blank" >/dev/null 2>&1; then
-            # Normal path: backup and rollback
-            zfs destroy "$dataset@last" 2>/dev/null || true
-            zfs snapshot "$dataset@last"
-            zfs rollback "$dataset@blank"
-          else
-            # Bootstrap (one-time): snapshot current, wipe, create blank
-            echo "No @blank snapshot found - bootstrapping"
+            if ! zfs list "$dataset" >/dev/null 2>&1; then
+              echo "WARNING: Dataset '$dataset' does not exist, skipping"
+              return 0
+            fi
 
-            zfs snapshot "$dataset@last"
+            echo "Processing dataset: $dataset"
 
-            mkdir -p /mnt/persist-wipe
-            mount -t zfs "$dataset" /mnt/persist-wipe
-            rm -rf /mnt/persist-wipe/* /mnt/persist-wipe/.[!.]* /mnt/persist-wipe/..?* 2>/dev/null || true
-            umount /mnt/persist-wipe
+            if zfs list -t snapshot "$dataset@blank" >/dev/null 2>&1; then
+              # Normal path: backup and rollback
+              zfs destroy "$dataset@last" 2>/dev/null || true
+              zfs snapshot "$dataset@last"
+              zfs rollback "$dataset@blank"
+            else
+              # Bootstrap (one-time): snapshot current, wipe, create blank
+              echo "No @blank snapshot found - bootstrapping $dataset"
 
-            zfs snapshot "$dataset@blank"
-          fi
+              zfs snapshot "$dataset@last"
+
+              mkdir -p /mnt/persist-wipe
+              mount -t zfs "$dataset" /mnt/persist-wipe
+              rm -rf /mnt/persist-wipe/* /mnt/persist-wipe/.[!.]* /mnt/persist-wipe/..?* 2>/dev/null || true
+              umount /mnt/persist-wipe
+
+              zfs snapshot "$dataset@blank"
+            fi
+          }
+
+          ${lib.concatMapStringsSep "\n" (dataset: "wipe_dataset \"${dataset}\"") cfg.wipeOnBoot.zfs.datasets}
         '';
       };
     })

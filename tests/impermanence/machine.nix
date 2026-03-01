@@ -1,11 +1,14 @@
 # VM configuration for impermanence wipe-on-boot test
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 
 {
   nixpkgs.config.allowUnfree = true;
 
   # Set root password for VM test (common module won't lock root when this is set)
-  users.users.root.initialPassword = "root";
+  users.users.root = {
+    initialPassword = "root";
+    hashedPasswordFile = lib.mkForce null;
+  };
   virtualisation = {
     emptyDiskImages = [ 4096 ];
     useBootLoader = true;
@@ -30,11 +33,12 @@
     enable = true;
     wipeOnBoot.zfs = {
       enable = true;
-      dataset = "testpool/persist";
+      # We test wiping testpool/root (simulating ephemeral root)
+      datasets = [ "testpool/root" ];
     };
   };
 
-  # Define the persist filesystem
+  # Define the persist filesystem (this should NOT be wiped)
   fileSystems."/persist" = {
     device = "testpool/persist";
     fsType = "zfs";

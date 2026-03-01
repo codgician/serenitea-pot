@@ -43,7 +43,13 @@
 
     system = {
       auto-upgrade.enable = true;
-      impermanence.enable = true;
+      impermanence = {
+        enable = true;
+        wipeOnBoot.zfs = {
+          enable = true;
+          datasets = [ "zroot/root" ];
+        };
+      };
     };
 
     users.codgi = with lib.codgician; {
