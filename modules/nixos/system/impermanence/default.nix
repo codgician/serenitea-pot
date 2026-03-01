@@ -213,10 +213,23 @@ in
                 zfs snapshot "$backup_snapshot"
 
                 # Wipe dataset contents
+                # Handle both legacy and native ZFS mountpoints
+                local orig_mountpoint
+                orig_mountpoint=$(zfs get -H -o value mountpoint "$dataset")
+                if [ "$orig_mountpoint" != "legacy" ]; then
+                  # Native mountpoint - temporarily set to legacy for manual mount
+                  zfs set mountpoint=legacy "$dataset"
+                fi
+
                 mkdir -p /mnt/impermanence-wipe
                 mount -t zfs "$dataset" /mnt/impermanence-wipe
                 rm -rf /mnt/impermanence-wipe/* /mnt/impermanence-wipe/.[!.]* /mnt/impermanence-wipe/..?* 2>/dev/null || true
                 umount /mnt/impermanence-wipe
+
+                if [ "$orig_mountpoint" != "legacy" ]; then
+                  # Restore original mountpoint
+                  zfs set mountpoint="$orig_mountpoint" "$dataset"
+                fi
 
                 # Create the blank snapshot
                 zfs snapshot "$dataset@blank"

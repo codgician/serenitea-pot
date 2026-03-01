@@ -94,26 +94,20 @@ in
               "udevadm settle",
               "mkdir -p /etc/zfs",
               "zpool create -f -o cachefile=/etc/zfs/zpool.cache testpool /dev/vdb1",
-              "zfs create -o mountpoint=legacy testpool/root",
+              # Use native ZFS mountpoints like production (not legacy)
+              "zfs create -o mountpoint=/testroot testpool/root",
               "zfs create -o mountpoint=/persist testpool/persist",
           )
 
       with subtest("Create @blank snapshot"):
-          machine.succeed(
-              "mkdir -p /mnt/root",
-              "mount -t zfs testpool/root /mnt/root",
-              "zfs snapshot testpool/root@blank",
-              "umount /mnt/root",
-          )
+          # Dataset is already mounted at /testroot by ZFS
+          machine.succeed("zfs snapshot testpool/root@blank")
 
       with subtest("Add ephemeral data after @blank"):
           machine.succeed(
-              "mkdir -p /mnt/root",
-              "mount -t zfs testpool/root /mnt/root",
-              "mkdir -p /mnt/root/ephemeral",
-              "echo 'ephemeral data' > /mnt/root/ephemeral/file.txt",
+              "mkdir -p /testroot/ephemeral",
+              "echo 'ephemeral data' > /testroot/ephemeral/file.txt",
               "sync",
-              "umount /mnt/root",
           )
 
       with subtest("Add persistent data"):
@@ -124,12 +118,7 @@ in
           )
 
       with subtest("Verify ephemeral data exists before reboot"):
-          machine.succeed(
-              "mkdir -p /mnt/root",
-              "mount -t zfs testpool/root /mnt/root",
-          )
-          machine.succeed("test -f /mnt/root/ephemeral/file.txt")
-          machine.succeed("umount /mnt/root")
+          machine.succeed("test -f /testroot/ephemeral/file.txt")
 
       with subtest("Reboot to trigger initrd impermanence service"):
           machine.shutdown()
@@ -143,12 +132,9 @@ in
           machine.succeed("journalctl -b -u impermanence-wipe-zfs.service | grep -q 'Rolling back'")
 
       with subtest("Verify ephemeral data was wiped"):
-          machine.succeed(
-              "mkdir -p /mnt/root",
-              "mount -t zfs testpool/root /mnt/root",
-          )
-          machine.fail("test -f /mnt/root/ephemeral/file.txt")
-          machine.succeed("umount /mnt/root")
+          # After rollback, dataset should be mounted at /testroot
+          machine.succeed("zfs mount testpool/root || true")  # Mount if not already
+          machine.fail("test -f /testroot/ephemeral/file.txt")
 
       with subtest("Verify only @blank snapshot exists"):
           machine.succeed("zfs list -t snapshot testpool/root@blank")
@@ -182,16 +168,15 @@ in
               "udevadm settle",
               "mkdir -p /etc/zfs",
               "zpool create -f -o cachefile=/etc/zfs/zpool.cache testpool /dev/vdb1",
-              "zfs create -o mountpoint=legacy testpool/root",
+              # Use native ZFS mountpoints like production (not legacy)
+              "zfs create -o mountpoint=/testroot testpool/root",
               "zfs create -o mountpoint=/persist testpool/persist",
           )
+          # Add old data using native mountpoint
           machine.succeed(
-              "mkdir -p /mnt/root",
-              "mount -t zfs testpool/root /mnt/root",
-              "mkdir -p /mnt/root/old-data",
-              "echo 'old data from previous usage' > /mnt/root/old-data/file.txt",
+              "mkdir -p /testroot/old-data",
+              "echo 'old data from previous usage' > /testroot/old-data/file.txt",
               "sync",
-              "umount /mnt/root",
           )
 
       with subtest("Verify no @blank exists before reboot"):
@@ -215,12 +200,9 @@ in
           machine.succeed("zfs list -t snapshot testpool/root@last")
 
       with subtest("Verify root dataset is now empty"):
-          machine.succeed(
-              "mkdir -p /mnt/root",
-              "mount -t zfs testpool/root /mnt/root",
-          )
-          machine.fail("test -f /mnt/root/old-data/file.txt")
-          machine.succeed("umount /mnt/root")
+          # After bootstrap, dataset should be mounted at /testroot
+          machine.succeed("zfs mount testpool/root || true")  # Mount if not already
+          machine.fail("test -f /testroot/old-data/file.txt")
 
       with subtest("Verify @last snapshot has backup data"):
           machine.succeed(
@@ -234,12 +216,9 @@ in
       # Test transition to normal path with another reboot
       with subtest("Add new data after bootstrap"):
           machine.succeed(
-              "mkdir -p /mnt/root",
-              "mount -t zfs testpool/root /mnt/root",
-              "mkdir -p /mnt/root/new-session",
-              "echo 'new session data' > /mnt/root/new-session/file.txt",
+              "mkdir -p /testroot/new-session",
+              "echo 'new session data' > /testroot/new-session/file.txt",
               "sync",
-              "umount /mnt/root",
           )
 
       with subtest("Second reboot (normal path)"):
@@ -251,12 +230,8 @@ in
           machine.succeed("journalctl -b -u impermanence-wipe-zfs.service | grep -q 'Rolling back'")
 
       with subtest("Verify new session data was wiped"):
-          machine.succeed(
-              "mkdir -p /mnt/root",
-              "mount -t zfs testpool/root /mnt/root",
-          )
-          machine.fail("test -f /mnt/root/new-session/file.txt")
-          machine.succeed("umount /mnt/root")
+          machine.succeed("zfs mount testpool/root || true")  # Mount if not already
+          machine.fail("test -f /testroot/new-session/file.txt")
 
       with subtest("Verify @last still has original backup (not replaced)"):
           machine.succeed(
