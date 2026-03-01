@@ -64,13 +64,13 @@ in
         default = [ ];
         example = [ "zroot/root" ];
         description = ''
-          List of ZFS root datasets to wipe on boot (e.g., the dataset mounted
-          at /). For each dataset, a @blank snapshot will be created and rolled
-          back to on each boot. The previous state is preserved in the @last
-          snapshot for recovery.
+          List of ZFS root datasets to wipe on boot. For each dataset, a @blank
+          snapshot is created on first boot and rolled back to on subsequent boots.
 
-          NOTE: Do NOT include your persist dataset here - only ephemeral root
-          datasets that should be reset on every boot.
+          On first boot (bootstrap), the current state is saved to @last snapshot
+          before wiping, allowing recovery of pre-impermanence data.
+
+          NOTE: Do NOT include your persist dataset here.
         '';
       };
     };
@@ -163,49 +163,68 @@ in
     }
 
     # ZFS wipe-on-boot service
-    (lib.mkIf cfg.wipeOnBoot.zfs.enable {
-      boot.initrd.systemd.services.impermanence-wipe-zfs = {
-        description = "Snapshot and rollback ZFS datasets for impermanence";
-        wantedBy = [ "initrd.target" ];
-        after = [ "zfs-import-zroot.service" ];
-        before = [ "sysroot.mount" ];
-        path = [ config.boot.zfs.package ];
-        unitConfig.DefaultDependencies = false;
-        serviceConfig.Type = "oneshot";
-        script = ''
-          wipe_dataset() {
-            local dataset="$1"
+    (lib.mkIf cfg.wipeOnBoot.zfs.enable (
+      let
+        # Extract pool names from dataset paths (e.g., "zroot/root" -> "zroot")
+        poolNames = lib.unique (
+          map (dataset: lib.head (lib.splitString "/" dataset)) cfg.wipeOnBoot.zfs.datasets
+        );
+        # Generate import service names for each pool
+        importServices = map (pool: "zfs-import-${pool}.service") poolNames;
+      in
+      {
+        boot.initrd.systemd.services.impermanence-wipe-zfs = {
+          description = "Snapshot and rollback ZFS datasets for impermanence";
+          wantedBy = [ "initrd.target" ];
+          after = importServices;
+          before = [ "sysroot.mount" ];
+          path = [
+            config.boot.zfs.package
+            pkgs.coreutils # mkdir, rm
+            pkgs.util-linux # mount, umount
+          ];
+          unitConfig.DefaultDependencies = false;
+          serviceConfig.Type = "oneshot";
+          script = ''
+            wipe_dataset() {
+              local dataset="$1"
 
-            if ! zfs list "$dataset" >/dev/null 2>&1; then
-              echo "WARNING: Dataset '$dataset' does not exist, skipping"
-              return 0
-            fi
+              if ! zfs list "$dataset" >/dev/null 2>&1; then
+                echo "WARNING: Dataset '$dataset' does not exist, skipping"
+                return 0
+              fi
 
-            echo "Processing dataset: $dataset"
+              echo "Processing dataset: $dataset"
 
-            if zfs list -t snapshot "$dataset@blank" >/dev/null 2>&1; then
-              # Normal path: backup and rollback
-              zfs destroy "$dataset@last" 2>/dev/null || true
-              zfs snapshot "$dataset@last"
-              zfs rollback "$dataset@blank"
-            else
-              # Bootstrap (one-time): snapshot current, wipe, create blank
-              echo "No @blank snapshot found - bootstrapping $dataset"
+              if zfs list -t snapshot "$dataset@blank" >/dev/null 2>&1; then
+                # Normal path: @blank exists, fast rollback
+                echo "Rolling back $dataset to @blank"
+                zfs rollback -r "$dataset@blank"
+              else
+                # Bootstrap path: no @blank, need to create it
+                echo "No @blank snapshot found - bootstrapping $dataset"
 
-              zfs snapshot "$dataset@last"
+                # Backup current state as snapshot before wiping
+                local backup_snapshot="$dataset@last"
+                echo "Creating backup snapshot: $backup_snapshot"
+                zfs destroy "$backup_snapshot" 2>/dev/null || true
+                zfs snapshot "$backup_snapshot"
 
-              mkdir -p /mnt/persist-wipe
-              mount -t zfs "$dataset" /mnt/persist-wipe
-              rm -rf /mnt/persist-wipe/* /mnt/persist-wipe/.[!.]* /mnt/persist-wipe/..?* 2>/dev/null || true
-              umount /mnt/persist-wipe
+                # Wipe dataset contents
+                mkdir -p /mnt/impermanence-wipe
+                mount -t zfs "$dataset" /mnt/impermanence-wipe
+                rm -rf /mnt/impermanence-wipe/* /mnt/impermanence-wipe/.[!.]* /mnt/impermanence-wipe/..?* 2>/dev/null || true
+                umount /mnt/impermanence-wipe
 
-              zfs snapshot "$dataset@blank"
-            fi
-          }
+                # Create the blank snapshot
+                zfs snapshot "$dataset@blank"
+              fi
+            }
 
-          ${lib.concatMapStringsSep "\n" (dataset: "wipe_dataset \"${dataset}\"") cfg.wipeOnBoot.zfs.datasets}
-        '';
-      };
-    })
+            ${lib.concatMapStringsSep "\n" (dataset: "wipe_dataset \"${dataset}\"") cfg.wipeOnBoot.zfs.datasets}
+          '';
+        };
+      }
+    ))
   ];
 }

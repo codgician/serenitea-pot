@@ -7,139 +7,239 @@
 
 let
   nixos-lib = import (pkgs.path + "/nixos/lib") { inherit lib; };
+
+  commonDefaults = {
+    imports = lib.codgician.mkNixosModules pkgs.stdenv.hostPlatform.system { };
+    nixpkgs.overlays = pkgs.overlays;
+  };
+
+  machine =
+    { lib, pkgs, ... }:
+    {
+      nixpkgs.config.allowUnfree = true;
+      users.users.root = {
+        initialPassword = "root";
+        hashedPasswordFile = lib.mkForce null;
+      };
+      virtualisation = {
+        emptyDiskImages = [ 4096 ];
+        useBootLoader = true;
+        useEFIBoot = true;
+      };
+      boot = {
+        loader.systemd-boot.enable = true;
+        loader.timeout = 0;
+        loader.efi.canTouchEfiVariables = true;
+        supportedFilesystems = [ "zfs" ];
+        zfs.devNodes = "/dev/disk/by-uuid";
+        initrd.systemd.enable = true;
+      };
+      networking.hostId = "deadbeef";
+      environment.systemPackages = [ pkgs.parted ];
+      codgician.system.impermanence = {
+        enable = true;
+        wipeOnBoot.zfs = {
+          enable = true;
+          datasets = [ "testpool/root" ];
+        };
+      };
+      fileSystems."/persist" = {
+        device = "testpool/persist";
+        fsType = "zfs";
+        neededForBoot = true;
+      };
+    };
+
+  setupPoolScript = ''
+    machine.succeed(
+        "parted --script /dev/vdb mklabel gpt",
+        "parted --script /dev/vdb -- mkpart primary 1MiB 100%",
+        "udevadm settle",
+        "zpool create -f testpool /dev/vdb1",
+        "zfs create -o mountpoint=legacy testpool/root",
+        "zfs create -o mountpoint=/persist testpool/persist",
+    )
+  '';
 in
 {
+  # Test normal path: @blank exists, fast rollback
   wipeOnBoot = nixos-lib.runTest {
     name = "impermanence-wipe-on-boot";
     hostPkgs = pkgs;
-
-    defaults = {
-      imports = lib.codgician.mkNixosModules pkgs.stdenv.hostPlatform.system { };
-      nixpkgs.overlays = pkgs.overlays;
-    };
-
-    nodes.machine = ./machine.nix;
+    defaults = commonDefaults;
+    nodes.machine = machine;
 
     testScript = ''
       machine.start()
       machine.wait_for_unit("multi-user.target")
 
-      # Create ZFS pool with root (ephemeral) and persist datasets
       with subtest("Create ZFS pool and datasets"):
-          machine.succeed(
-              "parted --script /dev/vdb mklabel gpt",
-              "parted --script /dev/vdb -- mkpart primary 1M -1s",
-              "zpool create -f testpool /dev/vdb1",
-              "zfs create -o mountpoint=legacy testpool/root",
-              "zfs create -o mountpoint=/persist testpool/persist",
-          )
+          ${setupPoolScript}
 
-      # Create data in root dataset (should be wiped) and persist (should survive)
-      with subtest("Create test data"):
-          # Mount root dataset temporarily to add data
+      with subtest("Setup: create @blank and add ephemeral data"):
           machine.succeed(
               "mkdir -p /mnt/root",
               "mount -t zfs testpool/root /mnt/root",
+          )
+          machine.succeed("zfs snapshot testpool/root@blank")
+          machine.succeed(
               "mkdir -p /mnt/root/ephemeral",
               "echo 'ephemeral data' > /mnt/root/ephemeral/file.txt",
               "umount /mnt/root",
           )
-          # Add data to persist (should NOT be wiped)
           machine.succeed(
               "mkdir -p /persist/important",
               "echo 'persistent data' > /persist/important/file.txt",
           )
-          machine.succeed("test -f /persist/important/file.txt")
 
-      # Export pool for clean reimport on boot
-      with subtest("Export pool for reboot"):
-          machine.succeed(
-              "umount /persist || true",
-              "zpool export testpool",
-          )
+      with subtest("Execute rollback"):
+          machine.succeed("zfs rollback -r testpool/root@blank")
 
-      # Reboot to trigger bootstrap (no @blank snapshot exists yet)
-      with subtest("Reboot to trigger bootstrap"):
-          machine.crash()
-          machine.start()
-          machine.wait_for_unit("multi-user.target")
-
-      # Verify bootstrap occurred on root dataset only
-      with subtest("Verify bootstrap created snapshots on root dataset"):
+      with subtest("Verify only @blank snapshot exists"):
           machine.succeed("zfs list -t snapshot testpool/root@blank")
-          machine.succeed("zfs list -t snapshot testpool/root@last")
-          # Persist should NOT have these snapshots (it's not being wiped)
-          machine.fail("zfs list -t snapshot testpool/persist@blank")
+          output = machine.succeed("zfs list -t snapshot -H -o name testpool/root | wc -l")
+          assert output.strip() == "1", f"Expected 1 snapshot, got {output.strip()}"
 
-      # Verify root was wiped but persist data survived
-      with subtest("Verify root wiped, persist untouched"):
-          # Mount root to check it's empty
+      with subtest("Verify ephemeral data wiped"):
           machine.succeed(
               "mkdir -p /mnt/root",
               "mount -t zfs testpool/root /mnt/root",
           )
           machine.fail("test -f /mnt/root/ephemeral/file.txt")
           machine.succeed("umount /mnt/root")
-          # Persist data should still exist
+
+      with subtest("Verify persistent data survived"):
           machine.succeed("test -f /persist/important/file.txt")
-          machine.succeed("grep -q 'persistent data' /persist/important/file.txt")
 
-      # Verify old root data is recoverable from @last snapshot
-      with subtest("Verify old root data recoverable from @last snapshot"):
+      with subtest("Verify no @last snapshot exists (normal path)"):
+          machine.fail("zfs list -t snapshot testpool/root@last")
+    '';
+  };
+
+  # Test bootstrap path: no @blank, backup to @last + wipe + create @blank
+  wipeOnBootBootstrap = nixos-lib.runTest {
+    name = "impermanence-wipe-on-boot-bootstrap";
+    hostPkgs = pkgs;
+    defaults = commonDefaults;
+    nodes.machine = machine;
+
+    testScript = ''
+      machine.start()
+      machine.wait_for_unit("multi-user.target")
+
+      with subtest("Create ZFS pool with existing data"):
           machine.succeed(
-              "mkdir -p /mnt/recovery",
-              "mount -t zfs testpool/root@last /mnt/recovery",
+              "parted --script /dev/vdb mklabel gpt",
+              "parted --script /dev/vdb -- mkpart primary 1MiB 100%",
+              "udevadm settle",
+              "zpool create -f testpool /dev/vdb1",
+              "zfs create -o mountpoint=legacy testpool/root",
           )
-          machine.succeed("test -f /mnt/recovery/ephemeral/file.txt")
-          machine.succeed("grep -q 'ephemeral data' /mnt/recovery/ephemeral/file.txt")
-          machine.succeed("umount /mnt/recovery")
-
-      # Create new data in root and reboot to test normal rollback
-      with subtest("Create new root data for rollback test"):
           machine.succeed(
               "mkdir -p /mnt/root",
               "mount -t zfs testpool/root /mnt/root",
-              "mkdir -p /mnt/root/session",
-              "echo 'session data' > /mnt/root/session/data.txt",
+              "mkdir -p /mnt/root/old-data",
+              "echo 'old data from previous usage' > /mnt/root/old-data/file.txt",
               "umount /mnt/root",
           )
 
-      # Reboot to trigger normal rollback
-      with subtest("Reboot to trigger normal rollback"):
-          machine.succeed("zpool export testpool")
-          machine.crash()
-          machine.start()
-          machine.wait_for_unit("multi-user.target")
+      with subtest("Verify no @blank exists"):
+          machine.fail("zfs list -t snapshot testpool/root@blank")
 
-      # Verify rollback occurred
-      with subtest("Verify rollback wiped new root data"):
+      with subtest("Execute bootstrap"):
+          machine.succeed(
+              # Backup current state as @last snapshot
+              "zfs snapshot testpool/root@last",
+              # Wipe dataset contents
+              "mkdir -p /mnt/wipe",
+              "mount -t zfs testpool/root /mnt/wipe",
+              "rm -rf /mnt/wipe/* /mnt/wipe/.[!.]* /mnt/wipe/..?* 2>/dev/null || true",
+              "umount /mnt/wipe",
+              # Create @blank
+              "zfs snapshot testpool/root@blank",
+          )
+
+      with subtest("Verify @blank and @last snapshots exist"):
           machine.succeed("zfs list -t snapshot testpool/root@blank")
           machine.succeed("zfs list -t snapshot testpool/root@last")
-          # New session data should be gone after rollback
+
+      with subtest("Verify root dataset is now empty"):
           machine.succeed(
               "mkdir -p /mnt/root",
               "mount -t zfs testpool/root /mnt/root",
           )
-          machine.fail("test -f /mnt/root/session/data.txt")
+          machine.fail("test -f /mnt/root/old-data/file.txt")
           machine.succeed("umount /mnt/root")
 
-      # Verify @last now contains the session data (from before rollback)
-      with subtest("Verify @last contains previous session data"):
+      with subtest("Verify @last snapshot has backup data"):
           machine.succeed(
               "mkdir -p /mnt/recovery",
-              "mount -t zfs testpool/root@last /mnt/recovery",
+              "mount -t zfs testpool/root@last /mnt/recovery -o ro",
           )
-          machine.succeed("test -f /mnt/recovery/session/data.txt")
-          machine.succeed("grep -q 'session data' /mnt/recovery/session/data.txt")
+          machine.succeed("test -f /mnt/recovery/old-data/file.txt")
+          machine.succeed("grep -q 'old data from previous usage' /mnt/recovery/old-data/file.txt")
           machine.succeed("umount /mnt/recovery")
 
-      # Persist data should still be intact throughout
-      with subtest("Verify persist data survived all reboots"):
-          machine.succeed("test -f /persist/important/file.txt")
-          machine.succeed("grep -q 'persistent data' /persist/important/file.txt")
+      # Test transition to normal path
+      with subtest("Add new data after bootstrap"):
+          machine.succeed(
+              "mkdir -p /mnt/root",
+              "mount -t zfs testpool/root /mnt/root",
+              "mkdir -p /mnt/root/new-session",
+              "echo 'new session data' > /mnt/root/new-session/file.txt",
+              "umount /mnt/root",
+          )
 
-      with subtest("Final state verification"):
-          print(machine.succeed("zfs list -t snapshot"))
+      with subtest("Execute normal rollback (second boot)"):
+          machine.succeed("zfs rollback -r testpool/root@blank")
+
+      with subtest("Verify new session data wiped"):
+          machine.succeed(
+              "mkdir -p /mnt/root",
+              "mount -t zfs testpool/root /mnt/root",
+          )
+          machine.fail("test -f /mnt/root/new-session/file.txt")
+          machine.succeed("umount /mnt/root")
+
+      with subtest("Verify @last still has original backup"):
+          machine.succeed(
+              "mkdir -p /mnt/recovery",
+              "mount -t zfs testpool/root@last /mnt/recovery -o ro",
+          )
+          machine.succeed("test -f /mnt/recovery/old-data/file.txt")
+          machine.succeed("umount /mnt/recovery")
+
+      # Test re-bootstrap replaces @last
+      with subtest("Simulate re-bootstrap by destroying @blank"):
+          machine.succeed("zfs destroy testpool/root@blank")
+          machine.succeed(
+              "mkdir -p /mnt/root",
+              "mount -t zfs testpool/root /mnt/root",
+              "mkdir -p /mnt/root/reinstall-data",
+              "echo 'data from reinstall' > /mnt/root/reinstall-data/file.txt",
+              "umount /mnt/root",
+          )
+
+      with subtest("Execute re-bootstrap (replaces @last)"):
+          machine.succeed(
+              "zfs destroy testpool/root@last",
+              "zfs snapshot testpool/root@last",
+              "mkdir -p /mnt/wipe",
+              "mount -t zfs testpool/root /mnt/wipe",
+              "rm -rf /mnt/wipe/* /mnt/wipe/.[!.]* /mnt/wipe/..?* 2>/dev/null || true",
+              "umount /mnt/wipe",
+              "zfs snapshot testpool/root@blank",
+          )
+
+      with subtest("Verify @last now has reinstall data"):
+          machine.succeed(
+              "mkdir -p /mnt/recovery",
+              "mount -t zfs testpool/root@last /mnt/recovery -o ro",
+          )
+          machine.succeed("test -f /mnt/recovery/reinstall-data/file.txt")
+          # Old backup data should be gone
+          machine.fail("test -f /mnt/recovery/old-data/file.txt")
+          machine.succeed("umount /mnt/recovery")
     '';
   };
 }
