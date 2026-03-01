@@ -208,13 +208,6 @@ in
           rounds = 100;
           type = "ed25519";
         }
-        {
-          path = "/etc/ssh/ssh_host_rsa_key";
-          bits = 4096;
-          openSSHFormat = true;
-          rounds = 100;
-          type = "rsa";
-        }
       ];
     };
 

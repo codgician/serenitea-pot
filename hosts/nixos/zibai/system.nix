@@ -33,7 +33,10 @@
       auto-upgrade.enable = true;
       impermanence = {
         enable = true;
-        path = "/persist";
+        wipeOnShutdown.zfs = {
+          enable = true;
+          datasets = [ "zroot/root" ];
+        };
       };
       secure-boot.enable = true;
       nix.useCnMirror = true;
