@@ -63,8 +63,8 @@ in
         default = [ ];
         example = [ "zroot/root" ];
         description = ''
-          ZFS datasets to rollback on shutdown. If @blank exists, rolls back to it.
-          Otherwise bootstraps by destroying and recreating the dataset with @blank.
+          ZFS datasets to rollback on shutdown. If @empty exists, rolls back to it.
+          Otherwise bootstraps by destroying and recreating the dataset with @empty.
         '';
       };
     };
@@ -170,15 +170,15 @@ in
                 continue
               fi
 
-              if $zfs list -t snapshot "$dataset@blank" >/dev/null 2>&1; then
-                echo "impermanence: Rolling back $dataset to @blank"
-                $zfs rollback -r "$dataset@blank"
+              if $zfs list -t snapshot "$dataset@empty" >/dev/null 2>&1; then
+                echo "impermanence: Rolling back $dataset to @empty"
+                $zfs rollback -r "$dataset@empty"
               else
-                echo "impermanence: Bootstrapping $dataset (no @blank found)"
+                echo "impermanence: Bootstrapping $dataset (no @empty found)"
                 mountpoint=$($zfs get -H -o value mountpoint "$dataset")
                 $zfs destroy -r "$dataset"
                 $zfs create -o mountpoint="$mountpoint" "$dataset"
-                $zfs snapshot "$dataset@blank"
+                $zfs snapshot "$dataset@empty"
               fi
             done
           '';

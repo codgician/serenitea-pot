@@ -65,7 +65,7 @@ let
 
 in
 {
-  # Normal path: rollback to existing @blank
+  # Normal path: rollback to existing @empty
   wipeOnShutdown = nixos-lib.runTest {
     name = "impermanence-wipe-on-shutdown";
     hostPkgs = pkgs;
@@ -76,7 +76,7 @@ in
       machine.start()
       machine.wait_for_unit("multi-user.target")
 
-      with subtest("Setup ZFS pool with @blank"):
+      with subtest("Setup ZFS pool with @empty"):
           machine.succeed(
               "parted --script /dev/vdb mklabel gpt",
               "parted --script /dev/vdb -- mkpart primary 1MiB 100%",
@@ -85,7 +85,7 @@ in
               "zpool create -f -o cachefile=/etc/zfs/zpool.cache testpool /dev/vdb1",
               "zfs create -o mountpoint=/testroot testpool/root",
               "zfs create -o mountpoint=/persist testpool/persist",
-              "zfs snapshot testpool/root@blank",
+              "zfs snapshot testpool/root@empty",
           )
 
       with subtest("Add ephemeral and persistent data"):
@@ -105,11 +105,11 @@ in
           machine.succeed("zfs mount testpool/root || true")
           machine.fail("test -f /testroot/ephemeral/file.txt")
           machine.succeed("test -f /persist/important/file.txt")
-          machine.succeed("zfs list -t snapshot testpool/root@blank")
+          machine.succeed("zfs list -t snapshot testpool/root@empty")
     '';
   };
 
-  # Bootstrap path: create @blank when missing
+  # Bootstrap path: create @empty when missing
   wipeOnShutdownBootstrap = nixos-lib.runTest {
     name = "impermanence-wipe-on-shutdown-bootstrap";
     hostPkgs = pkgs;
@@ -120,7 +120,7 @@ in
       machine.start()
       machine.wait_for_unit("multi-user.target")
 
-      with subtest("Setup ZFS pool without @blank"):
+      with subtest("Setup ZFS pool without @empty"):
           machine.succeed(
               "parted --script /dev/vdb mklabel gpt",
               "parted --script /dev/vdb -- mkpart primary 1MiB 100%",
@@ -137,15 +137,15 @@ in
               "echo 'persistent' > /persist/important/file.txt",
               "sync",
           )
-          machine.fail("zfs list -t snapshot testpool/root@blank")
+          machine.fail("zfs list -t snapshot testpool/root@empty")
 
       with subtest("Reboot to trigger bootstrap"):
           machine.shutdown()
           machine.start()
           machine.wait_for_unit("multi-user.target")
 
-      with subtest("Verify bootstrap created @blank and wiped data"):
-          machine.succeed("zfs list -t snapshot testpool/root@blank")
+      with subtest("Verify bootstrap created @empty and wiped data"):
+          machine.succeed("zfs list -t snapshot testpool/root@empty")
           machine.succeed("zfs mount testpool/root || true")
           machine.fail("test -f /testroot/old-data/file.txt")
           machine.succeed("test -f /persist/important/file.txt")

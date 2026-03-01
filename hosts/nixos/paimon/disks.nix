@@ -74,7 +74,7 @@ in
             type = "zfs_fs";
             mountpoint = "/";
             options."com.sun:auto-snapshot" = "false";
-            postCreateHook = "zfs snapshot zroot/root@blank";
+            postCreateHook = "zfs snapshot zroot/root@empty";
           };
 
           nix = {
