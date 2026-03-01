@@ -118,7 +118,7 @@ in
       systemctl restart pveproxy.service
     '';
 
-    # Impermanence for Proxmox VE
+    # Impermanence for Proxmox VE and swtpm
     system.impermanence.extraItems =
       builtins.map
         (path: {
@@ -129,6 +129,7 @@ in
           "/var/lib/pve-cluster"
           "/var/lib/pve-firewall"
           "/var/lib/pve-manager"
+          "/var/lib/swtpm-localca"
         ];
   };
 
