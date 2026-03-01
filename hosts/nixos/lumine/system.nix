@@ -45,7 +45,7 @@
       auto-upgrade.enable = true;
       impermanence = {
         enable = true;
-        wipeOnBoot.zfs = {
+        wipeOnShutdown.zfs = {
           enable = true;
           datasets = [ "zroot/root" ];
         };

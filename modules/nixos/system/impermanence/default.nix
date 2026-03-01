@@ -14,12 +14,11 @@ let
   isZfs = persistFs != null && persistFs.fsType == "zfs";
   persistMountUnit = "${escapeSystemdPath cfg.path}.mount";
 
-  # Extract directory paths from persistence config
   dirPaths = map (
     d: if builtins.isString d then d else d.directory or d.dirPath
   ) persistCfg.directories;
 
-  # Generate shutdown ordering dropins
+  # Ensure bind mounts are unmounted before persist mount on shutdown
   shutdownOrderDropins = pkgs.runCommand "impermanence-shutdown-order-dropins" { } (
     lib.concatMapStrings (dir: ''
       mkdir -p "$out/lib/systemd/system/${escapeSystemdPath dir}.mount.d"
@@ -56,26 +55,16 @@ in
       description = "The path where all persistent files should be stored.";
     };
 
-    wipeOnBoot.zfs = {
-      enable = lib.mkEnableOption "Wipe ZFS root datasets on boot.";
+    wipeOnShutdown.zfs = {
+      enable = lib.mkEnableOption "Wipe ZFS root datasets on shutdown.";
 
       datasets = lib.mkOption {
         type = types.listOf types.str;
         default = [ ];
         example = [ "zroot/root" ];
         description = ''
-          List of ZFS root datasets to rollback on boot. For each dataset:
-
-          Normal path (@blank exists): Fast rollback to @blank snapshot.
-
-          Bootstrap path (no @blank): Creates @last backup, wipes contents,
-          creates @blank. This happens automatically on first boot when @blank
-          doesn't exist (e.g., existing system enabling impermanence).
-
-          The @blank snapshot can also be pre-created by disko's postCreateHook
-          during initial disk setup to skip the bootstrap path.
-
-          NOTE: Do NOT include your persist dataset here.
+          ZFS datasets to rollback on shutdown. If @blank exists, rolls back to it.
+          Otherwise bootstraps by destroying and recreating the dataset with @blank.
         '';
       };
     };
@@ -149,7 +138,7 @@ in
 
       systemd.packages = lib.mkIf cfg.enable [ shutdownOrderDropins ];
 
-      # Make persist path private to prevent mirror mounts (ZFS bypasses systemd mount options)
+      # ZFS bypasses systemd mount options, so we need to make persist private manually
       systemd.services.impermanence-make-persist-private = lib.mkIf (cfg.enable && isZfs) {
         description = "Make ${cfg.path} mount private to prevent propagation issues";
         wantedBy = [ "local-fs.target" ];
@@ -167,101 +156,36 @@ in
       };
     }
 
-    # ZFS wipe-on-boot service
-    (lib.mkIf cfg.wipeOnBoot.zfs.enable {
-      # Ensure mount/umount are available in initrd for bootstrap path
-      boot.initrd.systemd.storePaths = [
-        "${pkgs.util-linux}/bin/mount"
-        "${pkgs.util-linux}/bin/umount"
-        "${pkgs.findutils}/bin/find"
-      ];
+    (lib.mkIf cfg.wipeOnShutdown.zfs.enable {
+      systemd.shutdownRamfs.contents."/etc/systemd/system-shutdown/impermanence-wipe-zfs".source =
+        let
+          zfs = config.boot.zfs.package;
+          wipeScript = pkgs.writeShellScript "impermanence-wipe-zfs" ''
+            set -euo pipefail
+            zfs=${zfs}/bin/zfs
 
-      boot.initrd.systemd.services.impermanence-wipe-zfs = {
-        description = "Rollback ZFS datasets for impermanence";
-        wantedBy = [ "initrd.target" ];
-        after = [ "zfs-import.target" ];
-        before = [ "sysroot.mount" ];
-        path = [
-          config.boot.zfs.package
-          pkgs.coreutils
-          pkgs.util-linux
-          pkgs.findutils
-        ];
-        unitConfig.DefaultDependencies = false;
-        serviceConfig.Type = "oneshot";
-        script = ''
-          needs_reboot=false
-
-          wipe_dataset() {
-            local dataset="$1"
-
-            if ! zfs list "$dataset" >/dev/null 2>&1; then
-              echo "WARNING: Dataset '$dataset' does not exist, skipping"
-              return 0
-            fi
-
-            echo "Processing dataset: $dataset"
-
-            if zfs list -t snapshot "$dataset@blank" >/dev/null 2>&1; then
-              # Normal path: @blank exists, fast rollback
-              echo "Rolling back $dataset to @blank"
-              zfs rollback -r "$dataset@blank"
-            else
-              # Bootstrap path: no @blank, need to create it
-              echo "No @blank snapshot found - bootstrapping $dataset"
-
-              # Backup current state
-              echo "Creating backup snapshot: $dataset@last"
-              zfs destroy "$dataset@last" 2>/dev/null || true
-              zfs snapshot "$dataset@last"
-
-              # Get original mountpoint
-              local orig_mp
-              orig_mp=$(zfs get -H -o value mountpoint "$dataset")
-
-              # Use trap to restore mountpoint on any failure
-              cleanup() {
-                if [ "$orig_mp" != "legacy" ] && [ "$orig_mp" != "none" ]; then
-                  zfs set mountpoint="$orig_mp" "$dataset" 2>/dev/null || true
-                fi
-              }
-              trap cleanup EXIT
-
-              # Temporarily set to legacy for manual mount
-              if [ "$orig_mp" != "legacy" ] && [ "$orig_mp" != "none" ]; then
-                zfs set mountpoint=legacy "$dataset"
+            for dataset in ${lib.escapeShellArgs cfg.wipeOnShutdown.zfs.datasets}; do
+              if ! $zfs list "$dataset" >/dev/null 2>&1; then
+                echo "impermanence: Dataset '$dataset' not found, skipping"
+                continue
               fi
 
-              # Wipe contents
-              mkdir -p /mnt/impermanence-wipe
-              mount -t zfs "$dataset" /mnt/impermanence-wipe
-              find /mnt/impermanence-wipe -mindepth 1 -delete 2>/dev/null || true
-              umount /mnt/impermanence-wipe
-
-              # Restore original mountpoint
-              trap - EXIT
-              if [ "$orig_mp" != "legacy" ] && [ "$orig_mp" != "none" ]; then
-                zfs set mountpoint="$orig_mp" "$dataset"
+              if $zfs list -t snapshot "$dataset@blank" >/dev/null 2>&1; then
+                echo "impermanence: Rolling back $dataset to @blank"
+                $zfs rollback -r "$dataset@blank"
+              else
+                echo "impermanence: Bootstrapping $dataset (no @blank found)"
+                mountpoint=$($zfs get -H -o value mountpoint "$dataset")
+                $zfs destroy -r "$dataset"
+                $zfs create -o mountpoint="$mountpoint" "$dataset"
+                $zfs snapshot "$dataset@blank"
               fi
+            done
+          '';
+        in
+        wipeScript;
 
-              # Create blank snapshot
-              echo "Creating blank snapshot: $dataset@blank"
-              zfs snapshot "$dataset@blank"
-
-              # Mark for reboot to ensure clean boot with @blank
-              needs_reboot=true
-            fi
-          }
-
-          ${lib.concatMapStringsSep "\n" (dataset: "wipe_dataset \"${dataset}\"") cfg.wipeOnBoot.zfs.datasets}
-
-          # Note: No reboot needed. After bootstrap:
-          # 1. Dataset is unmounted (we did umount)
-          # 2. Mountpoint property restored to original
-          # 3. @blank snapshot now exists
-          # 4. sysroot.mount runs next and mounts normally
-        '';
-      };
+      systemd.shutdownRamfs.storePaths = [ "${config.boot.zfs.package}/bin/zfs" ];
     })
   ];
 }
