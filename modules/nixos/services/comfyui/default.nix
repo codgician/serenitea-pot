@@ -8,6 +8,7 @@ let
   serviceName = "comfyui";
   inherit (lib) types;
   cfg = config.codgician.services.comfyui;
+  defaultDataDir = "/var/lib/comfyui";
 
   # See: https://github.com/llm-d/llm-d/issues/117
   ldSoConfFile = pkgs.writeText "00-system-libs.conf" ''
@@ -33,7 +34,7 @@ in
 
     dataDir = lib.mkOption {
       type = types.path;
-      default = "/var/lib/comfyui";
+      default = defaultDataDir;
       description = "Data directory for ComfyUI.";
     };
 
@@ -76,6 +77,19 @@ in
       };
 
       virtualisation.podman.enable = true;
+
+      # Ensure data directory exists (for custom paths)
+      systemd.tmpfiles.rules = lib.mkIf (cfg.dataDir != defaultDataDir) [
+        "d ${cfg.dataDir} 0755 root root -"
+      ];
+
+      # Persist data directory (only when using default location)
+      codgician.system.impermanence.extraItems = lib.mkIf (cfg.dataDir == defaultDataDir) [
+        {
+          type = "directory";
+          path = cfg.dataDir;
+        }
+      ];
     })
 
     # Reverse proxy profile

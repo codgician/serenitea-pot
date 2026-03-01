@@ -1,5 +1,4 @@
 {
-  config,
   lib,
   pkgs,
   ...
@@ -217,7 +216,7 @@
       impermanence = {
         enable = true;
         wipeOnShutdown.zfs = {
-          enable = true;
+          enable = false; # todo: enable in the future
           datasets = [ "zroot/root" ];
         };
       };

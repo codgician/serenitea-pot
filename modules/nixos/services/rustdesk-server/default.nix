@@ -20,5 +20,13 @@ in
       };
       relay.enable = true;
     };
+
+    # Persist data directory (keypairs, etc.)
+    codgician.system.impermanence.extraItems = [
+      {
+        type = "directory";
+        path = "/var/lib/rustdesk-server";
+      }
+    ];
   };
 }

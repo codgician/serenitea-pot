@@ -1,6 +1,5 @@
 {
   config,
-  options,
   lib,
   pkgs,
   ...
@@ -9,6 +8,7 @@ let
   serviceName = "open-webui";
   cfg = config.codgician.services.open-webui;
   types = lib.types;
+  defaultStateDir = "/var/lib/${serviceName}";
 
   webuiUrl =
     if cfg.reverseProxy.enable then
@@ -229,17 +229,20 @@ in
         unixSocketPerm = 660;
       };
 
-      # Persist data when dataDir is default value
-      codgician.system.impermanence.extraItems =
-        lib.mkIf (cfg.stateDir == options.codgician.services.open-webui.stateDir.default)
-          [
-            {
-              type = "directory";
-              path = "/var/lib/${serviceName}";
-              user = serviceName;
-              group = serviceName;
-            }
-          ];
+      # Ensure state directory exists (for custom paths)
+      systemd.tmpfiles.rules = lib.mkIf (cfg.stateDir != defaultStateDir) [
+        "d ${cfg.stateDir} 0700 ${serviceName} ${serviceName} -"
+      ];
+
+      # Persist data when stateDir is default value
+      codgician.system.impermanence.extraItems = lib.mkIf (cfg.stateDir == defaultStateDir) [
+        {
+          type = "directory";
+          path = cfg.stateDir;
+          user = serviceName;
+          group = serviceName;
+        }
+      ];
     })
 
     # User

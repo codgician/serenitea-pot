@@ -9,6 +9,7 @@ let
   cfg = config.codgician.services.vllm;
   types = lib.types;
   instanceNames = builtins.attrNames cfg.instances;
+  defaultDownloadDir = "/var/lib/vllm-cache";
 
   # Make config for systemd service
   mkSystemdConfig =
@@ -140,8 +141,8 @@ in
     };
 
     downloadDir = lib.mkOption {
-      type = types.str;
-      default = "/var/lib/vllm-cache";
+      type = types.path;
+      default = defaultDownloadDir;
       description = "Directory for vllm to download weights.";
     };
   };
@@ -149,5 +150,13 @@ in
   config = lib.mkIf cfg.enable {
     systemd.services = lib.mkMerge (builtins.map mkSystemdConfig instanceNames);
     codgician.services.nginx = lib.mkMerge (builtins.map mkReverseProxyConfig instanceNames);
+
+    # Persist download directory (only when using default location)
+    codgician.system.impermanence.extraItems = lib.mkIf (cfg.downloadDir == defaultDownloadDir) [
+      {
+        type = "directory";
+        path = cfg.downloadDir;
+      }
+    ];
   };
 }

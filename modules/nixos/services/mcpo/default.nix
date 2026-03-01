@@ -9,6 +9,7 @@ let
   serviceName = "mcpo";
   inherit (lib) types;
   cfg = config.codgician.services.mcpo;
+  defaultDataDir = "/var/lib/mcpo";
   mcpoConfig.mcpServers = {
     amap-maps = {
       command = "npx";
@@ -81,7 +82,7 @@ in
 
     dataDir = lib.mkOption {
       type = types.path;
-      default = "/var/lib/mcpo";
+      default = defaultDataDir;
       description = "Data directory for mcpo.";
     };
 
@@ -125,6 +126,19 @@ in
         '';
         serviceConfig.RuntimeDirectory = serviceName;
       };
+
+      # Ensure data directory exists (for custom paths)
+      systemd.tmpfiles.rules = lib.mkIf (cfg.dataDir != defaultDataDir) [
+        "d ${cfg.dataDir} 0755 root root -"
+      ];
+
+      # Persist data directory (only when using default location)
+      codgician.system.impermanence.extraItems = lib.mkIf (cfg.dataDir == defaultDataDir) [
+        {
+          type = "directory";
+          path = cfg.dataDir;
+        }
+      ];
     })
 
     # Reverse proxy profile

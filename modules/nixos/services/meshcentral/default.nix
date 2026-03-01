@@ -95,6 +95,14 @@ in
           RuntimeDirectoryMode = "0700";
         };
       };
+
+      # Persist data
+      codgician.system.impermanence.extraItems = [
+        {
+          type = "directory";
+          path = "/var/lib/meshcentral";
+        }
+      ];
     })
 
     # Reverse proxy profiles

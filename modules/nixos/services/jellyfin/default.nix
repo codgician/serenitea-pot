@@ -3,6 +3,7 @@ let
   serviceName = "jellyfin";
   cfg = config.codgician.services.jellyfin;
   types = lib.types;
+  defaultDataDir = "/var/lib/jellyfin";
 in
 rec {
   options.codgician.services.jellyfin = {
@@ -53,16 +54,19 @@ rec {
           ;
       };
 
+      # Ensure data directory exists (for custom paths)
+      systemd.tmpfiles.rules = lib.mkIf (cfg.dataDir != defaultDataDir) [
+        "d ${cfg.dataDir} 0700 ${cfg.user} ${cfg.group} -"
+      ];
+
       # Persist default data directory
-      codgician.system.impermanence.extraItems =
-        lib.mkIf (cfg.dataDir == options.codgician.services.jellyfin.dataDir.default)
-          [
-            {
-              type = "directory";
-              path = cfg.dataDir;
-              inherit (cfg) user group;
-            }
-          ];
+      codgician.system.impermanence.extraItems = lib.mkIf (cfg.dataDir == defaultDataDir) [
+        {
+          type = "directory";
+          path = cfg.dataDir;
+          inherit (cfg) user group;
+        }
+      ];
     })
 
     # Reverse proxy profile

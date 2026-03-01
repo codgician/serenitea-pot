@@ -3,6 +3,8 @@ let
   serviceName = "fish-speech";
   inherit (lib) types;
   cfg = config.codgician.services.${serviceName};
+  defaultReferencesDir = "/var/lib/${serviceName}/references";
+  defaultCheckpointsDir = "/var/lib/${serviceName}/checkpoints";
 
   # Helper function to generate container definitions
   mkFishContainer =
@@ -78,13 +80,13 @@ in
 
     referencesDir = lib.mkOption {
       type = types.path;
-      default = "/var/lib/${serviceName}/references";
+      default = defaultReferencesDir;
       description = "Directory for references.";
     };
 
     checkpointsDir = lib.mkOption {
       type = types.path;
-      default = "/var/lib/${serviceName}/checkpoints";
+      default = defaultCheckpointsDir;
       description = "Directory for checkpoints.";
     };
 
@@ -118,6 +120,24 @@ in
           };
         };
       });
+
+      # Ensure data directories exist (for custom paths)
+      systemd.tmpfiles.rules =
+        (lib.optional (cfg.referencesDir != defaultReferencesDir) "d ${cfg.referencesDir} 0755 root root -")
+        ++ (lib.optional (
+          cfg.checkpointsDir != defaultCheckpointsDir
+        ) "d ${cfg.checkpointsDir} 0755 root root -");
+
+      # Persist data directories (only when using default locations)
+      codgician.system.impermanence.extraItems =
+        (lib.optional (cfg.referencesDir == defaultReferencesDir) {
+          type = "directory";
+          path = cfg.referencesDir;
+        })
+        ++ (lib.optional (cfg.checkpointsDir == defaultCheckpointsDir) {
+          type = "directory";
+          path = cfg.checkpointsDir;
+        });
     })
 
     # Reverse proxy profile for API

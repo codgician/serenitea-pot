@@ -12,6 +12,7 @@ let
   uid = config.users.users.${user}.uid;
   cfg = config.codgician.services.litellm;
   types = lib.types;
+  defaultStateDir = "/var/lib/${serviceName}";
   allModels = (import ./models.nix { inherit pkgs lib outputs; }).all;
 
   # LiteLLM settings
@@ -184,11 +185,16 @@ in
       # Make Redis runtime directory traversable for container with user namespace
       systemd.services."redis-${serviceName}".serviceConfig.RuntimeDirectoryMode = lib.mkForce "0755";
 
+      # Ensure state directory exists (for custom paths)
+      systemd.tmpfiles.rules = lib.mkIf (cfg.stateDir != defaultStateDir) [
+        "d ${cfg.stateDir} 0700 ${user} ${group} -"
+      ];
+
       # Persist default data directory
-      codgician.system.impermanence.extraItems = [
+      codgician.system.impermanence.extraItems = lib.mkIf (cfg.stateDir == defaultStateDir) [
         {
           type = "directory";
-          path = "/var/lib/${serviceName}";
+          path = cfg.stateDir;
           inherit user group;
         }
       ];

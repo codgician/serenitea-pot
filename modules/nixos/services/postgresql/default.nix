@@ -40,18 +40,21 @@ in
       };
     };
 
+    # Ensure data directory exists (for custom paths)
+    systemd.tmpfiles.rules = lib.mkIf (cfg.dataDir != defaultDataDir) [
+      "d ${cfg.dataDir} 0750 postgres postgres -"
+    ];
+
     # Persist postgresql data directory (only when using default location)
-    codgician.system.impermanence.extraItems =
-      lib.mkIf (config.codgician.system.impermanence.enable && cfg.dataDir == defaultDataDir)
-        [
-          {
-            path = cfg.dataDir;
-            type = "directory";
-            user = "postgres";
-            group = "postgres";
-            mode = "0750";
-          }
-        ];
+    codgician.system.impermanence.extraItems = lib.mkIf (cfg.dataDir == defaultDataDir) [
+      {
+        path = cfg.dataDir;
+        type = "directory";
+        user = "postgres";
+        group = "postgres";
+        mode = "0750";
+      }
+    ];
 
     environment.systemPackages = [ (import ./upgrade-pg-cluster.nix { inherit config lib pkgs; }) ];
   };

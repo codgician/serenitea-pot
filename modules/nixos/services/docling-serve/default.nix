@@ -8,6 +8,7 @@ let
   serviceName = "docling-serve";
   cfg = config.codgician.services.${serviceName};
   types = lib.types;
+  defaultStateDir = "/var/lib/${serviceName}";
 
   environment = {
     DOCLING_SERVE_ARTIFACTS_PATH = lib.mkIf (cfg.artifactsDir != null) (
@@ -66,7 +67,7 @@ in
 
     stateDir = lib.mkOption {
       type = types.path;
-      default = "/var/lib/${serviceName}";
+      default = defaultStateDir;
       description = "Directory for ${serviceName} to store state data.";
     };
 
@@ -115,6 +116,19 @@ in
           "/dev/dxg"
         ];
       };
+
+      # Ensure state directory exists (for custom paths)
+      systemd.tmpfiles.rules = lib.mkIf (cfg.stateDir != defaultStateDir) [
+        "d ${cfg.stateDir} 0755 root root -"
+      ];
+
+      # Persist state directory (only when using default location)
+      codgician.system.impermanence.extraItems = lib.mkIf (cfg.stateDir == defaultStateDir) [
+        {
+          type = "directory";
+          path = cfg.stateDir;
+        }
+      ];
     })
 
     # Container backend
@@ -138,6 +152,7 @@ in
             lib.optionals cfg.cuda [
               "${ldSoConfFile}:/etc/ld.so.conf.d/00-system-libs.conf:ro"
             ]
+            ++ [ "${cfg.stateDir}:/var/lib/docling-serve:U" ]
             ++ lib.optional (cfg.artifactsDir != null) "${cfg.artifactsDir}:/opt/app-root/src/models:U";
           inherit environment;
           extraOptions = [
@@ -154,6 +169,19 @@ in
             "${cfg.host}"
           ];
         };
+
+      # Ensure state directory exists (for custom paths)
+      systemd.tmpfiles.rules = lib.mkIf (cfg.stateDir != defaultStateDir) [
+        "d ${cfg.stateDir} 0755 root root -"
+      ];
+
+      # Persist state directory (only when using default location)
+      codgician.system.impermanence.extraItems = lib.mkIf (cfg.stateDir == defaultStateDir) [
+        {
+          type = "directory";
+          path = cfg.stateDir;
+        }
+      ];
     })
 
     # Reverse proxy profile

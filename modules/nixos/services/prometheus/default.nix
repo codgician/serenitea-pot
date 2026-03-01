@@ -6,8 +6,7 @@
 let
   serviceName = "prometheus";
   cfg = config.codgician.services.${serviceName};
-  types = lib.types;
-
+  defaultDataDir = "/var/lib/prometheus2";
   # Default scrape configs when self-monitoring is enabled
   # Use explicit 127.0.0.1 to match listenAddress binding (avoids IPv6 resolution issues)
   defaultScrapeConfigs = lib.optionals cfg.scrapeConfigs.prometheus [
@@ -62,10 +61,10 @@ in
   options.codgician.services.${serviceName} = {
     enable = lib.mkEnableOption "prometheus";
 
-    stateDirName = lib.mkOption {
-      type = types.str;
-      default = "prometheus2";
-      description = "Directory below `/var/lib` to store Prometheus metrics data.";
+    dataDir = lib.mkOption {
+      type = lib.types.path;
+      default = defaultDataDir;
+      description = "Path where Prometheus stores its metrics data.";
     };
 
     scrapeConfigs = {
@@ -76,7 +75,7 @@ in
       nginxlog = lib.mkEnableOption "Nginxlog exporter scrape (access logs)";
 
       extraConfigs = lib.mkOption {
-        type = types.listOf types.attrs;
+        type = lib.types.listOf lib.types.attrs;
         default = [ ];
         description = "Additional scrape configurations to add.";
         example = lib.literalExpression ''
@@ -95,12 +94,24 @@ in
     services.prometheus = {
       enable = true;
       listenAddress = "127.0.0.1"; # Security: bind to localhost only
-      stateDir = cfg.stateDirName;
       scrapeConfigs =
         defaultScrapeConfigs
         ++ nginxScrapeConfigs
         ++ nginxlogScrapeConfigs
         ++ cfg.scrapeConfigs.extraConfigs;
     };
+
+    # BindPaths for custom data directory
+    systemd.services.prometheus.serviceConfig.BindPaths = lib.mkIf (cfg.dataDir != defaultDataDir) [
+      "${cfg.dataDir}:${defaultDataDir}"
+    ];
+
+    # Persist data directory (only when using default location)
+    codgician.system.impermanence.extraItems = lib.mkIf (cfg.dataDir == defaultDataDir) [
+      {
+        type = "directory";
+        path = cfg.dataDir;
+      }
+    ];
   };
 }
