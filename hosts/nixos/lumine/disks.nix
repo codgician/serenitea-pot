@@ -59,6 +59,7 @@
           root = {
             type = "zfs_fs";
             mountpoint = "/";
+            postCreateHook = "zfs snapshot zroot/root@blank";
           };
 
           nix = {

@@ -165,23 +165,25 @@ in
     # ZFS wipe-on-boot service
     (lib.mkIf cfg.wipeOnBoot.zfs.enable (
       let
-        # Extract pool names from dataset paths (e.g., "zroot/root" -> "zroot")
-        poolNames = lib.unique (
-          map (dataset: lib.head (lib.splitString "/" dataset)) cfg.wipeOnBoot.zfs.datasets
-        );
-        # Generate import service names for each pool
-        importServices = map (pool: "zfs-import-${pool}.service") poolNames;
+        # The service runs after ZFS pools are imported in initrd
+        # With systemd initrd, pools listed in boot.zfs.extraPools are imported by zfs-import-<pool>.service
       in
       {
+        # Ensure required binaries are available in initrd
+        boot.initrd.systemd.storePaths = [
+          "${pkgs.util-linux}/bin/mount"
+          "${pkgs.util-linux}/bin/umount"
+        ];
+
         boot.initrd.systemd.services.impermanence-wipe-zfs = {
           description = "Snapshot and rollback ZFS datasets for impermanence";
           wantedBy = [ "initrd.target" ];
-          after = importServices;
+          after = [ "zfs-import.target" ];
           before = [ "sysroot.mount" ];
           path = [
             config.boot.zfs.package
-            pkgs.coreutils # mkdir, rm
-            pkgs.util-linux # mount, umount
+            pkgs.coreutils
+            pkgs.util-linux
           ];
           unitConfig.DefaultDependencies = false;
           serviceConfig.Type = "oneshot";
