@@ -14,17 +14,37 @@ let
   cfg = config.codgician.system.zfs-unlock;
   zfs = config.boot.zfs.package;
 
-  parseCredsPcrBank = import ./parse-creds.nix { inherit pkgs; };
   zfsFingerprint = import ./zfs-fingerprint.nix {
     inherit pkgs;
     zfsPackage = zfs;
   };
 
+  # Detect PCR bank from credential at eval time via base64 pattern matching.
+  # hash_alg (u16 LE) is at offset 56; bytes 54-55 are always 0x0000 (pcr_mask high bits).
+  # Bytes 54-56 encode to: sha1="AAAE", sha256="AAAL", sha384="AAAM", sha512="AAAN"
+  detectPcrBank =
+    credFile:
+    let
+      content = builtins.readFile credFile;
+      # Extract characters 73-76 (base64 encoding of bytes 54-56)
+      algPattern = builtins.substring 72 4 content;
+    in
+    if algPattern == "AAAE" then
+      "sha1"
+    else if algPattern == "AAAL" then
+      "sha256"
+    else if algPattern == "AAAM" then
+      "sha384"
+    else if algPattern == "AAAN" then
+      "sha512"
+    else
+      throw "zfs-unlock: Unknown PCR bank in credential file '${toString credFile}' (pattern: ${algPattern})";
+
   # Device info: sorted list with derived values computed once
   devices = map (name: rec {
     inherit name;
     safeName = lib.replaceStrings [ "/" ] [ "_" ] name;
-    pcrBank = parseCredsPcrBank cfg.devices.${name}.credentialFile;
+    pcrBank = detectPcrBank cfg.devices.${name}.credentialFile;
     credPath = "/etc/zfs-unlock/${safeName}.cred";
     credentialFile = cfg.devices.${name}.credentialFile;
   }) (lib.sort (a: b: a < b) (lib.attrNames cfg.devices));
