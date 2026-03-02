@@ -398,6 +398,10 @@ let
       model_name = "moonshotai/kimi-k2.5";
       model_info.mode = "chat";
     }
+    {
+      model_name = "qwen/qwen3.5-397b-a17b";
+      model_info.mode = "chat";
+    }
   ];
 
   missingAzureModels = lib.filter (

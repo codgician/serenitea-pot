@@ -38,6 +38,7 @@ in
     docling
     docling-serve
     litellm
+    vllm
     ;
 
   pythonPackagesExtensions = (prev.pythonPackagesExtensions or [ ]) ++ [
@@ -47,5 +48,4 @@ in
 // (lib.genAttrs [
   "ollama"
   "llama-cpp"
-  "vllm"
 ] (name: adapt prev.unstable.${name}))
