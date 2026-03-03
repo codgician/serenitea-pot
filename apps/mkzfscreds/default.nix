@@ -110,7 +110,9 @@ in
           pcr="$zeros"
           for dev in "$@"; do
             local fp
-            fp=$(${zfsFingerprint.script} "$dev" "$bank")
+            if ! fp=$(${zfsFingerprint.script} "$dev" "$bank"); then
+              err "Fingerprint computation failed for $dev"
+            fi
             log "  $dev: $fp"
             pcr=$(echo -n "$pcr$fp" | xxd -r -p | openssl dgst -"$bank" -binary | xxd -p -c256)
           done

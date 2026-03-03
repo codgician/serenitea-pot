@@ -42,8 +42,8 @@ let
 
     # Step 3: Get GUID and MAC from crypto object
     crypto_out=$(${zdb} -ddddd "$pool" "$crypto_obj" 2>/dev/null)
-    guid=$(echo "$crypto_out" | ${grep} -oP -m1 'DSL_CRYPTO_GUID = \K\d+') || true
-    mac=$(echo "$crypto_out" | ${grep} -oP -m1 'DSL_CRYPTO_MAC = \K[0-9a-f]+') || true
+    guid=$(echo "$crypto_out" | ${grep} -oP -m1 'DSL_CRYPTO_GUID = \K-?\d+') || true
+    mac=$(echo "$crypto_out" | ${grep} -oP -m1 'DSL_CRYPTO_MAC = \K[0-9a-fA-F]+') || true
 
     if [[ -z "$guid" || -z "$mac" ]]; then
       echo "zfs-fingerprint: Missing GUID or MAC for $pool" >&2
