@@ -48,15 +48,14 @@
       codgician.codgi = {
         dev.nix.enable = true;
         git.enable = true;
+        opencode.enable = true;
         pwsh.enable = true;
         ssh.enable = true;
         zsh.enable = true;
       };
 
       home.stateVersion = "25.11";
-      home.packages = with pkgs; [
-        screen
-      ];
+      home.packages = [ ];
     };
 
   # Use systemd-boot boot loader.

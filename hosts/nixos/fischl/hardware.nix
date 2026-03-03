@@ -1,19 +1,18 @@
 {
-  config,
   lib,
   pkgs,
   ...
 }:
 {
+  # TPM2-based ZFS root unlock
+  # Generate credential: nix run .#mkzfscreds -- --pcr-bank sha384 zroot > zroot.cred
+  codgician.system.zfs-unlock = {
+    enable = true;
+    devices.zroot.credentialFile = ./zroot.cred;
+  };
+
   boot = {
     initrd = {
-      # TPM-based auto-unlock for zroot
-      # Generate JWE: nix run .#mkjwe -- tpm --pcr-bank sha384 --pcr-ids 7 > zroot.jwe
-      clevis = {
-        enable = true;
-        devices."zroot".secretFile = ./zroot.jwe;
-      };
-
       availableKernelModules = [
         "xhci_pci"
         "ahci"
@@ -24,7 +23,6 @@
       ];
       kernelModules = [
         "tpm_crb"
-        "tpm_tis"
         "vfio"
         "vfio_pci"
         "vfio_iommu_type1"
@@ -49,8 +47,6 @@
       "vfat"
       "zfs"
     ];
-
-    zfs.requestEncryptionCredentials = true;
   };
 
   # Connected to UPS

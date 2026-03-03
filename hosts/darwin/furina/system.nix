@@ -8,8 +8,8 @@
     system = {
       brew = {
         enable = true;
-        taps = [ 
-          # "playcover/playcover" 
+        taps = [
+          # "playcover/playcover"
         ];
         casks = (import ./brew.nix).casks;
         masApps = (import ./brew.nix).masApps;

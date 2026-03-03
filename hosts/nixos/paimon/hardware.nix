@@ -25,7 +25,6 @@
 
       kernelModules = [
         "tpm_crb"
-        "tpm_tis"
         "vfio"
         "vfio_pci"
         "vfio_iommu_type1"

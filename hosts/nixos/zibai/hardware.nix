@@ -23,7 +23,9 @@
         "sd_mod"
         "e1000e"
       ];
-      kernelModules = [ ];
+      kernelModules = [
+        "tpm_tis"
+      ];
     };
 
     kernelModules = [ "kvm-intel" ];

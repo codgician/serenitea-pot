@@ -6,6 +6,8 @@
   ...
 }:
 let
+  name = "mkzfscreds";
+
   # Extract zfs-unlock.devices from all NixOS configurations at build time
   hostDevices = lib.pipe outputs.nixosConfigurations [
     (lib.mapAttrs (
@@ -33,6 +35,30 @@ let
 
   # Default PCRs
   defaultPcrIds = "1,2,7,12,14,15";
+
+  # Help text (kept at column 0 to avoid nix fmt confusion)
+  helpText = ''
+    ${name} - Create TPM2-sealed ZFS credentials with expected PCR 15
+
+    USAGE: ${name} [OPTIONS] <dataset> > output.cred
+
+    This tool seals credentials against the EXPECTED PCR 15 value (computed
+    from ZFS fingerprints), allowing enrollment without requiring a reboot.
+
+    WORKFLOW:
+      1. Configure devices in codgician.system.zfs-unlock.devices
+      2. Run: nix run .#${name} -- <dataset> > host/<name>.cred
+      3. Set credentialFile and enable = true, rebuild
+      4. Reboot - automatic unlock works
+
+    OPTIONS:
+      -h, --help          Show this help
+      --pcr-bank BANK     PCR bank (default: sha256)
+      --pcr-ids IDS       Comma-separated PCR IDs (default: ${defaultPcrIds})
+                          Must include 15; its value is computed from ZFS fingerprints
+      --list              List configured devices for this host
+
+    CONFIGURED HOSTS:'';
 in
 {
   type = "app";
@@ -44,8 +70,8 @@ in
   };
 
   program = lib.getExe (
-    pkgs.writeShellApplication rec {
-      name = builtins.baseNameOf ./.;
+    pkgs.writeShellApplication {
+      inherit name;
       runtimeInputs = with pkgs; [
         coreutils
         openssl
@@ -54,39 +80,19 @@ in
       ];
 
       text = ''
-                set -euo pipefail
+        set -euo pipefail
 
-                declare -A HOST_DEVICES=(
-                ${hostDevicesStr}
-                )
+        declare -A HOST_DEVICES=(
+          ${hostDevicesStr}
+        )
 
-                err() { echo "Error: $*" >&2; exit 1; }
-                log() { echo "$*" >&2; }
+        err() { echo "Error: $*" >&2; exit 1; }
+        log() { echo "$*" >&2; }
 
-                show_help() {
-                  cat >&2 <<'EOF'
-        ${name} - Create TPM2-sealed ZFS credentials with expected PCR 15
-
-        USAGE: ${name} [OPTIONS] <dataset> > output.cred
-
-        This tool seals credentials against the EXPECTED PCR 15 value (computed
-        from ZFS fingerprints), allowing enrollment without requiring a reboot.
-
-        WORKFLOW:
-          1. Configure devices in codgician.system.zfs-unlock.devices
-          2. Run: nix run .#mkzfscreds -- <dataset> > host/<name>.cred
-          3. Set credentialFile and enable = true, rebuild
-          4. Reboot - automatic unlock works
-
-        OPTIONS:
-          -h, --help          Show this help
-          --pcr-bank BANK     PCR bank (default: sha256)
-          --pcr-ids IDS       Comma-separated PCR IDs (default: ${defaultPcrIds})
-                              Must include 15; its value is computed from ZFS fingerprints
-          --list              List configured devices for this host
+        show_help() {
+          cat >&2 <<'EOF'
+        ${helpText}
         EOF
-          echo >&2
-          echo "CONFIGURED HOSTS:" >&2
           # shellcheck disable=SC2043
           for h in "''${!HOST_DEVICES[@]}"; do echo "  $h: ''${HOST_DEVICES[$h]}" >&2; done | sort
         }
