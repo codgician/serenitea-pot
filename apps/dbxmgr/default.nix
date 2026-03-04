@@ -100,6 +100,19 @@ in
         EOF
         }
 
+        # Check if Microsoft KEK is enrolled
+        has_microsoft_kek() {
+          local kek_path="/sys/firmware/efi/efivars/KEK-8be4df61-93ca-11d2-aa0d-00e098032b8c"
+          [[ -f "$kek_path" ]] || return 1
+          efi-readvar -v KEK 2>/dev/null | grep -qi "Microsoft"
+        }
+
+        # Preflight checks
+        check_efi_support() {
+          [[ -d /sys/firmware/efi ]] || err "System not booted in UEFI mode"
+          [[ -d /sys/firmware/efi/efivars ]] || err "efivarfs not mounted"
+        }
+
         # Get current DBX version/info
         get_current_dbx() {
           if [[ ! -f "$DBX_VAR_PATH" ]]; then
@@ -188,6 +201,7 @@ in
 
           [[ -f "$dbx_file" ]] || err "DBX file not found: $dbx_file"
           [[ $EUID -eq 0 ]] || err "Root privileges required to apply DBX update"
+          check_efi_support
 
           local file_size
           file_size=$(stat -c%s "$dbx_file")
@@ -195,36 +209,30 @@ in
 
           info "Applying DBX update: $dbx_file ($file_size bytes)"
 
-          # Check if DBX already exists
-          local update_flags="-f"
+          # Check and remove immutable flag if needed (stateful)
+          local was_immutable=0
           if [[ -f "$DBX_VAR_PATH" ]]; then
-            # Append to existing DBX
-            update_flags="-a -f"
-            
-            # Remove immutable flag (EFI variables have this set by default for safety)
-            info "Removing immutable flag from DBX variable..."
-            chattr -i "$DBX_VAR_PATH" || err "Failed to remove immutable flag"
-            
-            # Set up trap to restore immutable flag on any exit
-            # shellcheck disable=SC2064
-            trap "chattr +i '$DBX_VAR_PATH' 2>/dev/null || true; trap - EXIT INT TERM" EXIT INT TERM
-          else
-            info "Initial DBX enrollment (variable does not exist)"
+            if lsattr "$DBX_VAR_PATH" 2>/dev/null | grep -q 'i'; then
+              was_immutable=1
+              info "Removing immutable flag from DBX variable..."
+              chattr -i "$DBX_VAR_PATH" || err "Failed to remove immutable flag"
+            fi
+            # Restore immutable on exit if we changed it
+            if [[ "$was_immutable" -eq 1 ]]; then
+              # shellcheck disable=SC2064
+              trap "chattr +i '$DBX_VAR_PATH' 2>/dev/null || true; trap - EXIT INT TERM" EXIT INT TERM
+            fi
           fi
 
-          # Apply the update
-          # shellcheck disable=SC2086
-          efi-updatevar $update_flags "$dbx_file" dbx || {
-            err "Failed to apply DBX update"
-          }
+          # Apply the authenticated update with append mode
+          # Firmware validates signature against KEK
+          efi-updatevar -a -f "$dbx_file" dbx || err "Failed to apply DBX update"
 
-          # Restore immutable flag if it exists now
-          if [[ -f "$DBX_VAR_PATH" ]]; then
+          # Restore immutable flag if we changed it
+          if [[ "$was_immutable" -eq 1 ]] && [[ -f "$DBX_VAR_PATH" ]]; then
             info "Restoring immutable flag on DBX variable..."
             chattr +i "$DBX_VAR_PATH" || warn "Failed to restore immutable flag"
           fi
-          
-          # Clear the trap
           trap - EXIT INT TERM
 
           info "DBX update applied successfully!"
@@ -417,6 +425,13 @@ in
             ;;
 
           update)
+            check_efi_support
+            
+            # Warn if Microsoft KEK not detected (firmware will be final arbiter)
+            if ! has_microsoft_kek; then
+              warn "Microsoft KEK not detected - update may fail if not enrolled"
+            fi
+
             # Check if update is needed
             if show_status; then
               log ""
