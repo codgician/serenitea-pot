@@ -195,29 +195,36 @@ in
 
           info "Applying DBX update: $dbx_file ($file_size bytes)"
 
-          # Remove immutable flag from existing DBX variable if it exists
-          # EFI variables in Linux have immutable flag set by default for safety
+          # Check if DBX already exists
+          local update_flags="-f"
           if [[ -f "$DBX_VAR_PATH" ]]; then
-            info "Removing immutable flag from DBX variable..."
-            chattr -i "$DBX_VAR_PATH" || err "Failed to remove immutable flag (is secure boot in setup mode?)"
+            # Append to existing DBX
+            update_flags="-a -f"
             
-            # Set up trap to restore immutable flag on any exit (error, interrupt, etc.)
+            # Remove immutable flag (EFI variables have this set by default for safety)
+            info "Removing immutable flag from DBX variable..."
+            chattr -i "$DBX_VAR_PATH" || err "Failed to remove immutable flag"
+            
+            # Set up trap to restore immutable flag on any exit
             # shellcheck disable=SC2064
             trap "chattr +i '$DBX_VAR_PATH' 2>/dev/null || true; trap - EXIT INT TERM" EXIT INT TERM
+          else
+            info "Initial DBX enrollment (variable does not exist)"
           fi
 
           # Apply the update
-          efi-updatevar -a -f "$dbx_file" dbx || {
+          # shellcheck disable=SC2086
+          efi-updatevar $update_flags "$dbx_file" dbx || {
             err "Failed to apply DBX update"
           }
 
-          # Restore immutable flag (trap will also fire, but be explicit)
+          # Restore immutable flag if it exists now
           if [[ -f "$DBX_VAR_PATH" ]]; then
             info "Restoring immutable flag on DBX variable..."
             chattr +i "$DBX_VAR_PATH" || warn "Failed to restore immutable flag"
           fi
           
-          # Clear the trap now that we've handled it
+          # Clear the trap
           trap - EXIT INT TERM
 
           info "DBX update applied successfully!"
