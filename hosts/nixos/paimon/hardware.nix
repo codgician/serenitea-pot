@@ -48,7 +48,8 @@
       "kvm_amd.npt=1"
       "kvm_amd.avic=1"
       "kvm_amd.force_avic=1"
-      "iommu=pt"
+      "iommu.passthrough=0"
+      "amd_iommu=force_isolation"
       "amd_iommu_intr=vapic"
     ];
 

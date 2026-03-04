@@ -33,8 +33,8 @@
     kernelPackages = pkgs.linuxPackages_6_18;
     zfs.package = pkgs.zfs_2_4;
     kernelParams = [
+      "iommu.passthrough=0"
       "intel_iommu=on"
-      "iommu=pt"
       "hugepagesz=1G"
       "default_hugepagesz=1G"
       "hugepages=6"
