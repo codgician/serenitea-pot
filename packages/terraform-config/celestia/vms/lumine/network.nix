@@ -85,12 +85,12 @@ in
             destination_port_range = "*";
             source_address_prefix = "*";
             destination_address_prefix = "*";
-            destination_address_prefixes = "\${null}";
-            destination_application_security_group_ids = "\${null}";
-            destination_port_ranges = "\${null}";
-            source_address_prefixes = "\${null}";
-            source_application_security_group_ids = "\${null}";
-            source_port_ranges = "\${null}";
+            destination_address_prefixes = [ ];
+            destination_application_security_group_ids = [ ];
+            destination_port_ranges = [ ];
+            source_address_prefixes = [ ];
+            source_application_security_group_ids = [ ];
+            source_port_ranges = [ ];
           })
           [
             "Inbound"
