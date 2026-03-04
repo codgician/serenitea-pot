@@ -34,7 +34,7 @@ let
   mkcredsBin = "${inputs.mkcreds.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/mkcreds";
 
   # Default PCRs
-  defaultPcrIds = "1,2,7,12,14,15";
+  defaultPcrIds = "0,2,7,12,15";
 
   # Help text (kept at column 0 to avoid nix fmt confusion)
   helpText = ''
