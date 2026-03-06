@@ -356,6 +356,19 @@ let
         supports_vision = true;
       };
     }
+    {
+      model_name = "gpt-5.4";
+      model_info = {
+        mode = "responses";
+        max_input_tokens = 272000;
+        max_output_tokens = 128000;
+        max_tokens = 128000;
+        supports_function_calling = true;
+        supports_parallel_function_calling = true;
+        supports_response_schema = true;
+        supports_vision = true;
+      };
+    }
 
     # Embedding models
     {

@@ -100,7 +100,7 @@ in
           sisyphus.model = "dendro/claude-opus-4.6";
           librarian.model = "dendro/claude-sonnet-4.5";
           explore.model = "dendro/gemini-3-flash-preview";
-          oracle.model = "dendro/gpt-5.2";
+          oracle.model = "dendro/gpt-5.4";
           frontend-ui-ux-engineer.model = "dendro/gemini-3.1-pro-preview";
           document-writer.model = "dendro/gemini-3.1-pro-preview";
           multimodal-looker.model = "dendro/gemini-3-flash-preview";

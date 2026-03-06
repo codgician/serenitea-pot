@@ -11,16 +11,14 @@ in
     ./flux-1.1-pro.nix
     ./flux.1-kontext-pro.nix
     ./gpt-4o-transcribe-diarize.nix
+    ./gpt-5.3-chat.nix
     ./gpt-5.2-chat.nix
     ./gpt-5.1-chat.nix
-    ./gpt-5-chat.nix
     ./gpt-5-nano.nix
     # ./gpt-5-mini.nix (use GitHub Copilot instead)
-    ./gpt-audio-mini.nix
-    ./gpt-audio.nix
-    ./gpt-realtime.nix
-    ./grok-3.nix
-    ./grok-4-fast.nix
+    ./gpt-audio-1.5.nix
+    ./gpt-realtime-1.5.nix
+    ./grok-4-1-fast.nix
     ./kimi-k2.5.nix
     ./o4-mini.nix
   ];
