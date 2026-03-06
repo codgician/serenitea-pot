@@ -98,12 +98,14 @@ in
           "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json";
         agents = {
           sisyphus.model = "dendro/claude-opus-4.6";
-          librarian.model = "dendro/claude-sonnet-4.5";
-          explore.model = "dendro/gemini-3-flash-preview";
+          hephaestus.model = "dendro/gpt-5.3-codex";
           oracle.model = "dendro/gpt-5.4";
-          frontend-ui-ux-engineer.model = "dendro/gemini-3.1-pro-preview";
-          document-writer.model = "dendro/gemini-3.1-pro-preview";
-          multimodal-looker.model = "dendro/gemini-3-flash-preview";
+          librarian.model = "dendro/gemini-3-flash-preview";
+          explore.model = "dendro/gemini-3-flash-preview";
+          multimodal-looker.model = "dendro/gpt-5.3-codex";
+          metis.model = "dendro/claude-opus-4.6";
+          momus.model = "dendro/gpt-5.4";
+          atlas.model = "dendro/claude-sonnet-4.6";
         };
       };
     };
