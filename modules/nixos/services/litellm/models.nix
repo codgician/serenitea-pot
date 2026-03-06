@@ -52,6 +52,11 @@ let
       model_info.base_model = "azure/gpt-4o-transcribe-diarize";
     }
     {
+      model_name = "gpt-5.3-chat";
+      model_info.mode = "chat";
+      model_info.base_model = "azure/gpt-5.3-chat";
+    }
+    {
       model_name = "gpt-5.2-chat";
       model_info.mode = "chat";
       model_info.base_model = "azure/gpt-5.2-chat";
@@ -62,47 +67,31 @@ let
       model_info.base_model = "azure/gpt-5.1-chat";
     }
     {
-      model_name = "gpt-5-chat";
-      model_info.mode = "chat";
-      model_info.base_model = "azure/gpt-5-chat";
-    }
-    {
       model_name = "gpt-5-nano";
       model_info.mode = "chat";
       model_info.base_model = "azure/gpt-5-nano";
     }
     {
-      model_name = "gpt-audio";
+      model_name = "gpt-audio-1.5";
       model_info.mode = "chat";
-      model_info.base_model = "azure/gpt-audio-2025-08-28";
+      model_info.base_model = "azure/gpt-audio-1.5-2026-02-23";
     }
     {
-      model_name = "gpt-audio-mini";
-      model_info.mode = "chat";
-      model_info.base_model = "azure/gpt-audio-mini-2025-10-06";
-    }
-    {
-      model_name = "gpt-realtime";
+      model_name = "gpt-realtime-1.5";
       model_info.mode = "realtime";
-      model_info.base_model = "azure/gpt-realtime-2025-08-28";
+      model_info.base_model = "azure/gpt-realtime-1.5-2026-02-23";
     }
     {
-      model_name = "grok-3";
+      model_name = "grok-4-1-fast-non-reasoning";
       provider = "azure_ai";
       model_info.mode = "chat";
-      model_info.base_model = "azure_ai/grok-3";
+      model_info.base_model = "azure_ai/grok-4-1-fast-non-reasoning";
     }
     {
-      model_name = "grok-4-fast-non-reasoning";
+      model_name = "grok-4-1-fast-reasoning";
       provider = "azure_ai";
       model_info.mode = "chat";
-      model_info.base_model = "azure_ai/grok-4-fast-non-reasoning";
-    }
-    {
-      model_name = "grok-4-fast-reasoning";
-      provider = "azure_ai";
-      model_info.mode = "chat";
-      model_info.base_model = "azure_ai/grok-4-fast-reasoning";
+      model_info.base_model = "azure_ai/grok-4-1-fast-reasoning";
     }
     {
       model_name = "kimi-k2.5";

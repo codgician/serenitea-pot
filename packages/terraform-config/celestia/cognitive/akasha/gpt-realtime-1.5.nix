@@ -9,7 +9,7 @@
     model = {
       format = "OpenAI";
       name = "gpt-realtime-1.5";
-      version = "2025-08-28";
+      version = "2026-02-23";
     };
 
     sku = {
