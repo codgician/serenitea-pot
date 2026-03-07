@@ -134,7 +134,7 @@
           embeddings = {
             model = "Qwen/Qwen3-Embedding-0.6B";
             port = 8001;
-            gpuMemoryUtilization = 0.05;
+            gpuMemoryUtilization = 0.06;
             maxModelLen = 8192;
             maxNumSeqs = 64;
           };
