@@ -119,7 +119,7 @@
           qwen-chat = {
             model = "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4";
             port = 8000;
-            gpuMemoryUtilization = 0.74;
+            gpuMemoryUtilization = 0.67;
             maxModelLen = 131072;
             maxNumSeqs = 8;
             quantization = "gptq_marlin";
