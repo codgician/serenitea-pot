@@ -141,14 +141,16 @@ in
     })
 
     # Reverse proxy profile for API
-    (lib.codgician.mkServiceReverseProxyConfig {
-      inherit serviceName cfg;
-    })
-
-    # Reverse proxy profile for Gradio
-    (lib.codgician.mkServiceReverseProxyConfig {
-      serviceName = "${serviceName}-gradio";
-      cfg = cfg.gradio;
-    })
+    {
+      codgician.services.nginx = lib.mkMerge [
+        (lib.codgician.mkServiceReverseProxyConfig {
+          inherit serviceName cfg;
+        })
+        (lib.codgician.mkServiceReverseProxyConfig {
+          serviceName = "${serviceName}-gradio";
+          cfg = cfg.gradio;
+        })
+      ];
+    }
   ];
 }

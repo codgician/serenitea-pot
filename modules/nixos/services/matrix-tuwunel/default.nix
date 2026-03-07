@@ -161,77 +161,79 @@ in
     })
 
     # Reverse proxy profile (can be enabled independently for external proxies)
-    (lib.codgician.mkServiceReverseProxyConfig {
-      inherit serviceName cfg;
-      extraVhostConfig =
-        let
-          clientConfig = {
-            "m.homeserver".base_url = "https://${cfg.domain}";
-            "org.matrix.msc3575.proxy".url = "https://${cfg.domain}"; # Sliding sync
-          };
-          serverConfig = {
-            "m.server" = "${cfg.domain}:443";
-          };
-        in
-        {
-          locations = {
-            "/" = lib.mkIf cfg.reverseProxy.elementWeb {
-              passthru = {
-                proxyPass = lib.mkForce null;
-                root = import ./element-web.nix {
-                  inherit pkgs clientConfig;
-                  domains = cfg.reverseProxy.domains;
+    {
+      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
+        inherit serviceName cfg;
+        extraVhostConfig =
+          let
+            clientConfig = {
+              "m.homeserver".base_url = "https://${cfg.domain}";
+              "org.matrix.msc3575.proxy".url = "https://${cfg.domain}"; # Sliding sync
+            };
+            serverConfig = {
+              "m.server" = "${cfg.domain}:443";
+            };
+          in
+          {
+            locations = {
+              "/" = lib.mkIf cfg.reverseProxy.elementWeb {
+                passthru = {
+                  proxyPass = lib.mkForce null;
+                  root = import ./element-web.nix {
+                    inherit pkgs clientConfig;
+                    domains = cfg.reverseProxy.domains;
+                  };
+                };
+              };
+
+              # Matrix C-S and S-S API endpoints
+              "~ ^/_matrix/" = {
+                inherit (cfg.reverseProxy) lanOnly;
+                passthru = {
+                  inherit (cfg.reverseProxy) proxyPass;
+                  extraConfig = ''
+                    # Allow large media uploads (0 = unlimited)
+                    client_max_body_size 0;
+
+                    # Matrix sync can be long-polling
+                    proxy_read_timeout 300;
+                  '';
+                };
+              };
+
+              # Tuwunel-specific endpoints (health check, version, admin)
+              "~ ^/_conduwuit/" = {
+                inherit (cfg.reverseProxy) lanOnly;
+                passthru = {
+                  inherit (cfg.reverseProxy) proxyPass;
+                };
+              };
+
+              # Well-known endpoints for federation and client discovery
+              "= /.well-known/matrix/server" = {
+                inherit (cfg.reverseProxy) lanOnly;
+                passthru = {
+                  return = "200 '${builtins.toJSON serverConfig}' ";
+                  extraConfig = ''
+                    add_header Content-Type application/json;
+                    add_header Access-Control-Allow-Origin *;
+                  '';
+                };
+              };
+
+              "= /.well-known/matrix/client" = {
+                inherit (cfg.reverseProxy) lanOnly;
+                passthru = {
+                  return = "200 '${builtins.toJSON clientConfig}' ";
+                  extraConfig = ''
+                    add_header Content-Type application/json;
+                    add_header Access-Control-Allow-Origin *;
+                  '';
                 };
               };
             };
-
-            # Matrix C-S and S-S API endpoints
-            "~ ^/_matrix/" = {
-              inherit (cfg.reverseProxy) lanOnly;
-              passthru = {
-                inherit (cfg.reverseProxy) proxyPass;
-                extraConfig = ''
-                  # Allow large media uploads (0 = unlimited)
-                  client_max_body_size 0;
-
-                  # Matrix sync can be long-polling
-                  proxy_read_timeout 300;
-                '';
-              };
-            };
-
-            # Tuwunel-specific endpoints (health check, version, admin)
-            "~ ^/_conduwuit/" = {
-              inherit (cfg.reverseProxy) lanOnly;
-              passthru = {
-                inherit (cfg.reverseProxy) proxyPass;
-              };
-            };
-
-            # Well-known endpoints for federation and client discovery
-            "= /.well-known/matrix/server" = {
-              inherit (cfg.reverseProxy) lanOnly;
-              passthru = {
-                return = "200 '${builtins.toJSON serverConfig}' ";
-                extraConfig = ''
-                  add_header Content-Type application/json;
-                  add_header Access-Control-Allow-Origin *;
-                '';
-              };
-            };
-
-            "= /.well-known/matrix/client" = {
-              inherit (cfg.reverseProxy) lanOnly;
-              passthru = {
-                return = "200 '${builtins.toJSON clientConfig}' ";
-                extraConfig = ''
-                  add_header Content-Type application/json;
-                  add_header Access-Control-Allow-Origin *;
-                '';
-              };
-            };
           };
-        };
-    })
+      };
+    }
   ];
 }

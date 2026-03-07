@@ -98,18 +98,20 @@ in
     })
 
     # Reverse proxy profiles
-    (lib.codgician.mkServiceReverseProxyConfig {
-      inherit serviceName cfg;
-      extraVhostConfig.locations."/" = {
-        inherit (cfg.reverseProxy) lanOnly;
-        authelia.enable = cfg.reverseProxy.authelia.enable;
-        passthru = {
-          inherit (cfg.reverseProxy) proxyPass;
-          extraConfig = ''
-            proxy_buffering off;
-          '';
+    {
+      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
+        inherit serviceName cfg;
+        extraVhostConfig.locations."/" = {
+          inherit (cfg.reverseProxy) lanOnly;
+          authelia.enable = cfg.reverseProxy.authelia.enable;
+          passthru = {
+            inherit (cfg.reverseProxy) proxyPass;
+            extraConfig = ''
+              proxy_buffering off;
+            '';
+          };
         };
       };
-    })
+    }
   ];
 }

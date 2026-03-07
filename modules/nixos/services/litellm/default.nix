@@ -262,24 +262,26 @@ in
     })
 
     # Reverse proxy profile
-    (lib.codgician.mkServiceReverseProxyConfig {
-      inherit serviceName cfg;
-      extraVhostConfig.locations =
-        let
-          inherit (cfg.reverseProxy) favicon;
-          inherit (lib.codgician) mkNginxLocationForStaticFile;
-          convertImage = lib.codgician.convertImage pkgs;
-          faviconIco = convertImage favicon {
-            args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
-            outName = "favicon.ico";
-          };
-        in
-        (lib.optionalAttrs (favicon != null) {
-          "= /favicon.png".passthru = mkNginxLocationForStaticFile favicon;
-          "= /swagger/favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
-          "= /swagger/favicon.png".passthru = mkNginxLocationForStaticFile favicon;
-          "= /ui/favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
-        });
-    })
+    {
+      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
+        inherit serviceName cfg;
+        extraVhostConfig.locations =
+          let
+            inherit (cfg.reverseProxy) favicon;
+            inherit (lib.codgician) mkNginxLocationForStaticFile;
+            convertImage = lib.codgician.convertImage pkgs;
+            faviconIco = convertImage favicon {
+              args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
+              outName = "favicon.ico";
+            };
+          in
+          (lib.optionalAttrs (favicon != null) {
+            "= /favicon.png".passthru = mkNginxLocationForStaticFile favicon;
+            "= /swagger/favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
+            "= /swagger/favicon.png".passthru = mkNginxLocationForStaticFile favicon;
+            "= /ui/favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
+          });
+      };
+    }
   ];
 }

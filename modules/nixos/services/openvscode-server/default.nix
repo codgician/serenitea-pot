@@ -143,19 +143,21 @@ in
     })
 
     # Reverse proxy profile (with long timeouts for WebSocket)
-    (lib.codgician.mkServiceReverseProxyConfig {
-      inherit serviceName cfg;
-      extraVhostConfig = {
-        locations."/".passthru.extraConfig = ''
-          # Long timeouts for IDE (terminals, LSPs can idle)
-          proxy_read_timeout 3600s;
-          proxy_send_timeout 3600s;
-          send_timeout 3600s;
+    {
+      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
+        inherit serviceName cfg;
+        extraVhostConfig = {
+          locations."/".passthru.extraConfig = ''
+            # Long timeouts for IDE (terminals, LSPs can idle)
+            proxy_read_timeout 3600s;
+            proxy_send_timeout 3600s;
+            send_timeout 3600s;
 
-          # Disable buffering for real-time IDE updates
-          proxy_buffering off;
-        '';
+            # Disable buffering for real-time IDE updates
+            proxy_buffering off;
+          '';
+        };
       };
-    })
+    }
   ];
 }

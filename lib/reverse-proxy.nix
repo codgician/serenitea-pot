@@ -71,27 +71,25 @@ in
       rootLocation ? "/",
       extraVhostConfig ? { },
     }:
-    {
-      codgician.services.nginx = lib.mkIf cfg.reverseProxy.enable {
-        enable = true;
-        reverseProxies.${serviceName} = lib.mkMerge [
-          {
-            inherit (cfg.reverseProxy)
-              enable
-              https
-              authelia
-              domains
-              anubis
-              ;
-            locations.${rootLocation} = {
-              inherit (cfg.reverseProxy) lanOnly;
-              authelia.enable = cfg.reverseProxy.authelia.enable;
-              passthru = { inherit (cfg.reverseProxy) proxyPass; };
-            };
-          }
-          extraVhostConfig
-        ];
-      };
+    lib.mkIf cfg.reverseProxy.enable {
+      enable = true;
+      reverseProxies.${serviceName} = lib.mkMerge [
+        {
+          inherit (cfg.reverseProxy)
+            enable
+            https
+            authelia
+            domains
+            anubis
+            ;
+          locations.${rootLocation} = {
+            inherit (cfg.reverseProxy) lanOnly;
+            authelia.enable = cfg.reverseProxy.authelia.enable;
+            passthru = { inherit (cfg.reverseProxy) proxyPass; };
+          };
+        }
+        extraVhostConfig
+      ];
     };
 
   # Make a nginx location for hosting static files

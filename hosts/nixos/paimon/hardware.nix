@@ -212,7 +212,7 @@
   };
 
   # Start ollama after configuring GPU
-  systemd.services.ollama.after = [ "nvidia-gpu-config.service" ];
+  # systemd.services.ollama.after = [ "nvidia-gpu-config.service" ];
 
   # Enable use of nvidia card in containers
   hardware.nvidia-container-toolkit.enable = true;

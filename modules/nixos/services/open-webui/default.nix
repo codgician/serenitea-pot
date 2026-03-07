@@ -81,9 +81,13 @@ let
     ENABLE_SEARCH_QUERY = "True";
     ENABLE_RAG_WEB_SEARCH = "True";
     RAG_WEB_SEARCH_ENGINE = "google_pse";
-    RAG_EMBEDDING_ENGINE = lib.mkIf ollamaCfg.enable "ollama";
-    RAG_EMBEDDING_MODEL = lib.mkIf ollamaCfg.enable ollamaEmbeddingModel;
-    RAG_OLLAMA_BASE_URL = lib.mkIf ollamaCfg.enable "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
+    RAG_EMBEDDING_ENGINE = cfg.embedding.engine;
+    RAG_EMBEDDING_MODEL = cfg.embedding.model;
+    RAG_OLLAMA_BASE_URL = lib.mkIf (
+      cfg.embedding.engine == "ollama"
+    ) "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
+    RAG_OPENAI_API_BASE_URL = lib.mkIf (cfg.embedding.engine == "openai") cfg.embedding.openaiBaseUrl;
+    RAG_OPENAI_API_KEY = lib.mkIf (cfg.embedding.engine == "openai") cfg.embedding.openaiApiKey;
     RAG_TOP_K = "5";
     RAG_TOP_K_RERANKER = "5";
     RAG_RELEVANCE_THRESHOLD = "0.3";
@@ -187,6 +191,53 @@ in
         };
       };
     };
+
+    embedding = lib.mkOption {
+      type = types.submodule {
+        options = {
+          engine = lib.mkOption {
+            type = types.enum [
+              "ollama"
+              "openai"
+            ];
+            default = "ollama";
+            description = ''
+              Embedding backend engine for RAG.
+              - "ollama": Use Ollama embeddings (requires ollama service enabled)
+              - "openai": Use OpenAI-compatible embeddings (e.g., vLLM with OpenAI API)
+            '';
+          };
+
+          model = lib.mkOption {
+            type = types.str;
+            default = ollamaEmbeddingModel;
+            description = ''
+              Embedding model to use. Default preserves Ollama behavior.
+              For openai engine, use e.g. "Qwen/Qwen3-Embedding-4B".
+            '';
+          };
+
+          openaiBaseUrl = lib.mkOption {
+            type = with types; nullOr str;
+            default = null;
+            description = ''
+              OpenAI-compatible API base URL for embeddings.
+              Required when engine = "openai". Example: http://127.0.0.1:8001/v1
+            '';
+          };
+
+          openaiApiKey = lib.mkOption {
+            type = types.str;
+            default = "no_api_key";
+            description = ''
+              API key for OpenAI-compatible embedding endpoint.
+            '';
+          };
+        };
+      };
+      default = { };
+      description = "Embedding backend configuration for RAG.";
+    };
   };
 
   config = lib.mkMerge [
@@ -220,8 +271,16 @@ in
 
     # Common options
     (lib.mkIf cfg.enable {
+      assertions = [
+        {
+          assertion = cfg.embedding.engine != "openai" || cfg.embedding.openaiBaseUrl != null;
+          message = "codgician.services.open-webui.embedding.openaiBaseUrl is required when embedding.engine is 'openai'";
+        }
+      ];
       # Add embedding model to ollama
-      codgician.services.ollama.loadModels = [ ollamaEmbeddingModel ];
+      codgician.services.ollama.loadModels = lib.mkIf (cfg.embedding.engine == "ollama") [
+        cfg.embedding.model
+      ];
 
       # Set up Redis
       services.redis.servers.${serviceName} = {
@@ -286,90 +345,92 @@ in
     ))
 
     # Reverse proxy profile
-    (lib.codgician.mkServiceReverseProxyConfig {
-      inherit serviceName cfg;
-      extraVhostConfig.locations =
-        let
-          inherit (cfg.reverseProxy)
-            appIcon
-            favicon
-            splash
-            ;
+    {
+      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
+        inherit serviceName cfg;
+        extraVhostConfig.locations =
+          let
+            inherit (cfg.reverseProxy)
+              appIcon
+              favicon
+              splash
+              ;
 
-          inherit (lib.codgician) mkNginxLocationForStaticFile;
-          convertImage = lib.codgician.convertImage pkgs;
-          resizeImage =
-            size: outName: image:
-            convertImage image {
-              args = "-background transparent -resize ${size}";
-              inherit outName;
-            };
+            inherit (lib.codgician) mkNginxLocationForStaticFile;
+            convertImage = lib.codgician.convertImage pkgs;
+            resizeImage =
+              size: outName: image:
+              convertImage image {
+                args = "-background transparent -resize ${size}";
+                inherit outName;
+              };
 
-          faviconIco = convertImage favicon {
-            args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
-            outName = "favicon.ico";
-          };
-          favicon96 = resizeImage "96x96" "favicon-96x96.png" favicon;
-          favicon512 = resizeImage "512x512" "favicon" appIcon;
-        in
-        (lib.optionalAttrs (favicon != null) {
-          "= /favicon.png".passthru = mkNginxLocationForStaticFile favicon512;
-          "= /static/favicon.png".passthru = mkNginxLocationForStaticFile favicon512;
-          "= /static/favicon-dark.png".passthru = mkNginxLocationForStaticFile favicon512;
-          "= /static/favicon-96x96.png".passthru = mkNginxLocationForStaticFile favicon96;
-          "= /favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
-          "= /static/favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
-        })
-        // (lib.optionalAttrs (appIcon != null) {
-          "= /static/logo.png".passthru = mkNginxLocationForStaticFile appIcon;
-          "= /static/apple-touch-icon.png".passthru = mkNginxLocationForStaticFile (
-            resizeImage "180x180" "apple-touch-icon.png" appIcon
-          );
-          "= /static/web-app-manifest-192x192.png".passthru = mkNginxLocationForStaticFile (
-            resizeImage "192x192" "web-app-manifest-192x192.png" appIcon
-          );
-          "= /static/web-app-manifest-512x512.png".passthru = mkNginxLocationForStaticFile (
-            resizeImage "512x512" "web-app-manifest-512x512.png" appIcon
-          );
-        })
-        // (lib.optionalAttrs (splash != null) {
-          "= /static/splash.png".passthru = mkNginxLocationForStaticFile splash;
-          "= /static/splash-dark.png".passthru = mkNginxLocationForStaticFile splash;
-        })
-        // {
-          "/_app/immutable/" = {
-            inherit (cfg.reverseProxy) lanOnly;
-            passthru = {
-              inherit (cfg.reverseProxy) proxyPass;
-              extraConfig = ''
-                add_header Cache-Control "public, max-age=31536000, immutable";
-              '';
+            faviconIco = convertImage favicon {
+              args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
+              outName = "favicon.ico";
             };
-          };
-          "/api/v1/files" = {
-            inherit (cfg.reverseProxy) lanOnly;
-            passthru = {
-              inherit (cfg.reverseProxy) proxyPass;
-              extraConfig = ''
-                client_max_body_size 128M;
-                proxy_connect_timeout 1800;
-                proxy_send_timeout 1800;
-                proxy_read_timeout 1800;
-                send_timeout 1800;
-              '';
+            favicon96 = resizeImage "96x96" "favicon-96x96.png" favicon;
+            favicon512 = resizeImage "512x512" "favicon" appIcon;
+          in
+          (lib.optionalAttrs (favicon != null) {
+            "= /favicon.png".passthru = mkNginxLocationForStaticFile favicon512;
+            "= /static/favicon.png".passthru = mkNginxLocationForStaticFile favicon512;
+            "= /static/favicon-dark.png".passthru = mkNginxLocationForStaticFile favicon512;
+            "= /static/favicon-96x96.png".passthru = mkNginxLocationForStaticFile favicon96;
+            "= /favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
+            "= /static/favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
+          })
+          // (lib.optionalAttrs (appIcon != null) {
+            "= /static/logo.png".passthru = mkNginxLocationForStaticFile appIcon;
+            "= /static/apple-touch-icon.png".passthru = mkNginxLocationForStaticFile (
+              resizeImage "180x180" "apple-touch-icon.png" appIcon
+            );
+            "= /static/web-app-manifest-192x192.png".passthru = mkNginxLocationForStaticFile (
+              resizeImage "192x192" "web-app-manifest-192x192.png" appIcon
+            );
+            "= /static/web-app-manifest-512x512.png".passthru = mkNginxLocationForStaticFile (
+              resizeImage "512x512" "web-app-manifest-512x512.png" appIcon
+            );
+          })
+          // (lib.optionalAttrs (splash != null) {
+            "= /static/splash.png".passthru = mkNginxLocationForStaticFile splash;
+            "= /static/splash-dark.png".passthru = mkNginxLocationForStaticFile splash;
+          })
+          // {
+            "/_app/immutable/" = {
+              inherit (cfg.reverseProxy) lanOnly;
+              passthru = {
+                inherit (cfg.reverseProxy) proxyPass;
+                extraConfig = ''
+                  add_header Cache-Control "public, max-age=31536000, immutable";
+                '';
+              };
             };
+            "/api/v1/files" = {
+              inherit (cfg.reverseProxy) lanOnly;
+              passthru = {
+                inherit (cfg.reverseProxy) proxyPass;
+                extraConfig = ''
+                  client_max_body_size 128M;
+                  proxy_connect_timeout 1800;
+                  proxy_send_timeout 1800;
+                  proxy_read_timeout 1800;
+                  send_timeout 1800;
+                '';
+              };
+            };
+            "/".passthru.extraConfig = ''
+              client_max_body_size 128M;
+              proxy_buffering off;
+              proxy_connect_timeout 300;
+              proxy_send_timeout 300;
+              proxy_read_timeout 300;
+              send_timeout 300;
+              # Prevent stale frontend after upgrades - browser must always fetch fresh HTML
+              add_header Cache-Control "no-store, no-cache, must-revalidate" always;
+            '';
           };
-          "/".passthru.extraConfig = ''
-            client_max_body_size 128M;
-            proxy_buffering off;
-            proxy_connect_timeout 300;
-            proxy_send_timeout 300;
-            proxy_read_timeout 300;
-            send_timeout 300;
-            # Prevent stale frontend after upgrades - browser must always fetch fresh HTML
-            add_header Cache-Control "no-store, no-cache, must-revalidate" always;
-          '';
-        };
-    })
+      };
+    }
   ];
 }

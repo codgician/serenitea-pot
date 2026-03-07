@@ -93,8 +93,10 @@ in
     })
 
     # Reverse proxy profile
-    (lib.codgician.mkServiceReverseProxyConfig {
-      inherit serviceName cfg;
-    })
+    {
+      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
+        inherit serviceName cfg;
+      };
+    }
   ];
 }

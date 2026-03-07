@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 let
@@ -14,17 +13,13 @@ let
   # Build vLLM serve command arguments as a list
   mkServeArgs =
     c:
-    lib.optionals (c.task != null) [
-      "--task"
-      c.task
-    ]
-    ++ [
+    [
       "--host"
       c.host
       "--port"
       (toString c.port)
       "--download-dir"
-      cfg.cacheDir
+      "/root/.cache/huggingface"
     ]
     ++ lib.optionals (c.maxModelLen != null) [
       "--max-model-len"
@@ -42,6 +37,10 @@ let
       "--gpu-memory-utilization"
       (toString c.gpuMemoryUtilization)
     ]
+    ++ lib.optionals (c.dtype != "auto") [
+      "--dtype"
+      c.dtype
+    ]
     ++ lib.optionals (c.kvCacheDtype != "auto") [
       "--kv-cache-dtype"
       c.kvCacheDtype
@@ -49,6 +48,10 @@ let
     ++ lib.optionals (c.maxNumSeqs != 256) [
       "--max-num-seqs"
       (toString c.maxNumSeqs)
+    ]
+    ++ lib.optionals (c.maxNumBatchedTokens != null) [
+      "--max-num-batched-tokens"
+      (toString c.maxNumBatchedTokens)
     ]
     ++ lib.optionals c.enablePrefixCaching [ "--enable-prefix-caching" ]
     ++ lib.optionals c.enableChunkedPrefill [ "--enable-chunked-prefill" ]
@@ -80,20 +83,6 @@ let
           example = "Qwen/Qwen3.5-35B-A3B-AWQ";
         };
 
-        task = lib.mkOption {
-          type = types.nullOr (
-            types.enum [
-              "generate"
-              "embed"
-              "classify"
-              "score"
-            ]
-          );
-          default = null;
-          description = "Task type. Use 'embed' for embedding models, 'classify' for classification, 'score' for scoring. Null means auto-detect (usually 'generate').";
-          example = "embed";
-        };
-
         host = lib.mkOption {
           type = types.str;
           default = "127.0.0.1";
@@ -110,6 +99,12 @@ let
           type = types.float;
           default = 0.9;
           description = "Fraction of GPU memory to use (0.0-1.0).";
+        };
+
+        dtype = lib.mkOption {
+          type = types.str;
+          default = "auto";
+          description = "Data type for model weights (auto, float16, bfloat16).";
         };
 
         kvCacheDtype = lib.mkOption {
@@ -135,15 +130,23 @@ let
           description = "Maximum concurrent sequences.";
         };
 
+        maxNumBatchedTokens = lib.mkOption {
+          type = types.nullOr types.int;
+          default = null;
+          description = "Max tokens per batch (required for Mamba cache alignment).";
+        };
+
         quantization = lib.mkOption {
           type = types.nullOr (
             types.enum [
               "awq"
               "gptq"
+              "gptq_marlin"
               "fp8"
               "gguf"
               "bitsandbytes"
               "marlin"
+              "moe_wna16"
             ]
           );
           default = null;
@@ -231,59 +234,6 @@ let
       };
     };
 
-  # Generate systemd service for an instance
-  mkSystemdService = name: {
-    "vllm@${name}" =
-      let
-        c = cfg.instances.${name};
-      in
-      {
-        description = "vLLM: ${name}";
-        wantedBy = [ "multi-user.target" ];
-        after = [ "network.target" ] ++ lib.optionals cfg.cuda [ "nvidia-gpu-config.service" ];
-        wants = lib.optionals cfg.cuda [ "nvidia-gpu-config.service" ];
-
-        environment = {
-          HOME = "/var/lib/vllm/${name}";
-          VLLM_CACHE_ROOT = cfg.cacheDir;
-          VLLM_NO_USAGE_STATS = "1";
-        }
-        // c.environmentVariables;
-
-        script = ''
-          exec ${lib.getExe cfg.package} serve ${lib.escapeShellArg c.model} \
-            ${lib.escapeShellArgs (mkServeArgs c)}
-        '';
-
-        serviceConfig = {
-          Type = "simple";
-          User = cfg.user;
-          Group = cfg.group;
-          WorkingDirectory = "/var/lib/vllm/${name}";
-          StateDirectory = "vllm/${name}";
-          RuntimeDirectory = "vllm/${name}";
-          CacheDirectory = "vllm";
-          SupplementaryGroups = lib.optionals cfg.cuda [
-            "video"
-            "render"
-          ];
-          PrivateTmp = true;
-          ProtectHome = true;
-          ProtectSystem = "strict";
-          ReadWritePaths = [
-            cfg.cacheDir
-            "/var/lib/vllm"
-          ];
-          LimitNOFILE = 65536;
-          LimitMEMLOCK = "infinity";
-          Restart = "on-failure";
-          RestartSec = 10;
-          TimeoutStartSec = 600;
-          TimeoutStopSec = 30;
-        };
-      };
-  };
-
   # Generate OCI container for an instance
   mkContainer = name: {
     "${serviceName}-${name}" =
@@ -318,49 +268,24 @@ let
 in
 {
   options.codgician.services.vllm = {
-    enable = lib.mkEnableOption "vLLM inference server";
-
-    backend = lib.mkOption {
-      type = types.enum [
-        "nixpkgs"
-        "container"
-      ];
-      default = "nixpkgs";
-      description = "Backend: nixpkgs (native) or container (Docker).";
-    };
-
-    package = lib.mkPackageOption pkgs "vllm" { };
+    enable = lib.mkEnableOption "vLLM inference server (container-based)";
 
     imageTag = lib.mkOption {
       type = types.str;
       default = "v0.15.1";
-      description = "Docker image tag for container backend.";
+      description = "Docker image tag for vLLM container.";
     };
 
     cuda = lib.mkOption {
       type = types.bool;
-      default =
-        (config.hardware.nvidia-container-toolkit.enable or false)
-        || (config.nixpkgs.config.cudaSupport or false);
+      default = config.hardware.nvidia-container-toolkit.enable or false;
       description = "Enable CUDA/GPU support.";
-    };
-
-    user = lib.mkOption {
-      type = types.str;
-      default = serviceName;
-      description = "User for vLLM (nixpkgs backend).";
-    };
-
-    group = lib.mkOption {
-      type = types.str;
-      default = serviceName;
-      description = "Group for vLLM (nixpkgs backend).";
     };
 
     cacheDir = lib.mkOption {
       type = types.path;
       default = defaultCacheDir;
-      description = "Model cache directory.";
+      description = "Model cache directory (mounted into container).";
     };
 
     instances = lib.mkOption {
@@ -370,55 +295,29 @@ in
     };
   };
 
-  config = lib.mkIf hasInstances (
-    lib.mkMerge [
-      # User/group and directories
+  config = lib.mkIf hasInstances {
+    # Cache directory
+    systemd.tmpfiles.rules = [ "d ${cfg.cacheDir} 0755 root root -" ];
+
+    codgician.system.impermanence.extraItems = lib.mkIf (cfg.cacheDir == defaultCacheDir) [
       {
-        users.users.${cfg.user} = lib.mkIf (cfg.backend == "nixpkgs") {
-          isSystemUser = true;
-          group = cfg.group;
-          home = "/var/lib/vllm";
-          description = "vLLM service user";
-        };
-        users.groups.${cfg.group} = lib.mkIf (cfg.backend == "nixpkgs") { };
-
-        systemd.tmpfiles.rules =
-          let
-            owner = if cfg.backend == "nixpkgs" then cfg.user else "root";
-            grp = if cfg.backend == "nixpkgs" then cfg.group else "root";
-          in
-          [ "d ${cfg.cacheDir} 0755 ${owner} ${grp} -" ]
-          ++ lib.optionals (cfg.backend == "nixpkgs") [ "d /var/lib/vllm 0755 ${cfg.user} ${cfg.group} -" ];
-
-        codgician.system.impermanence.extraItems = lib.mkIf (cfg.cacheDir == defaultCacheDir) [
-          {
-            type = "directory";
-            path = cfg.cacheDir;
-          }
-        ];
+        type = "directory";
+        path = cfg.cacheDir;
       }
+    ];
 
-      # Backend-specific config
-      (lib.mkIf (cfg.backend == "nixpkgs") {
-        systemd.services = lib.mkMerge (map mkSystemdService instances);
-      })
+    # OCI containers
+    virtualisation.oci-containers.containers = lib.mkMerge (map mkContainer instances);
 
-      (lib.mkIf (cfg.backend == "container") {
-        virtualisation.oci-containers.containers = lib.mkMerge (map mkContainer instances);
-      })
-
-      # Reverse proxy
-      {
-        codgician.services.nginx = lib.mkMerge (
-          map (
-            i:
-            lib.codgician.mkServiceReverseProxyConfig {
-              serviceName = "${serviceName}@${i}";
-              cfg = cfg.instances.${i};
-            }
-          ) instances
-        );
-      }
-    ]
-  );
+    # Reverse proxy
+    codgician.services.nginx = lib.mkMerge (
+      map (
+        i:
+        lib.codgician.mkServiceReverseProxyConfig {
+          serviceName = "${serviceName}@${i}";
+          cfg = cfg.instances.${i};
+        }
+      ) instances
+    );
+  };
 }

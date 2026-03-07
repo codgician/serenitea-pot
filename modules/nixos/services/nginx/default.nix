@@ -240,7 +240,7 @@ in
           enable = true;
           extraDomainNames = builtins.tail hostCfg.domains;
         }
-      ) cfg.reverseProxies;
+      ) (filterAttrs (_: hostCfg: hostCfg.enable && hostCfg.https) cfg.reverseProxies);
 
     # Add nginx user to www-data group
     users.groups."www-data".members = [ "nginx" ];

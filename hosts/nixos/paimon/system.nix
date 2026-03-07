@@ -109,14 +109,36 @@
         checkpointsDir = "/xpool/llm/fish-speech/checkpoints";
       };
 
-      ollama = {
+      vllm = {
         enable = true;
-        acceleration = "cuda";
-        modelDir = "/xpool/llm/ollama/models";
-        loadModels = [
-          "hf.co/Qwen/Qwen3-VL-8B-Instruct-GGUF:Q4_K_M"
-          "hf.co/unsloth/GLM-4.7-Flash-GGUF:Q4_K_XL"
-        ];
+        cuda = true;
+        cacheDir = "/xpool/llm/vllm-cache";
+        imageTag = "latest-cu130";
+
+        instances = {
+          qwen-chat = {
+            model = "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4";
+            port = 8000;
+            gpuMemoryUtilization = 0.74;
+            maxModelLen = 131072;
+            maxNumSeqs = 8;
+            quantization = "gptq_marlin";
+            dtype = "bfloat16";
+            reasoningParser = "qwen3";
+            enablePrefixCaching = true;
+            enableChunkedPrefill = true;
+            kvCacheDtype = "fp8";
+            maxNumBatchedTokens = 2096;
+          };
+
+          embeddings = {
+            model = "Qwen/Qwen3-Embedding-0.6B";
+            port = 8001;
+            gpuMemoryUtilization = 0.05;
+            maxModelLen = 8192;
+            maxNumSeqs = 64;
+          };
+        };
       };
 
       open-webui = {
@@ -139,6 +161,13 @@
               sha256 = "sha256-qty11SyWzNgxkOsUvy1BUI5NgydUdXN1V6p7FvHhvTk=";
             }).outPath;
           splash = favicon;
+        };
+
+        # Use vLLM for embeddings (accepts 2560-d vectors, replacing existing 1536-d)
+        embedding = {
+          engine = "openai";
+          model = "Qwen/Qwen3-Embedding-4B";
+          openaiBaseUrl = "http://127.0.0.1:8001/v1";
         };
       };
 

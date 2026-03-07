@@ -26,11 +26,9 @@ let
         ollama
         litellm
         ;
-    }
-    // (lib.genAttrs [ "vllm" ] (name: adapt prev.unstable.${pythonPackagesName}.${name}));
+    };
 in
 {
-  # Non-Python packages pulled directly from unstable
   inherit (prev.unstable)
     ollama-cuda
     ollama-rocm
@@ -38,7 +36,6 @@ in
     docling
     docling-serve
     litellm
-    vllm
     ;
 
   pythonPackagesExtensions = (prev.pythonPackagesExtensions or [ ]) ++ [
