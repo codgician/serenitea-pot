@@ -160,9 +160,9 @@
 
         # Use vLLM for embeddings (accepts 2560-d vectors, replacing existing 1536-d)
         embedding = {
-          engine = "openai";
-          model = "Qwen/Qwen3-Embedding-4B";
-          openaiBaseUrl = "http://127.0.0.1:8001/v1";
+          engine = "vllm";
+          model = "Qwen/Qwen3-Embedding-0.6B";
+          vllm.instance = "embeddings";
         };
       };
 

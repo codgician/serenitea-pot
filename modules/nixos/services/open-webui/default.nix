@@ -17,6 +17,7 @@ let
       "${cfg.host}:${builtins.toString cfg.port}";
 
   ollamaCfg = config.codgician.services.ollama;
+  vllmCfg = config.codgician.services.vllm;
   ollamaEmbeddingModel = "hf.co/Qwen/Qwen3-Embedding-4B-GGUF:Q4_K_M";
   pgDbName = "open-webui";
   pgDbHost = "/run/postgresql";
@@ -81,13 +82,28 @@ let
     ENABLE_SEARCH_QUERY = "True";
     ENABLE_RAG_WEB_SEARCH = "True";
     RAG_WEB_SEARCH_ENGINE = "google_pse";
-    RAG_EMBEDDING_ENGINE = cfg.embedding.engine;
+    RAG_EMBEDDING_ENGINE = if cfg.embedding.engine == "vllm" then "openai" else cfg.embedding.engine;
     RAG_EMBEDDING_MODEL = cfg.embedding.model;
     RAG_OLLAMA_BASE_URL = lib.mkIf (
       cfg.embedding.engine == "ollama"
     ) "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
-    RAG_OPENAI_API_BASE_URL = lib.mkIf (cfg.embedding.engine == "openai") cfg.embedding.openaiBaseUrl;
-    RAG_OPENAI_API_KEY = lib.mkIf (cfg.embedding.engine == "openai") cfg.embedding.openaiApiKey;
+    RAG_OPENAI_API_BASE_URL =
+      if cfg.embedding.engine == "openai" then
+        cfg.embedding.openai.baseUrl
+      else if cfg.embedding.engine == "vllm" && cfg.embedding.vllm.instance != null then
+        let
+          inst = vllmCfg.instances.${cfg.embedding.vllm.instance};
+        in
+        "http://${inst.host}:${builtins.toString inst.port}/v1"
+      else
+        null;
+    RAG_OPENAI_API_KEY =
+      if cfg.embedding.engine == "openai" then
+        cfg.embedding.openai.apiKey
+      else if cfg.embedding.engine == "vllm" then
+        cfg.embedding.vllm.apiKey
+      else
+        null;
     RAG_TOP_K = "5";
     RAG_TOP_K_RERANKER = "5";
     RAG_RELEVANCE_THRESHOLD = "0.3";
@@ -199,12 +215,14 @@ in
             type = types.enum [
               "ollama"
               "openai"
+              "vllm"
             ];
             default = "ollama";
             description = ''
               Embedding backend engine for RAG.
               - "ollama": Use Ollama embeddings (requires ollama service enabled)
-              - "openai": Use OpenAI-compatible embeddings (e.g., vLLM with OpenAI API)
+              - "openai": Use OpenAI-compatible embeddings with manual URL configuration
+              - "vllm": Use vLLM embeddings (auto-configures URL from vLLM instance)
             '';
           };
 
@@ -213,25 +231,58 @@ in
             default = ollamaEmbeddingModel;
             description = ''
               Embedding model to use. Default preserves Ollama behavior.
-              For openai engine, use e.g. "Qwen/Qwen3-Embedding-4B".
+              For openai/vllm engine, use e.g. "Qwen/Qwen3-Embedding-4B".
             '';
           };
 
-          openaiBaseUrl = lib.mkOption {
-            type = with types; nullOr str;
-            default = null;
-            description = ''
-              OpenAI-compatible API base URL for embeddings.
-              Required when engine = "openai". Example: http://127.0.0.1:8001/v1
-            '';
+          openai = lib.mkOption {
+            type = types.submodule {
+              options = {
+                baseUrl = lib.mkOption {
+                  type = with types; nullOr str;
+                  default = null;
+                  description = ''
+                    OpenAI-compatible API base URL for embeddings.
+                    Required when engine = "openai". Example: http://127.0.0.1:8001/v1
+                  '';
+                };
+
+                apiKey = lib.mkOption {
+                  type = types.str;
+                  default = "no_api_key";
+                  description = ''
+                    API key for OpenAI-compatible embedding endpoint.
+                  '';
+                };
+              };
+            };
+            default = { };
+            description = "OpenAI-compatible embedding configuration (for engine = 'openai').";
           };
 
-          openaiApiKey = lib.mkOption {
-            type = types.str;
-            default = "no_api_key";
-            description = ''
-              API key for OpenAI-compatible embedding endpoint.
-            '';
+          vllm = lib.mkOption {
+            type = types.submodule {
+              options = {
+                instance = lib.mkOption {
+                  type = with types; nullOr str;
+                  default = null;
+                  example = "embedding";
+                  description = ''
+                    Name of the vLLM instance to use for embeddings.
+                    The endpoint URL will be automatically configured from the instance's host and port.
+                    Required when engine = "vllm".
+                  '';
+                };
+
+                apiKey = lib.mkOption {
+                  type = types.str;
+                  default = "no_api_key";
+                  description = "API key for vLLM embedding endpoint.";
+                };
+              };
+            };
+            default = { };
+            description = "vLLM embedding configuration (for engine = 'vllm').";
           };
         };
       };
@@ -273,8 +324,18 @@ in
     (lib.mkIf cfg.enable {
       assertions = [
         {
-          assertion = cfg.embedding.engine != "openai" || cfg.embedding.openaiBaseUrl != null;
-          message = "codgician.services.open-webui.embedding.openaiBaseUrl is required when embedding.engine is 'openai'";
+          assertion = cfg.embedding.engine != "openai" || cfg.embedding.openai.baseUrl != null;
+          message = "codgician.services.open-webui.embedding.openai.baseUrl is required when embedding.engine is 'openai'";
+        }
+        {
+          assertion = cfg.embedding.engine != "vllm" || cfg.embedding.vllm.instance != null;
+          message = "codgician.services.open-webui.embedding.vllm.instance is required when embedding.engine is 'vllm'";
+        }
+        {
+          assertion =
+            cfg.embedding.engine != "vllm"
+            || (cfg.embedding.vllm.instance != null && vllmCfg.instances ? ${cfg.embedding.vllm.instance});
+          message = "codgician.services.open-webui.embedding.vllm.instance must reference a valid vLLM instance defined in codgician.services.vllm.instances";
         }
       ];
       # Add embedding model to ollama
