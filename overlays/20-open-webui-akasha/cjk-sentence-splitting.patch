@@ -1,0 +1,43 @@
+diff --git a/src/lib/utils/index.ts b/src/lib/utils/index.ts
+index 265c47cec2d..fcf7ff203c1 100644
+--- a/src/lib/utils/index.ts
++++ b/src/lib/utils/index.ts
+@@ -882,6 +882,8 @@ export const processDetails = (content) => {
+ 
+ // This regular expression matches code blocks marked by triple backticks
+ const codeBlockRegex = /```[\s\S]*?```/g;
++const CJK_REGEX = /[\u3040-\u30ff\u31f0-\u31ff\u3400-\u9fff\uAC00-\uD7AF\uF900-\uFAFF]/;
++const CJK_CHAR_DENSITY_MULTIPLIER = 10;
+ 
+ export const extractSentences = (text: string) => {
+ 	const codeBlocks: string[] = [];
+@@ -894,8 +896,9 @@ export const extractSentences = (text: string) => {
+ 		return placeholder;
+ 	});
+ 
+-	// Split the modified text into sentences based on common punctuation marks or newlines, avoiding these blocks
+-	let sentences = text.split(/(?<=[.!?])\s+|\n+/);
++	// Split the modified text into sentences based on common punctuation marks, avoiding these blocks
++	// Use optional whitespace for CJK punctuation because text often omits spaces after these marks
++	let sentences = text.split(/(?<=[.!?])\s+|(?<=[。！？])\s*/);
+ 
+ 	// Restore code blocks and process sentences
+ 	sentences = sentences.map((sentence) => {
+@@ -934,8 +937,15 @@ export const extractSentencesForAudio = (text: string) => {
+ 		const lastIndex = mergedTexts.length - 1;
+ 		if (lastIndex >= 0) {
+ 			const previousText = mergedTexts[lastIndex];
+-			const wordCount = previousText.split(/\s+/).length;
+-			const charCount = previousText.length;
++			let wordCount = previousText.split(/\s+/).length;
++			let charCount = previousText.length;
++
++			const isCJK = CJK_REGEX.test(previousText);
++			if (isCJK) {
++				// Treat CJK content as denser because it lacks whitespace delimiters
++				wordCount = charCount;
++				charCount = charCount * CJK_CHAR_DENSITY_MULTIPLIER;
++			}
+ 			if (wordCount < 4 || charCount < 50) {
+ 				mergedTexts[lastIndex] = previousText + ' ' + currentText;
+ 			} else {

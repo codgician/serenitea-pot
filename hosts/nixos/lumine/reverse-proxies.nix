@@ -45,7 +45,7 @@
       proxyPass = "https://192.168.0.22";
     };
 
-    fish-speech.gradio.reverseProxy = {
+    cosyvoice.reverseProxy = {
       enable = true;
       domains = [ "voice.codgician.me" ];
       proxyPass = "https://192.168.0.22";

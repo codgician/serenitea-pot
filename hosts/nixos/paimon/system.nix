@@ -86,27 +86,22 @@
         };
       };
 
-      fish-speech = {
+      cosyvoice = {
         enable = true;
-        backend = "container";
-        gradio = {
+        voicesDir = "/xpool/llm/cosyvoice/voices";
+        reverseProxy = {
           enable = true;
-          reverseProxy = {
+          authelia = {
             enable = true;
-            authelia = {
-              enable = true;
-              rules = [
-                {
-                  groups = [ "voice" ];
-                  policy = "two_factor";
-                }
-              ];
-            };
-            domains = [ "voice.codgician.me" ];
+            rules = [
+              {
+                groups = [ "voice" ];
+                policy = "two_factor";
+              }
+            ];
           };
+          domains = [ "voice.codgician.me" ];
         };
-        referencesDir = "/xpool/llm/fish-speech/references";
-        checkpointsDir = "/xpool/llm/fish-speech/checkpoints";
       };
 
       vllm = {
@@ -120,7 +115,7 @@
             model = "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4";
             port = 8000;
             gpuMemoryUtilization = 0.67;
-            maxModelLen = 131072;
+            maxModelLen = 262144;
             maxNumSeqs = 8;
             quantization = "gptq_marlin";
             dtype = "bfloat16";

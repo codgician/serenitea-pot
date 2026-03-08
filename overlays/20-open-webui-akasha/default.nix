@@ -5,8 +5,8 @@
 final: prev:
 let
   patches = [
-    # Add fish-speech support (#11230)
-    ./fish-speech.patch
+    # Improve CJK sentence splitting for TTS
+    ./cjk-sentence-splitting.patch
   ];
 
   # Patch branding

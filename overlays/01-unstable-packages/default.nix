@@ -13,6 +13,5 @@ final: prev: {
     antigravity
     zfs_unstable
     matrix-tuwunel
-    open-webui
     ;
 }
