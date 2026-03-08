@@ -7,16 +7,17 @@ on:
       - "main"
 jobs:
   flakehub-publish:
-    runs-on: "ubuntu-slim"
+    runs-on: "ubuntu-latest"
     permissions:
       id-token: "write"
       contents: "read"
     steps:
       - uses: "actions/checkout@v6"
-      - uses: "DeterminateSystems/nix-installer-action@main"
+      - uses: "DeterminateSystems/determinate-nix-action@v3"
       - uses: "DeterminateSystems/flakehub-push@main"
         with:
           name: "codgician/serenitea-pot"
           rolling: true
           visibility: "public"
           include-output-paths: false
+          my-flake-is-too-big: true
