@@ -102,7 +102,7 @@ in
           oracle.model = "dendro/gpt-5.4";
           librarian.model = "dendro/gemini-3-flash-preview";
           explore.model = "dendro/gemini-3-flash-preview";
-          multimodal-looker.model = "dendro/gpt-5.3-codex";
+          multimodal-looker.model = "dendro/gemini-3-flash-preview";
           metis.model = "dendro/claude-opus-4.6";
           momus.model = "dendro/gpt-5.4";
           atlas.model = "dendro/claude-sonnet-4.6";
