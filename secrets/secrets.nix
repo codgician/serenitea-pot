@@ -94,7 +94,7 @@ with pubKeys.hosts;
 
   # Open-WebUI secrets
   "open-webui-env.age".publicKeys = someHosts [ paimon ];
-  "open-terminal-api-key.age".publicKeys = someHosts [ paimon ];
+  "open-terminal-env.age".publicKeys = someHosts [ paimon ];
 
   # LiteLLM secrets
   "litellm-env.age".publicKeys = someHosts [

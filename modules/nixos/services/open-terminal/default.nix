@@ -1,6 +1,5 @@
 {
   config,
-  pkgs,
   lib,
   ...
 }:
@@ -42,11 +41,8 @@ in
         ports = [ "127.0.0.1:${builtins.toString cfg.port}:8000" ];
         volumes = [
           "${cfg.dataDir}:/home/user:U"
-          "${config.age.secrets.open-terminal-api-key.path}:/run/secrets/api-key:ro"
         ];
-        environment = {
-          OPEN_TERMINAL_API_KEY_FILE = "/run/secrets/api-key";
-        };
+        environmentFiles = [ config.age.secrets.open-terminal-env.path ];
         extraOptions = [ "--pull=newer" ];
       };
 

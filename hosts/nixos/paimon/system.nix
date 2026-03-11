@@ -32,6 +32,11 @@
         dataDir = "/xpool/appdata/mcpo";
       };
 
+      open-terminal = {
+        enable = true;
+        port = 8020;
+      };
+
       # Auth
       authelia.instances.main = {
         enable = true;
