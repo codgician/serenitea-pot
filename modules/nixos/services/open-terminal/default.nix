@@ -15,9 +15,8 @@ let
   tomlFormat = pkgs.formats.toml { };
 
   # Configuration with ._secret for API key
+  # Note: use container defaults (0.0.0.0:8000) inside, only remap port on host
   settings = {
-    host = cfg.host;
-    port = cfg.port;
     api_key._secret = config.age.secrets.open-terminal-api-key.path;
   }
   // cfg.settings;
@@ -78,7 +77,7 @@ in
       virtualisation.oci-containers.containers.open-terminal = {
         autoStart = true;
         image = "ghcr.io/open-webui/open-terminal:latest";
-        ports = [ "${cfg.host}:${builtins.toString cfg.port}:${builtins.toString cfg.port}" ];
+        ports = [ "${cfg.host}:${builtins.toString cfg.port}:8000" ];
         volumes = [
           "${cfg.dataDir}:/home/user:U"
           "/run/${serviceName}/config.toml:/etc/open-terminal/config.toml:ro"
