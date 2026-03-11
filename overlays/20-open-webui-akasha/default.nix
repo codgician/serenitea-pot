@@ -33,7 +33,7 @@ in
     in
     {
       # Add all optional dependencies
-      dependencies = oldAttrs.dependencies ++ oldAttrs.optional-dependencies.all;
+      dependencies = oldAttrs.dependencies ++ oldAttrs.optional-dependencies.postgres;
 
       # Apply patches to backend
       patches = (if (oldAttrs ? patches) then oldAttrs.patches else [ ]) ++ patches;

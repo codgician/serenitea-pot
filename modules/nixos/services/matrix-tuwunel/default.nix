@@ -149,15 +149,13 @@ in
         "d ${cfg.dataPath} 0700 ${serviceUser} ${serviceUser} -"
       ];
 
-      # Persist data directory if using impermanence
-      codgician.system.impermanence.extraItems = [
-        {
-          type = "directory";
-          path = cfg.dataPath;
-          user = serviceUser;
-          group = serviceUser;
-        }
-      ];
+      # Persist data directory if using impermanence (only for default path)
+      codgician.system.impermanence.extraItems = lib.optional (cfg.dataPath == "/var/lib/tuwunel") {
+        type = "directory";
+        path = cfg.dataPath;
+        user = serviceUser;
+        group = serviceUser;
+      };
     })
 
     # Reverse proxy profile (can be enabled independently for external proxies)

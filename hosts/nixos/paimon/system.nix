@@ -32,10 +32,7 @@
         dataDir = "/xpool/appdata/mcpo";
       };
 
-      open-terminal = {
-        enable = true;
-        port = 8020;
-      };
+      open-terminal.enable = true;
 
       # Auth
       authelia.instances.main = {
@@ -117,7 +114,7 @@
 
         instances = {
           qwen-chat = {
-            model = "Qwen/Qwen3.5-35B-A3B-GPTQ-Int4";
+            model = "codgician/Qwen3.5-35B-A3B-Claude-4.6-Opus-Reasoning-Distilled-GPTQ-int4";
             port = 8000;
             gpuMemoryUtilization = 0.67;
             maxModelLen = 262144;

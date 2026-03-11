@@ -18,7 +18,6 @@ let
 
   ollamaCfg = config.codgician.services.ollama;
   vllmCfg = config.codgician.services.vllm;
-  openTerminalCfg = config.codgician.services.open-terminal;
   ollamaEmbeddingModel = "hf.co/Qwen/Qwen3-Embedding-4B-GGUF:Q4_K_M";
   pgDbName = "open-webui";
   pgDbHost = "/run/postgresql";
@@ -319,25 +318,7 @@ in
           DynamicUser = lib.mkForce false;
           User = serviceName;
           Group = serviceName;
-
-          # Runtime directory for generated env files
-          RuntimeDirectory = serviceName;
-        }
-        // lib.optionalAttrs openTerminalCfg.enable {
-          # Load generated terminal server connections
-          EnvironmentFile = [ "/run/${serviceName}/terminal.env" ];
         };
-
-        # Generate TERMINAL_SERVER_CONNECTIONS from open-terminal secret
-        preStart = lib.mkIf openTerminalCfg.enable (
-          lib.mkBefore ''
-            # Read API key from open-terminal env file and construct JSON
-            API_KEY=$(grep -oP '^OPEN_TERMINAL_API_KEY=\K.*' ${config.age.secrets.open-terminal-env.path} || echo "")
-            if [ -n "''${API_KEY}" ]; then
-              echo "TERMINAL_SERVER_CONNECTIONS=[{\"name\":\"Open Terminal\",\"url\":\"http://127.0.0.1:${toString openTerminalCfg.port}\",\"api_key\":\"''${API_KEY}\"}]" > /run/${serviceName}/terminal.env
-            fi
-          ''
-        );
       };
     })
 
