@@ -65,7 +65,6 @@
             ghidra
             prismlauncher-unwrapped
             macmon
-            codex
             claude-code
             beads
             mtk-uartboot

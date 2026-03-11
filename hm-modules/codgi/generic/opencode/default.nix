@@ -62,6 +62,7 @@ in
             "*git push*" = "ask";
             "sudo*" = "ask";
             "/nix/store*" = "ask";
+            "brew*" = "ask";
           };
           list = {
             "*" = "allow";
