@@ -245,6 +245,9 @@ let
         image = "vllm/vllm-openai:${cfg.imageTag}";
         environment = {
           VLLM_NO_USAGE_STATS = "1";
+          # Improve HuggingFace download reliability
+          HF_HUB_ENABLE_HF_TRANSFER = "1";
+          HF_HUB_DOWNLOAD_TIMEOUT = "600";
         }
         // c.environmentVariables;
         volumes = [ "${cfg.cacheDir}:/root/.cache/huggingface:rw" ];
