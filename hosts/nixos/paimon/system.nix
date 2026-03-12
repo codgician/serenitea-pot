@@ -242,7 +242,7 @@
       impermanence = {
         enable = true;
         wipeOnShutdown.zfs = {
-          enable = false; # todo: enable in the future
+          enable = true; 
           datasets = [ "zroot/root" ];
         };
       };
