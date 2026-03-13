@@ -10,18 +10,22 @@ let
   types = lib.types;
   defaultStateDir = "/var/lib/${serviceName}";
 
-  environment = {
-    DOCLING_SERVE_ARTIFACTS_PATH = lib.mkIf (cfg.artifactsDir != null) (
-      if cfg.backend == "nixpkgs" then cfg.artifactsDir else "/opt/app-root/src/models"
-    );
-    DOCLING_SERVE_ENABLE_UI = "true";
-    DOCLING_SERVE_ENABLE_REMOTE_SERVICES = "true";
-    DOCLING_SERVE_ALLOW_EXTERNAL_PLUGINS = "true";
-    DOCLING_SERVE_SINGLE_USE_RESULTS = "true";
-    DOCLING_SERVE_MAX_SYNC_WAIT = "1200"; # 20 minutes
-    DOCLING_SERVE_RESULT_REMOVAL_DELAY = "600"; # 10 minutes
-    DOCLING_DEVICE = "cuda:0";
-  };
+  environment =
+    let
+      artifactsPath = if cfg.backend == "nixpkgs" then cfg.artifactsDir else "/opt/app-root/src/models";
+    in
+    {
+      DOCLING_SERVE_ARTIFACTS_PATH = lib.mkIf (cfg.artifactsDir != null) artifactsPath;
+      DOCLING_SERVE_ENABLE_UI = "true";
+      DOCLING_SERVE_ENABLE_REMOTE_SERVICES = "true";
+      DOCLING_SERVE_ALLOW_EXTERNAL_PLUGINS = "true";
+      DOCLING_SERVE_SINGLE_USE_RESULTS = "true";
+      DOCLING_SERVE_MAX_SYNC_WAIT = "1200"; # 20 minutes
+      DOCLING_SERVE_RESULT_REMOVAL_DELAY = "600"; # 10 minutes
+      DOCLING_DEVICE = cfg.device;
+      # HuggingFace hub cache - allows models downloaded with 'org--model' naming to be found
+      HF_HUB_CACHE = lib.mkIf (cfg.artifactsDir != null) artifactsPath;
+    };
 in
 {
   options.codgician.services.${serviceName} = {
@@ -43,6 +47,13 @@ in
       default = config.hardware.nvidia-container-toolkit.enable;
       defaultText = "config.hardware.nvidia-container-toolkit.enable";
       description = "Enable CUDA support for ${serviceName}.";
+    };
+
+    device = lib.mkOption {
+      type = types.str;
+      default = if cfg.cuda then "cuda:0" else "cpu";
+      defaultText = ''if cuda then "cuda:0" else "cpu"'';
+      description = "Device for Docling inference (e.g., cuda:0, cpu).";
     };
 
     package = lib.mkPackageOption pkgs "docling-serve" { };
@@ -119,7 +130,7 @@ in
 
       # Ensure state directory exists (for custom paths)
       systemd.tmpfiles.rules = lib.mkIf (cfg.stateDir != defaultStateDir) [
-        "d ${cfg.stateDir} 0755 root root -"
+        "d ${cfg.stateDir} 0750 docling-serve docling-serve -"
       ];
 
       # Persist state directory (only when using default location)
@@ -169,11 +180,6 @@ in
             "${cfg.host}"
           ];
         };
-
-      # Ensure state directory exists (for custom paths)
-      systemd.tmpfiles.rules = lib.mkIf (cfg.stateDir != defaultStateDir) [
-        "d ${cfg.stateDir} 0755 root root -"
-      ];
 
       # Persist state directory (only when using default location)
       codgician.system.impermanence.extraItems = lib.mkIf (cfg.stateDir == defaultStateDir) [

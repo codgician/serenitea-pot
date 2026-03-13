@@ -91,6 +91,11 @@ let
         lib.nameValuePair name (
           {
             inherit name;
+            # todo: implement fine grained control later
+            modalities = {
+              input = [ "text" "image" ];
+              output = [ "text" ];
+            };
           }
           // lib.optionalAttrs (variants != { }) { inherit variants; }
           // mkLimit (x.model_info or { })

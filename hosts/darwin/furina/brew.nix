@@ -70,7 +70,6 @@
     "element"
     "wireshark-app"
     "moonlight"
-    "rustdesk"
     "hopper-disassembler"
     "github-copilot-for-xcode"
     "insomnia"
@@ -78,7 +77,6 @@
     "obs"
     "obs-advanced-scene-switcher"
     "obs-backgroundremoval"
-    "opencode-desktop"
     "ibkr"
     "trader-workstation"
   ];
