@@ -114,18 +114,25 @@
 
         instances = {
           qwen-chat = {
-            model = "codgician/Qwen3.5-35B-A3B-Claude-4.6-Opus-Reasoning-Distilled-GPTQ-int4";
+            model = "QuantTrio/Qwen3.5-35B-A3B-AWQ";
             port = 8000;
             gpuMemoryUtilization = 0.67;
             maxModelLen = 262144;
             maxNumSeqs = 8;
-            quantization = "gptq_marlin";
-            dtype = "bfloat16";
-            reasoningParser = "qwen3";
-            enablePrefixCaching = true;
-            enableChunkedPrefill = true;
+            quantization = "awq_marlin";
             kvCacheDtype = "fp8";
             maxNumBatchedTokens = 2096;
+            reasoningParser = "qwen3";
+            toolCallParser = "qwen3_coder";
+            enablePrefixCaching = true;
+            enableChunkedPrefill = true;
+            trustRemoteCode = true;
+            environmentVariables = {
+              VLLM_USE_DEEP_GEMM = "0";
+              VLLM_USE_FLASHINFER_MOE_FP16 = "1";
+              VLLM_USE_FLASHINFER_SAMPLER = "0";
+            };
+            extraArgs = [ "--enable-expert-parallel" ];
           };
 
           embeddings = {
@@ -242,7 +249,7 @@
       impermanence = {
         enable = true;
         wipeOnShutdown.zfs = {
-          enable = true; 
+          enable = true;
           datasets = [ "zroot/root" ];
         };
       };

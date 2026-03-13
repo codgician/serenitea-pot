@@ -137,20 +137,9 @@ let
         };
 
         quantization = lib.mkOption {
-          type = types.nullOr (
-            types.enum [
-              "awq"
-              "gptq"
-              "gptq_marlin"
-              "fp8"
-              "gguf"
-              "bitsandbytes"
-              "marlin"
-              "moe_wna16"
-            ]
-          );
+          type = types.nullOr types.str;
           default = null;
-          description = "Quantization method.";
+          description = "Quantization method (e.g., awq, awq_marlin, gptq, gptq_marlin, fp8).";
         };
 
         tensorParallelSize = lib.mkOption {
