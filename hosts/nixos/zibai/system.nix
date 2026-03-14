@@ -21,7 +21,8 @@
             "force user" = "smb";
             "valid users" = "smb";
             "read only" = "no";
-            "guest ok" = "no";
+            "guest ok" = "yes";
+            "guest account" = "smb";
             "create mask" = "0640";
             "directory mask" = "0751";
           };

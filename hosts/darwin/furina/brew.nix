@@ -36,7 +36,6 @@
     "LocalSend" = 1661733229;
     "Hex Fiend" = 1342896380;
     "sing-box" = 6673731168;
-    "fullmoon" = 6727014156;
     "RetroArch" = 6499539433;
 
     "Userscripts" = 1463298887;
