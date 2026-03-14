@@ -106,6 +106,24 @@
         };
       };
 
+      mirofish = {
+        enable = true;
+        dataDir = "/xpool/llm/mirofish";
+        reverseProxy = {
+          enable = true;
+          domains = [ "astrolabe.codgician.me" ];
+          authelia = {
+            enable = true;
+            rules = [
+              {
+                groups = [ "astrolabe" ];
+                policy = "two_factor";
+              }
+            ];
+          };
+        };
+      };
+
       vllm = {
         enable = true;
         cuda = true;

@@ -104,6 +104,9 @@ with pubKeys.hosts;
     wanderer
   ];
 
+  # MiroFish secrets
+  "mirofish-env.age".publicKeys = someHosts [ paimon ];
+
   # Sing secrets
   "sing-ech-keys.age".publicKeys = publicServers;
   "sing-codgi-proxy-password.age".publicKeys = publicServers;
