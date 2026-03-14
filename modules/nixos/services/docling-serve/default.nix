@@ -12,10 +12,16 @@ let
 
   environment =
     let
-      artifactsPath = if cfg.backend == "nixpkgs" then cfg.artifactsDir else "/opt/app-root/src/models";
+      artifactsPath =
+        if cfg.backend == "nixpkgs" then cfg.artifactsDir else "/opt/app-root/src/artifacts";
+      hfCachePath = if cfg.backend == "nixpkgs" then cfg.hfCacheDir else "/opt/app-root/src/hf-cache";
     in
     {
-      DOCLING_SERVE_ARTIFACTS_PATH = lib.mkIf (cfg.artifactsDir != null) artifactsPath;
+      # If artifactsDir is set, use it for flat-format models (org--model/)
+      # If not set, explicitly unset to force HuggingFace standard loading
+      DOCLING_SERVE_ARTIFACTS_PATH = if cfg.artifactsDir != null then artifactsPath else "";
+      # HuggingFace hub cache for models in HF cache format (models--org--model/snapshots/...)
+      HF_HUB_CACHE = lib.mkIf (cfg.hfCacheDir != null) hfCachePath;
       DOCLING_SERVE_ENABLE_UI = "true";
       DOCLING_SERVE_ENABLE_REMOTE_SERVICES = "true";
       DOCLING_SERVE_ALLOW_EXTERNAL_PLUGINS = "true";
@@ -23,8 +29,6 @@ let
       DOCLING_SERVE_MAX_SYNC_WAIT = "1200"; # 20 minutes
       DOCLING_SERVE_RESULT_REMOVAL_DELAY = "600"; # 10 minutes
       DOCLING_DEVICE = cfg.device;
-      # HuggingFace hub cache - allows models downloaded with 'org--model' naming to be found
-      HF_HUB_CACHE = lib.mkIf (cfg.artifactsDir != null) artifactsPath;
     };
 in
 {
@@ -73,7 +77,13 @@ in
     artifactsDir = lib.mkOption {
       type = with types; nullOr path;
       default = null;
-      description = "Directory for ${serviceName} to store model artifacts.";
+      description = "Directory for pre-downloaded models in flat format (org--model/). If set, DOCLING_SERVE_ARTIFACTS_PATH will point here.";
+    };
+
+    hfCacheDir = lib.mkOption {
+      type = with types; nullOr path;
+      default = null;
+      description = "HuggingFace hub cache directory for models in HF cache format. Required for VLM pipeline.";
     };
 
     stateDir = lib.mkOption {
@@ -108,7 +118,13 @@ in
       };
 
       systemd.services.docling-serve.serviceConfig = {
-        ReadWritePaths = with cfg; ([ stateDir ] ++ lib.optional (cfg.artifactsDir != null) artifactsDir);
+        ReadWritePaths =
+          with cfg;
+          (
+            [ stateDir ]
+            ++ lib.optional (artifactsDir != null) artifactsDir
+            ++ lib.optional (hfCacheDir != null) hfCacheDir
+          );
 
         # Allow access to GPU
         SupplementaryGroups = [ "render" ]; # For ROCm
@@ -156,7 +172,7 @@ in
           autoStart = true;
           image =
             if cfg.cuda then
-              "ghcr.io/docling-project/docling-serve-cu128:latest"
+              "ghcr.io/docling-project/docling-serve-cu130:latest"
             else
               "ghcr.io/docling-project/docling-serve:latest";
           volumes =
@@ -164,7 +180,8 @@ in
               "${ldSoConfFile}:/etc/ld.so.conf.d/00-system-libs.conf:ro"
             ]
             ++ [ "${cfg.stateDir}:/var/lib/docling-serve:U" ]
-            ++ lib.optional (cfg.artifactsDir != null) "${cfg.artifactsDir}:/opt/app-root/src/models:U";
+            ++ lib.optional (cfg.artifactsDir != null) "${cfg.artifactsDir}:/opt/app-root/src/artifacts:U"
+            ++ lib.optional (cfg.hfCacheDir != null) "${cfg.hfCacheDir}:/opt/app-root/src/hf-cache:U";
           inherit environment;
           extraOptions = [
             "--pull=newer"

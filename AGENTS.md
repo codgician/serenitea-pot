@@ -24,7 +24,8 @@ nix run .#tfmgr -- plan  # Terraform preview
 - Claim "done" without verification output
 
 ### ALWAYS
-- Run `nix fmt && nix flake check` before presenting changes
+- Run `nix fmt` before presenting changes
+- Run `nix flake check` to validate changes. If the user ask you to switch to new config, you can run nixos-rebuild directly instead.
 - Run `git add` before `nix eval/build` (flakes only see tracked files)
 - Show command output when claiming completion
 - Check the need of adding impermanence and systemd.tmpfiles.rules lines when adding new NixOS service modules

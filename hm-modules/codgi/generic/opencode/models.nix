@@ -93,7 +93,10 @@ let
             inherit name;
             # todo: implement fine grained control later
             modalities = {
-              input = [ "text" "image" ];
+              input = [
+                "text"
+                "image"
+              ];
               output = [ "text" ];
             };
           }

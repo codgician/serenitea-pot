@@ -72,7 +72,7 @@
       docling-serve = {
         enable = true;
         backend = "container";
-        artifactsDir = "/xpool/llm/docling-serve/artifacts";
+        hfCacheDir = "/xpool/llm/docling-serve/hf-cache";
         reverseProxy = {
           enable = true;
           authelia = {
