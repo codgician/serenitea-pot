@@ -1,5 +1,8 @@
 { config, pkgs, ... }:
 {
+  # Agenix secrets
+  codgician.system.agenix.secrets.saw-basic-auth.owner = "nginx";
+
   codgician.services = {
     # Global Anubis configuration
     anubis = {
