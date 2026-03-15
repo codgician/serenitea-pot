@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 {
   codgician.services = {
     # Global Anubis configuration
@@ -134,6 +134,7 @@
             extraConfig = ''
               client_max_body_size 128M;
               proxy_buffering off;
+              include ${config.age.secrets.saw-basic-auth.path};
             '';
           };
         };

@@ -128,6 +128,9 @@ with pubKeys.hosts;
   "wg-private-key-qiaoying.age".publicKeys = someHosts [ ];
   "wg-private-key-xianyun.age".publicKeys = someHosts [ xianyun ];
 
+  # PiKVM Basic Auth
+  "saw-basic-auth.age".publicKeys = someHosts [ lumine ];
+
   # WireGuard preshared keys
   "wg-preshared-key-furina-lumine.age".publicKeys = someHosts [
     furina

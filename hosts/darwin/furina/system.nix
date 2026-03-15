@@ -69,6 +69,7 @@
             beads
             mtk-uartboot
             mas
+            sshpass
           ]
           ++ (with pkgs.nur.repos.codgician; [
             droid
