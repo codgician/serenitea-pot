@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -203,6 +204,18 @@ let
           description = "Disable statistics logging.";
         };
 
+        warmupOnStart = lib.mkOption {
+          type = types.bool;
+          default = false;
+          description = "Send a warmup request after startup to pre-compile JIT kernels.";
+        };
+
+        warmupTimeout = lib.mkOption {
+          type = types.int;
+          default = 300;
+          description = "Timeout in seconds to wait for server ready before warmup (default: 5 minutes).";
+        };
+
         environmentVariables = lib.mkOption {
           type = types.attrsOf types.str;
           default = { };
@@ -300,6 +313,33 @@ in
 
     # OCI containers
     virtualisation.oci-containers.containers = lib.mkMerge (map mkContainer instances);
+
+    # Warmup for instances with warmupOnStart enabled
+    systemd.services = lib.mkMerge (
+      map (
+        name:
+        let
+          c = cfg.instances.${name};
+          containerService = "podman-${serviceName}-${name}";
+          modelName = if c.servedModelName != null then c.servedModelName else c.model;
+          endpoint = "http://${c.host}:${toString c.port}";
+          retries = toString (c.warmupTimeout / 5);
+        in
+        lib.mkIf c.warmupOnStart {
+          "${containerService}".serviceConfig.ExecStartPost = [
+            (pkgs.writeShellScript "vllm-warmup-${name}" ''
+              for i in $(seq 1 ${retries}); do
+                ${pkgs.curl}/bin/curl -sf ${endpoint}/health && \
+                ${pkgs.curl}/bin/curl -sf ${endpoint}/v1/chat/completions \
+                  -H "Content-Type: application/json" \
+                  -d '{"model":"${modelName}","messages":[{"role":"user","content":"warmup"}],"max_tokens":1}' && exit 0
+                sleep 5
+              done
+            '')
+          ];
+        }
+      ) instances
+    );
 
     # Reverse proxy
     codgician.services.nginx = lib.mkMerge (

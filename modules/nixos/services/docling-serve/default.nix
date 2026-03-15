@@ -172,7 +172,7 @@ in
           autoStart = true;
           image =
             if cfg.cuda then
-              "ghcr.io/docling-project/docling-serve-cu130:latest"
+              "ghcr.io/docling-project/docling-serve-cu130:main"
             else
               "ghcr.io/docling-project/docling-serve:latest";
           volumes =

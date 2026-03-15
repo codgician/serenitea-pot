@@ -145,6 +145,7 @@
             enablePrefixCaching = true;
             enableChunkedPrefill = true;
             trustRemoteCode = true;
+            warmupOnStart = true;
             environmentVariables = {
               VLLM_USE_DEEP_GEMM = "0";
               VLLM_USE_FLASHINFER_MOE_FP16 = "1";
