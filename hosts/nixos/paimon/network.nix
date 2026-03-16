@@ -1,7 +1,7 @@
 { pkgs, ... }:
 let
-  pciBase = "0000:43:00";
-  devName = "enp67s0";
+  pciBase = "0000:c1:00";
+  devName = "enp193s0";
   getPfBase = x: "${devName}f${builtins.toString x}";
   getPfName = x: "${getPfBase x}np${builtins.toString x}";
   getVfName = x: y: "${getPfBase x}v${builtins.toString y}";
@@ -14,7 +14,7 @@ in
   '';
 
   systemd.services.mlx5-sriov = {
-    description = "Set up VFs for Mellanox ConnectX-5 NIC.";
+    description = "Set up VFs for Mellanox ConnectX-6 Dx NIC.";
     before = [ "network-pre.target" ];
     wantedBy = [
       "network-pre.target"
@@ -31,24 +31,38 @@ in
     };
     serviceConfig.Type = "oneshot";
 
-    # Doc: https://docs.nvidia.com/networking/display/mlnxofedv24100700/ovs+offload+using+asap²+direct
+    # Reference: https://gist.github.com/Kamillaova/287c242c57aadc548efdb763243c13c4
+    # Sequence: switchdev on ALL PFs -> esw_multiport -> create VFs
     script = ''
       DEV_NAME=${getPfName 0}
+      DEV_NAME_PF1=${getPfName 1}
       DEV_PCIBASE=${pciBase}
 
-      # Wait for device to appear
+      # Wait for both PF devices to appear
       for i in {1..100}; do
-        if [ -e "/sys/class/net/$DEV_NAME" ]; then
+        if [ -e "/sys/class/net/$DEV_NAME" ] && [ -e "/sys/class/net/$DEV_NAME_PF1" ]; then
           break
         fi
         sleep 0.1
       done
 
-      # Set number of VFs
-      echo "Creating 6 VFs for $DEV_NAME ..."
+      # Step 1: Set eSwitch mode to switchdev on BOTH PFs
+      echo "Setting eSwitch mode to switchdev on both PFs ..."
+      devlink dev eswitch set pci/''${DEV_PCIBASE}.0 mode switchdev
+      devlink dev eswitch set pci/''${DEV_PCIBASE}.1 mode switchdev
+
+      # Step 2: Enable esw_multiport via devlink on BOTH PFs
+      echo "Enabling esw_multiport on both PFs ..."
+      devlink dev param set pci/''${DEV_PCIBASE}.0 name esw_multiport value 1 cmode runtime
+      devlink dev param set pci/''${DEV_PCIBASE}.1 name esw_multiport value 1 cmode runtime
+      echo "esw_multiport PF0: $(devlink dev param show pci/''${DEV_PCIBASE}.0 name esw_multiport 2>&1 | grep -o 'value [a-z]*' | tail -1)"
+      echo "esw_multiport PF1: $(devlink dev param show pci/''${DEV_PCIBASE}.1 name esw_multiport 2>&1 | grep -o 'value [a-z]*' | tail -1)"
+
+      # Step 3: Create VFs on PF0
+      echo "Creating 6 VFs on $DEV_NAME ..."
       echo 6 > /sys/class/net/$DEV_NAME/device/sriov_numvfs
 
-      # Set MAC addresses for VFs
+      # Step 4: Set MAC addresses for VFs
       echo "Setting MAC addresses for VFs ..."
       ip link set $DEV_NAME vf 0 mac ac:79:86:9a:13:02
       ip link set $DEV_NAME vf 1 mac ac:79:86:2a:81:da
@@ -57,31 +71,24 @@ in
       ip link set $DEV_NAME vf 4 mac ac:79:86:32:a1:21
       ip link set $DEV_NAME vf 5 mac ac:79:86:7e:27:1f
 
-      # Unbind VFs
+      # Step 5: Unbind VFs (so they can be assigned to VMs/containers)
       echo "Unbinding VFs from driver ..."
-      echo ''${DEV_PCIBASE}.2 > /sys/bus/pci/drivers/mlx5_core/unbind
-      echo ''${DEV_PCIBASE}.3 > /sys/bus/pci/drivers/mlx5_core/unbind
-      echo ''${DEV_PCIBASE}.4 > /sys/bus/pci/drivers/mlx5_core/unbind
-      echo ''${DEV_PCIBASE}.5 > /sys/bus/pci/drivers/mlx5_core/unbind
-      echo ''${DEV_PCIBASE}.6 > /sys/bus/pci/drivers/mlx5_core/unbind
-      echo ''${DEV_PCIBASE}.7 > /sys/bus/pci/drivers/mlx5_core/unbind
+      echo ''${DEV_PCIBASE}.2 > /sys/bus/pci/drivers/mlx5_core/unbind 2>/dev/null || true
+      echo ''${DEV_PCIBASE}.3 > /sys/bus/pci/drivers/mlx5_core/unbind 2>/dev/null || true
+      echo ''${DEV_PCIBASE}.4 > /sys/bus/pci/drivers/mlx5_core/unbind 2>/dev/null || true
+      echo ''${DEV_PCIBASE}.5 > /sys/bus/pci/drivers/mlx5_core/unbind 2>/dev/null || true
+      echo ''${DEV_PCIBASE}.6 > /sys/bus/pci/drivers/mlx5_core/unbind 2>/dev/null || true
+      echo ''${DEV_PCIBASE}.7 > /sys/bus/pci/drivers/mlx5_core/unbind 2>/dev/null || true
 
-      # Set DMFS
-      devlink dev param set pci/''${DEV_PCIBASE}.0 name flow_steering_mode value "dmfs" cmode runtime
-      devlink dev param set pci/''${DEV_PCIBASE}.1 name flow_steering_mode value "dmfs" cmode runtime
+      # Step 6: Bind first two VFs to host
+      echo "Binding first two VFs to host ..."
+      echo ''${DEV_PCIBASE}.2 > /sys/bus/pci/drivers/mlx5_core/bind 2>/dev/null || true
+      echo ''${DEV_PCIBASE}.3 > /sys/bus/pci/drivers/mlx5_core/bind 2>/dev/null || true
 
-      # Enable eSwitch
-      echo "Setting eSwitch mode to switchdev ..."
-      devlink dev eswitch set pci/''${DEV_PCIBASE}.0 mode switchdev
-      devlink dev eswitch set pci/''${DEV_PCIBASE}.1 mode switchdev
-
-      # Bind first VF to host
-      echo "Binding first VF to host ..."
-      echo ''${DEV_PCIBASE}.2 > /sys/bus/pci/drivers/mlx5_core/bind
-
-      # Bind second VF for container nahida
-      echo "Binding second VF to host ..."
-      echo ''${DEV_PCIBASE}.3 > /sys/bus/pci/drivers/mlx5_core/bind
+      # Report final state
+      echo "=== Final State ==="
+      echo "VFs: $(cat /sys/class/net/$DEV_NAME/device/sriov_numvfs)"
+      echo "esw_multiport: $(devlink dev param show pci/''${DEV_PCIBASE}.0 name esw_multiport 2>&1 | grep -o 'value [a-z]*' | tail -1)"
     '';
   };
 

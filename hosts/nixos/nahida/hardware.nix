@@ -3,7 +3,7 @@
   boot.isContainer = true;
 
   networking = {
-    interfaces.enp67s0f0v1.useDHCP = true;
+    interfaces.enp193s0f0v1.useDHCP = true;
 
     # Use systemd-resolved inside the container
     # Workaround for bug https://github.com/NixOS/nixpkgs/issues/162686

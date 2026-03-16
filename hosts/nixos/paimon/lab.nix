@@ -20,7 +20,7 @@ in
     autoStart = true;
     ephemeral = true;
     privateNetwork = true;
-    interfaces = [ "enp67s0f0v1" ];
+    interfaces = [ "enp193s0f0v1" ];
 
     path = outputs.nixosConfigurations.nahida.config.system.build.toplevel;
     bindMounts = {

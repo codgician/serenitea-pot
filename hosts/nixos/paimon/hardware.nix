@@ -77,15 +77,6 @@
   # Selfhost mlnx-ofed-nixos
   hardware.mlnx-ofed.enable = true;
 
-  # Force OFED mlx5_core over inbox driver
-  # The OFED module is in extraModulePackages but NixOS aggregateModules symlinks inbox first.
-  # Use depmod.d override to ensure OFED modules in extra/ take precedence over kernel/.
-  environment.etc."depmod.d/mlnx-ofed.conf".text = ''
-    # Override inbox Mellanox drivers with OFED versions
-    override mlx5_core * extra/mlnx-ofa_kernel/drivers/net/ethernet/mellanox/mlx5/core
-    override mlx5_ib * extra/mlnx-ofa_kernel/drivers/infiniband/hw/mlx5
-  '';
-
   # Specify boot-0 as the primary ESP partition
   boot.loader.efi.efiSysMountPoint = "/boot-0";
 
