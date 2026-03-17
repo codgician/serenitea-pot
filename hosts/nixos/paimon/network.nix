@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 let
   pciBase = "0000:c1:00";
   devName = "enp193s0";
@@ -6,15 +6,27 @@ let
   getPfName = x: "${getPfBase x}np${builtins.toString x}";
   getVfName = x: y: "${getPfBase x}v${builtins.toString y}";
   getVfRepName = x: y: "${getPfBase x}r${builtins.toString y}";
+
+  # VF configuration: index -> MAC address
+  vfMacs = [
+    "ac:79:86:9a:13:02"
+    "ac:79:86:2a:81:da"
+    "ac:79:86:28:02:91"
+    "ac:79:86:92:0b:af"
+    "ac:79:86:32:a1:21"
+    "ac:79:86:7e:27:1f"
+  ];
+  numVfs = builtins.length vfMacs;
+  hostVfs = 2; # Number of VFs to keep bound for host use
 in
 {
-  # Set up SRIOV VF before running openvswitch
+  # Trigger mlx5-sriov service when PF0 appears
   services.udev.extraRules = ''
     ACTION=="add|move", SUBSYSTEM=="net", NAME=="${getPfName 0}", TAG+="systemd", ENV{SYSTEMD_WANTS}+="mlx5-sriov.service"
   '';
 
   systemd.services.mlx5-sriov = {
-    description = "Set up VFs for Mellanox ConnectX-6 Dx NIC.";
+    description = "Configure Mellanox ConnectX-6 Dx multiport eSwitch and SR-IOV VFs";
     before = [ "network-pre.target" ];
     wantedBy = [
       "network-pre.target"
@@ -31,65 +43,91 @@ in
     };
     serviceConfig.Type = "oneshot";
 
-    # Reference: https://gist.github.com/Kamillaova/287c242c57aadc548efdb763243c13c4
-    # Sequence: switchdev on ALL PFs -> esw_multiport -> create VFs
-    script = ''
-      DEV_NAME=${getPfName 0}
-      DEV_NAME_PF1=${getPfName 1}
-      DEV_PCIBASE=${pciBase}
+    # Multiport eSwitch setup sequence (per Mellanox ovs-tests reference):
+    # https://github.com/Mellanox/ovs-tests/blob/master/test-ovs-multiport-esw-mode.sh
+    #
+    # Prerequisites:
+    #   - LAG_RESOURCE_ALLOCATION=1 in firmware (mlxconfig)
+    #   - Both PFs start in legacy mode
+    #
+    # Order:
+    #   1. Set lag_port_select_mode=multiport_esw on BOTH PFs (legacy mode)
+    #   2. Switch BOTH PFs to switchdev mode
+    #   3. Enable esw_multiport (activates LAG with shared FDB)
+    #   4. Create VFs
+    script =
+      let
+        pf0 = getPfName 0;
+        pf1 = getPfName 1;
+        pci0 = "${pciBase}.0";
+        pci1 = "${pciBase}.1";
+        vfPciAddrs = map (i: "${pciBase}.${toString (i + 2)}") (lib.range 0 (numVfs - 1));
+        hostVfPciAddrs = lib.take hostVfs vfPciAddrs;
+        passthruVfPciAddrs = lib.drop hostVfs vfPciAddrs;
+      in
+      ''
+        set -euo pipefail
 
-      # Wait for both PF devices to appear
-      for i in {1..100}; do
-        if [ -e "/sys/class/net/$DEV_NAME" ] && [ -e "/sys/class/net/$DEV_NAME_PF1" ]; then
-          break
+        # Helper: set lag_port_select_mode via sysfs (preferred) or devlink
+        set_lag_mode() {
+          local dev=$1 pci=$2
+          echo multiport_esw > "/sys/class/net/$dev/compat/devlink/lag_port_select_mode" 2>/dev/null ||
+            devlink dev param set "pci/$pci" name lag_port_select_mode value multiport_esw cmode runtime 2>/dev/null ||
+            echo "WARNING: Failed to set lag_port_select_mode on $dev"
+        }
+
+        # Wait for both PFs to appear (up to 10s)
+        echo "Waiting for PF interfaces..."
+        for _ in {1..100}; do
+          [[ -e /sys/class/net/${pf0} && -e /sys/class/net/${pf1} ]] && break
+          sleep 0.1
+        done
+
+        # 1. Set lag_port_select_mode on BOTH PFs (must match for LAG)
+        echo "Setting lag_port_select_mode=multiport_esw on both PFs..."
+        set_lag_mode ${pf0} ${pci0}
+        set_lag_mode ${pf1} ${pci1}
+
+        # 2. Switch both PFs to switchdev mode
+        echo "Switching to switchdev mode..."
+        devlink dev eswitch set pci/${pci0} mode switchdev
+        devlink dev eswitch set pci/${pci1} mode switchdev
+
+        # 3. Enable multiport eSwitch (creates LAG with shared FDB)
+        echo "Enabling esw_multiport..."
+        if ! devlink dev param set pci/${pci0} name esw_multiport value true cmode runtime; then
+          echo "ERROR: Failed to enable esw_multiport"
+          echo "Hint: Check 'dmesg | grep -iE \"(lag|mpesw|shared_fdb)\"'"
+          exit 1
         fi
-        sleep 0.1
-      done
 
-      # Step 1: Set eSwitch mode to switchdev on BOTH PFs
-      echo "Setting eSwitch mode to switchdev on both PFs ..."
-      devlink dev eswitch set pci/''${DEV_PCIBASE}.0 mode switchdev
-      devlink dev eswitch set pci/''${DEV_PCIBASE}.1 mode switchdev
+        # 4. Create VFs on PF0
+        echo "Creating ${toString numVfs} VFs..."
+        echo ${toString numVfs} > /sys/class/net/${pf0}/device/sriov_numvfs
 
-      # Step 2: Enable esw_multiport via devlink on BOTH PFs
-      echo "Enabling esw_multiport on both PFs ..."
-      devlink dev param set pci/''${DEV_PCIBASE}.0 name esw_multiport value 1 cmode runtime
-      devlink dev param set pci/''${DEV_PCIBASE}.1 name esw_multiport value 1 cmode runtime
-      echo "esw_multiport PF0: $(devlink dev param show pci/''${DEV_PCIBASE}.0 name esw_multiport 2>&1 | grep -o 'value [a-z]*' | tail -1)"
-      echo "esw_multiport PF1: $(devlink dev param show pci/''${DEV_PCIBASE}.1 name esw_multiport 2>&1 | grep -o 'value [a-z]*' | tail -1)"
+        # 5. Set MAC addresses
+        echo "Configuring VF MAC addresses..."
+        ${lib.concatStringsSep "\n" (
+          lib.imap0 (i: mac: "ip link set ${pf0} vf ${toString i} mac ${mac}") vfMacs
+        )}
 
-      # Step 3: Create VFs on PF0
-      echo "Creating 6 VFs on $DEV_NAME ..."
-      echo 6 > /sys/class/net/$DEV_NAME/device/sriov_numvfs
+        # 6. Unbind passthrough VFs (for VM/container assignment)
+        echo "Unbinding passthrough VFs..."
+        ${lib.concatMapStringsSep "\n" (
+          addr: "echo ${addr} > /sys/bus/pci/drivers/mlx5_core/unbind 2>/dev/null || true"
+        ) passthruVfPciAddrs}
 
-      # Step 4: Set MAC addresses for VFs
-      echo "Setting MAC addresses for VFs ..."
-      ip link set $DEV_NAME vf 0 mac ac:79:86:9a:13:02
-      ip link set $DEV_NAME vf 1 mac ac:79:86:2a:81:da
-      ip link set $DEV_NAME vf 2 mac ac:79:86:28:02:91
-      ip link set $DEV_NAME vf 3 mac ac:79:86:92:0b:af
-      ip link set $DEV_NAME vf 4 mac ac:79:86:32:a1:21
-      ip link set $DEV_NAME vf 5 mac ac:79:86:7e:27:1f
+        # 7. Ensure host VFs are bound
+        echo "Binding host VFs..."
+        ${lib.concatMapStringsSep "\n" (
+          addr: "echo ${addr} > /sys/bus/pci/drivers/mlx5_core/bind 2>/dev/null || true"
+        ) hostVfPciAddrs}
 
-      # Step 5: Unbind VFs (so they can be assigned to VMs/containers)
-      echo "Unbinding VFs from driver ..."
-      echo ''${DEV_PCIBASE}.2 > /sys/bus/pci/drivers/mlx5_core/unbind 2>/dev/null || true
-      echo ''${DEV_PCIBASE}.3 > /sys/bus/pci/drivers/mlx5_core/unbind 2>/dev/null || true
-      echo ''${DEV_PCIBASE}.4 > /sys/bus/pci/drivers/mlx5_core/unbind 2>/dev/null || true
-      echo ''${DEV_PCIBASE}.5 > /sys/bus/pci/drivers/mlx5_core/unbind 2>/dev/null || true
-      echo ''${DEV_PCIBASE}.6 > /sys/bus/pci/drivers/mlx5_core/unbind 2>/dev/null || true
-      echo ''${DEV_PCIBASE}.7 > /sys/bus/pci/drivers/mlx5_core/unbind 2>/dev/null || true
-
-      # Step 6: Bind first two VFs to host
-      echo "Binding first two VFs to host ..."
-      echo ''${DEV_PCIBASE}.2 > /sys/bus/pci/drivers/mlx5_core/bind 2>/dev/null || true
-      echo ''${DEV_PCIBASE}.3 > /sys/bus/pci/drivers/mlx5_core/bind 2>/dev/null || true
-
-      # Report final state
-      echo "=== Final State ==="
-      echo "VFs: $(cat /sys/class/net/$DEV_NAME/device/sriov_numvfs)"
-      echo "esw_multiport: $(devlink dev param show pci/''${DEV_PCIBASE}.0 name esw_multiport 2>&1 | grep -o 'value [a-z]*' | tail -1)"
-    '';
+        # Report status
+        echo "=== Configuration Complete ==="
+        echo "VFs created: $(cat /sys/class/net/${pf0}/device/sriov_numvfs)"
+        echo "esw_multiport: $(devlink dev param show pci/${pci0} name esw_multiport 2>&1 | grep -oP 'value \K\w+' || echo unknown)"
+      '';
   };
 
   # Set route metric
@@ -169,7 +207,7 @@ in
         # PFs
         ${getPfName 0} = { };
         ${getPfName 1} = { };
-        # VFs
+        # VF representors
         ${getVfRepName 0 0} = { };
         ${getVfRepName 0 1} = { };
         ${getVfRepName 0 2} = { };
