@@ -129,6 +129,7 @@ in
           "/var/lib/pve-cluster"
           "/var/lib/pve-firewall"
           "/var/lib/pve-manager"
+          "/var/lib/rrdcached"
           "/var/lib/swtpm-localca"
         ];
   };

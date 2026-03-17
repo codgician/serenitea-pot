@@ -63,11 +63,6 @@ in
         autoStart = true;
         image = cfg.image;
 
-        ports = [
-          "${toString cfg.frontendPort}:3000"
-          "${toString cfg.backendPort}:5001"
-        ];
-
         volumes = [
           "${cfg.dataDir}/uploads:/app/backend/uploads:U"
         ];
@@ -75,6 +70,8 @@ in
         environment = {
           # Allow reverse proxy domains in Vite
           __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS = lib.concatStringsSep "," cfg.reverseProxy.domains;
+          # Set API base URL to empty string so axios uses relative paths (works with nginx proxy)
+          VITE_API_BASE_URL = "";
         }
         // cfg.environment;
 
@@ -82,6 +79,7 @@ in
 
         extraOptions = [
           "--pull=newer"
+          "--net=host"
         ];
       };
 
@@ -104,6 +102,12 @@ in
     {
       codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
         inherit serviceName cfg;
+        extraVhostConfig = {
+          # Proxy /api requests directly to backend
+          locations."/api/" = {
+            passthru.proxyPass = "http://127.0.0.1:${toString cfg.backendPort}";
+          };
+        };
       };
     }
   ];
