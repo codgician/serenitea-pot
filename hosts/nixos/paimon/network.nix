@@ -76,13 +76,6 @@ in
             echo "WARNING: Failed to set lag_port_select_mode on $dev"
         }
 
-        # Wait for both PFs to appear (up to 10s)
-        echo "Waiting for PF interfaces..."
-        for _ in {1..100}; do
-          [[ -e /sys/class/net/${pf0} && -e /sys/class/net/${pf1} ]] && break
-          sleep 0.1
-        done
-
         # 1. Set lag_port_select_mode on BOTH PFs (must match for LAG)
         echo "Setting lag_port_select_mode=multiport_esw on both PFs..."
         set_lag_mode ${pf0} ${pci0}
@@ -122,6 +115,13 @@ in
         ${lib.concatMapStringsSep "\n" (
           addr: "echo ${addr} > /sys/bus/pci/drivers/mlx5_core/bind 2>/dev/null || true"
         ) hostVfPciAddrs}
+
+        # 8. Set MAC addresses on host VF netdevs
+        # (ip link set PF vf N mac X only sets admin MAC; host-bound VFs need direct config)
+        echo "Configuring host VF MAC addresses..."
+        ${lib.concatStringsSep "\n" (
+          lib.imap0 (i: mac: "ip link set ${getVfName 0 i} address ${mac}") (lib.take hostVfs vfMacs)
+        )}
 
         # Report status
         echo "=== Configuration Complete ==="
