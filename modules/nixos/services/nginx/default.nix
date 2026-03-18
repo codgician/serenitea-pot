@@ -187,7 +187,7 @@ in
     # Nginx configurations
     services.nginx = {
       enable = true;
-      package = pkgs.nginx;
+      package = pkgs.nginxMainline;
       recommendedProxySettings = true;
       statusPage = true;
 
