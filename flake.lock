@@ -611,16 +611,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1769756031,
-        "narHash": "sha256-wjwCj70iiFXoAasQto+3jTaA4wCMOAs/rdX+nsmtBrQ=",
+        "lastModified": 1773924075,
+        "narHash": "sha256-8fKOEOouCaPZLBTdWPS+uU0bxsPp1OmfloDNoNSiu8w=",
         "owner": "codgician",
         "repo": "proxmox-nixos",
-        "rev": "823ce9169cd6d880d384a3eb5f9bec490d7005f2",
+        "rev": "c2b1cc1cf044075f3f89b4225c9f092becbbcb41",
         "type": "github"
       },
       "original": {
         "owner": "codgician",
-        "ref": "pve-9-1",
+        "ref": "pve-9-1-6",
         "repo": "proxmox-nixos",
         "type": "github"
       }

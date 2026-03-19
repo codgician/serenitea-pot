@@ -1,0 +1,80 @@
+OpenSSL 4.0 compatibility patch for nginx
+
+OpenSSL 4.0 introduces breaking API changes:
+- ASN1_STRING (and ASN1_INTEGER) structs are now opaque
+- X509_get_subject_name() and X509_get_issuer_name() return const pointers
+
+This patch updates nginx to use accessor functions and const-correct types.
+
+diff -u a/src/event/ngx_event_openssl.c b/src/event/ngx_event_openssl.c
+--- a/src/event/ngx_event_openssl.c
++++ b/src/event/ngx_event_openssl.c
+@@ -6012,7 +6012,7 @@
+ {
+     BIO        *bio;
+     X509       *cert;
+-    X509_NAME  *name;
++    const X509_NAME  *name;
+ 
+     s->len = 0;
+ 
+@@ -6066,7 +6066,7 @@
+ {
+     BIO        *bio;
+     X509       *cert;
+-    X509_NAME  *name;
++    const X509_NAME  *name;
+ 
+     s->len = 0;
+ 
+@@ -6122,7 +6122,7 @@
+     char       *p;
+     size_t      len;
+     X509       *cert;
+-    X509_NAME  *name;
++    const X509_NAME  *name;
+ 
+     s->len = 0;
+ 
+@@ -6170,7 +6170,7 @@
+     char       *p;
+     size_t      len;
+     X509       *cert;
+-    X509_NAME  *name;
++    const X509_NAME  *name;
+ 
+     s->len = 0;
+ 
+diff -u a/src/event/ngx_event_openssl_stapling.c b/src/event/ngx_event_openssl_stapling.c
+--- a/src/event/ngx_event_openssl_stapling.c
++++ b/src/event/ngx_event_openssl_stapling.c
+@@ -2668,8 +2668,9 @@
+ ngx_ssl_ocsp_create_key(ngx_ssl_ocsp_ctx_t *ctx)
+ {
+     u_char        *p;
+-    X509_NAME     *name;
+-    ASN1_INTEGER  *serial;
++    const X509_NAME     *name;
++    const ASN1_INTEGER  *serial;
++    int                  serial_len;
+ 
+     p = ngx_pnalloc(ctx->pool, 60);
+     if (p == NULL) {
+@@ -2693,12 +2694,14 @@
+     p += 20;
+ 
+     serial = X509_get_serialNumber(ctx->cert);
+-    if (serial->length > 20) {
++    serial_len = ASN1_STRING_length(serial);
++
++    if (serial_len > 20) {
+         return NGX_ERROR;
+     }
+ 
+-    p = ngx_cpymem(p, serial->data, serial->length);
+-    ngx_memzero(p, 20 - serial->length);
++    p = ngx_cpymem(p, ASN1_STRING_get0_data(serial), serial_len);
++    ngx_memzero(p, 20 - serial_len);
+ 
+     ngx_log_debug1(NGX_LOG_DEBUG_EVENT, ctx->log, 0,
+                    "ssl ocsp key %xV", &ctx->key);
