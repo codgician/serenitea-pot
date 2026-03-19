@@ -85,7 +85,7 @@ jobs:
             auto-optimise-store = true
             experimental-features = nix-command flakes
             builders-use-substitutes = true
-      - uses: cachix/cachix-action@v16
+      - uses: cachix/cachix-action@v17
         with:
           name: codgician
           extraPullNames: nix-community
@@ -113,7 +113,7 @@ jobs:
             experimental-features = nix-command flakes
             builders-use-substitutes = true
             extra-platforms = x86_64-darwin
-      - uses: cachix/cachix-action@v16
+      - uses: cachix/cachix-action@v17
         with:
           name: codgician
           extraPullNames: nix-community
