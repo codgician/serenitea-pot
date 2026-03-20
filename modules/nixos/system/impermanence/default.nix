@@ -69,6 +69,38 @@ in
       };
     };
 
+    wipeOnShutdown.btrfs = {
+      enable = lib.mkEnableOption "Wipe btrfs root subvolumes on shutdown.";
+
+      subvolumes = lib.mkOption {
+        type = types.listOf (
+          types.submodule {
+            options = {
+              device = lib.mkOption {
+                type = types.str;
+                description = "Device path (e.g., /dev/sda1 or /dev/disk/by-label/nixos).";
+              };
+              subvolume = lib.mkOption {
+                type = types.str;
+                description = "Subvolume name to wipe (e.g., root). Expects {subvolume}@empty snapshot.";
+              };
+            };
+          }
+        );
+        default = [ ];
+        example = [
+          {
+            device = "/dev/disk/by-label/nixos";
+            subvolume = "root";
+          }
+        ];
+        description = ''
+          Btrfs subvolumes to restore on shutdown. If {subvolume}@empty exists, restores from it.
+          Otherwise bootstraps by deleting and recreating the subvolume with @empty snapshot.
+        '';
+      };
+    };
+
     extraItems = lib.mkOption {
       type = types.listOf (
         types.submodule {
@@ -188,6 +220,60 @@ in
         wipeScript;
 
       systemd.shutdownRamfs.storePaths = [ "${config.boot.zfs.package}/bin/zfs" ];
+    })
+
+    (lib.mkIf cfg.wipeOnShutdown.btrfs.enable {
+      systemd.shutdownRamfs.contents."/etc/systemd/system-shutdown/impermanence-wipe-btrfs".source =
+        let
+          wipeScript = pkgs.writeShellScript "impermanence-wipe-btrfs" ''
+            set -euo pipefail
+            btrfs=${pkgs.btrfs-progs}/bin/btrfs
+
+            # Function to recursively delete subvolumes
+            delete_subvol_recursive() {
+              local path="$1"
+              # List child subvolumes and delete them first
+              $btrfs subvolume list -o "$path" 2>/dev/null | awk '{print $NF}' | while read -r child; do
+                delete_subvol_recursive "$mnt/$child"
+              done
+              $btrfs subvolume delete "$path" 2>/dev/null || true
+            }
+
+            for entry in ${
+              lib.escapeShellArgs (map (s: "${s.device}:${s.subvolume}") cfg.wipeOnShutdown.btrfs.subvolumes)
+            }; do
+              device="''${entry%%:*}"
+              subvolume="''${entry##*:}"
+
+              # Create temp mount point
+              mnt=$(mktemp -d)
+
+              # Try to mount device with subvolid=5
+              if ! mount -t btrfs -o subvolid=5 "$device" "$mnt" 2>/dev/null; then
+                echo "impermanence: Device '$device' not found or failed to mount, skipping"
+                rmdir "$mnt"
+                continue
+              fi
+
+              if [ -d "$mnt/$subvolume@empty" ]; then
+                echo "impermanence: Rolling back $subvolume from @empty"
+                delete_subvol_recursive "$mnt/$subvolume"
+                $btrfs subvolume snapshot "$mnt/$subvolume@empty" "$mnt/$subvolume"
+              else
+                echo "impermanence: Bootstrapping $subvolume (no @empty found)"
+                delete_subvol_recursive "$mnt/$subvolume"
+                $btrfs subvolume create "$mnt/$subvolume"
+                $btrfs subvolume snapshot "$mnt/$subvolume" "$mnt/$subvolume@empty"
+              fi
+
+              umount "$mnt"
+              rmdir "$mnt"
+            done
+          '';
+        in
+        wipeScript;
+
+      systemd.shutdownRamfs.storePaths = [ "${pkgs.btrfs-progs}/bin/btrfs" ];
     })
   ];
 }

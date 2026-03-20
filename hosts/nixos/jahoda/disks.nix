@@ -1,0 +1,77 @@
+{
+  disks ? [ "disk/by-id/nvme-KXG6AZNV512G_TOSHIBA_41GF71D3FDP3" ],
+  ...
+}:
+{
+  disko.devices.disk = {
+    main = {
+      device = "/dev/${builtins.elemAt disks 0}";
+      type = "disk";
+      content = {
+        type = "gpt";
+        partitions = {
+          boot = {
+            size = "1M";
+            type = "EF02";
+          };
+          esp = {
+            size = "512M";
+            type = "EF00";
+            content = {
+              type = "filesystem";
+              format = "vfat";
+              mountpoint = "/boot";
+              mountOptions = [ "umask=0077" ];
+            };
+          };
+          root = {
+            size = "100%";
+            content = {
+              type = "luks";
+              name = "crypted";
+              extraFormatArgs = [
+                "--cipher"
+                "aes-xts-plain64"
+              ];
+              settings.allowDiscards = true;
+              settings.crypttabExtraOpts = [
+                "tpm2-device=auto"
+                "tpm2-measure-pcr=yes"
+              ];
+              content = {
+                type = "btrfs";
+                extraArgs = [ "-f" ];
+                subvolumes = {
+                  "root" = {
+                    mountpoint = "/";
+                    mountOptions = [
+                      "compress=zstd"
+                      "noatime"
+                      "discard=async"
+                    ];
+                  };
+                  "nix" = {
+                    mountpoint = "/nix";
+                    mountOptions = [
+                      "compress=zstd"
+                      "noatime"
+                      "discard=async"
+                    ];
+                  };
+                  "persist" = {
+                    mountpoint = "/persist";
+                    mountOptions = [
+                      "compress=zstd"
+                      "noatime"
+                      "discard=async"
+                    ];
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+}
