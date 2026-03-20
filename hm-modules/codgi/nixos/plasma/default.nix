@@ -117,6 +117,9 @@ in
       theme.name = "Breeze";
     };
 
+    # GPG with pinentry-qt for KDE
+    services.gpg-agent.pinentry.package = pkgs.pinentry-qt;
+
     # Hack: fix .gtkrc-2.0 becoming a real file instead of a symlink
     home.activation.rm-gtkrc-2-0 = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
       if [ ! -L $HOME/.gtkrc-2.0 ]; then
