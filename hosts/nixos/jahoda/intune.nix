@@ -1,6 +1,8 @@
 # Microsoft Intune with sandboxed Ubuntu identity (spoofs os-release for compliance)
 { pkgs, ... }:
 {
+  # Required for TLS support in WebKitGTK (used by Intune Portal authentication)
+  services.gnome.glib-networking.enable = true;
   users.users.microsoft-identity-broker = {
     group = "microsoft-identity-broker";
     isSystemUser = true;
@@ -74,7 +76,9 @@
   };
 
   environment.etc."pam.d/common-password".source = "/etc/pam.d/passwd";
-  environment.sessionVariables.WEBKIT_DISABLE_DMABUF_RENDERER = "1";
+  environment.sessionVariables = {
+    WEBKIT_DISABLE_DMABUF_RENDERER = "1";
+  };
 
   codgician.system.impermanence.extraItems = [
     {

@@ -30,9 +30,9 @@ let
     exec ${prev.bubblewrap}/bin/bwrap \
       --bind / / \
       --ro-bind ${fakeUbuntuOsRelease} "$OS_RELEASE_TARGET" \
-      --remount-ro / \
       --dev-bind /dev /dev \
       --proc /proc \
+      --die-with-parent \
       -- ${intune-portal-unwrapped}/bin/${name} "$@"
   '';
 in
