@@ -114,7 +114,10 @@ in
         net-tools
         sysstat
       ])
-      ++ (lib.optional pkgs.stdenv.hostPlatform.isx86 config.boot.kernelPackages.turbostat);
+      ++ (lib.optionals pkgs.stdenv.hostPlatform.isx86 (with config.boot.kernelPackages; [ 
+        cpupower
+        turbostat
+      ]));
 
     # Fonts
     fonts = {

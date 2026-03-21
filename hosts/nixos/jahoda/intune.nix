@@ -37,10 +37,16 @@ let
     targetPkgs = pkgs: [ pkgs.intune-portal ];
     runScript = "intune-portal";
     extraBwrapArgs = [
-      "--ro-bind"
+      # Use --symlink to create /etc/os-release pointing to our fake file
+      # (--ro-bind fails with "Can't create file" when destination doesn't exist)
+      "--symlink"
       "${fakeUbuntuOsRelease}"
       "/etc/os-release"
     ];
+    profile = ''
+      # Disable DMA-BUF renderer to avoid GBM buffer creation failures on NVIDIA
+      export WEBKIT_DISABLE_DMABUF_RENDERER=1
+    '';
   };
 in
 {

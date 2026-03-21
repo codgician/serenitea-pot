@@ -111,9 +111,6 @@
     usbutils
     powertop
     nvtopPackages.nvidia
-    clevis
-    jose
-    tpm2-tools
     mstflint
   ];
 

@@ -89,9 +89,6 @@
     usbutils
     powertop
     nvtopPackages.intel
-    clevis
-    jose
-    tpm2-tools
   ];
 
   networking.useDHCP = lib.mkDefault true;

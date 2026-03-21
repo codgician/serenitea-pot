@@ -16,12 +16,23 @@
     supportedFilesystems = [ "vfat" ];
     kernelModules = [ ];
     kernelParams = [ ];
-    kernelPackages = pkgs.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages_6_18;
     extraModulePackages = [ ];
   };
 
   # Enable OpenGL
   hardware.graphics.enable = true;
+
+  # Global packages
+  environment.systemPackages = with pkgs; [
+    lm_sensors
+    smartmontools
+    pciutils
+    nvme-cli
+    usbutils
+    powertop
+    nvtopPackages.nvidia
+  ];
 
   # Load nvidia driver for Xorg and Wayland
   services.xserver.videoDrivers = [ "nvidia" ];

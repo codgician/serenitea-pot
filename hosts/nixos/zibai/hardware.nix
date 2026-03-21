@@ -91,9 +91,6 @@
     sysstat
     powertop
     nvtopPackages.intel
-    clevis
-    jose
-    tpm2-tools
   ];
 
   # TPM

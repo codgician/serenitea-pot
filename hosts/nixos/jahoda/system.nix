@@ -29,8 +29,12 @@
           nix.enable = true;
         };
 
+        opencode.enable = true;
+        mcp.enable = true;
         git.enable = true;
+        pwsh.enable = true;
         ssh.enable = true;
+        vscode.enable = true;
         zsh.enable = true;
       };
 
@@ -39,7 +43,7 @@
 
   # Enable Network Manager
   networking.networkmanager.enable = true;
-  networking.hostId = "a7c82e91";
+  networking.hostId = "359a10da";
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
