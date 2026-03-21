@@ -118,3 +118,6 @@ config.tf.json
 
 # Direnv
 .direnv/
+
+# OpenCode
+.sisyphus/
