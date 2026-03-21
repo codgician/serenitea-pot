@@ -1,14 +1,61 @@
 { ... }:
 
 final: prev:
-{
-  intune-portal = prev.unstable.intune-portal.overrideAttrs (_: rec {
+let
+  fakeUbuntuOsRelease = prev.writeText "fake-os-release-ubuntu" ''
+    NAME="Ubuntu"
+    VERSION="24.04.4 LTS (Noble Numbat)"
+    ID=ubuntu
+    ID_LIKE=debian
+    PRETTY_NAME="Ubuntu 24.04.4 LTS"
+    VERSION_ID="24.04"
+    VERSION_CODENAME=noble
+    UBUNTU_CODENAME=noble
+    HOME_URL="https://www.ubuntu.com/"
+    SUPPORT_URL="https://help.ubuntu.com/"
+    BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+  '';
+
+  intune-portal-unwrapped = prev.unstable.intune-portal.overrideAttrs (_: rec {
     version = "1.2603.31-noble";
     src = prev.fetchurl {
       url = "https://packages.microsoft.com/ubuntu/24.04/prod/pool/main/i/intune-portal/intune-portal_${version}_amd64.deb";
       hash = "sha256-0braaXnRa04CUQdJx0ZFwe5qfjsJNzTtGqaKQV5Z6Yw=";
     };
   });
+
+  mkBwrapWrapper = name: ''
+    #!${prev.runtimeShell}
+    OS_RELEASE_TARGET=$(${prev.coreutils}/bin/readlink -f /etc/os-release)
+    exec ${prev.bubblewrap}/bin/bwrap \
+      --bind / / \
+      --ro-bind ${fakeUbuntuOsRelease} "$OS_RELEASE_TARGET" \
+      --remount-ro / \
+      --dev-bind /dev /dev \
+      --proc /proc \
+      -- ${intune-portal-unwrapped}/bin/${name} "$@"
+  '';
+in
+{
+  intune-portal = prev.symlinkJoin {
+    name = "intune-portal-${intune-portal-unwrapped.version}";
+    paths = [ intune-portal-unwrapped ];
+    postBuild = ''
+      rm $out/bin/intune-portal $out/bin/intune-agent
+
+      cat > $out/bin/intune-portal << 'WRAPPER'
+      ${mkBwrapWrapper "intune-portal"}
+      WRAPPER
+      chmod +x $out/bin/intune-portal
+
+      cat > $out/bin/intune-agent << 'WRAPPER'
+      ${mkBwrapWrapper "intune-agent"}
+      WRAPPER
+      chmod +x $out/bin/intune-agent
+    '';
+  };
+
+  inherit intune-portal-unwrapped fakeUbuntuOsRelease;
 
   microsoft-identity-broker = prev.unstable.microsoft-identity-broker.overrideAttrs (_: rec {
     version = "2.5.2";
