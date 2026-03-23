@@ -17,45 +17,50 @@
   ];
 
   services.dbus.packages = [ pkgs.microsoft-identity-broker ];
+  services.pcscd.enable = true;
 
-  systemd.sockets.intune-daemon = {
-    description = "Intune daemon control socket";
-    wantedBy = [ "sockets.target" ];
-    socketConfig = {
-      ListenStream = "/run/intune/daemon.socket";
-      SocketMode = "0666";
+  systemd = {
+    sockets.intune-daemon = {
+      description = "Intune daemon control socket";
+      wantedBy = [ "sockets.target" ];
+      socketConfig = {
+        ListenStream = "/run/intune/daemon.socket";
+        SocketMode = "0666";
+      };
     };
-  };
 
-  systemd.services.intune-daemon = {
-    description = "Intune daemon";
-    requires = [ "intune-daemon.socket" ];
-    serviceConfig = {
-      ExecStart = "${pkgs.intune-portal}/bin/intune-daemon";
-      ExecReload = "/bin/kill -HUP $MAINPID";
-      StateDirectory = "intune";
-      StateDirectoryMode = "0700";
-      BindReadOnlyPaths = [ "${pkgs.fakeUbuntuOsRelease}:/etc/os-release" ];
+    services = {
+      intune-daemon = {
+        description = "Intune daemon";
+        requires = [ "intune-daemon.socket" ];
+        serviceConfig = {
+          ExecStart = "${pkgs.intune-portal}/bin/intune-daemon";
+          ExecReload = "/bin/kill -HUP $MAINPID";
+          StateDirectory = "intune";
+          StateDirectoryMode = "0700";
+          BindReadOnlyPaths = [ "${pkgs.fakeUbuntuOsRelease}:/etc/os-release" ];
+        };
+      };
+
+      microsoft-identity-device-broker = {
+        description = "Microsoft Identity Device Broker Service";
+        serviceConfig = {
+          Type = "dbus";
+          BusName = "com.microsoft.identity.devicebroker1";
+          ExecStart = "${pkgs.microsoft-identity-broker}/bin/microsoft-identity-device-broker";
+          BindReadOnlyPaths = [ "${pkgs.fakeUbuntuOsRelease}:/etc/os-release" ];
+        };
+      };
     };
-  };
 
-  systemd.services.microsoft-identity-device-broker = {
-    description = "Microsoft Identity Device Broker Service";
-    serviceConfig = {
-      Type = "dbus";
-      BusName = "com.microsoft.identity.devicebroker1";
-      ExecStart = "${pkgs.microsoft-identity-broker}/bin/microsoft-identity-device-broker";
-      BindReadOnlyPaths = [ "${pkgs.fakeUbuntuOsRelease}:/etc/os-release" ];
-    };
-  };
-
-  systemd.user.services.intune-agent = {
-    description = "Intune Agent";
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = "${pkgs.intune-portal}/bin/intune-agent";
-      StateDirectory = "intune";
-      Slice = "background.slice";
+    user.services.intune-agent = {
+      description = "Intune Agent";
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${pkgs.intune-portal}/bin/intune-agent";
+        StateDirectory = "intune";
+        Slice = "background.slice";
+      };
     };
   };
 

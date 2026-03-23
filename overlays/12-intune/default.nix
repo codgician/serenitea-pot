@@ -24,34 +24,43 @@ let
     };
   });
 
-  mkBwrapWrapper = name: ''
-    #!${prev.runtimeShell}
-    OS_RELEASE_TARGET=$(${prev.coreutils}/bin/readlink -f /etc/os-release)
-    exec ${prev.bubblewrap}/bin/bwrap \
-      --bind / / \
-      --ro-bind ${fakeUbuntuOsRelease} "$OS_RELEASE_TARGET" \
-      --dev-bind /dev /dev \
-      --proc /proc \
-      --die-with-parent \
-      -- ${intune-portal-unwrapped}/bin/${name} "$@"
-  '';
+  mkBwrapWrapper =
+    name:
+    prev.writeShellScript "${name}-wrapper" ''
+      OS_RELEASE_TARGET=$(${prev.coreutils}/bin/readlink -f /etc/os-release)
+      exec ${prev.bubblewrap}/bin/bwrap \
+        --bind / / \
+        --ro-bind ${fakeUbuntuOsRelease} "$OS_RELEASE_TARGET" \
+        --dev-bind /dev /dev \
+        --proc /proc \
+        --die-with-parent \
+        -- ${intune-portal-unwrapped}/bin/${name} "$@"
+    '';
+
+  desktopItem = prev.makeDesktopItem {
+    name = "intune-portal";
+    desktopName = "Microsoft Intune";
+    comment = "Microsoft Intune";
+    exec = "env INTUNE_NO_LOG_STDOUT=1 intune-portal";
+    icon = "intune";
+    terminal = false;
+  };
 in
 {
   intune-portal = prev.symlinkJoin {
     name = "intune-portal-${intune-portal-unwrapped.version}";
-    paths = [ intune-portal-unwrapped ];
+    paths = [
+      intune-portal-unwrapped
+      desktopItem
+    ];
     postBuild = ''
       rm $out/bin/intune-portal $out/bin/intune-agent
+      ln -s ${mkBwrapWrapper "intune-portal"} $out/bin/intune-portal
+      ln -s ${mkBwrapWrapper "intune-agent"} $out/bin/intune-agent
 
-      cat > $out/bin/intune-portal << 'WRAPPER'
-      ${mkBwrapWrapper "intune-portal"}
-      WRAPPER
-      chmod +x $out/bin/intune-portal
-
-      cat > $out/bin/intune-agent << 'WRAPPER'
-      ${mkBwrapWrapper "intune-agent"}
-      WRAPPER
-      chmod +x $out/bin/intune-agent
+      # Remove original .desktop, keep makeDesktopItem version
+      rm $out/share/applications/intune-portal.desktop
+      mv $out/share/applications/${desktopItem.name}.desktop $out/share/applications/intune-portal.desktop
     '';
   };
 
