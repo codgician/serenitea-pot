@@ -29,7 +29,6 @@
     {
       codgician.codgi = {
         dev = {
-          dotnet.enable = true;
           haskell.enable = true;
           nix.enable = true;
           rust.enable = true;
