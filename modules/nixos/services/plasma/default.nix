@@ -78,6 +78,17 @@ lib.optionalAttrs (lib.version >= "24.05") {
       wlr.enable = true;
     };
 
+    # Persist SDDM config
+    codgician.system.impermanence.extraItems = [
+      {
+        path = "/var/lib/sddm";
+        type = "directory";
+        user = "sddm";
+        group = "sddm";
+        mode = "0755";
+      }
+    ];
+
     # Install optional dependencies
     services.fwupd.enable = true;
     environment = {

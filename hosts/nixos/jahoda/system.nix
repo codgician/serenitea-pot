@@ -93,10 +93,7 @@
   ];
 
   # Global packages
-  environment.systemPackages = with pkgs; [
-    firefox
-    kitty
-  ];
+  environment.systemPackages = [ ];
 
   # Enable zram swap
   zramSwap.enable = true;

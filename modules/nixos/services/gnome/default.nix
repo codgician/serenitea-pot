@@ -48,6 +48,9 @@ in
     # Enable dconf
     programs.dconf.enable = true;
 
+    # Enable PAM auto-unlock for gnome-keyring (required for credential storage)
+    security.pam.services.gdm-password.enableGnomeKeyring = true;
+
     # Configure keymap in X11
     services.xserver.xkb.layout = "us";
 

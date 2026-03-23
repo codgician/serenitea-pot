@@ -3,6 +3,7 @@
 {
   # Required for TLS support in WebKitGTK (used by Intune Portal authentication)
   services.gnome.glib-networking.enable = true;
+
   users.users.microsoft-identity-broker = {
     group = "microsoft-identity-broker";
     isSystemUser = true;
@@ -30,7 +31,7 @@
     description = "Intune daemon";
     requires = [ "intune-daemon.socket" ];
     serviceConfig = {
-      ExecStart = "${pkgs.intune-portal-unwrapped}/bin/intune-daemon";
+      ExecStart = "${pkgs.intune-portal}/bin/intune-daemon";
       ExecReload = "/bin/kill -HUP $MAINPID";
       StateDirectory = "intune";
       StateDirectoryMode = "0700";
@@ -95,5 +96,6 @@
     microsoft-edge
     intune-portal
     azure-cli
+    teams-for-linux
   ];
 }

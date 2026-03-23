@@ -31,17 +31,6 @@ nix run .#tfmgr -- plan  # Terraform preview
 - Check the need of adding impermanence and systemd.tmpfiles.rules lines when adding new NixOS service modules
 - Request approval for: deploy, `tfmgr apply`, `agenix -r`
 
-## Hosts
-
-| Host | Platform | Type |
-|------|----------|------|
-| furina | aarch64-darwin | Mac (Apple Silicon) |
-| raiden-ei | x86_64-darwin | Mac (Intel) |
-| paimon | x86_64-linux | Primary server |
-| fischl | x86_64-linux | Hypervisor |
-| lumine | aarch64-linux | Azure VM |
-| xianyun | x86_64-linux | Tencent VM |
-
 ## Key Patterns
 
 - **Hosts**: `hosts/{darwin,nixos}/<name>/default.nix` using `lib.codgician.mk{Nixos,Darwin}System`
