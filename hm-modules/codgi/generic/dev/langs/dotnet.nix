@@ -26,16 +26,22 @@ in
       };
     };
 
-    home.packages = [
-      (pkgs.dotnetCorePackages.combinePackages (
-        with pkgs.dotnetCorePackages;
+    home.packages = with pkgs; [
+      (dotnetCorePackages.combinePackages (
+        with dotnetCorePackages;
         [
           sdk_8_0
           sdk_9_0
           sdk_10_0
         ]
       ))
-      pkgs.omnisharp-roslyn
+      omnisharp-roslyn
     ];
+
+    home.sessionPath = [ "$HOME/.dotnet/tools" ];
+
+    # Azure Artifacts credential provider - symlink to NuGet plugin discovery path
+    home.file.".nuget/plugins/netcore/CredentialProvider.Microsoft".source =
+      "${pkgs.azure-artifacts-credprovider}/lib/azure-artifacts-credprovider";
   };
 }

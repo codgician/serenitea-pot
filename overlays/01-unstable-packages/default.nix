@@ -15,5 +15,6 @@ final: prev: {
     zfs_unstable
     matrix-tuwunel
     open-webui
+    azure-artifacts-credprovider
     ;
 }
