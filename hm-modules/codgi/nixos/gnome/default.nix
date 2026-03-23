@@ -21,10 +21,7 @@ in
       type = types.listOf types.str;
       default = [
         "org.gnome.Nautilus.desktop"
-      ]
-      ++ (lib.optional (config.programs.firefox.enable or false) "firefox.desktop")
-      ++ (lib.optional (config.codgician.codgi.edge.enable or false) "microsoft-edge.desktop")
-      ++ [
+        "firefox.desktop"
         "org.gnome.Terminal.desktop"
       ]
       ++ (lib.optional (config.codgician.codgi.vscode.enable or false) "code.desktop");

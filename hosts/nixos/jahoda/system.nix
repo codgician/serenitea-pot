@@ -32,10 +32,28 @@
         opencode.enable = true;
         mcp.enable = true;
         git.enable = true;
+        gnome.favoriteApps = [
+          "org.gnome.Nautilus.desktop"
+          "microsoft-edge.desktop"
+          "org.gnome.Terminal.desktop"
+          "code.desktop"
+        ];
         pwsh.enable = true;
         ssh.enable = true;
         vscode.enable = true;
         zsh.enable = true;
+      };
+
+      # Set Microsoft Edge as default browser
+      xdg.mimeApps = {
+        enable = true;
+        defaultApplications = {
+          "text/html" = "microsoft-edge.desktop";
+          "x-scheme-handler/http" = "microsoft-edge.desktop";
+          "x-scheme-handler/https" = "microsoft-edge.desktop";
+          "x-scheme-handler/about" = "microsoft-edge.desktop";
+          "x-scheme-handler/unknown" = "microsoft-edge.desktop";
+        };
       };
 
       home.stateVersion = "25.11";
