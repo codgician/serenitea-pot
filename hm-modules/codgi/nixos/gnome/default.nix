@@ -184,8 +184,9 @@ in
         name = "Adwaita";
       };
 
-      # GTK theme (sets org/gnome/desktop/interface gtk-theme)
-      theme = {
+      # GTK3 theme (sets org/gnome/desktop/interface gtk-theme)
+      # adw-gtk3 makes GTK3 apps match libadwaita's look
+      gtk3.theme = {
         name = "adw-gtk3-dark";
         package = pkgs.adw-gtk3;
       };
@@ -223,39 +224,6 @@ in
       gnome-tweaks
       dconf-editor
     ];
-
-    # Custom GNOME Shell CSS for transparent menus (works with blur-my-shell)
-    xdg.configFile."gnome-shell/gnome-shell.css".text = ''
-      /* Transparent popup menus (right-click, etc.) */
-      .popup-menu-content {
-        background-color: rgba(30, 30, 30, 0.6) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-      }
-
-      /* Submenus */
-      .popup-sub-menu {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-      }
-
-      /* Menu arrow/pointer */
-      .popup-menu-boxpointer {
-        -arrow-background-color: rgba(30, 30, 30, 0.6);
-        -arrow-border-color: rgba(255, 255, 255, 0.1);
-      }
-    '';
-
-    # GTK4 CSS for transparent application menus (Nautilus, etc.)
-    gtk.gtk4.extraCss = ''
-      /* Transparent popovers/context menus */
-      popover.menu contents {
-        background-color: rgba(30, 30, 30, 0.6);
-      }
-
-      popover.menu menuitem:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-      }
-    '';
 
     # Hack: fix .gtkrc-2.0 becoming a real file instead of a symlink (same as plasma)
     home.activation.rm-gtkrc-2-0 = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''

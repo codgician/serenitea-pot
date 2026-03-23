@@ -96,5 +96,7 @@
     microsoft-edge
     intune-portal
     azure-cli
+    yubikey-manager
+    yubico-piv-tool
   ];
 }

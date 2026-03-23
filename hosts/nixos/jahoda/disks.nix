@@ -1,5 +1,8 @@
 {
-  disks ? [ "disk/by-id/nvme-KXG6AZNV512G_TOSHIBA_41GF71D3FDP3" ],
+  disks ? [
+    "disk/by-id/nvme-KXG6AZNV512G_TOSHIBA_41GF71D3FDP3"
+    "disk/by-id/nvme-PM9A1_NVMe_Samsung_1024GB_S65VNE0R502376"
+  ],
   ...
 }:
 {
@@ -48,6 +51,7 @@
                       "compress=zstd"
                       "noatime"
                       "discard=async"
+                      "space_cache=v2"
                     ];
                   };
                   "nix" = {
@@ -56,6 +60,7 @@
                       "compress=zstd"
                       "noatime"
                       "discard=async"
+                      "space_cache=v2"
                     ];
                   };
                   "persist" = {
@@ -64,6 +69,49 @@
                       "compress=zstd"
                       "noatime"
                       "discard=async"
+                      "space_cache=v2"
+                    ];
+                  };
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+
+    code = {
+      device = "/dev/${builtins.elemAt disks 1}";
+      type = "disk";
+      content = {
+        type = "gpt";
+        partitions = {
+          code = {
+            size = "100%";
+            content = {
+              type = "luks";
+              name = "crypted-code";
+              initrdUnlock = false;
+              extraFormatArgs = [
+                "--cipher"
+                "aes-xts-plain64"
+              ];
+              settings = {
+                allowDiscards = true;
+                keyFile = "/persist/keys/crypted-code.key";
+              };
+              content = {
+                type = "btrfs";
+                extraArgs = [ "-f" ];
+                subvolumes = {
+                  "code" = {
+                    mountpoint = "/code";
+                    mountOptions = [
+                      "compress=zstd:1"
+                      "noatime"
+                      "discard=async"
+                      "space_cache=v2"
+                      "autodefrag"
                     ];
                   };
                 };
