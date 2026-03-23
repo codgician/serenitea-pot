@@ -36,7 +36,7 @@
         gnome.favoriteApps = [
           "org.gnome.Nautilus.desktop"
           "microsoft-edge.desktop"
-          "org.gnome.Terminal.desktop"
+          "org.gnome.Console.desktop"
           "code.desktop"
         ];
         pwsh.enable = true;

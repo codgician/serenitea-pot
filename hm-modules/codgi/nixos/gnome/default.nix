@@ -22,7 +22,7 @@ in
       default = [
         "org.gnome.Nautilus.desktop"
         "firefox.desktop"
-        "org.gnome.Terminal.desktop"
+        "org.gnome.Console.desktop"
       ]
       ++ (lib.optional (config.codgician.codgi.vscode.enable or false) "code.desktop");
       description = "List of .desktop file names to pin in the GNOME dock.";
@@ -125,6 +125,16 @@ in
         style-components = lib.hm.gvariant.mkInt32 3;
       };
 
+      # Blur application windows (for terminals, etc.)
+      "org/gnome/shell/extensions/blur-my-shell/applications" = {
+        blur = true;
+        enable-all = true;
+        brightness = 0.6;
+        sigma = lib.hm.gvariant.mkInt32 15;
+        dynamic-opacity = false; # Keep blur even when focused
+        opacity = lib.hm.gvariant.mkInt32 230;
+      };
+
       # Desktop icons settings (right-aligned, top-to-bottom like KDE)
       "org/gnome/nautilus/icon-view" = {
         default-zoom-level = "small";
@@ -153,19 +163,14 @@ in
       };
     };
 
-    # GNOME Terminal configuration (equivalent to Konsole)
-    programs.gnome-terminal = {
-      enable = true;
-      themeVariant = "dark";
-      profile = {
-        "b1dcc9dd-5262-4d8d-a863-c897e6d979b9" = {
-          default = true;
-          visibleName = "Default";
-          font = "Cascadia Mono PL 11";
-          # Semi-transparent background like breeze-blur
-          transparencyPercent = 20;
-        };
-      };
+    # GNOME Console configuration
+    dconf.settings."org/gnome/Console" = {
+      theme = "night"; # dark theme
+      use-system-font = false;
+      custom-font = "Cascadia Mono PL 11";
+      transparency = true; # Semi-transparent background like breeze-blur
+      audible-bell = true;
+      visual-bell = true;
     };
 
     # GTK theme configuration (works for both GTK3 and GTK4)
@@ -221,6 +226,7 @@ in
     home.packages = with pkgs; [
       adw-gtk3
       adwaita-qt
+      gnome-console
       gnome-tweaks
       dconf-editor
       file-roller

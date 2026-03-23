@@ -51,6 +51,12 @@ in
     # Enable dconf
     programs.dconf.enable = true;
 
+    # Enable "Open in Terminal" context menu in Nautilus
+    programs.nautilus-open-any-terminal = {
+      enable = true;
+      terminal = "kgx"; # GNOME Console
+    };
+
     # Enable PAM auto-unlock for gnome-keyring (required for credential storage)
     security.pam.services.gdm-password.enableGnomeKeyring = true;
 
