@@ -123,7 +123,10 @@
     { ... }:
     {
       codgician.codgi = {
-        dev.nix.enable = true;
+        dev = {
+          dotnet.enable = true;
+          nix.enable = true;
+        };
         git.enable = true;
         mcp.enable = true;
         opencode = {
