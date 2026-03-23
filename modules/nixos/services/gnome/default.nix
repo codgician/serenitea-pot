@@ -26,6 +26,9 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    # GNOME Keyring provides secret storage
+    codgician.system.capabilities.hasSecretStorage = true;
+
     services = {
       xserver.enable = true;
       displayManager = {

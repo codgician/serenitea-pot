@@ -27,6 +27,7 @@
       codgician.codgi = {
         claude-code.enable = true;
         dev = {
+          dotnet.enable = true;
           nix.enable = true;
         };
         opencode.enable = true;

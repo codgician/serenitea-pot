@@ -1,0 +1,334 @@
+﻿Diagnose log at 2026-03-23T13:46:35Z
+
+AppPath: /nix/store/5zlbb9n12yp22q5j1q4gnrm966wifgj7-git-credential-manager-2.6.1/bin/git-credential-manager
+InstallDir: /nix/store/5zlbb9n12yp22q5j1q4gnrm966wifgj7-git-credential-manager-2.6.1/lib/git-credential-manager/
+Version: 2.6.1
+
+------------
+Diagnostic: Environment
+Skipped: False
+Success: True
+Exception: None
+Log:
+OSType: Linux
+OSVersion: NixOS 25.11 (Xantusia)
+Reading environment variables... OK
+ Variables:
+MANAGERPIDFDID=1377
+LC_PAPER=en_US.UTF-8
+LC_MEASUREMENT=en_US.UTF-8
+GTK_IM_MODULE=ibus
+NIX_HARDENING_ENABLE=bindnow format fortify fortify3 libcxxhardeningextensive libcxxhardeningfast pic relro stackclashprotection stackprotector strictoverflow zerocallusedregs
+depsBuildTarget=
+IN_NIX_SHELL=impure
+mesonFlags=
+DIRENV_DIR=-/home/codgi/GitHub/serenitea-pot
+AS=as
+nativeBuildInputs=
+STRINGS=strings
+EDITOR=:
+GIT_EDITOR=:
+GNUPGHOME=/home/codgi/.gnupg
+XCURSOR_PATH=/home/codgi/.icons:/home/codgi/.local/share/icons:/home/codgi/.nix-profile/share/icons:/home/codgi/.nix-profile/share/pixmaps:/nix/profile/share/icons:/nix/profile/share/pixmaps:/home/codgi/.local/state/nix/profile/share/icons:/home/codgi/.local/state/nix/profile/share/pixmaps:/etc/profiles/per-user/codgi/share/icons:/etc/profiles/per-user/codgi/share/pixmaps:/nix/var/nix/profiles/default/share/icons:/nix/var/nix/profiles/default/share/pixmaps:/run/current-system/sw/share/icons:/run/current-system/sw/share/pixmaps
+QML2_IMPORT_PATH=/etc/profiles/per-user/codgi/lib/qt-5.15.18/qml:/etc/profiles/per-user/codgi/lib/qt-6/qml:/etc/profiles/per-user/codgi/lib/qt-5.15.18/qml:/etc/profiles/per-user/codgi/lib/qt-6/qml
+shell=/nix/store/6ph0zypyfc09fw6hlc1ygjvk2hv4j9vd-bash-5.3p3/bin/bash
+NAUTILUS_4_EXTENSION_DIR=/nix/store/hplg8nld95dqddcbxrdi7m9q31z94y0w-system-path/lib/nautilus/extensions-4
+QT_IM_MODULES=wayland;ibus
+LC_NAME=en_US.UTF-8
+__HM_ZSH_SESS_VARS_SOURCED=1
+SHLVL=2
+NIX_XDG_DESKTOP_PORTAL_DIR=/run/current-system/sw/share/xdg-desktop-portal/portals
+NIXPKGS_CONFIG=/etc/nix/nixpkgs-config.nix
+XDG_MENU_PREFIX=gnome-
+stdenv=/nix/store/43dbh9z6v997g6njz4yqmcrj26zic9ds-stdenv-linux
+SYSTEMD_EXEC_PID=5405
+PIP_NO_INPUT=1
+DEBIAN_FRONTEND=noninteractive
+GNOME_SETUP_DISPLAY=:1
+patches=
+DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1000/bus
+CONFIG_SHELL=/nix/store/6ph0zypyfc09fw6hlc1ygjvk2hv4j9vd-bash-5.3p3/bin/bash
+depsBuildTargetPropagated=
+OBJCOPY=objcopy
+configureFlags=
+LESS=-R
+POWERSHELL_UPDATECHECK=Off
+GTK2_RC_FILES=/home/codgi/.gtkrc-2.0
+GPG_TTY=/dev/pts/2
+NM=nm
+OBJDUMP=objdump
+GDM_LANG=en_US.UTF-8
+LD=ld
+GIT_MERGE_AUTOEDIT=no
+DIRENV_WATCHES=eJykkV1u4yAURvfCc8b83mvIBmb2MOoDhkuMgk1kkzRV1b33oVJ_06hKF8Dh3O_8f2QH30a2ZXysE_FQ4y7zv7n9Ow58pYXm3Mj_OdTGO5pPS2AbNtXY8kRsK_teO-uUsBtG57y2lW3bcqSnzUVqV2rwha-jX4jHvNB84r6Ues8lejeADgaU0DRYGyBhAgFKKm8HHdEIhcJKDENEEMmCDpS0VgJdCvRJyijoZd_fLBVpfuDg0PikoU8ggzU-CZA2StuTCdLJQauojDNoEMEKIWXSqEApj0MkF8V7J_GmknxZv3V5-f_jyD99G-qc8u71hNtJF-On4vfUzfn8i_5XwKWG_ZeIiNaa28mRTutIpXStTuXqDnfPAQAA__-t8v1H
+phases=buildPhase
+propagatedBuildInputs=
+GNOME_TERMINAL_SERVICE=:1.88
+LSCOLORS=Gxfxcxdxbxegedabagacad
+doInstallCheck=
+strictDeps=
+SSH_ASKPASS=/nix/store/wz0nqmwf79fqqjnc9wgkyhbs6gckgm63-seahorse-47.0.1/libexec/seahorse/ssh-askpass
+name=nix-shell-env
+propagatedNativeBuildInputs=
+LC_TIME=en_US.UTF-8
+GIT_TRACE2_PARENT_SID=e41dac68-bc9a-493c-9c6e-f2ca22e2c473
+GIT_SEQUENCE_EDITOR=:
+NIX_PROFILES=/run/current-system/sw /nix/var/nix/profiles/default /etc/profiles/per-user/codgi /home/codgi/.local/state/nix/profile /nix/profile /home/codgi/.nix-profile
+LC_MONETARY=en_US.UTF-8
+LC_TELEPHONE=en_US.UTF-8
+out=/home/codgi/GitHub/serenitea-pot/outputs/out
+MEMORY_PRESSURE_WRITE=c29tZSAyMDAwMDAgMjAwMDAwMAA=
+VTE_VERSION=8202
+shellHook=echo "Welcome to serenitea pot!"
+
+HOMEBREW_NO_AUTO_UPDATE=1
+NIX_PATH=nixpkgs=flake:nixpkgs:/nix/var/nix/profiles/per-user/root/channels
+SOURCE_DATE_EPOCH=315532800
+SHELL=/run/current-system/sw/bin/zsh
+LESSKEYIN_SYSTEM=/nix/store/qjgaw3yfchl52walr6pny4y3v44b4ml1-lessconfig
+dontAddDisableDepTrack=1
+LC_NUMERIC=en_US.UTF-8
+builder=/nix/store/6ph0zypyfc09fw6hlc1ygjvk2hv4j9vd-bash-5.3p3/bin/bash
+XDG_SESSION_TYPE=wayland
+RANLIB=ranlib
+XDG_SESSION_CLASS=user
+buildPhase={ echo "------------------------------------------------------------";
+  echo " WARNING: the existence of this path is not guaranteed.";
+  echo " It is an internal implementation detail for pkgs.mkShell.";
+  echo "------------------------------------------------------------";
+  echo;
+  # Record all build inputs as runtime dependencies
+  export;
+} >> "$out"
+
+__HM_SESS_VARS_SOURCED=1
+TZDIR=/etc/zoneinfo
+depsBuildBuild=
+COLORTERM=truecolor
+depsHostHostPropagated=
+GTK_PATH=/home/codgi/.nix-profile/lib/gtk-2.0:/home/codgi/.nix-profile/lib/gtk-3.0:/home/codgi/.nix-profile/lib/gtk-4.0:/nix/profile/lib/gtk-2.0:/nix/profile/lib/gtk-3.0:/nix/profile/lib/gtk-4.0:/home/codgi/.local/state/nix/profile/lib/gtk-2.0:/home/codgi/.local/state/nix/profile/lib/gtk-3.0:/home/codgi/.local/state/nix/profile/lib/gtk-4.0:/etc/profiles/per-user/codgi/lib/gtk-2.0:/etc/profiles/per-user/codgi/lib/gtk-3.0:/etc/profiles/per-user/codgi/lib/gtk-4.0:/nix/var/nix/profiles/default/lib/gtk-2.0:/nix/var/nix/profiles/default/lib/gtk-3.0:/nix/var/nix/profiles/default/lib/gtk-4.0:/run/current-system/sw/lib/gtk-2.0:/run/current-system/sw/lib/gtk-3.0:/run/current-system/sw/lib/gtk-4.0
+QT_STYLE_OVERRIDE=adwaita-dark
+GDK_PIXBUF_MODULE_FILE=/nix/store/fd4yyy6gn26378dadwcj0sf1y7x5n08a-librsvg-2.61.3/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache
+DIRENV_FILE=/home/codgi/GitHub/serenitea-pot/.envrc
+SIZE=size
+QT_PLUGIN_PATH=/etc/profiles/per-user/codgi/lib/qt-5.15.18/plugins:/etc/profiles/per-user/codgi/lib/qt-6/plugins:/etc/profiles/per-user/codgi/lib/qt-5.15.18/plugins:/etc/profiles/per-user/codgi/lib/qt-6/plugins
+OPENCODE_PID=9844
+OLDPWD=/home/codgi/GitHub/serenitea-pot
+DESKTOP_SESSION=gnome
+__NIXOS_SET_ENVIRONMENT_DONE=1
+READELF=readelf
+GNOME_TERMINAL_SCREEN=/org/gnome/Terminal/screen/a145c7a2_732f_43f7_b718_334331f603d3
+NIX_CFLAGS_COMPILE= -frandom-seed=rhcvrdcrpd
+USERNAME=codgi
+QTWEBKIT_PLUGIN_PATH=/home/codgi/.nix-profile/lib/mozilla/plugins/:/nix/profile/lib/mozilla/plugins/:/home/codgi/.local/state/nix/profile/lib/mozilla/plugins/:/etc/profiles/per-user/codgi/lib/mozilla/plugins/:/nix/var/nix/profiles/default/lib/mozilla/plugins/:/run/current-system/sw/lib/mozilla/plugins/
+depsHostHost=
+HOME=/home/codgi
+GIO_EXTRA_MODULES=/nix/store/syhscaij9qcsk0bj3psp8n9fb0falvw9-dconf-0.49.0-lib/lib/gio/modules:/nix/store/syhscaij9qcsk0bj3psp8n9fb0falvw9-dconf-0.49.0-lib/lib/gio/modules:/nix/store/9gqy276f8g3agz1spq470l61z8ps0vqx-glib-networking-2.80.1/lib/gio/modules:/nix/store/syhscaij9qcsk0bj3psp8n9fb0falvw9-dconf-0.49.0-lib/lib/gio/modules:/nix/store/9gqy276f8g3agz1spq470l61z8ps0vqx-glib-networking-2.80.1/lib/gio/modules:/nix/store/syhscaij9qcsk0bj3psp8n9fb0falvw9-dconf-0.49.0-lib/lib/gio/modules:/nix/store/syhscaij9qcsk0bj3psp8n9fb0falvw9-dconf-0.49.0-lib/lib/gio/modules:/nix/store/syhscaij9qcsk0bj3psp8n9fb0falvw9-dconf-0.49.0-lib/lib/gio/modules:/nix/store/syhscaij9qcsk0bj3psp8n9fb0falvw9-dconf-0.49.0-lib/lib/gio/modules:/nix/store/syhscaij9qcsk0bj3psp8n9fb0falvw9-dconf-0.49.0-lib/lib/gio/modules:/nix/store/anxrwkib1jb16aq33spvy9l1wmllbgr2-gvfs-1.58.4/lib/gio/modules:/nix/store/9gqy276f8g3agz1spq470l61z8ps0vqx-glib-networking-2.80.1/lib/gio/modules:/nix/store/syhscaij9qcsk0bj3psp8n9fb0falvw9-dconf-0.49.0-lib/lib/gio/modules
+LC_ADDRESS=en_US.UTF-8
+GIT_TERMINAL_PROMPT=0
+depsTargetTarget=
+DOTNET_ROOT=/nix/store/v5s3fy0bqsw12c7ahb13h01pq47bn310-dotnet-runtime-wrapped-8.0.25/share/dotnet
+STRIP=strip
+GDMSESSION=gnome
+TERMINFO_DIRS=/home/codgi/.nix-profile/share/terminfo:/nix/profile/share/terminfo:/home/codgi/.local/state/nix/profile/share/terminfo:/etc/profiles/per-user/codgi/share/terminfo:/nix/var/nix/profiles/default/share/terminfo:/run/current-system/sw/share/terminfo
+XDG_SESSION_DESKTOP=gnome
+LOGNAME=codgi
+CC=gcc
+XDG_CURRENT_DESKTOP=GNOME
+GST_PLUGIN_SYSTEM_PATH_1_0=/nix/store/pb7b37q6gcksmcjaryv2cqrpnva2rd24-pipewire-1.4.9/lib/gstreamer-1.0:/nix/store/l6pbqrqvi82shmry7q8sg1bh9jlivwma-gstreamer-1.26.5/lib/gstreamer-1.0:/nix/store/7ws3hvcxwnnpc854cazcdwnxh98xx4lx-gst-plugins-base-1.26.5/lib/gstreamer-1.0:/nix/store/hvd0mnpmfr4pjzd8zwr90bd5c5rp1jqd-gst-plugins-good-1.26.5/lib/gstreamer-1.0
+NIX_GSETTINGS_OVERRIDES_DIR=/nix/store/h8hag3j6pc3f2p5lskrv1pn01g9dnwlh-gnome-gsettings-overrides/share/gsettings-schemas/nixos-gsettings-overrides/glib-2.0/schemas
+CI=true
+depsTargetTargetPropagated=
+NIX_LDFLAGS=-rpath /home/codgi/GitHub/serenitea-pot/outputs/out/lib  -L/nix/store/yz1gzb1nd9g0gv4m1b9vlf8vlrh82jdj-nixd-2.7.0/lib -L/nix/store/yz1gzb1nd9g0gv4m1b9vlf8vlrh82jdj-nixd-2.7.0/lib
+GI_TYPELIB_PATH=/nix/store/mg151w65chcirlr7398jrz916wrfh3gg-glib-2.86.3/lib/girepository-1.0:/nix/store/2g6acnj6ljamsqfgf1q6ipdqr5yfg7vq-gdk-pixbuf-2.44.4/lib/girepository-1.0:/nix/store/d2b90d8fag7j471w2q1h7n9l9vr1i4rx-graphene-1.10.8/lib/girepository-1.0:/nix/store/yzyh44g07mb5d3151lvv0ll8rdmg1fbl-harfbuzz-12.1.0/lib/girepository-1.0:/nix/store/7n76ys2lcy7l54hslslw74fa5zszlh19-pango-1.57.0/lib/girepository-1.0:/nix/store/rrxqwm3ir4k5hdzfjqav4xnpv4il061k-gsettings-desktop-schemas-49.1/lib/girepository-1.0:/nix/store/v4nsbwddiq6cnsqgxhpa5bzmirx9hv3q-gtk4-4.20.3/lib/girepository-1.0:/nix/store/fd4yyy6gn26378dadwcj0sf1y7x5n08a-librsvg-2.61.3/lib/girepository-1.0:/nix/store/cm5bdm9n7nmq8sba4nnkwya1ynfrb2f1-gobject-introspection-wrapped-1.86.0/lib/girepository-1.0:/nix/store/rmlhay9xpwvfnf2hmf9g3rflx2q4mh67-gobject-introspection-1.86.0/lib/girepository-1.0:/nix/store/hwf1kzllp2m3r1fm709rk18s7l57isjj-gcr-4.4.0.1/lib/girepository-1.0:/nix/store/k9fabcwybgkj02fg93swh48mk6rgdx1v-accountsservice-23.13.9/lib/girepository-1.0:/nix/store/llbgpwb7ldidq7w1yzymj3nwng8i67c1-libsecret-0.21.7/lib/girepository-1.0:/nix/store/3650zd96r8vmwivb93cpply45nihw1jm-polkit-126/lib/girepository-1.0:/nix/store/l8g3fkhm48zbxk8r44fgmc3dyi59p4mj-networkmanager-1.54.3/lib/girepository-1.0:/nix/store/igbijgpqxgv5p2axczanawwy2anhv9fx-libical-3.0.20/lib/girepository-1.0:/nix/store/ix9l7f2bmh9g45jrzab67l8kf556sdxl-libsoup-3.6.6/lib/girepository-1.0:/nix/store/hbs3mbsy20m18hq2lwnwh26sjq67ak6k-json-glib-1.10.8/lib/girepository-1.0:/nix/store/b6c8zlvk6d80h43qwc52npdjxl1z2yrz-evolution-data-server-3.58.2/lib/girepository-1.0:/nix/store/vc77lp61haplfl7pwvrvs5x5mh0pwdms-libadwaita-1.8.2/lib/girepository-1.0:/nix/store/lqwqcybi3bgircxr3a1pffg1zmb85wmm-gdm-49.2/lib/girepository-1.0:/nix/store/qyba21c3nxpb3zwlarh47scdf9rppn4g-geoclue-2.7.2/lib/girepository-1.0:/nix/store/njv115hq5sz123h5fvfgcak4c2r6bavi-gnome-bluetooth-47.1/lib/girepository-1.0:/nix/store/1m419gkk0nqnc1mb4b0ck2rx16w8rbrs-at-spi2-core-2.58.2/lib/girepository-1.0:/nix/store/r12cfwnpg97j0lp889g50s5nhxz6ndl5-upower-1.90.10/lib/girepository-1.0:/nix/store/wf5z20gd4a32arbdnznsrz3dhfxlw2g0-ibus-1.5.33/lib/girepository-1.0:/nix/store/fzj8hlg5alyzls91ak0ig3ah9wvmlbka-gnome-desktop-44.4/lib/girepository-1.0:/nix/store/l6pbqrqvi82shmry7q8sg1bh9jlivwma-gstreamer-1.26.5/lib/girepository-1.0:/nix/store/7ws3hvcxwnnpc854cazcdwnxh98xx4lx-gst-plugins-base-1.26.5/lib/girepository-1.0:/nix/store/yv7fr51m8ifg8rvnwv36gj4imgnkxr6l-libgweather-4.4.4/lib/girepository-1.0:/nix/store/h26kj07l53y1ymx20i01fkjgam5ln5ps-libnma-1.10.6/lib/girepository-1.0:/nix/store/9a4cp249pc5zmm98kc6j59xs7w5d2riq-gnome-autoar-0.4.5/lib/girepository-1.0:/nix/store/mg151w65chcirlr7398jrz916wrfh3gg-glib-2.86.3/lib/girepository-1.0:/nix/store/2g6acnj6ljamsqfgf1q6ipdqr5yfg7vq-gdk-pixbuf-2.44.4/lib/girepository-1.0:/nix/store/d2b90d8fag7j471w2q1h7n9l9vr1i4rx-graphene-1.10.8/lib/girepository-1.0:/nix/store/yzyh44g07mb5d3151lvv0ll8rdmg1fbl-harfbuzz-12.1.0/lib/girepository-1.0:/nix/store/7n76ys2lcy7l54hslslw74fa5zszlh19-pango-1.57.0/lib/girepository-1.0:/nix/store/rrxqwm3ir4k5hdzfjqav4xnpv4il061k-gsettings-desktop-schemas-49.1/lib/girepository-1.0:/nix/store/v4nsbwddiq6cnsqgxhpa5bzmirx9hv3q-gtk4-4.20.3/lib/girepository-1.0:/nix/store/fd4yyy6gn26378dadwcj0sf1y7x5n08a-librsvg-2.61.3/lib/girepository-1.0:/nix/store/fzj8hlg5alyzls91ak0ig3ah9wvmlbka-gnome-desktop-44.4/lib/girepository-1.0:/nix/store/hbs3mbsy20m18hq2lwnwh26sjq67ak6k-json-glib-1.10.8/lib/girepository-1.0:/nix/store/mg151w65chcirlr7398jrz916wrfh3gg-glib-2.86.3/lib/girepository-1.0:/nix/store/2g6acnj6ljamsqfgf1q6ipdqr5yfg7vq-gdk-pixbuf-2.44.4/lib/girepository-1.0:/nix/store/d2b90d8fag7j471w2q1h7n9l9vr1i4rx-graphene-1.10.8/lib/girepository-1.0:/nix/store/yzyh44g07mb5d3151lvv0ll8rdmg1fbl-harfbuzz-12.1.0/lib/girepository-1.0:/nix/store/7n76ys2lcy7l54hslslw74fa5zszlh19-pango-1.57.0/lib/girepository-1.0:/nix/store/rrxqwm3ir4k5hdzfjqav4xnpv4il061k-gsettings-desktop-schemas-49.1/lib/girepository-1.0:/nix/store/v4nsbwddiq6cnsqgxhpa5bzmirx9hv3q-gtk4-4.20.3/lib/girepository-1.0:/nix/store/fd4yyy6gn26378dadwcj0sf1y7x5n08a-librsvg-2.61.3/lib/girepository-1.0:/nix/store/fzj8hlg5alyzls91ak0ig3ah9wvmlbka-gnome-desktop-44.4/lib/girepository-1.0:/nix/store/hbs3mbsy20m18hq2lwnwh26sjq67ak6k-json-glib-1.10.8/lib/girepository-1.0:/nix/store/mg151w65chcirlr7398jrz916wrfh3gg-glib-2.86.3/lib/girepository-1.0:/nix/store/2g6acnj6ljamsqfgf1q6ipdqr5yfg7vq-gdk-pixbuf-2.44.4/lib/girepository-1.0:/nix/store/d2b90d8fag7j471w2q1h7n9l9vr1i4rx-graphene-1.10.8/lib/girepository-1.0:/nix/store/yzyh44g07mb5d3151lvv0ll8rdmg1fbl-harfbuzz-12.1.0/lib/girepository-1.0:/nix/store/7n76ys2lcy7l54hslslw74fa5zszlh19-pango-1.57.0/lib/girepository-1.0:/nix/store/rrxqwm3ir4k5hdzfjqav4xnpv4il061k-gsettings-desktop-schemas-49.1/lib/girepository-1.0:/nix/store/v4nsbwddiq6cnsqgxhpa5bzmirx9hv3q-gtk4-4.20.3/lib/girepository-1.0:/nix/store/fd4yyy6gn26378dadwcj0sf1y7x5n08a-librsvg-2.61.3/lib/girepository-1.0:/nix/store/fzj8hlg5alyzls91ak0ig3ah9wvmlbka-gnome-desktop-44.4/lib/girepository-1.0:/nix/store/hbs3mbsy20m18hq2lwnwh26sjq67ak6k-json-glib-1.10.8/lib/girepository-1.0
+INFOPATH=/home/codgi/.nix-profile/info:/home/codgi/.nix-profile/share/info:/nix/profile/info:/nix/profile/share/info:/home/codgi/.local/state/nix/profile/info:/home/codgi/.local/state/nix/profile/share/info:/etc/profiles/per-user/codgi/info:/etc/profiles/per-user/codgi/share/info:/nix/var/nix/profiles/default/info:/nix/var/nix/profiles/default/share/info:/run/current-system/sw/info:/run/current-system/sw/share/info
+LANG=en_US.UTF-8
+buildInputs=/nix/store/wsii19vjwqa8qsz0zjpg1r5m1x2n0iyn-agenix-0.15.0 /nix/store/vs4yvrh33ckz5ifiqs3wbcmw0dmwnys2-direnv-2.37.1 /nix/store/9kg1njp3xpkg9lf4bi9llvh69qdbd3wv-git-2.51.2 /nix/store/yz1gzb1nd9g0gv4m1b9vlf8vlrh82jdj-nixd-2.7.0
+PATH=/nix/store/9kg1njp3xpkg9lf4bi9llvh69qdbd3wv-git-2.51.2/bin:/nix/store/blzhkcixq0xr64hs7am9db3qxm9m9xm5-gnupg-2.4.9/bin:/nix/store/22qcqcvj3vlaldiyv9y20mikjmimj688-password-store-1.7.4/bin:/nix/store/v5s3fy0bqsw12c7ahb13h01pq47bn310-dotnet-runtime-wrapped-8.0.25/bin:/nix/store/922crn2k3v8yaqk7anps80hba919lnds-ripgrep-15.1.0/bin:/nix/store/w7j4a0ii09hjqxvri53f1h0h5cfbn04y-patchelf-0.15.2/bin:/nix/store/0j1ajvl2qwwb9n5a91hzd0j98fk9fa3k-gcc-wrapper-14.3.0/bin:/nix/store/k3qc3y1f6i8g2dgz5z0cf00dj4xc5rrv-gcc-14.3.0/bin:/nix/store/hayjsz88980xx001qk2bbmcma11jww0y-glibc-2.40-218-bin/bin:/nix/store/wkkwxc04gdw6b263l1h29pjarjnjdyb6-coreutils-9.8/bin:/nix/store/rinxh4y0akcin90l05j0zr1r3wahl34d-binutils-wrapper-2.44/bin:/nix/store/sfjv70z6qr9mlf94zkjm9nw6bsdbplq1-binutils-2.44/bin:/nix/store/wsii19vjwqa8qsz0zjpg1r5m1x2n0iyn-agenix-0.15.0/bin:/nix/store/vs4yvrh33ckz5ifiqs3wbcmw0dmwnys2-direnv-2.37.1/bin:/nix/store/yz1gzb1nd9g0gv4m1b9vlf8vlrh82jdj-nixd-2.7.0/bin:/nix/store/wkkwxc04gdw6b263l1h29pjarjnjdyb6-coreutils-9.8/bin:/nix/store/bb1ipjfz8g6cir41rr0zc2x2ah43kzar-findutils-4.10.0/bin:/nix/store/41d166ibs46jdcfg9x50ah2bhnwl12q1-diffutils-3.12/bin:/nix/store/0zqnw11n1hk8mflzzvrz7sv1rm1cbnp8-gnused-4.9/bin:/nix/store/d4c56s8wa6rz2dnw6ridg7r1dvax1gky-gnugrep-3.12/bin:/nix/store/y39kdg7y0zcmbsz8knkwkavcw82y2hn6-gawk-5.3.2/bin:/nix/store/i8hncwf8234flnbgi2z19bzy4hjwhss1-gnutar-1.35/bin:/nix/store/aj83nj8s5if1qb8zbxp7383dnza3rq33-gzip-1.14/bin:/nix/store/wlq4waybfv4gp3g1940cavkv7lhxr5hp-bzip2-1.0.8-bin/bin:/nix/store/mjkgsjcnc067wagr8qy467h1kdz1iiqp-gnumake-4.4.1/bin:/nix/store/6ph0zypyfc09fw6hlc1ygjvk2hv4j9vd-bash-5.3p3/bin:/nix/store/340ldxlqnipb3032grsgnpixflx5s97l-patch-2.8/bin:/nix/store/90wmya07rpvnp89hg01llq8jy4zps3d7-xz-5.8.1-bin/bin:/nix/store/jj0zadqjxjsffml5j9cmgm0xirh5l7jp-file-5.45/bin:/home/codgi/GitHub/serenitea-pot/.direnv/bin:/run/wrappers/bin:/home/codgi/.nix-profile/bin:/nix/profile/bin:/home/codgi/.local/state/nix/profile/bin:/etc/profiles/per-user/codgi/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin
+XMODIFIERS=@im=ibus
+SSH_AUTH_SOCK=/run/user/1000/gcr/ssh
+LOCALE_ARCHIVE_2_27=/nix/store/nz1x9rgf6sladix9q5bqsg87pgpasfvc-glibc-locales-2.40-218/lib/locale/locale-archive
+OPENCODE=1
+PWD=/home/codgi/GitHub/serenitea-pot
+DISPLAY=:0
+VISUAL=
+QT_IM_MODULE=ibus
+outputs=out
+AGENT=1
+XAUTHORITY=/run/user/1000/.mutter-Xwaylandauth.6ACVM3
+NIX_ENFORCE_NO_NATIVE=1
+NIX_STORE=/nix/store
+LOCALE_ARCHIVE=/run/current-system/sw/lib/locale/locale-archive
+HOST_PATH=/nix/store/wsii19vjwqa8qsz0zjpg1r5m1x2n0iyn-agenix-0.15.0/bin:/nix/store/vs4yvrh33ckz5ifiqs3wbcmw0dmwnys2-direnv-2.37.1/bin:/nix/store/9kg1njp3xpkg9lf4bi9llvh69qdbd3wv-git-2.51.2/bin:/nix/store/yz1gzb1nd9g0gv4m1b9vlf8vlrh82jdj-nixd-2.7.0/bin:/nix/store/wkkwxc04gdw6b263l1h29pjarjnjdyb6-coreutils-9.8/bin:/nix/store/bb1ipjfz8g6cir41rr0zc2x2ah43kzar-findutils-4.10.0/bin:/nix/store/41d166ibs46jdcfg9x50ah2bhnwl12q1-diffutils-3.12/bin:/nix/store/0zqnw11n1hk8mflzzvrz7sv1rm1cbnp8-gnused-4.9/bin:/nix/store/d4c56s8wa6rz2dnw6ridg7r1dvax1gky-gnugrep-3.12/bin:/nix/store/y39kdg7y0zcmbsz8knkwkavcw82y2hn6-gawk-5.3.2/bin:/nix/store/i8hncwf8234flnbgi2z19bzy4hjwhss1-gnutar-1.35/bin:/nix/store/aj83nj8s5if1qb8zbxp7383dnza3rq33-gzip-1.14/bin:/nix/store/wlq4waybfv4gp3g1940cavkv7lhxr5hp-bzip2-1.0.8-bin/bin:/nix/store/mjkgsjcnc067wagr8qy467h1kdz1iiqp-gnumake-4.4.1/bin:/nix/store/6ph0zypyfc09fw6hlc1ygjvk2hv4j9vd-bash-5.3p3/bin:/nix/store/340ldxlqnipb3032grsgnpixflx5s97l-patch-2.8/bin:/nix/store/90wmya07rpvnp89hg01llq8jy4zps3d7-xz-5.8.1-bin/bin:/nix/store/jj0zadqjxjsffml5j9cmgm0xirh5l7jp-file-5.45/bin
+CXX=g++
+depsBuildBuildPropagated=
+XDG_DATA_DIRS=/nix/store/w7j4a0ii09hjqxvri53f1h0h5cfbn04y-patchelf-0.15.2/share:/nix/store/1xfn1ya3pv79hbq2yx7zdiisqlizlnss-gnome-terminal-3.58.0/share:/nix/store/rrxqwm3ir4k5hdzfjqav4xnpv4il061k-gsettings-desktop-schemas-49.1/share/gsettings-schemas/gsettings-desktop-schemas-49.1:/nix/store/m7i7812sh0q2ghcxfq0rhs6zph0xlwc5-gtk+3-3.24.51/share/gsettings-schemas/gtk+3-3.24.51:/nix/store/v4nsbwddiq6cnsqgxhpa5bzmirx9hv3q-gtk4-4.20.3/share/gsettings-schemas/gtk4-4.20.3:/nix/store/46bszdmp4a7wip6zz58jw42z7lkhfkfq-nautilus-49.2/share/gsettings-schemas/nautilus-49.2:/nix/store/1xfn1ya3pv79hbq2yx7zdiisqlizlnss-gnome-terminal-3.58.0/share/gsettings-schemas/gnome-terminal-3.58.0:/nix/store/4q08g04dv942s8s40n37jii8mi7ilpib-shared-mime-info-2.4/share:/nix/store/zqc98446lvd5am7k02l1dj18x0qxra4f-glycin-loaders-2.0.7/share:/nix/store/m24xyvj7ibcgcpqyhhdf4i5skmq0nqdd-gnome-shell-49.2/share:/nix/store/lqfijpb2ildzlnh12vkq111ycj6lajls-gnome-keyring-48.0/share/gsettings-schemas/gnome-keyring-48.0:/nix/store/51hwbp7md5wkwcjdrxwxmpm1y012w6x8-mutter-49.2/share/gsettings-schemas/mutter-49.2:/nix/store/b6c8zlvk6d80h43qwc52npdjxl1z2yrz-evolution-data-server-3.58.2/share/gsettings-schemas/evolution-data-server-3.58.2:/nix/store/lqwqcybi3bgircxr3a1pffg1zmb85wmm-gdm-49.2/share/gsettings-schemas/gdm-49.2:/nix/store/jdp169adfn1jigzvwnma014xq6rnjy2k-gnome-clocks-49.0/share/gsettings-schemas/gnome-clocks-49.0:/nix/store/wf5z20gd4a32arbdnznsrz3dhfxlw2g0-ibus-1.5.33/share/gsettings-schemas/ibus-1.5.33:/nix/store/dh3ks9g3l0cy6h9iilncx2gnz21kwn9z-gnome-settings-daemon-49.1/share/gsettings-schemas/gnome-settings-daemon-49.1:/nix/store/pb7b37q6gcksmcjaryv2cqrpnva2rd24-pipewire-1.4.9/share/gsettings-schemas/pipewire-1.4.9:/nix/store/yv7fr51m8ifg8rvnwv36gj4imgnkxr6l-libgweather-4.4.4/share/gsettings-schemas/libgweather-4.4.4:/nix/store/h26kj07l53y1ymx20i01fkjgam5ln5ps-libnma-1.10.6/share/gsettings-schemas/libnma-1.10.6:/nix/store/m24xyvj7ibcgcpqyhhdf4i5skmq0nqdd-gnome-shell-49.2/share/gsettings-schemas/gnome-shell-49.2:/nix/store/27kwd1rnl11sf566i4l1j6zx0mf4mywx-gnome-session-49.2/share:/nix/store/27kwd1rnl11sf566i4l1j6zx0mf4mywx-gnome-session-49.2/share/gsettings-schemas/gnome-session-49.2:/nix/store/n4c4rzwh313mqpbavsi1zh5im5cbp3bw-gnome-mimeapps/share:/nix/store/znn1f8l3yq01zskdaffinshv9525rby1-desktops/share:/home/codgi/.nix-profile/share:/nix/profile/share:/home/codgi/.local/state/nix/profile/share:/etc/profiles/per-user/codgi/share:/nix/var/nix/profiles/default/share:/run/current-system/sw/share
+GCM_INTERACTIVE=never
+cmakeFlags=
+NIX_BUILD_CORES=20
+PAGER=cat
+QT_QPA_PLATFORMTHEME=adwaita
+XDG_RUNTIME_DIR=/run/user/1000
+NIX_CC=/nix/store/0j1ajvl2qwwb9n5a91hzd0j98fk9fa3k-gcc-wrapper-14.3.0
+NIX_USER_PROFILE_DIR=/nix/var/nix/profiles/per-user/codgi
+GIT_PAGER=cat
+LC_IDENTIFICATION=en_US.UTF-8
+NIX_BINTOOLS_WRAPPER_TARGET_HOST_x86_64_unknown_linux_gnu=1
+doCheck=
+TERM=xterm-256color
+LIBEXEC_PATH=/home/codgi/.nix-profile/libexec:/nix/profile/libexec:/home/codgi/.local/state/nix/profile/libexec:/etc/profiles/per-user/codgi/libexec:/nix/var/nix/profiles/default/libexec:/run/current-system/sw/libexec
+NIX_CC_WRAPPER_TARGET_HOST_x86_64_unknown_linux_gnu=1
+GDM_X_SERVER_EXTRA_ARGS=-config /nix/store/bv78417p8xn09k11yiy656h7hsvpildn-xserver.conf -xkbdir /nix/store/rlqr6i561skw9qkkrdqhlcx9gb6ngwdn-xkeyboard-config-2.46/etc/X11/xkb -logfile /dev/null -nolisten tcp
+XDG_CONFIG_DIRS=/etc/xdg:/home/codgi/.nix-profile/etc/xdg:/nix/profile/etc/xdg:/home/codgi/.local/state/nix/profile/etc/xdg:/etc/profiles/per-user/codgi/etc/xdg:/nix/var/nix/profiles/default/etc/xdg:/run/current-system/sw/etc/xdg:/nix/store/dh3ks9g3l0cy6h9iilncx2gnz21kwn9z-gnome-settings-daemon-49.1/etc/xdg:/nix/store/dh3ks9g3l0cy6h9iilncx2gnz21kwn9z-gnome-settings-daemon-49.1/etc/xdg
+MEMORY_PRESSURE_WATCH=/sys/fs/cgroup/user.slice/user-1000.slice/user@1000.service/session.slice/org.gnome.Shell@wayland.service/memory.pressure
+LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=00:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.7z=01;31:*.ace=01;31:*.alz=01;31:*.apk=01;31:*.arc=01;31:*.arj=01;31:*.bz=01;31:*.bz2=01;31:*.cab=01;31:*.cpio=01;31:*.crate=01;31:*.deb=01;31:*.drpm=01;31:*.dwm=01;31:*.dz=01;31:*.ear=01;31:*.egg=01;31:*.esd=01;31:*.gz=01;31:*.jar=01;31:*.lha=01;31:*.lrz=01;31:*.lz=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.lzo=01;31:*.pyz=01;31:*.rar=01;31:*.rpm=01;31:*.rz=01;31:*.sar=01;31:*.swm=01;31:*.t7z=01;31:*.tar=01;31:*.taz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tgz=01;31:*.tlz=01;31:*.txz=01;31:*.tz=01;31:*.tzo=01;31:*.tzst=01;31:*.udeb=01;31:*.war=01;31:*.whl=01;31:*.wim=01;31:*.xz=01;31:*.z=01;31:*.zip=01;31:*.zoo=01;31:*.zst=01;31:*.avif=01;35:*.jpg=01;35:*.jpeg=01;35:*.jxl=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.webp=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:*~=00;90:*#=00;90:*.bak=00;90:*.crdownload=00;90:*.dpkg-dist=00;90:*.dpkg-new=00;90:*.dpkg-old=00;90:*.dpkg-tmp=00;90:*.old=00;90:*.orig=00;90:*.part=00;90:*.rej=00;90:*.rpmnew=00;90:*.rpmorig=00;90:*.rpmsave=00;90:*.swp=00;90:*.tmp=00;90:*.ucf-dist=00;90:*.ucf-new=00;90:*.ucf-old=00;90:
+system=x86_64-linux
+npm_config_yes=true
+DIRENV_DIFF=eJzsWnlz27iS_ypc7v43pkzwEulX-4dsybYSR_bIRzypVKlAACRBgiAIULym5rtvUZIT-YjzksnWvt21qyyJje5f42j0AfBPXehHf-pXk5tz_Ug_lGt-2EgoBJHqMKT86DApcnKIChzTwxGnrSFkEVFGto2ctoePCPvcrECQHaoKVuQ5I6nQA0EdCiKNtSJyJ_kFuoZyX1IdYhLBNau2HENf0VpKwitDdaoi-aFqhib9QL-fnq2mk5vJajpfXg8DG2BUVUhyCNqIgw7aoh4HSVhaXTvuMaWqZLRnXCkj5kVOjIrInHLIDHvk-iPzUCVQkqM9HCnbssltKp3MTXAfpSWsnZaL2qHM9EBmxIpUFeWxMjBRWVUIQ6GE5FAZTjACW8DDr0y7xsPXxfZ7kI_p2AeWSszSihPURqUpE-X1IjFb1iDXiKvsN9uwR5Yzcl9RuM-1j187XIUNxrT0EFdl3CYCumGfU9kGSW2XA75jOCPLHNmvoT_w7GM7Xqh6nAsHjhsqvL53_bRxrH7MsiTKotLgcF1Rtt6M2vom-iOuo1-0yi-N4iXuR-MpTT82HVwHjqV85ZjcHqeU-jkdUyZoaGyQsZHTnBiUR4VhjZznRtWXKPAdx2M1dmE-zkyLAZwCvzXLVkInMmLWIcoNVkBMpDKskTkaP4fJLaft6nRMQxQjUXZJgiOHuirLS5OXGO9GrxLC2N4E_2uZ93-n-bEyoqkILcpwz3gCrDorAQAdSj0GU_ZgHhnpJOWx4XzfNvZZ9zW5IGlCMc6x22QNSrFsmzYXOehMYDVe6xv5uqqIfN3M93j2sUMP-T2rMw_7ZuLYZYNciwuctgz0Vid7g9QFW1e04AaGFTQUkTWRW-v9trLXhB7PYVOiLqR2GFOJWmlDIKIoBn0e-m6T50aM89eH9cCwj5piAbwA4oiDlMZ93fAcmsBpS0_ytLOy3cogVqBsYzPfW5g9zn09TeT2lhljB9oWlCHmPVeyt3EStayxYtOg4VoZYOSO7G9b1x7PPjZO7EwFsc1M1HlJQCnjqLVi3lsga3jQP2y_LzsBkrzg39k33xTZ1yzCcWiPSy9GmcpRCmVXW6iUgtfQkthyDEEFaagkBhg5o-Cb2h6z7Wvo6nEkXZD7NIp9WfOmtr04dWge86yVHjMYDeOGwCoZDHbkPHi5F5Q849zXk1helppj5tod6PLWMqkJoiyNYe4y7go16OE5NMAImCPvNR1fuX6Bi_z2ynxh3NdijbMGA8kZACpyPY86DKRe35p55ORd036xBKXodjn_37ni_7nN8tOL84rGr6xvZvBmBk_MgDvIkX2T2MDOSxHCWlHQJy7NXRQKO2x2moYcEQqhXkgPOQeRz-yuNEGvMgyjiHKV1IFruTLswMMKfhH9VvW2h_yE9M9UcDvW12q4PQXfrOJ2PC_Xcb8qp_1Bh_0LMuefhND_OtD5UItPlvqRDqV-oE-G0hUq_UA_OdGP9Bih4efl4nR-tro-n11cPK5sPZGYfSe6CJlB1HgJQ6CL0zqzktpJgxobIVSJ4Y5sYQ9l8uHwOADe3w_gv_2mH-jT-XK2uBuqZv1IN_aN4YxW5-vwUBFJOK0INERRfRU4nV_Mhs58R-BwRHgt0Ve5j5Obk_PZMEzyrsuyO7B2usntso5OkB_6dl7Pj_PQ-nBZTJNs_SHOQJb1yzsQ2nZx925lesn7U3-a2JcrP7J-P7dNaH2679Rsdfq70437esyDy8b1xR_3uf0hXV3im7NLV1xdW5NwUd3_4WdL9X5VkUtjfauOqzN33Fnsox2i8pr3t3flnSWbBBrpvZOe14tj35HeLVE-IymZTGN4a06Xf5x1x8kkPn3_PvfPz_FsnqB376ezxWz2IT-ZimvzLn6HT-rlu46mxSe8ii6O70S0nsbmFc2KWz-O-1vj5NPEuq7WNyf44t3vcF2k00Ux-zB7P_94f13OJiI1P2Sn_t343eosz3j7qbbvXCNapd00CM6MEvnrMUgW1btT45I7dXTbR9ynK_e-ef_xbPWJzOkCQsvPlzfrai7ur6ub9X055dHV5PfJZLUyKr8G5_qBfn55fbN6OAnay5QVpSCo06aEfql6s09FDKSbg9biJu24AWMy-BZzBNyR-fX0ZhczlNPVMrFtlPUujWip7CZEeWPivOGdsgxMJeG1YY3s8Qg8lQ6yGPBU2K3I4oBFTkgDxurEC0ocYrupjZhWhjVywch6Ktr1IO5DwHEQm3Ht5CAMahb5NZOJb6U4NThtsWGNxs_73GRZ0yLTiXHjhZZnM5BYgUihTHmKu9AzUCHJuqJMGcHIfyodhoCKNOr92ENUOkBKs0dWa8HEsbMeSiOiHG-lnSEtfabeARh4Hg2V46UYRXHQuiZMrDDhDQNWCQxMo2gLYI_As4GbfckbADhIMj-PWN_Xsh-rGsgcoJAL34j5WhFsDPn_E1HsINdTfgM92VuYN56kOB5LgGvYgjjrBtFYEvGi3s4OMhyPO7NHeah6P-NZk8EaNb7VWQn3jBg22eB-nq8V9ROOmsi3bCdiPIyp1YMg7DsnSZtEKTDoraA0wMh2n8rC1Ld56iuXRqAM_T5sxdj2bcx7aMvSto24p2IoAJxny8xKp4FdGNVOLOwYBI6JYJ3VY5a00k2EEfZUWAYYmSPf2DjMx_J5msUqRRyZ3riBsfTLzvHGCchwDygtxdDrHGZkU9w8M-0f9Nb7orZjMtyyklMR2qZtxVLFXNA2Yq2rgjEzBKxQYljPbTMwm7yD5liKmgs_SGITMFb6aef0Qtl4bLS94Y78EXhpvGlq9hCXaZuqKMqZmwYoj3OzpTJx2TgVxhDeDXfkuLtT2PlitZjffwlVNBdrSfQD_WKqH-kM6wf60Hw8X9xcXl48OaaVlLeJ05kwQ5QHJjPd1OwlkHYDE2Y7eOjgdg_szqsNa-Q4TyBXH5eTq6vZcnUzWZ7NblYbD9f63spzVmue8aLhK0b5ul3FfK0f6eBB_nZ-MV2dXC43ockyd-RNFN7faSmAac2ssmnCgLswAEmPzTTwoyyIoJ0ZMUJfugeckT36ivSzXTs5vZicXa9OLj9cbWOuZkQSclzkhiIE_6dMUC0xkuJhemeL08vlyWy1uFwtJjfzu9ke2PlkOZ0t5ouz1WwxOd7AhZRjXjRaVMgcVsNXRaPu4dvWGA1R2yZQYsIpj0lbEa5oTZ42RFBVmqBIk4TJQlMVRBliUCVCFhVBFS34lrh7LqSmKklRVdRERqxotJ7IIf9kg7OSJFa7Pl9MNzMw5CdSwCrRvpt0FOtKrCs1fB8yGmqacfGTcWKQ_jvCuyFc31wuZ49MaWj4oB_pPNcP9MvjdyeXV3_oR3oRpqgQ3ZY2vf1wtaXhdS70A_2FUD1OHWhSagZJWra1pK4dgcRMXBSF3HS6rWMgLNoG6-eh48cN-ilEZpfI7kDkUT-2cNy7vYki08Sp0yJXynoD8bJoArtU9b4f-GbbmiYoMysMc5RDANKmMTsjHmxs2OemYYEXXfLfi9w_53Oeoqgorcdm75UyyFkUOH2W5gFvvFDhULASfEV5Sfot23rLtt6yrbds6wezraPvl97brf_17vz_wj3_crK4mB_rR7qEfBtfl7PJdHZxOpAIxIRF-oF-Pf80hFtF-yHQXl_eDvnQdHIzW82uLk-GGGoD17Ut3xzys-ub5XyxSTCGhIRvEo-BdrWjiNffL_jhGPzsAOntDYW3NxTe3lD47jnr2x3-2x3-2x3-2x3-_4o7_LdLxn_ZS0b9QF-tVCXXqFpLgidVJZV-pOsHerimDM-5WFfq71yJaD9doGs_V5xrP1eYP4z4KoGK6Ef6nxpBSaF91o2_8fdZ_8dnrj0gaR8ny8V8cXakVQnRSEtVRTgiWhFpVUKVtjnQo0rjRaXFayghrwjBoycg82rggVyjvCKSQ6bRXDCSE17BzcEiJhWkTIsKqYksVqM8ux629hOcXzSszY9_15YEFRJrkDFtM4sa3RiOBpUm17yiOdEwEYRjwhElaiPdikJW__jM_9I-r03TJttP7bP-H8W6-qx_5g9LQuQvuepFQ4F8ymC8M3BU8IjGa7lPw0So40Hn5uMl2pUsBIxhRZ623kAZk-pF4ksy54Wqhv_nlJe4tzhPVexTn0kVJwlB2cPDnKsKMvaIxqsJxlOqYMjIlIgbCTdtQD_Qc6IKvjcvHObDphi29TZOEF5vyBWtyfEjT6Ef6MW6-mfuw_eOprdCO4Tt87ZS3CGKYVcOv_f26IEuJImIvBh86MN6gQ35YSqe9exr0-Llrm9G90vMbYN0XhTDlO723EfCUJETrSq0LzOhiaL6t521qwoP8_pIu2PjMAl6rw6CcezxtHe6MkcytbyeogArYytkbK5LNhiSompKxMOANv5eP9K31ys7vr_--q8AAAD__-AG77c=
+LD_LIBRARY_PATH=/nix/store/sl7j5z4lij096xayzgwiv20p7crx2h5j-icu4c-76.1/lib:/nix/store/ibr8xz2flyl45mhxksczwk9i7gzpv35p-libice-1.1.2/lib:/nix/store/6vqvx5m8cba5nnkvr4zmdl5nk89lsjcc-libsm-1.2.6/lib:/nix/store/0d2nplzyyigdjbd9l7s1ka4809zm7pwl-libx11-1.8.12/lib:/nix/store/llbgpwb7ldidq7w1yzymj3nwng8i67c1-libsecret-0.21.7/lib
+__structuredAttrs=
+preferLocalBuild=1
+AR=ar
+WEBKIT_DISABLE_DMABUF_RENDERER=1
+YARN_ENABLE_IMMUTABLE_INSTALLS=false
+NIX_BINTOOLS=/nix/store/rinxh4y0akcin90l05j0zr1r3wahl34d-binutils-wrapper-2.44
+WAYLAND_DISPLAY=wayland-0
+USER=codgi
+
+
+------------
+Diagnostic: File system
+Skipped: False
+Success: True
+Exception: None
+Log:
+Temporary directory is '/tmp/'...
+Checking basic file I/O...
+Writing to temporary file '/tmp/9d6d4c0fbe2f51055b578fbd'... OK
+Reading from temporary file '/tmp/9d6d4c0fbe2f51055b578fbd'... OK
+Deleting temporary file '/tmp/9d6d4c0fbe2f51055b578fbd'... OK
+Testing IFileSystem instance...
+UserHomePath: /home/codgi
+UserDataDirectoryPath: /home/codgi/.gcm
+GetCurrentDirectory(): /home/codgi/GitHub/serenitea-pot
+
+------------
+Diagnostic: Networking
+Skipped: False
+Success: False
+Exception:
+System.Net.Http.HttpRequestException: The SSL connection could not be established, see inner exception.
+ ---> System.Security.Authentication.AuthenticationException: The remote certificate is invalid because of errors in the certificate chain: PartialChain
+   at System.Net.Security.SslStream.SendAuthResetSignal(ReadOnlySpan`1 alert, ExceptionDispatchInfo exception)
+   at System.Net.Security.SslStream.CompleteHandshake(SslAuthenticationOptions sslAuthenticationOptions)
+   at System.Net.Security.SslStream.ForceAuthenticationAsync[TIOAdapter](Boolean receiveFirst, Byte[] reAuthenticationData, CancellationToken cancellationToken)
+   at System.Net.Http.ConnectHelper.EstablishSslConnectionAsync(SslClientAuthenticationOptions sslOptions, HttpRequestMessage request, Boolean async, Stream stream, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.ConnectHelper.EstablishSslConnectionAsync(SslClientAuthenticationOptions sslOptions, HttpRequestMessage request, Boolean async, Stream stream, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.ConnectAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.CreateHttp11ConnectionAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.AddHttp11ConnectionAsync(QueueItem queueItem)
+   at System.Threading.Tasks.TaskCompletionSourceWithCancellation`1.WaitWithCancellationAsync(CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   at GitCredentialManager.Diagnostics.NetworkingDiagnostic.RunInternalAsync(StringBuilder log, IList`1 additionalFiles) in /build/source/src/shared/Core/Diagnostics/NetworkingDiagnostic.cs:line 35
+   at GitCredentialManager.Diagnostics.Diagnostic.RunAsync() in /build/source/src/shared/Core/Diagnostics/Diagnostic.cs:line 43
+Log:
+Checking networking and HTTP stack...
+Creating HTTP client... OK
+IsNetworkAvailable: True
+Sending HEAD request to http://example.com...Sending HEAD request to https://example.com... OK
+
+------------
+Diagnostic: Git
+Skipped: False
+Success: True
+Exception: None
+Log:
+Getting Git version... OK
+Git version is '2.51.2'
+Locating current repository...Git repository at '/home/codgi/GitHub/serenitea-pot/.git'
+ OK
+Listing all Git configuration... OK
+Git configuration:
+file:/home/codgi/.config/git/config	commit.gpgsign=true
+file:/home/codgi/.config/git/config	credential.helper=/nix/store/5zlbb9n12yp22q5j1q4gnrm966wifgj7-git-credential-manager-2.6.1/bin/git-credential-manager
+file:/home/codgi/.config/git/config	credential.https://gist.github.com.helper=
+file:/home/codgi/.config/git/config	credential.https://gist.github.com.helper=/nix/store/h47p0bap84nlnx8232ay46l1f09xrc8b-gh-2.83.2/bin/gh auth git-credential
+file:/home/codgi/.config/git/config	credential.https://github.com.helper=
+file:/home/codgi/.config/git/config	credential.https://github.com.helper=/nix/store/h47p0bap84nlnx8232ay46l1f09xrc8b-gh-2.83.2/bin/gh auth git-credential
+file:/home/codgi/.config/git/config	filter.lfs.clean=git-lfs clean -- %f
+file:/home/codgi/.config/git/config	filter.lfs.process=git-lfs filter-process
+file:/home/codgi/.config/git/config	filter.lfs.required=true
+file:/home/codgi/.config/git/config	filter.lfs.smudge=git-lfs smudge -- %f
+file:/home/codgi/.config/git/config	gpg.format=ssh
+file:/home/codgi/.config/git/config	gpg.ssh.allowedsignersfile=/nix/store/zvm6vlz5ckij7pw8i0phk8js2cwqrihw-allowed_signers
+file:/home/codgi/.config/git/config	tag.gpgsign=true
+file:/home/codgi/.config/git/config	user.email=15964984+codgician@users.noreply.github.com
+file:/home/codgi/.config/git/config	user.name=codgician
+file:/home/codgi/.config/git/config	user.signingkey=ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM/Mohin9ceHn6zpaRYWi3LeATeXI7ydiMrP3RsglZ2r
+file:.git/config	core.repositoryformatversion=0
+file:.git/config	core.filemode=true
+file:.git/config	core.bare=false
+file:.git/config	core.logallrefupdates=true
+file:.git/config	remote.origin.url=https://github.com/codgician/serenitea-pot
+file:.git/config	remote.origin.fetch=+refs/heads/*:refs/remotes/origin/*
+file:.git/config	branch.main.remote=origin
+file:.git/config	branch.main.merge=refs/heads/main
+file:.git/config	branch.main.vscode-merge-base=origin/main
+
+
+------------
+Diagnostic: Credential storage
+Skipped: False
+Success: False
+Exception:
+System.Exception: No credential store has been selected.
+
+Set the GCM_CREDENTIAL_STORE environment variable or the credential.credentialStore Git configuration setting to one of the following options:
+
+  secretservice : freedesktop.org Secret Service (requires graphical interface)
+  gpg           : GNU `pass` compatible credential storage (requires GPG and `pass`)
+  cache         : Git's in-memory credential cache
+  plaintext     : store credentials in plain-text files (UNSECURE)
+  none          : disable internal credential storage
+
+See https://aka.ms/gcm/credstores for more information.
+
+   at GitCredentialManager.CredentialStore.EnsureBackingStore() in /build/source/src/shared/Core/CredentialStore.cs:line 122
+   at GitCredentialManager.CredentialStore.Remove(String service, String account) in /build/source/src/shared/Core/CredentialStore.cs:line 48
+   at GitCredentialManager.Diagnostics.CredentialStoreDiagnostic.RunInternalAsync(StringBuilder log, IList`1 additionalFiles) in /build/source/src/shared/Core/Diagnostics/CredentialStoreDiagnostic.cs:line 59
+   at GitCredentialManager.Diagnostics.Diagnostic.RunAsync() in /build/source/src/shared/Core/Diagnostics/Diagnostic.cs:line 43
+Log:
+ICredentialStore instance is of type: CredentialStore
+Writing test credential...Deleting test credential...
+------------
+Diagnostic: Microsoft authentication (AAD/MSA)
+Skipped: False
+Success: True
+Exception: None
+Log:
+Broker is not enabled.
+Flow type is: Auto
+Gathering MSAL token cache data... OK
+CacheDirectory: /home/codgi/.local/.IdentityService
+CacheFileName: msal.cache
+CacheFilePath: /home/codgi/.local/.IdentityService/msal.cache
+KeyringCollection: 
+KeyringSchemaName: 
+KeyringSecretLabel: 
+KeyringAttribute1: (,)
+KeyringAttribute2: (,)
+Creating cache helper... OK
+Verifying MSAL token cache persistence... OK
+
+------------
+Diagnostic: GitHub API
+Skipped: False
+Success: True
+Exception: None
+Log:
+Using 'https://github.com/' as API target.
+Querying '/meta' endpoint... OK
+
