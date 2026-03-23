@@ -28,12 +28,15 @@
     { pkgs, ... }:
     {
       codgician.codgi = {
+        claude-code = {
+          enable = true;
+          package = pkgs.claude-code-bin-wrapped;
+        };
         dev = {
           haskell.enable = true;
           nix.enable = true;
           rust.enable = true;
         };
-
         git.enable = true;
         mcp.enable = true;
         opencode.enable = true;
@@ -65,7 +68,6 @@
             ghidra
             prismlauncher-unwrapped
             macmon
-            claude-code
             beads
             mtk-uartboot
             mas
