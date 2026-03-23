@@ -49,18 +49,15 @@ in
 {
   intune-portal = prev.symlinkJoin {
     name = "intune-portal-${intune-portal-unwrapped.version}";
-    paths = [
-      intune-portal-unwrapped
-      desktopItem
-    ];
+    paths = [ intune-portal-unwrapped ];
     postBuild = ''
       rm $out/bin/intune-portal $out/bin/intune-agent
       ln -s ${mkBwrapWrapper "intune-portal"} $out/bin/intune-portal
       ln -s ${mkBwrapWrapper "intune-agent"} $out/bin/intune-agent
 
-      # Remove original .desktop, keep makeDesktopItem version
+      # Replace .desktop with version pointing to wrapped binary
       rm $out/share/applications/intune-portal.desktop
-      mv $out/share/applications/${desktopItem.name}.desktop $out/share/applications/intune-portal.desktop
+      ln -s ${desktopItem}/share/applications/intune-portal.desktop $out/share/applications/intune-portal.desktop
     '';
   };
 

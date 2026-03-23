@@ -223,6 +223,7 @@ in
       adwaita-qt
       gnome-tweaks
       dconf-editor
+      file-roller
     ];
 
     # Hack: fix .gtkrc-2.0 becoming a real file instead of a symlink (same as plasma)

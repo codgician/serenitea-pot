@@ -130,13 +130,8 @@
     "d /persist/keys 0700 root root -"
   ];
 
-  # Stage-2 unlock for code disk using NixOS encrypted device mechanism
-  fileSystems."/code".encrypted = {
-    enable = true;
-    blkDev = "/dev/disk/by-partlabel/disk-code-code";
-    label = "crypted-code";
-    keyFile = "/sysroot/persist/keys/crypted-code.key";
-  };
+  # Enable nix-ld
+  programs.nix-ld.enable = true;
 
   # Firewall
   networking.firewall.enable = false;
