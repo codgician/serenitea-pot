@@ -32,6 +32,10 @@
           enable = true;
           package = pkgs.claude-code-bin-wrapped;
         };
+        codex = {
+          enable = true;
+          package = pkgs.codex-wrapped;
+        };
         dev = {
           haskell.enable = true;
           nix.enable = true;

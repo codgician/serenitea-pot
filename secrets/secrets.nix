@@ -16,6 +16,9 @@ with pubKeys.hosts;
   # Claude Code
   "claude-code-env.age".publicKeys = allHosts;
 
+  # Codex
+  "codex-env.age".publicKeys = allHosts;
+
   # Docker
   "docker-pat.age".publicKeys = allServers;
 

@@ -19,4 +19,5 @@ in
 {
   claude-code-wrapped = mkEnvWrappedApplication final.claude-code "/run/agenix/claude-code-env";
   claude-code-bin-wrapped = mkEnvWrappedApplication final.claude-code-bin "/run/agenix/claude-code-env";
+  codex-wrapped = mkEnvWrappedApplication final.codex "/run/agenix/codex-env";
 }
