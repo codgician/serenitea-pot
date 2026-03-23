@@ -127,7 +127,7 @@ in
 
       # Blur application windows (for terminals, etc.)
       "org/gnome/shell/extensions/blur-my-shell/applications" = {
-        blur = true;
+        blur = false;
         enable-all = true;
         brightness = 0.6;
         sigma = lib.hm.gvariant.mkInt32 15;
