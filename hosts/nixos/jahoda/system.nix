@@ -25,10 +25,10 @@
     { ... }:
     {
       codgician.codgi = {
+        claude-code.enable = true;
         dev = {
           nix.enable = true;
         };
-
         opencode.enable = true;
         mcp.enable = true;
         git.enable = true;
@@ -57,10 +57,16 @@
       };
 
       home.stateVersion = "25.11";
+      home.packages = with pkgs; [
+        codex
+      ];
     };
 
-  # Enable Network Manager
-  networking.networkmanager.enable = true;
+  # Enable Network Manager (leave thunderbolt0 to systemd-networkd)
+  networking.networkmanager = {
+    enable = true;
+    unmanaged = [ "thunderbolt0" ];
+  };
   networking.hostId = "359a10da";
 
   # Use the systemd-boot EFI boot loader.
@@ -118,17 +124,6 @@
 
   # Firewall
   networking.firewall.enable = false;
-
-  # Thunderbolt Ethernet - static IP for direct connection
-  systemd.network.enable = true;
-
-  systemd.network.networks."10-thunderbolt" = {
-    matchConfig.Name = "thunderbolt0";
-    address = [ "172.16.0.1/24" ];
-    networkConfig = {
-      ConfigureWithoutCarrier = true;
-    };
-  };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions

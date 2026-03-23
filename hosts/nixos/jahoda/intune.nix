@@ -96,6 +96,5 @@
     microsoft-edge
     intune-portal
     azure-cli
-    teams-for-linux
   ];
 }

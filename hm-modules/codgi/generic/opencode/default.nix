@@ -3,7 +3,6 @@ args@{
   lib,
   pkgs,
   inputs,
-  outputs,
   ...
 }:
 let

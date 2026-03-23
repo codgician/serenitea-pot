@@ -9,6 +9,7 @@ final: prev: {
     beads
     codex
     claude-code
+    claude-code-bin
     opencode
     antigravity
     zfs_unstable
