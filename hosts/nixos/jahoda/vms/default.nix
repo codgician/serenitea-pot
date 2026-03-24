@@ -62,7 +62,7 @@
       domains = [
         {
           definition = ./alhaitham.xml;
-          active = true;
+          active = false;
         }
       ];
       networks = [
@@ -85,16 +85,6 @@
     "libvirtd"
     "kvm"
   ];
-
-  # Bridge network for virtual machines
-  # codgician.virtualization.vswitch = {
-  #   enable = true;
-  #   switches.vs0 = {
-  #     interfaces.eno1 = { };
-  #     macAddress = "b0:7b:25:23:66:62";
-  #   };
-  # };
-  # networking.interfaces.vs0.useDHCP = true;
 
   # Impermanence for libvirt and swtpm state
   codgician.system.impermanence.extraItems = [
