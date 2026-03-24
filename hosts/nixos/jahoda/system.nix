@@ -131,7 +131,7 @@
     enable = true;
     unmanaged = [ "thunderbolt0" ];
   };
-  networking.hostId = "359a10da";
+  networking.hostId = "357a80da";
 
   # Thunderbolt networking (point-to-point link to Windows PC)
   systemd.network = {

@@ -22,7 +22,6 @@
         "sd_mod"
       ];
       kernelModules = [
-        "tpm_crb"
         "vfio"
         "vfio_pci"
         "vfio_iommu_type1"

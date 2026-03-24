@@ -8,16 +8,44 @@
   boot = {
     initrd = {
       availableKernelModules = [
+        "xhci_pci"
+        "nvme"
         "thunderbolt"
+        "usb_storage"
+        "usbhid"
+        "sd_mod"
       ];
-      kernelModules = [ ];
+      kernelModules = [
+        "vfio"
+        "vfio_pci"
+        "vfio_iommu_type1"
+      ];
+
+      systemd.services.bind-vfio = {
+        description = "Bind first GPU to vfio for passthrough";
+        wantedBy = [ "initrd.target" ];
+        script = ''
+          devs="0000:4f:00.0 0000:4f:00.1"
+          for dev in $devs; do 
+            echo "vfio-pci" > /sys/bus/pci/devices/$dev/driver_override 
+          done
+          modprobe -i vfio-pci
+        '';
+        serviceConfig.Type = "oneshot";
+      };
     };
 
-    supportedFilesystems = [ "vfat" ];
-    kernelModules = [ ];
-    kernelParams = [ ];
+    kernelModules = [ "kvm-intel" ];
+    kernelParams = [
+      "iommu.passthrough=0"
+      "intel_iommu=on"
+      "hugepagesz=1G"
+      "default_hugepagesz=1G"
+      "hugepages=24"
+    ];
     kernelPackages = pkgs.linuxPackages_6_18;
-    extraModulePackages = [ ];
+    zfs.package = pkgs.zfs_2_4;
+    supportedFilesystems = [ "vfat" ];
   };
 
   # Stage-2 unlock for code disk using NixOS encrypted device mechanism

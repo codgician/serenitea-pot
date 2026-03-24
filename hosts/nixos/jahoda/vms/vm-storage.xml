@@ -1,0 +1,14 @@
+<pool type="dir">
+  <name>vm</name>
+  <uuid>14fa9dd4-9e66-47e4-bff9-a03997f7cc4a</uuid>
+  <source>
+  </source>
+  <target>
+    <path>/vm</path>
+    <permissions>
+      <mode>0711</mode>
+      <owner>0</owner>
+      <group>0</group>
+    </permissions>
+  </target>
+</pool>

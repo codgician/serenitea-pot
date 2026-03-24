@@ -1,9 +1,20 @@
-{ lib, pkgs, ... }:
+{ pkgs, lib, ... }:
 {
+  # OVMFFull with MS Secure Boot keys at /run/libvirt/nix-ovmffull/
+  systemd.services.libvirtd-config = {
+    serviceConfig.RuntimeDirectory = [ "libvirt/nix-ovmffull" ];
+    script = lib.mkAfter ''
+      cp -sf ${pkgs.OVMFFull.fd}/FV/* /run/libvirt/nix-ovmffull/
+    '';
+  };
+
   # libvirtd
   virtualisation.libvirtd = {
     enable = true;
-    qemu.swtpm.enable = true;
+    qemu = {
+      swtpm.enable = true;
+      vhostUserPackages = with pkgs; [ virtiofsd ];
+    };
     onBoot = "start";
     onShutdown = "shutdown";
     allowedBridges = [ "vs0" ];
@@ -16,18 +27,18 @@
           text = ''
             vm=$1
             command=$2
-            if [ "$vm" != "openwrt" ]; then
+            if [ "$vm" != "alhaitham" ]; then
               exit 0
             fi
 
             if [ "$command" = "started" ]; then
-              systemctl set-property --runtime -- system.slice AllowedCPUs=0,1,6,7
-              systemctl set-property --runtime -- user.slice AllowedCPUs=0,1,6,7
-              systemctl set-property --runtime -- init.scope AllowedCPUs=0,1,6,7
+              systemctl set-property --runtime -- system.slice AllowedCPUs=0-11
+              systemctl set-property --runtime -- user.slice AllowedCPUs=0-11
+              systemctl set-property --runtime -- init.scope AllowedCPUs=0-11
             elif [ "$command" = "release" ]; then
-              systemctl set-property --runtime -- system.slice AllowedCPUs=0-7
-              systemctl set-property --runtime -- user.slice AllowedCPUs=0-7
-              systemctl set-property --runtime -- init.scope AllowedCPUs=0-7
+              systemctl set-property --runtime -- system.slice AllowedCPUs=0-19
+              systemctl set-property --runtime -- user.slice AllowedCPUs=0-19
+              systemctl set-property --runtime -- init.scope AllowedCPUs=0-19
             fi
           '';
         }
@@ -42,23 +53,19 @@
     connections."qemu:///system" = {
       domains = [
         {
-          definition = ./openwrt.xml;
-          active = true;
-        }
-        {
-          definition = ./hass.xml;
+          definition = ./alhaitham.xml;
           active = true;
         }
       ];
       networks = [
         {
-          definition = ./vs0.xml;
+          definition = ./virbr0.xml;
           active = true;
         }
       ];
       pools = [
         {
-          definition = ./zroot.xml;
+          definition = ./vm-storage.xml;
           active = true;
         }
       ];
@@ -69,14 +76,14 @@
   codgician.users.codgi.extraGroups = [ "libvirtd" ];
 
   # Bridge network for virtual machines
-  codgician.virtualization.vswitch = {
-    enable = true;
-    switches.vs0 = {
-      interfaces.enp4s0 = { };
-      macAddress = "ac:79:86:f1:5c:81";
-    };
-  };
-  networking.interfaces.vs0.useDHCP = true;
+  # codgician.virtualization.vswitch = {
+  #   enable = true;
+  #   switches.vs0 = {
+  #     interfaces.eno1 = { };
+  #     macAddress = "b0:7b:25:23:66:62";
+  #   };
+  # };
+  # networking.interfaces.vs0.useDHCP = true;
 
   # Impermanence for libvirt and swtpm state
   codgician.system.impermanence.extraItems = [

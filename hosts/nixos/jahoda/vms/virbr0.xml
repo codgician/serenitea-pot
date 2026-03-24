@@ -1,0 +1,12 @@
+<network>
+  <name>nat-network</name>
+  <uuid>f669a244-7519-4889-8391-62ee28e5672b</uuid>
+  <forward mode="nat"/>
+  <bridge name="virbr0" stp="on" delay="0"/>
+  <mac address="52:54:00:7a:80:da"/>
+  <ip address="172.32.0.1" netmask="255.255.255.0">
+    <dhcp>
+      <range start="172.32.0.2" end="172.32.0.254"/>
+    </dhcp>
+  </ip>
+</network>

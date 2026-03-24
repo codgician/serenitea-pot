@@ -8,5 +8,6 @@ lib.codgician.mkNixosSystem {
     ./system.nix
     ./hardware.nix
     ./intune.nix
+    ./vms
   ];
 }
