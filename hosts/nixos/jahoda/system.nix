@@ -69,7 +69,7 @@
 
   # Home manager
   home-manager.users.codgi =
-    { ... }:
+    { lib, ... }:
     {
       codgician.codgi = {
         codex = {
@@ -120,6 +120,7 @@
         [
           cider-2
           virt-manager
+          looking-glass-client
         ]
         ++ (with pkgs.nur.repos.codgician; [
           nanokvm-usb

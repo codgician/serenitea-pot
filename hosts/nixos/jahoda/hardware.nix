@@ -35,7 +35,10 @@
       };
     };
 
-    kernelModules = [ "kvm-intel" ];
+    kernelModules = [
+      "kvm-intel"
+      "kvmfr"
+    ];
     kernelParams = [
       "iommu.passthrough=0"
       "intel_iommu=on"
@@ -43,10 +46,23 @@
       "default_hugepagesz=1G"
       "hugepages=24"
     ];
+
+    extraModulePackages = with config.boot.kernelPackages; [ kvmfr ];
+    extraModprobeConfig = ''
+      options kvmfr static_size_mb=512
+    '';
+
     kernelPackages = pkgs.linuxPackages_6_18;
     zfs.package = pkgs.zfs_2_4;
     supportedFilesystems = [ "vfat" ];
   };
+
+  # KVMFR device permissions for Looking Glass client
+  # Note: OWNER="codgi" doesn't work - systemd-udevd rejects non-system users (UID >= 1000)
+  # Use TAG+="uaccess" to grant logged-in user access via ACL instead
+  services.udev.extraRules = ''
+    SUBSYSTEM=="kvmfr", GROUP="kvm", MODE="0660", TAG+="uaccess"
+  '';
 
   # Stage-2 unlock for code disk using NixOS encrypted device mechanism
   fileSystems."/code".encrypted = {

@@ -14,6 +14,14 @@
     qemu = {
       swtpm.enable = true;
       vhostUserPackages = with pkgs; [ virtiofsd ];
+      verbatimConfig = ''
+        cgroup_device_acl = [
+          "/dev/null", "/dev/full", "/dev/zero",
+          "/dev/random", "/dev/urandom",
+          "/dev/ptmx", "/dev/kvm",
+          "/dev/kvmfr0"
+        ]
+      '';
     };
     onBoot = "start";
     onShutdown = "shutdown";
@@ -72,8 +80,11 @@
     };
   };
 
-  # Add codgi to libvirtd group
-  codgician.users.codgi.extraGroups = [ "libvirtd" ];
+  # Add codgi to libvirtd and kvm groups (kvm needed for /dev/kvmfr0 access)
+  codgician.users.codgi.extraGroups = [
+    "libvirtd"
+    "kvm"
+  ];
 
   # Bridge network for virtual machines
   # codgician.virtualization.vswitch = {
