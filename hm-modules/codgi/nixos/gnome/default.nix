@@ -68,6 +68,10 @@ in
         dock-position = "BOTTOM";
         extend-height = false;
 
+        # Multi-monitor: show on all monitors, prefer primary
+        multi-monitor = true;
+        preferred-monitor = lib.hm.gvariant.mkInt32 (-1);
+
         # macOS-like auto-hide behavior
         dock-fixed = false;
         autohide = true;
@@ -76,7 +80,7 @@ in
         animation-time = 0.2;
         hide-delay = 0.2;
         show-delay = 0.0;
-        pressure-threshold = 100.0;
+        pressure-threshold = 50.0;
         require-pressure-to-show = true;
 
         # Appearance

@@ -17,6 +17,9 @@ rec {
 
   users = {
     codgi = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM/Mohin9ceHn6zpaRYWi3LeATeXI7ydiMrP3RsglZ2r" ];
+    shijiazhang = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOfYD3BnzqBK6FsxldFzSgwIWNBlfySRVI6dw7KQfGcn"
+    ];
   };
 
   # Aliases

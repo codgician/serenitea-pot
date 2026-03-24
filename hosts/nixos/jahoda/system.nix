@@ -72,6 +72,10 @@
     { ... }:
     {
       codgician.codgi = {
+        codex = {
+          enable = true;
+          package = pkgs.codex-wrapped;
+        };
         claude-code.enable = true;
         dev = {
           dotnet.enable = true;
@@ -79,7 +83,13 @@
         };
         opencode.enable = true;
         mcp.enable = true;
-        git.enable = true;
+        git = {
+          enable = true;
+          directoryIdentities = {
+            "/code/" = "work";
+            "~/GitHub/" = "personal";
+          };
+        };
         gnome.favoriteApps = [
           "org.gnome.Nautilus.desktop"
           "microsoft-edge.desktop"
@@ -105,12 +115,15 @@
       };
 
       home.stateVersion = "25.11";
-      home.packages = with pkgs; [
-        codex
-        virt-manager
-      ] ++ (with pkgs.nur.repos.codgician; [
-        nanokvm-usb
-      ]);
+      home.packages =
+        with pkgs;
+        [
+          cider-2
+          virt-manager
+        ]
+        ++ (with pkgs.nur.repos.codgician; [
+          nanokvm-usb
+        ]);
     };
 
   # Enable Network Manager (leave thunderbolt0 to systemd-networkd)
