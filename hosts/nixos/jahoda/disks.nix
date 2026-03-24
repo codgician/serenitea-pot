@@ -114,6 +114,16 @@
                       "autodefrag"
                     ];
                   };
+                  "vm" = {
+                    mountpoint = "/vm";
+                    mountOptions = [
+                      # No compress - incompatible with NOCOW
+                      # No autodefrag - harmful for VM I/O patterns
+                      "noatime"
+                      "discard=async"
+                      "space_cache=v2"
+                    ];
+                  };
                 };
               };
             };

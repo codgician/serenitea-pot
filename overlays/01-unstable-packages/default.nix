@@ -17,5 +17,6 @@ final: prev: {
     open-webui
     azure-artifacts-credprovider
     git-credential-manager
+    looking-glass-client
     ;
 }

@@ -42,7 +42,10 @@ with pubKeys.hosts;
   "wireless-env.age".publicKeys = someHosts [ zibai ];
 
   # User password
-  "codgi-password.age".publicKeys = someHosts [ paimon ];
+  "codgi-password.age".publicKeys = someHosts [
+    jahoda
+    paimon
+  ];
   "codgi-hashed-password.age".publicKeys = allHosts;
   "smb-password.age".publicKeys = someHosts [ paimon ];
   "smb-hashed-password.age".publicKeys = someHosts [ paimon ];

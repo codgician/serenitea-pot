@@ -12,12 +12,6 @@ in
   options.codgician.services.gnome = {
     enable = lib.mkEnableOption "Gnome Desktop.";
 
-    wayland = lib.mkOption {
-      type = types.bool;
-      default = true;
-      description = "Enable Wayland support for Gnome Desktop.";
-    };
-
     autoLoginUser = lib.mkOption {
       type = types.nullOr types.str;
       default = null;
@@ -32,11 +26,11 @@ in
     services = {
       xserver.enable = true;
       displayManager = {
-        defaultSession = lib.mkIf cfg.wayland "gnome";
+        defaultSession = "gnome";
 
         gdm = {
           enable = true;
-          wayland = lib.mkIf cfg.wayland true;
+          wayland = true;
         };
 
         autoLogin = lib.mkIf (cfg.autoLoginUser != null) {
@@ -45,7 +39,13 @@ in
         };
       };
 
-      desktopManager.gnome.enable = true;
+      desktopManager.gnome = {
+        enable = true;
+        extraGSettingsOverrides = ''
+          [org.gnome.mutter]
+          experimental-features=['scale-monitor-framebuffer', 'xwayland-native-scaling']
+        '';
+      };
     };
 
     # Enable dconf
@@ -66,7 +66,7 @@ in
     xdg.portal = {
       enable = true;
       extraPortals = with pkgs; [ xdg-desktop-portal-gnome ];
-      wlr.enable = cfg.wayland;
+      wlr.enable = true;
     };
 
     # Install optional dependencies

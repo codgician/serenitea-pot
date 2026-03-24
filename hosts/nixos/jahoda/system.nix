@@ -1,10 +1,56 @@
-{ lib, pkgs, ... }:
+{
+  lib,
+  pkgs,
+  ...
+}:
 {
   # My settings
   codgician = {
     services = {
       gnome.enable = true;
       nixos-vscode-server.enable = true;
+
+      # Samba share for /code (dev-optimized for Windows 11 client over Thunderbolt)
+      samba = {
+        enable = true;
+        users = [ "codgi" ];
+        shares = {
+          code = {
+            path = "/code";
+            browsable = "yes";
+            writeable = "yes";
+            "valid users" = "codgi";
+            "read only" = "no";
+            "create mask" = "0644";
+            "directory mask" = "0755";
+
+            # Case sensitivity: critical for git/IDE performance
+            # Prevents expensive directory scans for case-insensitive lookups
+            "case sensitive" = "yes";
+            "default case" = "lower";
+            "preserve case" = "yes";
+            "short preserve case" = "yes";
+
+            # Oplocks: allow Windows to cache files locally
+            "oplocks" = "yes";
+            "level2 oplocks" = "yes";
+            "kernel oplocks" = "yes";
+
+            # Locking: relax for IDE/Git patterns
+            "strict locking" = "no";
+            "posix locking" = "no";
+
+            # Symlinks: common in codebases
+            "follow symlinks" = "yes";
+            "wide links" = "yes";
+            "allow insecure wide links" = "yes";
+
+            # Veto noise files
+            "veto files" = "/.DS_Store/Thumbs.db/desktop.ini/";
+            "delete veto files" = "yes";
+          };
+        };
+      };
     };
 
     system = {
@@ -16,6 +62,7 @@
     users.codgi = with lib.codgician; {
       enable = true;
       hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
+      passwordAgeFile = getAgeSecretPathFromName "codgi-password";
       extraGroups = [ "wheel" ];
     };
   };
@@ -61,7 +108,9 @@
       home.packages = with pkgs; [
         codex
         virt-manager
-      ];
+      ] ++ (with pkgs.nur.repos.codgician; [
+        nanokvm-usb
+      ]);
     };
 
   # Enable Network Manager (leave thunderbolt0 to systemd-networkd)
@@ -70,6 +119,19 @@
     unmanaged = [ "thunderbolt0" ];
   };
   networking.hostId = "359a10da";
+
+  # Thunderbolt networking (point-to-point link to Windows PC)
+  systemd.network = {
+    enable = true;
+    networks."40-thunderbolt" = {
+      matchConfig.Name = "thunderbolt0";
+      address = [ "172.16.0.1/24" ];
+      networkConfig = {
+        ConfigureWithoutCarrier = true;
+        LinkLocalAddressing = "no";
+      };
+    };
+  };
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -124,6 +186,12 @@
 
   # Enable zram swap
   zramSwap.enable = true;
+
+  # Increase inotify limits for IDEs (VS Code, JetBrains) over SMB
+  boot.kernel.sysctl = {
+    "fs.inotify.max_user_watches" = 524288;
+    "fs.inotify.max_user_instances" = 1024;
+  };
 
   # Keyfile directory for secondary LUKS disk
   systemd.tmpfiles.rules = [
