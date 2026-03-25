@@ -9,8 +9,7 @@
   <memory unit="KiB">25165824</memory>
   <currentMemory unit="KiB">25165824</currentMemory>
   <memoryBacking>
-    <source type="memfd"/>
-    <access mode="shared"/>
+    <hugepages/>
   </memoryBacking>
   <vcpu placement="static">8</vcpu>
   <iothreads>1</iothreads>
