@@ -95,7 +95,10 @@ in
       # Add override for oh-my-opencode
       "opencode/oh-my-opencode.json".text = builtins.toJSON {
         "$schema" =
-          "https://raw.githubusercontent.com/code-yeongyu/oh-my-opencode/master/assets/oh-my-opencode.schema.json";
+          "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/refs/heads/dev/assets/oh-my-opencode.schema.json";
+        disabled_skills = [ "dev-browser" ];
+        browser_automation_engine = "agent-browser";
+        tmux.enabled = true;
         agents = {
           sisyphus.model = "dendro/claude-opus-4.6";
           hephaestus.model = "dendro/gpt-5.3-codex";
