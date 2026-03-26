@@ -357,11 +357,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1774406959,
-        "narHash": "sha256-LvsvRER3uhSMPFXm3d51j1HKtNvT5uaxeU2GiGhTx2Y=",
+        "lastModified": 1774493729,
+        "narHash": "sha256-iiAPQOnqXCXQd+JBfdEJvbkQEURtRjCiQAMqJC0eqpI=",
         "owner": "nix-community",
         "repo": "nix-vscode-extensions",
-        "rev": "8e7124f1592e7f2cc8f76ce2639255f478d58838",
+        "rev": "5658883e82456228e65c1182bf4a35e909b3ef14",
         "type": "github"
       },
       "original": {
@@ -494,11 +494,11 @@
     },
     "nixpkgs-unstable": {
       "locked": {
-        "lastModified": 1774432139,
-        "narHash": "sha256-LjWHVw5fVGMGmy6lXLsWprwlehmOSoVzrvrNavqNyd8=",
+        "lastModified": 1774519979,
+        "narHash": "sha256-4McLbQr/fC0Lv/A5ipXIavnA4q6ZY6UbIJlve8dxRh4=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "61a431ff6443616a23722867d94cc24473b739d4",
+        "rev": "6888853be89f967e466b1ce7c0e33b5a3526666a",
         "type": "github"
       },
       "original": {
@@ -538,11 +538,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1774433455,
-        "narHash": "sha256-z2+wcwsENdA8MuyUyl9qxyMIOfVSAUA0bJLFCyhEJQE=",
+        "lastModified": 1774519093,
+        "narHash": "sha256-aYPpMK8zIzFXIyVN0+mxV8XqPfL17cNRc8LSYXsDjDg=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "734830be2a155a72993a46df8902f86034b9483d",
+        "rev": "c1323f042563c05889f6e042d205eb4434e9370a",
         "type": "github"
       },
       "original": {
@@ -701,11 +701,11 @@
     "skills": {
       "flake": false,
       "locked": {
-        "lastModified": 1774196161,
-        "narHash": "sha256-QAy9ulbKaK5QWiGiXYsxav+bMhhmqU8pCS7P0fWxLlk=",
+        "lastModified": 1774451446,
+        "narHash": "sha256-w//9LB1OVG9jlllY+VDse7Js0dn5x6Ys2vPuQACKsTM=",
         "owner": "anthropics",
         "repo": "skills",
-        "rev": "887114fd09f8f24a7e6c907f9ee505348498ab6a",
+        "rev": "98669c11ca63e9c81c11501e1437e5c47b556621",
         "type": "github"
       },
       "original": {
@@ -717,11 +717,11 @@
     "superpowers": {
       "flake": false,
       "locked": {
-        "lastModified": 1773951977,
-        "narHash": "sha256-wmOArGgOahJK/mqzYJZW6qcUNaOB6yL57RQMe56S1uw=",
+        "lastModified": 1774462089,
+        "narHash": "sha256-r/Z+UxSFQIx99HnSPoU/toWMddXDcnLsbFXpQfLfj1k=",
         "owner": "obra",
         "repo": "superpowers",
-        "rev": "8ea39819eed74fe2a0338e71789f06b30e953041",
+        "rev": "eafe962b18f6c5dc70fb7c8cc7e83e61f4cdde06",
         "type": "github"
       },
       "original": {
