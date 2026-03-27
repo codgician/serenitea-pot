@@ -134,69 +134,7 @@ let
 
   # GitHub Copilot models
   githubModelDefinitions = [
-    # Claude models
-    # {
-    #   model_name = "claude-haiku-4.5";
-    #   model_info = {
-    #     mode = "chat";
-    #     max_input_tokens = 128000;
-    #     max_output_tokens = 16000;
-    #     max_tokens = 16000;
-    #     supports_function_calling = true;
-    #     supports_parallel_function_calling = true;
-    #     supports_vision = true;
-    #   };
-    # }
-    # {
-    #   model_name = "claude-opus-4.6";
-    #   model_info = {
-    #     mode = "chat";
-    #     max_input_tokens = 128000;
-    #     max_output_tokens = 64000;
-    #     max_tokens = 64000;
-    #     supports_function_calling = true;
-    #     supports_parallel_function_calling = true;
-    #     supports_vision = true;
-    #   };
-    # }
-    # {
-    #   model_name = "claude-opus-4.5";
-    #   model_info = {
-    #     mode = "chat";
-    #     max_input_tokens = 128000;
-    #     max_output_tokens = 16000;
-    #     max_tokens = 16000;
-    #     supports_function_calling = true;
-    #     supports_parallel_function_calling = true;
-    #     supports_vision = true;
-    #   };
-    # }
-    # {
-    #   model_name = "claude-sonnet-4.5";
-    #   model_info = {
-    #     mode = "chat";
-    #     max_input_tokens = 128000;
-    #     max_output_tokens = 16000;
-    #     max_tokens = 16000;
-    #     supports_function_calling = true;
-    #     supports_parallel_function_calling = true;
-    #     supports_vision = true;
-    #   };
-    # }
-
     # Gemini models
-    {
-      model_name = "gemini-2.5-pro";
-      model_info = {
-        mode = "chat";
-        max_input_tokens = 128000;
-        max_output_tokens = 64000;
-        max_tokens = 64000;
-        supports_function_calling = true;
-        supports_parallel_function_calling = true;
-        supports_vision = true;
-      };
-    }
     {
       model_name = "gemini-3-flash-preview";
       model_info = {
@@ -207,18 +145,6 @@ let
         supports_function_calling = true;
         supports_parallel_function_calling = true;
         supports_response_schema = true;
-        supports_vision = true;
-      };
-    }
-    {
-      model_name = "gemini-3-pro-preview";
-      model_info = {
-        mode = "chat";
-        max_input_tokens = 128000;
-        max_output_tokens = 64000;
-        max_tokens = 64000;
-        supports_function_calling = true;
-        supports_parallel_function_calling = true;
         supports_vision = true;
       };
     }
