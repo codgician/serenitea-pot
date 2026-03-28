@@ -101,7 +101,8 @@ in
         tmux.enabled = true;
         agents = {
           sisyphus.model = "dendro/claude-opus-4.6";
-          hephaestus.model = "dendro/gpt-5.3-codex";
+          sisyphus-junior.model = "dendro/claude-sonnet-4.6";
+          hephaestus.model = "dendro/gpt-5.4";
           oracle.model = "dendro/gpt-5.4";
           librarian.model = "dendro/gemini-3-flash-preview";
           explore.model = "dendro/gemini-3-flash-preview";
@@ -109,6 +110,7 @@ in
           metis.model = "dendro/claude-opus-4.6";
           momus.model = "dendro/gpt-5.4";
           atlas.model = "dendro/claude-sonnet-4.6";
+          prometheus.model = "dendro/claude-opus-4.6";
         };
       };
     };
