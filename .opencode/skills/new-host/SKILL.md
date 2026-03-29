@@ -1,6 +1,6 @@
 ---
 name: new-host
-description: Add a new NixOS or Darwin host to serenitea-pot. Use when user asks to add a machine, create a host, or bootstrap a new system.
+description: Add a new NixOS or Darwin host to the repository.
 ---
 
 # Add New Host

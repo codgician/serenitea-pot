@@ -13,7 +13,7 @@ let
   postPatch = ''
     # Remove suffix in webui name
     substituteInPlace backend/open_webui/env.py \
-      --replace-fail 'WEBUI_NAME += " (Open WebUI)"' 'WEBUI_NAME += ""' 
+      --replace-fail "WEBUI_NAME += ' (Open WebUI)'" 'WEBUI_NAME += ""'
     # Customize PWA description
     substituteInPlace backend/open_webui/main.py \
       --replace-fail \

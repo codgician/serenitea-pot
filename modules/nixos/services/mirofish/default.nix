@@ -27,13 +27,13 @@ in
 
     frontendPort = lib.mkOption {
       type = types.port;
-      default = 3000;
+      default = 3020;
       description = "Port for ${serviceName} frontend to listen on.";
     };
 
     backendPort = lib.mkOption {
       type = types.port;
-      default = 5001;
+      default = 3021;
       description = "Port for ${serviceName} backend API to listen on.";
     };
 
@@ -77,9 +77,13 @@ in
 
         environmentFiles = [ config.age.secrets.mirofish-env.path ];
 
+        ports = [
+          "127.0.0.1:${toString cfg.frontendPort}:3010"
+          "127.0.0.1:${toString cfg.backendPort}:5001"
+        ];
+
         extraOptions = [
           "--pull=newer"
-          "--net=host"
         ];
       };
 
