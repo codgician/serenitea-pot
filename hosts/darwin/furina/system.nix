@@ -100,7 +100,6 @@
     # SMB client settings
     etc."nsmb.conf".text = ''
       [default]
-      mc_on=no
       mc_prefer_wired=yes
     '';
   };
