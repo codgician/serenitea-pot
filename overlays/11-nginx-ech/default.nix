@@ -3,13 +3,13 @@
 # OpenSSL 4.0 with ECH support and nginx built against it
 #
 # Provides:
-#   - opensslUnstable: OpenSSL 4.0.0-alpha1 with ECH (RFC 9849)
+#   - opensslUnstable: OpenSSL 4.0.0-beta1 with ECH (RFC 9849)
 #   - nginxMainlineEch: nginx mainline built with ECH-capable OpenSSL
 #
 # Usage in modules:
 #   services.nginx.package = pkgs.nginxMainlineEch;
 #
-# WARNING: OpenSSL 4.0 is alpha software with breaking API changes.
+# WARNING: OpenSSL 4.0 is beta software with breaking API changes.
 # Only use nginxMainlineEch for services requiring ECH support.
 
 final: prev:

@@ -1,7 +1,7 @@
-# OpenSSL 4.0.0-alpha1 with Encrypted Client Hello (ECH) support
+# OpenSSL 4.0.0-beta1 with Encrypted Client Hello (ECH) support
 #
 # ECH (RFC 9849) encrypts the TLS handshake SNI field to protect user privacy.
-# This is an alpha release - use with caution in production.
+# This is a beta release - use with caution in production.
 #
 # Key changes from 3.x:
 #   - ECH support enabled by default
@@ -15,13 +15,13 @@
 
 prev.stdenv.mkDerivation (finalAttrs: {
   pname = "openssl-unstable";
-  version = "4.0.0-alpha1";
+  version = "4.0.0-beta1";
 
   src = prev.fetchFromGitHub {
     owner = "openssl";
     repo = "openssl";
     rev = "openssl-${finalAttrs.version}";
-    hash = "sha256-WDMfYXsqWF5r3aR9mQNNDTugppvtOU0Yc/BHKSFH6PE=";
+    hash = "sha256-uDm92VT1oM2brFvEGcyNhUPb3I2axJbJH/OoFXlwyIs=";
   };
 
   postPatch = ''
