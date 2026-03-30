@@ -11,6 +11,7 @@ final: prev: {
     claude-code
     claude-code-bin
     opencode
+    github-copilot-cli
     antigravity
     zfs_unstable
     matrix-tuwunel

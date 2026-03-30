@@ -56,9 +56,6 @@ in
       package = cfg.package;
 
       settings = {
-        model = "o3";
-        model_provider = "openai";
-
         # MCP integration
         mcp_servers = lib.mkIf config.codgician.codgi.mcp.enable mcpServers;
       };
