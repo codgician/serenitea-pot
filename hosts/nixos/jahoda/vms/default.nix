@@ -62,7 +62,7 @@
       domains = [
         {
           definition = ./alhaitham.xml;
-          active = false;
+          active = true;
         }
       ];
       networks = [

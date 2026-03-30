@@ -10,6 +10,7 @@
   <currentMemory unit="KiB">25165824</currentMemory>
   <memoryBacking>
     <hugepages/>
+    <access mode="shared"/>
   </memoryBacking>
   <vcpu placement="static">8</vcpu>
   <iothreads>1</iothreads>
