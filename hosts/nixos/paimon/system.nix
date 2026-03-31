@@ -134,7 +134,7 @@
           qwen-chat = {
             model = "QuantTrio/Qwen3.5-35B-A3B-AWQ";
             port = 8000;
-            gpuMemoryUtilization = 0.67;
+            gpuMemoryUtilization = 0.66;
             maxModelLen = 262144;
             maxNumSeqs = 8;
             quantization = "awq_marlin";
@@ -157,7 +157,7 @@
           embeddings = {
             model = "Qwen/Qwen3-Embedding-0.6B";
             port = 8001;
-            gpuMemoryUtilization = 0.06;
+            gpuMemoryUtilization = 0.07;
             maxModelLen = 8192;
             maxNumSeqs = 64;
           };
