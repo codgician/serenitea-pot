@@ -28,7 +28,7 @@
     };
 
     comfyui.reverseProxy = {
-      enable = true;
+      enable = false;
       domains = [ "vanarana.codgician.me" ];
       proxyPass = "https://192.168.0.22";
     };

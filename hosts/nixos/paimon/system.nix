@@ -9,12 +9,12 @@
   codgician = {
     services = {
       comfyui = {
-        enable = true;
+        enable = false;
         dataDir = "/xpool/appdata/comfyui";
         modelDir = "/xpool/llm/comfyui";
         userDir = "/xpool/appdata/comfyui-user";
         reverseProxy = {
-          enable = true;
+          enable = false;
           domains = [ "vanarana.codgician.me" ];
           authelia = {
             enable = true;
