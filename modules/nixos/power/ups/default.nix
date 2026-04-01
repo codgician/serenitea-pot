@@ -109,6 +109,7 @@ in
         "admin" = {
           actions = [ "SET" ];
           instcmds = [ "ALL" ];
+          upsmon = "primary";
           passwordFile = config.age.secrets.nut-password.path;
         };
         "upsmon".passwordFile = config.age.secrets.upsmon-password.path;
