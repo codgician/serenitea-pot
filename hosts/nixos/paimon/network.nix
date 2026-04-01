@@ -196,9 +196,7 @@ in
     extraGlobalOptions = [
       "other_config:hw-offload=true"
       "other_config:max-idle=30000"
-      "other_config:max-revalidator=10000"
-      "other_config:n-handler-threads=4"
-      "other_config:n-revalidator-threads=4"
+      "other_config:max-revalidator=2000"
       # Prevent `tc mirred to Houston: device vs0 is down` flooding dmesg
       "other_config:tc-policy=skip_sw"
     ];
@@ -216,6 +214,13 @@ in
         ${getVfRepName 0 5} = { };
       };
     };
+  };
+
+  # Prevent ARP flux: two NICs (eno1 + VF0) share the same subnet as failover,
+  # so restrict each interface to only respond to ARPs for its own address.
+  boot.kernel.sysctl = {
+    "net.ipv4.conf.all.arp_ignore" = 1;
+    "net.ipv4.conf.all.arp_announce" = 2;
   };
 
   # Hack: let pve-manager know the existence of vs0 vswitch
