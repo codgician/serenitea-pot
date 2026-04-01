@@ -2,15 +2,21 @@
 {
   lib,
   pkgs,
+  inputs,
+  outputs,
   ...
 }:
 
 let
   nixos-lib = import (pkgs.path + "/nixos/lib") { inherit lib; };
+  system = pkgs.stdenv.hostPlatform.system;
 
   commonDefaults = {
-    imports = lib.codgician.mkNixosModules pkgs.stdenv.hostPlatform.system { };
+    imports = lib.codgician.mkNixosModules system { };
     nixpkgs.overlays = pkgs.overlays;
+    _module.args = {
+      inherit inputs outputs system;
+    };
   };
 
   machineBase =
