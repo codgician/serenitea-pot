@@ -1,6 +1,7 @@
-args@{
+{
   config,
   lib,
+  osConfig,
   pkgs,
   inputs,
   ...
@@ -8,6 +9,38 @@ args@{
 let
   cfg = config.codgician.codgi.opencode;
   inherit (lib) types;
+
+  # Filter text generation models by allowed providers
+  allowedProviders = [
+    "github"
+    "anthropic"
+    "nvidia"
+  ];
+
+  filteredModels = builtins.filter (
+    m: builtins.elem m.provider allowedProviders
+  ) osConfig.codgician.models.textGenerationModels;
+
+  # Transform to OpenCode format
+  mkOpenCodeModel =
+    m:
+    {
+      name = m.model;
+      modalities = {
+        input = [
+          "text"
+          "image"
+        ];
+        output = [ "text" ];
+      };
+    }
+    // lib.optionalAttrs (m.variants != { }) {
+      inherit (m) variants;
+    };
+
+  openCodeModels = builtins.listToAttrs (
+    map (m: lib.nameValuePair m.model (mkOpenCodeModel m)) filteredModels
+  );
 in
 {
   options.codgician.codgi.opencode = {
@@ -72,7 +105,7 @@ in
           npm = "@ai-sdk/openai-compatible";
           name = "dendro";
           options.baseURL = "https://dendro.codgician.me/";
-          models = (import ./models.nix args).all;
+          models = openCodeModels;
         };
       };
     };
@@ -100,17 +133,17 @@ in
         browser_automation_engine = "agent-browser";
         tmux.enabled = true;
         agents = {
-          sisyphus.model = "dendro/claude-opus-4.6";
-          sisyphus-junior.model = "dendro/claude-sonnet-4.6";
+          sisyphus.model = "dendro/claude-opus-4-6";
+          sisyphus-junior.model = "dendro/claude-sonnet-4-6";
           hephaestus.model = "dendro/gpt-5.4";
           oracle.model = "dendro/gpt-5.4";
           librarian.model = "dendro/gemini-3-flash-preview";
           explore.model = "dendro/gemini-3-flash-preview";
           multimodal-looker.model = "dendro/gemini-3-flash-preview";
-          metis.model = "dendro/claude-opus-4.6";
+          metis.model = "dendro/claude-opus-4-6";
           momus.model = "dendro/gpt-5.4";
-          atlas.model = "dendro/claude-sonnet-4.6";
-          prometheus.model = "dendro/claude-opus-4.6";
+          atlas.model = "dendro/claude-sonnet-4-6";
+          prometheus.model = "dendro/claude-opus-4-6";
         };
       };
     };

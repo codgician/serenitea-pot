@@ -13,9 +13,21 @@ let
   cfg = config.codgician.services.litellm;
   types = lib.types;
   defaultStateDir = "/var/lib/${serviceName}";
-  allModels = (import ./models.nix { inherit pkgs lib outputs; }).all;
 
-  # LiteLLM settings
+  # Transform registry models to LiteLLM model_list format
+  mkLiteLLMModel = m: {
+    model_name = m.model;
+    model_info = m.litellmModelInfo // {
+      access_groups = m.tags;
+    };
+    litellm_params = m.litellmParams;
+  };
+
+  # Model list and alias map from registry
+  allModels = map mkLiteLLMModel config.codgician.models.all;
+  aliasMap = lib.foldl' (acc: m: acc // (lib.genAttrs m.aliases (_: m.model))) { } config.codgician.models.all;
+
+  # LiteLLM config
   settings = {
     general_settings = {
       # enable_jwt_auth = true;
@@ -28,6 +40,7 @@ let
       cache_params.type = "redis";
       drop_params = true;
       modify_params = true;
+      model_alias_map = aliasMap;
     };
     model_list = allModels;
     prompts = [
