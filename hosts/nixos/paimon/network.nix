@@ -27,11 +27,8 @@ in
 
   systemd.services.mlx5-sriov = {
     description = "Configure Mellanox ConnectX-6 Dx multiport eSwitch and SR-IOV VFs";
-    before = [ "network-pre.target" ];
-    wantedBy = [
-      "network-pre.target"
-      "network.target"
-    ];
+    before = [ "network.target" ];
+    wantedBy = [ "network.target" ];
     after = [ "systemd-udevd.service" ];
     path = with pkgs; [
       iproute2
