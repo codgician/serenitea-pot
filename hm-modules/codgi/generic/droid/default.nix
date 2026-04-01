@@ -23,7 +23,7 @@ let
     displayName = "${m.model} [Dendro]";
     baseUrl = "https://dendro.codgician.me";
     apiKey = "\${PROVIDER_API_KEY}";
-    provider = "generic-chat-completion-api";
+    provider = if m.provider == "anthropic" then "anthropic" else "generic-chat-completion-api";
   };
 
   # Transform MCP server config to Droid format

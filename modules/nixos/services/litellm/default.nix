@@ -36,6 +36,7 @@ let
       store_prompts_in_spend_logs = true;
     };
     litellm_settings = {
+      num_retries = 3;
       cache = false; # Disabled
       enable_caching_on_provider_specific_optional_params = true;
       cache_params.type = "redis";
