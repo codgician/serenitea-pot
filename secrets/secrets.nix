@@ -19,6 +19,9 @@ with pubKeys.hosts;
   # Codex
   "codex-env.age".publicKeys = allHosts;
 
+  # Droid
+  "droid-env.age".publicKeys = allHosts;
+
   # Docker
   "docker-pat.age".publicKeys = allServers;
 

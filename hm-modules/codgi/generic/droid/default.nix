@@ -2,6 +2,8 @@
   config,
   lib,
   osConfig,
+  pkgs,
+  inputs,
   ...
 }:
 let
@@ -23,7 +25,7 @@ let
     model = m.model;
     displayName = m.model;
     baseUrl = "https://dendro.codgician.me/v1";
-    apiKey = "\${LITELLM_API_KEY}";
+    apiKey = "\${PROVIDER_API_KEY}";
     provider = "generic-chat-completion-api";
   };
 
@@ -33,14 +35,86 @@ let
   settings = {
     inherit customModels;
   };
+
+  # Transform MCP server config to Droid format
+  # Droid supports: "stdio" for command-based, "http" for URL-based servers
+  mkMcpServer =
+    server:
+    let
+      hasCommand = server ? command;
+      hasUrl = server ? url;
+      baseServer = builtins.removeAttrs server [
+        "disabled"
+        "command"
+        "args"
+        "env"
+        "url"
+        "headers"
+        "type"
+      ];
+    in
+    baseServer
+    // (lib.optionalAttrs hasCommand {
+      type = server.type or "stdio";
+      inherit (server) command;
+      args = server.args or [ ];
+      env = server.env or { };
+    })
+    // (lib.optionalAttrs hasUrl {
+      type = server.type or "http";
+      inherit (server) url;
+      headers = server.headers or { };
+    });
+
+  # Filter disabled servers BEFORE transformation, then transform
+  enabledServers = lib.filterAttrs (
+    _: server: !(server.disabled or false)
+  ) config.programs.mcp.servers;
+  mcpServers = lib.mapAttrs (_: mkMcpServer) enabledServers;
+
+  # MCP config JSON
+  mcpConfigJson = builtins.toJSON { inherit mcpServers; };
+
+  # Skills directory combining all skill sources
+  skillsDir = pkgs.symlinkJoin {
+    name = "droid-skills";
+    paths = [
+      "${inputs.superpowers}/skills"
+      "${inputs.skills}/skills"
+      "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
+    ];
+  };
 in
 {
   options.codgician.codgi.droid = {
     enable = lib.mkEnableOption "Droid configuration";
+
+    package = lib.mkOption {
+      type = lib.types.package;
+      default = pkgs.nur.repos.codgician.droid;
+      defaultText = lib.literalExpression "pkgs.nur.repos.codgician.droid";
+      description = ''
+        The Droid package to install.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
-    # Write to ~/.factory/settings.local.json (per docs, merged with settings.json)
-    home.file.".factory/settings.local.json".text = builtins.toJSON settings;
+    home.packages = [
+      cfg.package
+      pkgs.nur.repos.codgician.agent-browser
+    ];
+
+    home.file = {
+      # Write to ~/.factory/settings.local.json (per docs, merged with settings.json)
+      ".factory/settings.local.json".text = builtins.toJSON settings;
+
+      # Link skills directory to ~/.factory/skills
+      ".factory/skills".source = skillsDir;
+    }
+    // lib.optionalAttrs config.codgician.codgi.mcp.enable {
+      # Link MCP config to ~/.factory/mcp.json
+      ".factory/mcp.json".text = mcpConfigJson;
+    };
   };
 }

@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  outputs,
   ...
 }:
 let
@@ -25,7 +24,9 @@ let
 
   # Model list and alias map from registry
   allModels = map mkLiteLLMModel config.codgician.models.all;
-  aliasMap = lib.foldl' (acc: m: acc // (lib.genAttrs m.aliases (_: m.model))) { } config.codgician.models.all;
+  aliasMap = lib.foldl' (
+    acc: m: acc // (lib.genAttrs m.aliases (_: m.model))
+  ) { } config.codgician.models.all;
 
   # LiteLLM config
   settings = {

@@ -41,6 +41,10 @@
           nix.enable = true;
           rust.enable = true;
         };
+        droid = {
+          enable = true;
+          package = pkgs.droid-wrapped;
+        };
         github-copilot-cli.enable = true;
         git.enable = true;
         mcp.enable = true;
@@ -79,7 +83,6 @@
             sshpass
           ]
           ++ (with pkgs.nur.repos.codgician; [
-            droid
             nanokvm-usb
           ]);
 

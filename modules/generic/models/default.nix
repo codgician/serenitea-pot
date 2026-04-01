@@ -91,7 +91,10 @@ let
   azureModelType = types.submodule {
     options = commonOptions // {
       provider = mkOption {
-        type = types.enum [ "azure" "azure_ai" ];
+        type = types.enum [
+          "azure"
+          "azure_ai"
+        ];
         default = "azure";
         description = "Azure provider type";
       };
@@ -131,17 +134,18 @@ let
       extraParams ? { },
       extraModelInfo ? { },
     }:
-    name: spec:
-    {
+    name: spec: {
       inherit (spec) aliases mode variants;
       litellmModelInfo = {
         inherit (spec) mode;
         base_model = "${modelPrefix}/${name}";
-      } // extraModelInfo;
-      litellmParams =
-        { model = "${modelPrefix}/${name}"; }
-        // lib.optionalAttrs (apiKeyEnv != null) { api_key = "os.environ/${apiKeyEnv}"; }
-        // extraParams;
+      }
+      // extraModelInfo;
+      litellmParams = {
+        model = "${modelPrefix}/${name}";
+      }
+      // lib.optionalAttrs (apiKeyEnv != null) { api_key = "os.environ/${apiKeyEnv}"; }
+      // extraParams;
       inherit tags;
     };
 
@@ -161,7 +165,8 @@ let
           "anthropic-beta" =
             "oauth-2025-04-20,interleaved-thinking-2025-05-14,claude-code-20250219,context-1m-2025-08-07,fine-grained-tool-streaming-2025-05-14";
         };
-      } // lib.optionalAttrs (!isHaiku) { prompt_id = "claude-code"; };
+      }
+      // lib.optionalAttrs (!isHaiku) { prompt_id = "claude-code"; };
     } name spec;
 
   mkAzureModel = name: spec: {
@@ -320,7 +325,11 @@ in
       byProvider = registry;
       all = flatModels;
       textGenerationModels = builtins.filter (
-        m: builtins.elem m.litellmModelInfo.mode [ "chat" "responses" ]
+        m:
+        builtins.elem m.litellmModelInfo.mode [
+          "chat"
+          "responses"
+        ]
       ) flatModels;
     };
   };
