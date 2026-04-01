@@ -66,6 +66,7 @@ let
 
   # Environment variables
   environment = {
+    "LITELLM_USER_AGENT" = "claude-cli/${pkgs.claude-code.version} (external, cli)";
     "AUTO_REDIRECT_UI_LOGIN_TO_SSO" = "True";
     "DO_NOT_TRACK" = "True";
     "GITHUB_COPILOT_TOKEN_DIR" =

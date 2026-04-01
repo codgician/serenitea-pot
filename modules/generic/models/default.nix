@@ -125,7 +125,6 @@ let
       tags = [ "anthropic" ];
       extraParams = {
         extra_headers = {
-          "User-Agent" = "claude-cli/${pkgs.claude-code.version} (external, cli)";
           "anthropic-beta" =
             "oauth-2025-04-20,interleaved-thinking-2025-05-14,claude-code-20250219,context-1m-2025-08-07,fine-grained-tool-streaming-2025-05-14";
         };
