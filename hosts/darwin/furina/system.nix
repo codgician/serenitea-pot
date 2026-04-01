@@ -41,6 +41,7 @@
           nix.enable = true;
           rust.enable = true;
         };
+        github-copilot-cli.enable = true;
         git.enable = true;
         mcp.enable = true;
         opencode.enable = true;

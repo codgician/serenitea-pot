@@ -6,7 +6,7 @@
   ...
 }:
 let
-  cfg = config.codgician.codgi.copilot-cli;
+  cfg = config.codgician.codgi.github-copilot-cli;
 
   # Transform MCP server config to Copilot CLI format
   # Copilot CLI supports: "local"/"stdio" for command-based, "http"/"sse" for URL-based servers
@@ -65,7 +65,7 @@ let
   };
 in
 {
-  options.codgician.codgi.copilot-cli = {
+  options.codgician.codgi.github-copilot-cli = {
     enable = lib.mkEnableOption "GitHub Copilot CLI";
 
     package = lib.mkOption {
