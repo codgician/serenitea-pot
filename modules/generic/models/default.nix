@@ -20,42 +20,6 @@ let
   );
 
   # ===========================================================================
-  # Variant Definitions (shared across providers)
-  # ===========================================================================
-  variants = {
-    claude = {
-      high.thinking = {
-        type = "enabled";
-        budget_tokens = 16000;
-      };
-      max.thinking = {
-        type = "enabled";
-        budget_tokens = 31999;
-      };
-    };
-    gpt5 = {
-      high = {
-        reasoningEffort = "high";
-        textVerbosity = "high";
-      };
-      medium.reasoningEffort = "medium";
-      low.reasoningEffort = "low";
-      minimal.reasoningEffort = "minimal";
-      none.reasoningEffort = "none";
-    };
-    gpt52 = variants.gpt5 // {
-      xhigh = {
-        reasoningEffort = "xhigh";
-        textVerbosity = "high";
-      };
-    };
-    geminiPro = {
-      high.reasoningEffort = "high";
-      low.reasoningEffort = "low";
-    };
-  };
-
-  # ===========================================================================
   # Common option definitions (shared across provider types)
   # ===========================================================================
   variantsType = types.attrsOf (types.attrsOf types.anything);
@@ -305,11 +269,6 @@ in
       readOnly = true;
       description = "Models organized by provider: provider → model → attrs";
     };
-    variants = mkOption {
-      type = variantsType;
-      readOnly = true;
-      description = "Shared variant definitions for use in provider configs";
-    };
   };
 
   config = {
@@ -321,7 +280,6 @@ in
     ];
 
     codgician.models = {
-      inherit variants;
       byProvider = registry;
       all = flatModels;
       textGenerationModels = builtins.filter (

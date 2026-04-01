@@ -8,8 +8,6 @@
 }:
 let
   cfg = config.codgician.codgi.droid;
-
-  # Filter text generation models by allowed providers
   allowedProviders = [
     "github"
     "anthropic"
@@ -20,20 +18,12 @@ let
     m: builtins.elem m.provider allowedProviders
   ) osConfig.codgician.models.textGenerationModels;
 
-  # Transform to Droid format
   mkDroidModel = m: {
-    model = m.model;
-    displayName = m.model;
-    baseUrl = "https://dendro.codgician.me/v1";
+    inherit (m) model;
+    displayName = "${m.model} [Dendro]";
+    baseUrl = "https://dendro.codgician.me";
     apiKey = "\${PROVIDER_API_KEY}";
     provider = "generic-chat-completion-api";
-  };
-
-  customModels = map mkDroidModel filteredModels;
-
-  # Merge with existing settings
-  settings = {
-    inherit customModels;
   };
 
   # Transform MCP server config to Droid format
@@ -66,16 +56,12 @@ let
       headers = server.headers or { };
     });
 
-  # Filter disabled servers BEFORE transformation, then transform
   enabledServers = lib.filterAttrs (
     _: server: !(server.disabled or false)
   ) config.programs.mcp.servers;
   mcpServers = lib.mapAttrs (_: mkMcpServer) enabledServers;
-
-  # MCP config JSON
   mcpConfigJson = builtins.toJSON { inherit mcpServers; };
 
-  # Skills directory combining all skill sources
   skillsDir = pkgs.symlinkJoin {
     name = "droid-skills";
     paths = [
@@ -107,7 +93,16 @@ in
 
     home.file = {
       # Write to ~/.factory/settings.local.json (per docs, merged with settings.json)
-      ".factory/settings.local.json".text = builtins.toJSON settings;
+      ".factory/settings.local.json".text = builtins.toJSON {
+        customModels = map mkDroidModel filteredModels;
+        sessionDefaultSettings = {
+          model = "claude-opus-4-6";
+          reasoningEffort = "high";
+          interactionMode = "auto";
+          autonomyLevel = "high";
+          autonomyMode = "auto-high";
+        };
+      };
 
       # Link skills directory to ~/.factory/skills
       ".factory/skills".source = skillsDir;
