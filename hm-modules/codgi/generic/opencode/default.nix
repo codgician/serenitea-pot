@@ -92,7 +92,7 @@ in
             "*" = "allow";
             "git *" = "allow";
             "*git push*" = "ask";
-            "sudo*" = "ask";
+            "*sudo*" = "ask";
             "/nix/store*" = "ask";
             "brew*" = "ask";
           };
