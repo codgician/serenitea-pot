@@ -124,6 +124,7 @@ let
       apiKeyEnv = "ANTHROPIC_API_KEY";
       tags = [ "anthropic" ];
       extraParams = {
+        use_in_pass_through = true;
         extra_headers = {
           "anthropic-beta" =
             "oauth-2025-04-20,interleaved-thinking-2025-05-14,claude-code-20250219,context-1m-2025-08-07,fine-grained-tool-streaming-2025-05-14";
