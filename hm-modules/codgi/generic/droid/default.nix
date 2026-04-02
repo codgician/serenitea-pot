@@ -20,10 +20,11 @@ let
 
   mkDroidModel = m: {
     inherit (m) model;
+    id = "custom:${m.model}";
     displayName = "${m.model} [Dendro]";
     baseUrl = "https://dendro.codgician.me";
     apiKey = "\${PROVIDER_API_KEY}";
-    provider = if m.provider == "anthropic" then "anthropic" else "generic-chat-completion-api";
+    provider = "generic-chat-completion-api";
   };
 
   # Transform MCP server config to Droid format
@@ -92,11 +93,11 @@ in
     ];
 
     home.file = {
-      # Write to ~/.factory/settings.local.json (per docs, merged with settings.json)
-      ".factory/settings.local.json".text = builtins.toJSON {
+      # Write to ~/.factory/settings.json (per docs, merged with settings.json)
+      ".factory/settings.json".text = builtins.toJSON {
         customModels = map mkDroidModel filteredModels;
         sessionDefaultSettings = {
-          model = "claude-opus-4-6";
+          model = "custom:claude-opus-4-6";
           reasoningEffort = "high";
           interactionMode = "auto";
           autonomyLevel = "high";
