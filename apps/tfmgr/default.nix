@@ -47,6 +47,8 @@ in
           echo '  validate    Check whether generated config.tf.json is valid'
           echo '  plan        Show infrastructure changes from new configuration'
           echo '  apply       Apply infrastructure changes from new configuration'
+          echo '  import      Import existing resource into terraform state'
+          echo '  state       Run terraform state subcommands'
           echo '  shell       Open a shell with terraform env variables' 
           echo ' '
           echo 'Options:'
@@ -144,6 +146,20 @@ in
                   break
                 fi
               done
+              ;;
+            import)
+              init
+              shift
+              [ $# -ge 2 ] || err "Usage: ${name} import <addr> <id>"
+              terraform import "$1" "$2"
+              shift
+              ;;
+            state)
+              init
+              shift
+              terraform state "$@"
+              # Consume remaining args
+              while test $# -gt 0; do shift; done
               ;;
             shell)
               init

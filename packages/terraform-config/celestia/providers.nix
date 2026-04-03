@@ -9,13 +9,9 @@ in
     required_providers = {
       azurerm = {
         source = "hashicorp/azurerm";
-        version = "~> 4.62";
+        version = "~> 4.67";
       };
 
-      azapi = {
-        source = "azure/azapi";
-        version = "~> 2.8";
-      };
     };
 
     backend.azurerm = {
@@ -34,8 +30,5 @@ in
       inherit subscription_id tenant_id client_id;
     };
 
-    azapi = {
-      inherit subscription_id tenant_id client_id;
-    };
   };
 }

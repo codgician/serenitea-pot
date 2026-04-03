@@ -21,6 +21,7 @@ in
       vtpm_enabled = false;
       source_image_id = azurerm_shared_image_version.lumine-1 "id";
       encryption_at_host_enabled = true;
+      depends_on = [ "azurerm_resource_provider_feature_registration.encryption-at-host" ];
 
       # These keys are not used for actual authentication
       admin_ssh_key = [
