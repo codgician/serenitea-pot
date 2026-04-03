@@ -19,6 +19,12 @@
   services.dbus.packages = [ pkgs.microsoft-identity-broker ];
   services.pcscd.enable = true;
 
+  # Register OpenSC as a p11-kit PKCS#11 module so that the identity broker
+  # can discover smart-card credentials (e.g. Yubikey PIV) via p11_kit_modules_load_and_initialize().
+  environment.etc."pkcs11/modules/opensc.module".text = ''
+    module: ${pkgs.opensc}/lib/pkcs11/opensc-pkcs11.so
+  '';
+
   systemd = {
     sockets.intune-daemon = {
       description = "Intune daemon control socket";

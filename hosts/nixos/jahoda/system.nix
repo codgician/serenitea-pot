@@ -69,20 +69,24 @@
 
   # Home manager
   home-manager.users.codgi =
-    { lib, ... }:
+    { ... }:
     {
       codgician.codgi = {
         codex = {
           enable = true;
           package = pkgs.codex-wrapped;
         };
-        claude-code.enable = true;
+        claude-code = {
+          enable = true;
+          package = pkgs.claude-code-wrapped;
+        };
         dev = {
           dotnet.enable = true;
           nix.enable = true;
         };
         opencode.enable = true;
         mcp.enable = true;
+        github-copilot-cli.enable = true;
         git = {
           enable = true;
           directoryIdentities = {
