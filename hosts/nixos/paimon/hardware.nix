@@ -236,14 +236,18 @@
     powertop.enable = true;
   };
 
-  # Configure energy_performance_preference
+  # Configure energy_performance_preference and lower scaling_min_freq floor.
+  # The amd-pstate driver defaults scaling_min_freq to lowest_nonlinear_freq (1523 MHz),
+  # but for idle power savings we want cores to drop all the way to cpuinfo_min_freq.
   systemd.services."amd-pstate-epp-init" = {
     description = "Configure power policy for AMD P-State EPP";
     wantedBy = [ "multi-user.target" ];
     after = [ "cpufreq.service" ];
     script = ''
-      for cpu_path in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; 
-        do echo "balance_performance" > "$cpu_path"; 
+      for policy_path in /sys/devices/system/cpu/cpufreq/policy*/; do
+        min_freq=$(cat "$policy_path/cpuinfo_min_freq")
+        echo "$min_freq" > "$policy_path/scaling_min_freq"
+        echo "balance_performance" > "$policy_path/energy_performance_preference"
       done
     '';
     serviceConfig.Type = "oneshot";
