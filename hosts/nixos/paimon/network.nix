@@ -20,112 +20,123 @@ let
   hostVfs = 2; # Number of VFs to keep bound for host use
 in
 {
-  # Trigger mlx5-sriov service when PF0 appears
-  services.udev.extraRules = ''
-    ACTION=="add|move", SUBSYSTEM=="net", NAME=="${getPfName 0}", TAG+="systemd", ENV{SYSTEMD_WANTS}+="mlx5-sriov.service"
-  '';
+  systemd.services.mlx5-sriov =
+    let
+      pf0Device = "sys-subsystem-net-devices-${getPfName 0}.device";
+    in
+    {
+      description = "Configure Mellanox ConnectX-6 Dx multiport eSwitch and SR-IOV VFs";
+      wantedBy = [ pf0Device ];
+      bindsTo = [ pf0Device ];
+      after = [ pf0Device ];
+      before = [ "network.target" ];
+      path = with pkgs; [
+        iproute2
+        coreutils
+      ];
+      unitConfig = {
+        DefaultDependencies = false;
+        ConditionPathExists = "/sys/bus/pci/devices/${pciBase}.0";
+      };
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
 
-  systemd.services.mlx5-sriov = {
-    description = "Configure Mellanox ConnectX-6 Dx multiport eSwitch and SR-IOV VFs";
-    before = [ "network.target" ];
-    wantedBy = [ "network.target" ];
-    after = [ "systemd-udevd.service" ];
-    path = with pkgs; [
-      iproute2
-      coreutils
-    ];
-    unitConfig = {
-      DefaultDependencies = false;
-      ConditionPathExists = "/sys/bus/pci/devices/${pciBase}.0";
+      # Multiport eSwitch setup sequence (per Mellanox ovs-tests reference):
+      # https://github.com/Mellanox/ovs-tests/blob/master/test-ovs-multiport-esw-mode.sh
+      #
+      # Prerequisites:
+      #   - LAG_RESOURCE_ALLOCATION=1 in firmware (mlxconfig)
+      #   - Both PFs start in legacy mode
+      #
+      # Order:
+      #   1. Set lag_port_select_mode=multiport_esw on BOTH PFs (legacy mode)
+      #   2. Switch BOTH PFs to switchdev mode
+      #   3. Enable esw_multiport (activates LAG with shared FDB)
+      #   4. Create VFs
+      script =
+        let
+          pf0 = getPfName 0;
+          pf1 = getPfName 1;
+          pci0 = "${pciBase}.0";
+          pci1 = "${pciBase}.1";
+          vfPciAddrs = map (i: "${pciBase}.${toString (i + 2)}") (lib.range 0 (numVfs - 1));
+          hostVfPciAddrs = lib.take hostVfs vfPciAddrs;
+          passthruVfPciAddrs = lib.drop hostVfs vfPciAddrs;
+        in
+        ''
+          set -euo pipefail
+
+          # Helper: set lag_port_select_mode via sysfs (preferred) or devlink
+          set_lag_mode() {
+            local dev=$1 pci=$2
+            echo multiport_esw > "/sys/class/net/$dev/compat/devlink/lag_port_select_mode" 2>/dev/null ||
+              devlink dev param set "pci/$pci" name lag_port_select_mode value multiport_esw cmode runtime 2>/dev/null ||
+              echo "WARNING: Failed to set lag_port_select_mode on $dev"
+          }
+
+          # 1. Set lag_port_select_mode on BOTH PFs (must match for LAG)
+          echo "Setting lag_port_select_mode=multiport_esw on both PFs..."
+          set_lag_mode ${pf0} ${pci0}
+          set_lag_mode ${pf1} ${pci1}
+
+          # 2. Switch both PFs to switchdev mode (idempotent — fails harmlessly if already set)
+          echo "Switching to switchdev mode..."
+          devlink dev eswitch set pci/${pci0} mode switchdev 2>/dev/null || echo "pci/${pci0}: already switchdev or unchanged"
+          devlink dev eswitch set pci/${pci1} mode switchdev 2>/dev/null || echo "pci/${pci1}: already switchdev or unchanged"
+
+          # 3. Enable multiport eSwitch (idempotent — fails harmlessly if already enabled)
+          echo "Enabling esw_multiport..."
+          devlink dev param set pci/${pci0} name esw_multiport value true cmode runtime 2>/dev/null ||
+            echo "esw_multiport: already enabled or unchanged"
+
+          # 4. Create VFs on PF0 (skip if already created)
+          current_vfs=$(cat /sys/class/net/${pf0}/device/sriov_numvfs)
+          if [ "$current_vfs" -eq ${toString numVfs} ]; then
+            echo "Already have ${toString numVfs} VFs, skipping creation"
+          elif [ "$current_vfs" -ne 0 ]; then
+            echo "WARNING: VF count mismatch ($current_vfs != ${toString numVfs}), not tearing down (conservative)"
+          else
+            echo "Creating ${toString numVfs} VFs..."
+            echo ${toString numVfs} > /sys/class/net/${pf0}/device/sriov_numvfs
+          fi
+
+          # 5. Set MAC addresses (idempotent)
+          echo "Configuring VF MAC addresses..."
+          ${lib.concatStringsSep "\n" (
+            lib.imap0 (i: mac: "ip link set ${pf0} vf ${toString i} mac ${mac}") vfMacs
+          )}
+
+          # 6. Unbind passthrough VFs (for VM/container assignment)
+          echo "Unbinding passthrough VFs..."
+          ${lib.concatMapStringsSep "\n" (
+            addr: "echo ${addr} > /sys/bus/pci/drivers/mlx5_core/unbind 2>/dev/null || true"
+          ) passthruVfPciAddrs}
+
+          # 7. Ensure host VFs are bound
+          echo "Binding host VFs..."
+          ${lib.concatMapStringsSep "\n" (
+            addr: "echo ${addr} > /sys/bus/pci/drivers/mlx5_core/bind 2>/dev/null || true"
+          ) hostVfPciAddrs}
+
+          # 8. Set MAC addresses on host VF netdevs (if present)
+          # (ip link set PF vf N mac X only sets admin MAC; host-bound VFs need direct config)
+          # In switchdev mode, VF netdevs may not exist if traffic goes through representors.
+          echo "Configuring host VF MAC addresses..."
+          ${lib.concatStringsSep "\n" (
+            lib.imap0 (
+              i: mac:
+              "if [ -e /sys/class/net/${getVfName 0 i} ]; then ip link set ${getVfName 0 i} address ${mac}; fi"
+            ) (lib.take hostVfs vfMacs)
+          )}
+
+          # Report status
+          echo "=== Configuration Complete ==="
+          echo "VFs created: $(cat /sys/class/net/${pf0}/device/sriov_numvfs)"
+          devlink dev param show pci/${pci0} name esw_multiport 2>/dev/null || true
+        '';
     };
-    serviceConfig.Type = "oneshot";
-
-    # Multiport eSwitch setup sequence (per Mellanox ovs-tests reference):
-    # https://github.com/Mellanox/ovs-tests/blob/master/test-ovs-multiport-esw-mode.sh
-    #
-    # Prerequisites:
-    #   - LAG_RESOURCE_ALLOCATION=1 in firmware (mlxconfig)
-    #   - Both PFs start in legacy mode
-    #
-    # Order:
-    #   1. Set lag_port_select_mode=multiport_esw on BOTH PFs (legacy mode)
-    #   2. Switch BOTH PFs to switchdev mode
-    #   3. Enable esw_multiport (activates LAG with shared FDB)
-    #   4. Create VFs
-    script =
-      let
-        pf0 = getPfName 0;
-        pf1 = getPfName 1;
-        pci0 = "${pciBase}.0";
-        pci1 = "${pciBase}.1";
-        vfPciAddrs = map (i: "${pciBase}.${toString (i + 2)}") (lib.range 0 (numVfs - 1));
-        hostVfPciAddrs = lib.take hostVfs vfPciAddrs;
-        passthruVfPciAddrs = lib.drop hostVfs vfPciAddrs;
-      in
-      ''
-        set -euo pipefail
-
-        # Helper: set lag_port_select_mode via sysfs (preferred) or devlink
-        set_lag_mode() {
-          local dev=$1 pci=$2
-          echo multiport_esw > "/sys/class/net/$dev/compat/devlink/lag_port_select_mode" 2>/dev/null ||
-            devlink dev param set "pci/$pci" name lag_port_select_mode value multiport_esw cmode runtime 2>/dev/null ||
-            echo "WARNING: Failed to set lag_port_select_mode on $dev"
-        }
-
-        # 1. Set lag_port_select_mode on BOTH PFs (must match for LAG)
-        echo "Setting lag_port_select_mode=multiport_esw on both PFs..."
-        set_lag_mode ${pf0} ${pci0}
-        set_lag_mode ${pf1} ${pci1}
-
-        # 2. Switch both PFs to switchdev mode
-        echo "Switching to switchdev mode..."
-        devlink dev eswitch set pci/${pci0} mode switchdev
-        devlink dev eswitch set pci/${pci1} mode switchdev
-
-        # 3. Enable multiport eSwitch (creates LAG with shared FDB)
-        echo "Enabling esw_multiport..."
-        if ! devlink dev param set pci/${pci0} name esw_multiport value true cmode runtime; then
-          echo "ERROR: Failed to enable esw_multiport"
-          echo "Hint: Check 'dmesg | grep -iE \"(lag|mpesw|shared_fdb)\"'"
-          exit 1
-        fi
-
-        # 4. Create VFs on PF0
-        echo "Creating ${toString numVfs} VFs..."
-        echo ${toString numVfs} > /sys/class/net/${pf0}/device/sriov_numvfs
-
-        # 5. Set MAC addresses
-        echo "Configuring VF MAC addresses..."
-        ${lib.concatStringsSep "\n" (
-          lib.imap0 (i: mac: "ip link set ${pf0} vf ${toString i} mac ${mac}") vfMacs
-        )}
-
-        # 6. Unbind passthrough VFs (for VM/container assignment)
-        echo "Unbinding passthrough VFs..."
-        ${lib.concatMapStringsSep "\n" (
-          addr: "echo ${addr} > /sys/bus/pci/drivers/mlx5_core/unbind 2>/dev/null || true"
-        ) passthruVfPciAddrs}
-
-        # 7. Ensure host VFs are bound
-        echo "Binding host VFs..."
-        ${lib.concatMapStringsSep "\n" (
-          addr: "echo ${addr} > /sys/bus/pci/drivers/mlx5_core/bind 2>/dev/null || true"
-        ) hostVfPciAddrs}
-
-        # 8. Set MAC addresses on host VF netdevs
-        # (ip link set PF vf N mac X only sets admin MAC; host-bound VFs need direct config)
-        echo "Configuring host VF MAC addresses..."
-        ${lib.concatStringsSep "\n" (
-          lib.imap0 (i: mac: "ip link set ${getVfName 0 i} address ${mac}") (lib.take hostVfs vfMacs)
-        )}
-
-        # Report status
-        echo "=== Configuration Complete ==="
-        echo "VFs created: $(cat /sys/class/net/${pf0}/device/sriov_numvfs)"
-        echo "esw_multiport: $(devlink dev param show pci/${pci0} name esw_multiport 2>&1 | grep -oP 'value \K\w+' || echo unknown)"
-      '';
-  };
 
   # Set route metric
   systemd.network = {
