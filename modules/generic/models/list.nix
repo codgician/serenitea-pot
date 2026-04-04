@@ -159,18 +159,6 @@ in
       "gpt-5.2".variants = gpt52;
 
       # GPT-5.x codex models (responses mode)
-      "gpt-5.1-codex" = {
-        mode = "responses";
-        variants = gpt5;
-      };
-      "gpt-5.1-codex-max" = {
-        mode = "responses";
-        variants = gpt5;
-      };
-      "gpt-5.1-codex-mini" = {
-        mode = "responses";
-        variants = gpt5;
-      };
       "gpt-5.2-codex" = {
         mode = "responses";
         variants = gpt52;
