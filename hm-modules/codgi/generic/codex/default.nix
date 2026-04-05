@@ -56,7 +56,7 @@ in
       package = cfg.package;
 
       settings = {
-        # MCP integration
+        openai_base_url = "https://dendro.codgician.me/v1";
         mcp_servers = lib.mkIf config.codgician.codgi.mcp.enable mcpServers;
       };
     };

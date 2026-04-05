@@ -34,8 +34,6 @@ let
     name: hostCfg: locationCfg:
     let
       effectiveProxyPass = getEffectiveProxyPass name hostCfg locationCfg;
-      originalProxyPass = locationCfg.passthru.proxyPass or null;
-      isHttpsOriginal = originalProxyPass != null && lib.hasPrefix "https://" originalProxyPass;
       # When using Anubis, we proxy to a local socket, not HTTPS
       isHttpsEffective = effectiveProxyPass != null && lib.hasPrefix "https://" effectiveProxyPass;
     in
