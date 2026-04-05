@@ -15,7 +15,6 @@ in
     ./gpt-5.2-chat.nix
     ./gpt-5.1-chat.nix
     ./gpt-5-nano.nix
-    # ./gpt-5-mini.nix (use GitHub Copilot instead)
     ./gpt-audio-1.5.nix
     ./gpt-realtime-1.5.nix
     ./grok-4-1-fast.nix

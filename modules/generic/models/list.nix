@@ -154,7 +154,6 @@ in
       "gemini-3.1-pro-preview".variants = geminiPro;
 
       # GPT-5.x chat models
-      "gpt-5-mini".variants = gpt5;
       "gpt-5.1".variants = gpt5;
       "gpt-5.2".variants = gpt52;
 
@@ -168,6 +167,10 @@ in
         variants = gpt52;
       };
       "gpt-5.4" = {
+        mode = "responses";
+        variants = gpt52;
+      };
+      "gpt-5.4-mini" = {
         mode = "responses";
         variants = gpt52;
       };
