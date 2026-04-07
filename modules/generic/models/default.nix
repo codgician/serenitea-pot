@@ -359,10 +359,10 @@ in
 
             # Azure provider - OpenAI models
             "gpt-4o-transcribe-diarize".mode = "audio_transcription";
+            "gpt-5.4-nano" = { };
             "gpt-5.3-chat" = { };
             "gpt-5.2-chat" = { };
             "gpt-5.1-chat" = { };
-            "gpt-5-nano" = { };
             "gpt-audio-1.5".baseModel = "azure/gpt-audio-1.5-2026-02-23";
             "gpt-realtime-1.5" = {
               mode = "realtime";
