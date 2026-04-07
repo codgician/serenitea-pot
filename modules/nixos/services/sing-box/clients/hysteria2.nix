@@ -65,10 +65,6 @@ in
             enabled = true;
             config_path = ./ech.configs;
           };
-          utls = {
-            enabled = true;
-            fingerprint = "random";
-          };
         };
       }
     ];

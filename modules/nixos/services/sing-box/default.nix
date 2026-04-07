@@ -7,10 +7,12 @@ let
   group = serviceName;
 in
 {
-  imports = builtins.concatMap (lib.codgician.getNixFilePaths) [
-    ./clients
-    ./servers
-  ];
+  imports =
+    builtins.concatMap (lib.codgician.getNixFilePaths) [
+      ./clients
+      ./servers
+    ]
+    ++ [ ./tun.nix ];
 
   options.codgician.services.${serviceName} = {
     enable = lib.mkEnableOption serviceName;
@@ -73,7 +75,9 @@ in
     };
 
     # ACME
-    codgician.acme.${cfg.domain}.enable = true;
+    codgician.acme = lib.mkIf (cfg.domain != null) {
+      ${cfg.domain}.enable = true;
+    };
 
     # Agenix secrets
     codgician.system.agenix.secrets =

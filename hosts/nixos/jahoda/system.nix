@@ -4,11 +4,31 @@
   ...
 }:
 {
+
   # My settings
   codgician = {
     services = {
       gnome.enable = true;
       nixos-vscode-server.enable = true;
+
+      sing-box = {
+        enable = true;
+        users = [ "codgi" ];
+        clients.hysteria2 = {
+          enable = true;
+          server = "lumine.codgician.me";
+          user = "codgi";
+        };
+        tun = {
+          enable = true;
+          outbound = "outbound-hysteria2";
+          stack = "mixed";
+          routedRanges = [
+            "192.168.0.0/16"
+            "fd00:c0d9:1c00::/48"
+          ];
+        };
+      };
 
       # Samba share for /code (dev-optimized for Windows 11 client over Thunderbolt)
       samba = {
@@ -141,12 +161,18 @@
   # Thunderbolt networking (point-to-point link to Windows PC)
   systemd.network = {
     enable = true;
-    networks."40-thunderbolt" = {
-      matchConfig.Name = "thunderbolt0";
-      address = [ "172.16.0.1/24" ];
-      networkConfig = {
-        ConfigureWithoutCarrier = true;
-        LinkLocalAddressing = "no";
+    networks = {
+      "40-thunderbolt" = {
+        matchConfig.Name = "thunderbolt0";
+        address = [ "172.16.0.1/24" ];
+        networkConfig = {
+          ConfigureWithoutCarrier = true;
+          LinkLocalAddressing = "no";
+        };
+      };
+      "50-sing-box-tun" = {
+        dns = [ "192.168.0.1" ];
+        domains = [ "~lan" ];
       };
     };
   };

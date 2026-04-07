@@ -118,7 +118,7 @@ with pubKeys.hosts;
 
   # Sing secrets
   "sing-ech-keys.age".publicKeys = publicServers;
-  "sing-codgi-proxy-password.age".publicKeys = publicServers;
+  "sing-codgi-proxy-password.age".publicKeys = publicServers ++ hosts.jahoda;
   "sing-lxm75-proxy-password.age".publicKeys = publicServers;
   "sing-itscd-proxy-password.age".publicKeys = publicServers;
 
