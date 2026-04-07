@@ -25,6 +25,12 @@
 
       postgresql.zfsOptimizations = true;
       nixos-vscode-server.enable = true;
+      sing-box = {
+        enable = true;
+        domain = "lumine.codgician.me";
+        users = [ "codgi" ];
+        servers.hysteria2.enable = true;
+      };
       wireguard = {
         enable = true;
         openFirewall = true;
