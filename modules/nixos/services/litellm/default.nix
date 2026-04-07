@@ -71,6 +71,8 @@ let
     "DO_NOT_TRACK" = "True";
     "GITHUB_COPILOT_TOKEN_DIR" =
       if cfg.backend == "nixpkgs" then "${cfg.stateDir}/github" else "/config/github";
+    "CHATGPT_TOKEN_DIR" =
+      if cfg.backend == "nixpkgs" then "${cfg.stateDir}/chatgpt" else "/config/chatgpt";
     "REDIS_URL" = "unix://${redisSocketPath}";
   }
   // (lib.optionalAttrs (cfg.adminUi.enable) {
