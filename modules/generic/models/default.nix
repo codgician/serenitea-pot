@@ -379,7 +379,11 @@ in
             tags = [ "chatgpt" ];
           };
           models = {
-            "gpt-5.4-pro" = {
+            "gpt-5.4" = {
+              mode = "responses";
+              variants = gpt52;
+            };
+            "gpt-5.3-codex" = {
               mode = "responses";
               variants = gpt52;
             };

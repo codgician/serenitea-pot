@@ -8,13 +8,13 @@
 
     model = {
       format = "OpenAI";
-      name = "gpt-5-nano";
-      version = "2025-08-07";
+      name = "gpt-5.4-nano";
+      version = "2026-03-17";
     };
 
     sku = {
       name = "GlobalStandard";
-      capacity = 200;
+      capacity = 5000;
     };
   };
 }
