@@ -35,6 +35,17 @@
     package = config.boot.kernelPackages.nvidiaPackages.production;
   };
 
+  # Global packages
+  environment.systemPackages = with pkgs; [
+    lm_sensors
+    smartmontools
+    pciutils
+    nvme-cli
+    usbutils
+    powertop
+    nvtopPackages.nvidia
+  ];
+
   # tpm2# TPM
   security.tpm2 = {
     enable = true;
