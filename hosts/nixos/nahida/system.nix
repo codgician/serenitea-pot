@@ -123,6 +123,10 @@
     { ... }:
     {
       codgician.codgi = {
+        claude-code = {
+          enable = true;
+          package = pkgs.claude-code-bin-wrapped;
+        };
         dev = {
           dotnet.enable = true;
           nix.enable = true;
@@ -140,7 +144,6 @@
 
       home.stateVersion = "25.11";
       home.packages = with pkgs; [
-        claude-code
         acpica-tools
         uefitool
         binwalk
