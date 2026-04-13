@@ -14,6 +14,9 @@ let
         exec ${package.meta.mainProgram} "$@"
       '';
       inherit (package) meta;
+    }
+    // {
+      inherit (package) version;
     };
 in
 {
