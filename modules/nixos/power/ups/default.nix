@@ -181,6 +181,10 @@ in
         enable = true;
         listen = [
           {
+            address = "0.0.0.0";
+            port = 3493;
+          }
+          {
             address = "::";
             port = 3493;
           }
