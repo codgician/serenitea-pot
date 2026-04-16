@@ -147,6 +147,11 @@ let
     max.output_config.effort = "max";
   };
 
+  # Claude Opus 4.7 extends Opus 4.7 with xhigh effort
+  claudeOpus47 = claudeOpus46 // {
+    xhigh.output_config.effort = "xhigh";
+  };
+
   # Opus 4.5 and Sonnet 4.5 use manual thinking (budget_tokens)
   claude45 = {
     high.thinking = {
@@ -297,6 +302,10 @@ in
               // lib.optionalAttrs (!isHaiku) { prompt_id = "claude-code"; };
             } name spec;
           models = {
+            "claude-opus-4-7" = {
+              aliases = [ "claude-opus-4.7" ];
+              variants = claudeOpus47;
+            };
             # Opus 4.6 supports effort-based control (including max effort)
             "claude-opus-4-6" = {
               aliases = [ "claude-opus-4.6" ];
