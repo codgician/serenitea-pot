@@ -97,8 +97,8 @@ in
       ".factory/settings.json".text = builtins.toJSON {
         customModels = map mkDroidModel filteredModels;
         sessionDefaultSettings = {
-          model = "custom:claude-opus-4-6";
-          reasoningEffort = "high";
+          model = "custom:claude-opus-4-7";
+          reasoningEffort = "xhigh";
           interactionMode = "auto";
           autonomyLevel = "high";
           autonomyMode = "auto-high";
