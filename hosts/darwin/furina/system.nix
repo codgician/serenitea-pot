@@ -77,7 +77,6 @@
             ghidra
             prismlauncher-unwrapped
             macmon
-            beads
             mtk-uartboot
             mas
             sshpass
