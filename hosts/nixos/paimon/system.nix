@@ -132,12 +132,11 @@
 
         instances = {
           qwen-chat = {
-            model = "QuantTrio/Qwen3.5-35B-A3B-AWQ";
+            model = "QuantTrio/Qwen3.6-35B-A3B-AWQ";
             port = 8000;
             gpuMemoryUtilization = 0.66;
             maxModelLen = 262144;
             maxNumSeqs = 8;
-            quantization = "awq_marlin";
             kvCacheDtype = "fp8";
             maxNumBatchedTokens = 2096;
             reasoningParser = "qwen3";

@@ -136,33 +136,31 @@ let
 
   # Claude Sonnet 4.6 effort-based variants
   # See: https://platform.claude.com/docs/en/build-with-claude/effort
-  claudeSonnet46 = {
-    high.output_config.effort = "high";
-    medium.output_config.effort = "medium";
-    low.output_config.effort = "low";
-  };
+  claudeSonnet46 = lib.genAttrs [ "high" "medium" "low" ] (effort: {
+    thinking = {
+      type = "adaptive";
+      display = "summarized";
+    };
+    output_config = { inherit effort; };
+  });
 
   # Claude Opus 4.6 extends Sonnet 4.6 with max effort
-  claudeOpus46 = claudeSonnet46 // {
-    max.output_config.effort = "max";
-  };
+  claudeOpus46 = lib.genAttrs [ "max" "high" "medium" "low" ] (effort: {
+    thinking = {
+      type = "adaptive";
+      display = "summarized";
+    };
+    output_config = { inherit effort; };
+  });
 
   # Claude Opus 4.7 extends Opus 4.7 with xhigh effort
-  claudeOpus47 = claudeOpus46 // {
-    xhigh.output_config.effort = "xhigh";
-  };
-
-  # Opus 4.5 and Sonnet 4.5 use manual thinking (budget_tokens)
-  claude45 = {
-    high.thinking = {
-      type = "enabled";
-      budget_tokens = 16000;
+  claudeOpus47 = lib.genAttrs [ "max" "xhigh" "high" "medium" "low" ] (effort: {
+    thinking = {
+      type = "adaptive";
+      display = "summarized";
     };
-    max.thinking = {
-      type = "enabled";
-      budget_tokens = 31999;
-    };
-  };
+    output_config = { inherit effort; };
+  });
 
   # GPT-5.x reasoning effort variants
   gpt5 = {
@@ -311,22 +309,12 @@ in
               aliases = [ "claude-opus-4.6" ];
               variants = claudeOpus46;
             };
-            # Opus 4.5 uses manual thinking with budget_tokens
-            "claude-opus-4-5" = {
-              aliases = [ "claude-opus-4.5" ];
-              variants = claude45;
-            };
             # Haiku doesn't support extended thinking
             "claude-haiku-4-5".aliases = [ "claude-haiku-4.5" ];
             # Sonnet 4.6 supports effort-based control (no max effort)
             "claude-sonnet-4-6" = {
               aliases = [ "claude-sonnet-4.6" ];
               variants = claudeSonnet46;
-            };
-            # Sonnet 4.5 uses manual thinking with budget_tokens
-            "claude-sonnet-4-5" = {
-              aliases = [ "claude-sonnet-4.5" ];
-              variants = claude45;
             };
           };
         };
