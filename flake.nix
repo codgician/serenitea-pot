@@ -18,7 +18,6 @@
   };
 
   inputs = {
-    nixpkgs-prev.url = "github:NixOS/nixpkgs/nixos-25.05-small"; # todo: remove
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11-small";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/master";
     nixos-generators = {
