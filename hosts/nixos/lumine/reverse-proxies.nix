@@ -48,12 +48,6 @@
       proxyPass = "https://192.168.0.22";
     };
 
-    cosyvoice.reverseProxy = {
-      enable = true;
-      domains = [ "voice.codgician.me" ];
-      proxyPass = "https://192.168.0.22";
-    };
-
     gitlab = {
       host = "git.codgician.me";
       reverseProxy = {

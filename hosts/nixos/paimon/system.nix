@@ -88,24 +88,6 @@
         };
       };
 
-      cosyvoice = {
-        enable = true;
-        voicesDir = "/xpool/llm/cosyvoice/voices";
-        reverseProxy = {
-          enable = true;
-          authelia = {
-            enable = true;
-            rules = [
-              {
-                groups = [ "voice" ];
-                policy = "two_factor";
-              }
-            ];
-          };
-          domains = [ "voice.codgician.me" ];
-        };
-      };
-
       mirofish = {
         enable = true;
         dataDir = "/xpool/llm/mirofish";
@@ -128,13 +110,13 @@
         enable = true;
         cuda = true;
         cacheDir = "/xpool/llm/vllm-cache";
-        imageTag = "latest-cu130";
+        image = "vllm/vllm-openai:latest-cu130";
 
         instances = {
           qwen-chat = {
             model = "QuantTrio/Qwen3.6-35B-A3B-AWQ";
             port = 8000;
-            gpuMemoryUtilization = 0.66;
+            gpuMemoryUtilization = 0.55;
             maxModelLen = 262144;
             maxNumSeqs = 8;
             kvCacheDtype = "fp8";
@@ -159,6 +141,42 @@
             gpuMemoryUtilization = 0.07;
             maxModelLen = 8192;
             maxNumSeqs = 64;
+          };
+
+          qwen3-tts = {
+            image = "vllm/vllm-omni:v0.18.0";
+            entrypoint = [
+              "vllm"
+              "serve"
+            ];
+            model = "Qwen/Qwen3-TTS-12Hz-1.7B-Base";
+            port = 8002;
+            maxModelLen = 4096;
+            dtype = "bfloat16";
+            trustRemoteCode = true;
+            dataDir = "/xpool/llm/vllm/qwen3-tts";
+            warmupOnStart = true;
+            environmentVariables = {
+              SPEECH_VOICE_SAMPLES = "/data/uploaded";
+            };
+            omni = {
+              enable = true;
+              # VRAM-reduced copy of the shipped qwen3_tts.yaml.
+              stageConfigsPath = ../../../modules/nixos/services/vllm/qwen3_tts.yaml;
+              voicesBootstrap =
+                let
+                  voiceDir = "/xpool/llm/vllm/qwen3-tts/voices";
+                  mkVoice = name: {
+                    audio = "${voiceDir}/${name}.wav";
+                    refTextFile = "${voiceDir}/${name}.txt";
+                  };
+                in
+                {
+                  nahida = mkVoice "nahida";
+                  paimon = mkVoice "paimon";
+                  cacucu = mkVoice "cacucu";
+                };
+            };
           };
         };
       };
