@@ -116,7 +116,7 @@
           qwen-chat = {
             model = "QuantTrio/Qwen3.6-35B-A3B-AWQ";
             port = 8000;
-            gpuMemoryUtilization = 0.62;
+            gpuMemoryUtilization = 0.66;
             maxModelLen = 262144;
             maxNumSeqs = 4;
             kvCacheDtype = "fp8";
