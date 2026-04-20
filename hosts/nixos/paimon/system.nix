@@ -116,9 +116,9 @@
           qwen-chat = {
             model = "QuantTrio/Qwen3.6-35B-A3B-AWQ";
             port = 8000;
-            gpuMemoryUtilization = 0.55;
+            gpuMemoryUtilization = 0.60;
             maxModelLen = 262144;
-            maxNumSeqs = 8;
+            maxNumSeqs = 4;
             kvCacheDtype = "fp8";
             maxNumBatchedTokens = 2096;
             reasoningParser = "qwen3";
@@ -127,6 +127,7 @@
             enableChunkedPrefill = true;
             trustRemoteCode = true;
             warmupOnStart = true;
+            warmupTimeout = 900;
             environmentVariables = {
               VLLM_USE_DEEP_GEMM = "0";
               VLLM_USE_FLASHINFER_MOE_FP16 = "1";
