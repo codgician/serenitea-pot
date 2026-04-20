@@ -1,3 +1,20 @@
+# VRAM-reduced copy of vllm-omni v0.18.0's bundled
+# vllm_omni/model_executor/stage_configs/qwen3_tts.yaml.
+#
+# Upstream targets 1xH100 with gpu_memory_utilization=0.3 per stage (~14.4GB
+# on a 24GB card). On paimon the TTS instance shares a single 24GB GPU with
+# qwen-chat (60%) and embeddings (7%), leaving only ~7.9GB for this service.
+# We keep upstream's structural fields (max_model_len, max_num_batched_tokens,
+# codec_chunk_frames, codec_left_context_frames) intact — they are required
+# for correct async_chunk codec streaming — and only tighten:
+#   * stage 0 gpu_memory_utilization 0.3 -> 0.10
+#   * stage 0 max_num_seqs 10 -> 1 (no concurrency needed here)
+#   * stage 0 kv_cache_dtype unset -> fp8 (half KV footprint)
+#   * stage 1 gpu_memory_utilization 0.3 -> 0.08
+#
+# Expected footprint (with Qwen3-TTS-12Hz-0.6B-Base):
+#   weights (~1.2GB) + 2x CUDA context (~5GB) + KV pools (~0.5GB) +
+#   code2wav activations (~0.5-1GB) ~= 7.2-7.7GB. Fits in 7.9GB budget.
 async_chunk: true
 stage_args:
   - stage_id: 0
@@ -7,7 +24,7 @@ stage_args:
       devices: "0"
     engine_args:
       model_stage: qwen3_tts
-      max_num_seqs: 2
+      max_num_seqs: 1
       model_arch: Qwen3TTSTalkerForConditionalGeneration
       worker_type: ar
       scheduler_cls: vllm_omni.core.sched.omni_ar_scheduler.OmniARScheduler
@@ -16,12 +33,13 @@ stage_args:
       async_scheduling: true
       enable_prefix_caching: false
       engine_output_type: latent
-      gpu_memory_utilization: 0.09
+      gpu_memory_utilization: 0.10
       kv_cache_dtype: fp8
       distributed_executor_backend: "mp"
       max_num_batched_tokens: 512
       max_model_len: 4096
       custom_process_next_stage_input_func: vllm_omni.model_executor.stage_input_processors.qwen3_tts.talker2code2wav_async_chunk
+    # Use named connector to apply runtime.connectors.extra.
     output_connectors:
       to_stage_1: connector_of_shared_memory
     default_sampling_params:
@@ -47,13 +65,16 @@ stage_args:
       async_scheduling: true
       enable_prefix_caching: false
       engine_output_type: audio
-      gpu_memory_utilization: 0.05
+      gpu_memory_utilization: 0.08
       distributed_executor_backend: "mp"
-      max_num_batched_tokens: 2048
-      max_model_len: 8192
+      # Must be divisible by num_code_groups and cover (left_context + chunk).
+      max_num_batched_tokens: 8192
+      # async_chunk appends windows per step; max_model_len must cover accumulated stream.
+      max_model_len: 32768
     engine_input_source: [0]
     final_output: true
     final_output_type: audio
+    # Distributed connector configuration
     input_connectors:
       from_stage_0: connector_of_shared_memory
     tts_args:
@@ -76,12 +97,15 @@ runtime:
       name: SharedMemoryConnector
       extra:
         shm_threshold_bytes: 65536
+        # Frame-aligned codec streaming transport.
         codec_streaming: true
+        # Connector polling / timeout (unit: loop count, sleep interval in seconds).
         connector_get_sleep_s: 0.01
         connector_get_max_wait_first_chunk: 3000
         connector_get_max_wait: 300
-        codec_chunk_frames: 0
-        codec_left_context_frames: 0
+        # Align with Omni: small chunks with sufficient context overlap.
+        codec_chunk_frames: 25
+        codec_left_context_frames: 25
   edges:
     - from: 0
       to: 1

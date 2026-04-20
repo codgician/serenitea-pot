@@ -150,10 +150,16 @@
               "vllm"
               "serve"
             ];
-            model = "Qwen/Qwen3-TTS-12Hz-1.7B-Base";
+            model = "Qwen/Qwen3-TTS-12Hz-0.6B-Base";
             port = 8002;
             maxModelLen = 4096;
             dtype = "bfloat16";
+            # Peer services on this single 24GB GPU already reserve ~67%
+            # (qwen-chat 0.60 + embeddings 0.07), leaving ~7.9GB for TTS.
+            # The per-stage YAML values in qwen3_tts.yaml (0.10 + 0.08)
+            # actually pin the KV pools; this instance-level setting just
+            # prevents the module emitting a misleading --gpu-memory-utilization 0.9.
+            gpuMemoryUtilization = 0.3;
             trustRemoteCode = true;
             dataDir = "/xpool/llm/vllm/qwen3-tts";
             warmupOnStart = true;
