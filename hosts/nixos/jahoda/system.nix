@@ -231,6 +231,21 @@
   # Enable zram swap
   zramSwap.enable = true;
 
+  # Disable auto-suspend: NVIDIA s2idle resume deadlocks the host.
+  services.logind.settings.Login = {
+    IdleAction = "ignore";
+    HandleSuspendKey = "ignore";
+    HandleLidSwitch = "ignore";
+    HandleLidSwitchExternalPower = "ignore";
+    HandleLidSwitchDocked = "ignore";
+  };
+  systemd.targets = {
+    sleep.enable = false;
+    suspend.enable = false;
+    hibernate.enable = false;
+    hybrid-sleep.enable = false;
+  };
+
   # Increase inotify limits for IDEs (VS Code, JetBrains) over SMB
   boot.kernel.sysctl = {
     "fs.inotify.max_user_watches" = 524288;
