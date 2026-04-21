@@ -12,6 +12,12 @@
 #     (reserves ~900MB for _ensure_speech_tokenizer_loaded which lazily
 #      loads the ~400MB encoder + activations on first request OUTSIDE
 #      the budget; see vllm-project/vllm-omni#2341)
+#   * stage 1 max_model_len 32768 -> 8192
+#     (trims unused KV reservation; max_num_seqs=1 means we never fill it)
+#   * codec_chunk_frames 25 -> 12, codec_left_context_frames 25 -> 12
+#     (shrinks streaming Code2Wav CUDA graph capture sizes from 25 & 50
+#      to 12 & 24, trimming ~300MB from private pools; the 325 non-streaming
+#      graph is hardcoded and unaffected)
 async_chunk: true
 stage_args:
   - stage_id: 0
@@ -21,7 +27,7 @@ stage_args:
       devices: "0"
     engine_args:
       model_stage: qwen3_tts
-      max_num_seqs: 1
+      max_num_seqs: 4
       model_arch: Qwen3TTSTalkerForConditionalGeneration
       worker_type: ar
       scheduler_cls: vllm_omni.core.sched.omni_ar_scheduler.OmniARScheduler
@@ -66,7 +72,9 @@ stage_args:
       # Must be divisible by num_code_groups and cover (left_context + chunk).
       max_num_batched_tokens: 8192
       # async_chunk appends windows per step; max_model_len must cover accumulated stream.
-      max_model_len: 32768
+      # Shrunk from upstream 32768 to trim Stage 1 KV reservation — we pin
+      # max_num_seqs=1, so reserved KV is mostly unused anyway.
+      max_model_len: 8192
     engine_input_source: [0]
     final_output: true
     final_output_type: audio
@@ -96,8 +104,8 @@ runtime:
         connector_get_sleep_s: 0.01
         connector_get_max_wait_first_chunk: 3000
         connector_get_max_wait: 300
-        codec_chunk_frames: 25
-        codec_left_context_frames: 25
+        codec_chunk_frames: 12
+        codec_left_context_frames: 12
   edges:
     - from: 0
       to: 1
