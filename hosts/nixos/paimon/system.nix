@@ -116,9 +116,9 @@
           qwen-chat = {
             model = "QuantTrio/Qwen3.6-35B-A3B-AWQ";
             port = 8000;
-            gpuMemoryUtilization = 0.67;
+            gpuMemoryUtilization = 0.651;
             maxModelLen = 262144;
-            maxNumSeqs = 4;
+            maxNumSeqs = 8;
             kvCacheDtype = "fp8";
             maxNumBatchedTokens = 2096;
             reasoningParser = "qwen3";
@@ -139,51 +139,9 @@
           embeddings = {
             model = "Qwen/Qwen3-Embedding-0.6B";
             port = 8001;
-            gpuMemoryUtilization = 0.07;
+            gpuMemoryUtilization = 0.069;
             maxModelLen = 8192;
             maxNumSeqs = 64;
-          };
-
-          qwen3-tts = {
-            image = "vllm/vllm-omni:v0.18.0";
-            entrypoint = [
-              "vllm"
-              "serve"
-            ];
-            model = "Qwen/Qwen3-TTS-12Hz-0.6B-Base";
-            port = 8002;
-            maxModelLen = 4096;
-            dtype = "bfloat16";
-            # Peer services on this single 24GB GPU already reserve ~67%
-            # (qwen-chat 0.60 + embeddings 0.07), leaving ~7.9GB for TTS.
-            # The per-stage YAML values in qwen3_tts.yaml (0.10 + 0.08)
-            # actually pin the KV pools; this instance-level setting just
-            # prevents the module emitting a misleading --gpu-memory-utilization 0.9.
-            gpuMemoryUtilization = 0.3;
-            trustRemoteCode = true;
-            dataDir = "/xpool/llm/vllm/qwen3-tts";
-            warmupOnStart = true;
-            environmentVariables = {
-              SPEECH_VOICE_SAMPLES = "/data/uploaded";
-            };
-            omni = {
-              enable = true;
-              # VRAM-reduced copy of the shipped qwen3_tts.yaml.
-              stageConfigsPath = ../../../modules/nixos/services/vllm/qwen3_tts.yaml;
-              voicesBootstrap =
-                let
-                  voiceDir = "/xpool/llm/vllm/qwen3-tts/voices";
-                  mkVoice = name: {
-                    audio = "${voiceDir}/${name}.wav";
-                    refTextFile = "${voiceDir}/${name}.txt";
-                  };
-                in
-                {
-                  nahida = mkVoice "nahida";
-                  paimon = mkVoice "paimon";
-                  cacucu = mkVoice "cacucu";
-                };
-            };
           };
         };
       };
