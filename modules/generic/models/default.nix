@@ -338,8 +338,8 @@ in
             # Azure AI provider - chat models
             "deepseek-v3.2".provider = "azure_ai";
             "deepseek-v3.2-speciale".provider = "azure_ai";
-            "grok-4-1-fast-non-reasoning".provider = "azure_ai";
-            "grok-4-1-fast-reasoning".provider = "azure_ai";
+            "grok-4-20-non-reasoning".provider = "azure_ai";
+            "grok-4-20-reasoning".provider = "azure_ai";
             "kimi-k2.5".provider = "azure_ai";
 
             # Azure AI provider - image generation
@@ -357,15 +357,13 @@ in
             # Azure provider - OpenAI models
             "gpt-4o-transcribe-diarize".mode = "audio_transcription";
             "gpt-5.4-nano" = { };
-            "gpt-5.3-chat" = { };
-            "gpt-5.2-chat" = { };
-            "gpt-5.1-chat" = { };
+            "gpt-5.4-pro" = { };
+            "gpt-image-2" = { };
             "gpt-audio-1.5".baseModel = "azure/gpt-audio-1.5-2026-02-23";
             "gpt-realtime-1.5" = {
               mode = "realtime";
               baseModel = "azure/gpt-realtime-1.5-2026-02-23";
             };
-            "o4-mini" = { };
           };
         };
 

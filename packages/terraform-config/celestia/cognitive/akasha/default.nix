@@ -12,14 +12,12 @@ in
     ./flux.1-kontext-pro.nix
     ./gpt-4o-transcribe-diarize.nix
     ./gpt-5.4-nano.nix
-    ./gpt-5.3-chat.nix
-    ./gpt-5.2-chat.nix
-    ./gpt-5.1-chat.nix
+    ./gpt-5.4-pro.nix
+    ./gpt-image-2.nix
     ./gpt-audio-1.5.nix
     ./gpt-realtime-1.5.nix
-    ./grok-4-1-fast.nix
+    ./grok-4-20.nix
     ./kimi-k2.5.nix
-    ./o4-mini.nix
   ];
 
   resource = {
