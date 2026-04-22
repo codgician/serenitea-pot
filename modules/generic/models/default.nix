@@ -358,7 +358,7 @@ in
             "gpt-4o-transcribe-diarize".mode = "audio_transcription";
             "gpt-5.4-nano" = { };
             "gpt-5.4-pro" = { };
-            "gpt-image-2" = { };
+            "gpt-image-2".mode = "image_generation";
             "gpt-audio-1.5".baseModel = "azure/gpt-audio-1.5-2026-02-23";
             "gpt-realtime-1.5" = {
               mode = "realtime";
