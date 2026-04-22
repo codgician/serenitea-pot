@@ -110,15 +110,8 @@ in
     };
 
     imageTag = lib.mkOption {
-      type = lib.types.enum [
-        "main-latest"
-        "main-dev"
-        "main-rc"
-        "main-stable"
-        "litellm_rc_branch-rc"
-        "litellm_rc_branch-dev"
-      ];
-      default = "main-stable";
+      type = lib.types.str;
+      default = "main-v1.83.7-stable";
       description = ''
         Container image tag for ${serviceName}.
       '';
