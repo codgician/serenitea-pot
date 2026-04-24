@@ -26,10 +26,9 @@ in
     # Set podman as oci-container backend
     virtualisation.oci-containers.backend = "podman";
 
-    # Enable IPv4/IPv6 forwarding for container bridge egress..
+    # Enable IPv4/IPv6 forwarding for container bridge egress
     boot.kernel.sysctl = {
       "net.ipv4.ip_forward" = lib.mkDefault 1;
-      "net.ipv4.conf.all.forwarding" = lib.mkDefault 1;
       "net.ipv6.conf.all.forwarding" = lib.mkDefault 1;
     };
 
