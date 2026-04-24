@@ -162,8 +162,12 @@ let
     output_config = { inherit effort; };
   });
 
-  # GPT-5.x reasoning effort variants
-  gpt5 = {
+  # GPT-5.2+ reasoning effort variants
+  gpt52 = {
+    xhigh = {
+      reasoningEffort = "xhigh";
+      textVerbosity = "high";
+    };
     high = {
       reasoningEffort = "high";
       textVerbosity = "high";
@@ -172,14 +176,6 @@ let
     low.reasoningEffort = "low";
     minimal.reasoningEffort = "minimal";
     none.reasoningEffort = "none";
-  };
-
-  # GPT-5.2+ adds xhigh reasoning
-  gpt52 = gpt5 // {
-    xhigh = {
-      reasoningEffort = "xhigh";
-      textVerbosity = "high";
-    };
   };
 
   # Gemini Pro reasoning variants
@@ -441,7 +437,6 @@ in
             "gemini-3.1-pro-preview".variants = geminiPro;
 
             # GPT-5.x chat models
-            "gpt-5.1".variants = gpt5;
             "gpt-5.2".variants = gpt52;
 
             # GPT-5.x codex models (responses mode)
@@ -461,10 +456,10 @@ in
               mode = "responses";
               variants = gpt52;
             };
-            "gpt-5.5" = {
-              mode = "responses";
-              variants = gpt52;
-            };
+            # "gpt-5.5" = {
+            #   mode = "responses";
+            #   variants = gpt52;
+            # };
           };
         };
 
