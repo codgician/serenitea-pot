@@ -162,6 +162,19 @@ let
     output_config = { inherit effort; };
   });
 
+  # Deepseek reasoning effort variants
+  deepseek = {
+    none.thinking.type = "disabled";
+    high = {
+      thinking.type = "enabled";
+      reasoningEffort = "high";
+    };
+    max = {
+      thinking.type = "enabled";
+      reasoningEffort = "max";
+    };
+  };
+
   # GPT-5.2+ reasoning effort variants
   gpt52 = {
     xhigh = {
@@ -393,8 +406,8 @@ in
             tags = [ "deepseek" ];
           };
           models = {
-            "deepseek-chat" = { };
-            "deepseek-reasoner" = { };
+            "deepseek-v4-flash".variants = deepseek;
+            "deepseek-v4-pro".variants = deepseek;
           };
         };
 
