@@ -17,7 +17,7 @@ in
     ./gpt-audio-1.5.nix
     ./gpt-realtime-1.5.nix
     ./grok-4-20.nix
-    ./kimi-k2.5.nix
+    ./kimi-k2.6.nix
   ];
 
   resource = {
