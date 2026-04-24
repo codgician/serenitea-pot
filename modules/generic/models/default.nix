@@ -340,7 +340,7 @@ in
             "deepseek-v3.2-speciale".provider = "azure_ai";
             "grok-4-20-non-reasoning".provider = "azure_ai";
             "grok-4-20-reasoning".provider = "azure_ai";
-            "kimi-2.6".provider = "azure_ai";
+            "kimi-k2.6".provider = "azure_ai";
 
             # Azure AI provider - image generation
             "flux-1-1-pro" = {
