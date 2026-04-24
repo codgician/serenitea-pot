@@ -135,13 +135,13 @@ in
         agents = {
           sisyphus.model = "dendro/claude-opus-4-7";
           sisyphus-junior.model = "dendro/claude-sonnet-4-6";
-          hephaestus.model = "dendro/gpt-5.4";
-          oracle.model = "dendro/gpt-5.4";
+          hephaestus.model = "dendro/gpt-5.5";
+          oracle.model = "dendro/gpt-5.5";
           librarian.model = "dendro/gemini-3-flash-preview";
           explore.model = "dendro/gemini-3-flash-preview";
           multimodal-looker.model = "dendro/gemini-3-flash-preview";
           metis.model = "dendro/claude-opus-4-7";
-          momus.model = "dendro/gpt-5.4";
+          momus.model = "dendro/gpt-5.5";
           atlas.model = "dendro/claude-sonnet-4-6";
           prometheus.model = "dendro/claude-opus-4-7";
         };
