@@ -25,8 +25,8 @@ in
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.claude-code-bin;
-      defaultText = lib.literalExpression "pkgs.claude-code-bin";
+      default = pkgs.claude-code;
+      defaultText = lib.literalExpression "pkgs.claude-code";
       description = ''
         The Claude Code package to install.
       '';
@@ -84,6 +84,10 @@ in
             "Bash(chmod 777 *)"
           ];
         };
+        showThinkingSummaries = true;
+        effortLevel = "max";
+        outputStyle = "Explanatory";
+        showTurnDuration = true;
       };
     };
   };

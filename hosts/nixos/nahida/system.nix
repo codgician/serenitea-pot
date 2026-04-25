@@ -125,7 +125,7 @@
       codgician.codgi = {
         claude-code = {
           enable = true;
-          package = pkgs.claude-code-bin-wrapped;
+          package = pkgs.claude-code-wrapped;
         };
         dev = {
           dotnet.enable = true;

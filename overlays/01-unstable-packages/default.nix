@@ -9,7 +9,6 @@ final: prev: {
     beads
     codex
     claude-code
-    claude-code-bin
     opencode
     github-copilot-cli
     antigravity

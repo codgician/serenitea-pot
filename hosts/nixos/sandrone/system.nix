@@ -34,7 +34,7 @@
 
         claude-code = {
           enable = true;
-          package = pkgs.claude-code-bin-wrapped;
+          package = pkgs.claude-code-wrapped;
         };
         git.enable = true;
         mcp.enable = true;
