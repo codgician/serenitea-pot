@@ -469,10 +469,10 @@ in
               mode = "responses";
               variants = gpt52;
             };
-            # "gpt-5.5" = {
-            #   mode = "responses";
-            #   variants = gpt52;
-            # };
+            "gpt-5.5" = {
+              mode = "responses";
+              variants = gpt52;
+            };
           };
         };
 
