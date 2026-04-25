@@ -71,7 +71,7 @@ in
       settings = {
         theme = "github";
         plugin = [
-          "oh-my-opencode"
+          "oh-my-openagent"
         ];
         permission = {
           read = {
@@ -125,8 +125,8 @@ in
         force = true;
       };
 
-      # Add override for oh-my-opencode
-      "opencode/oh-my-opencode.json".text = builtins.toJSON {
+      # Add override for oh-my-openagent
+      "opencode/oh-my-openagent.json".text = builtins.toJSON {
         "$schema" =
           "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/refs/heads/dev/assets/oh-my-opencode.schema.json";
         disabled_skills = [ "dev-browser" ];
