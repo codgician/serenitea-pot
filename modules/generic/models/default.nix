@@ -181,7 +181,6 @@ let
     high.reasoningEffort = "high";
     medium.reasoningEffort = "medium";
     low.reasoningEffort = "low";
-    minimal.reasoningEffort = "minimal";
     none.reasoningEffort = "none";
   };
 
@@ -360,7 +359,9 @@ in
             # Azure provider - OpenAI models
             "gpt-4o-transcribe-diarize".mode = "audio_transcription";
             "gpt-5.4-nano" = { };
-            "gpt-5.4-pro" = { };
+            "gpt-5.4-pro" = {
+              variants = gpt52;
+            };
             "gpt-image-2".mode = "image_generation";
             "gpt-audio-1.5".baseModel = "azure/gpt-audio-1.5-2026-02-23";
             "gpt-realtime-1.5" = {
@@ -378,15 +379,12 @@ in
           };
           models = {
             "gpt-5.5" = {
-              mode = "responses";
               variants = gpt52;
             };
             "gpt-5.4" = {
-              mode = "responses";
               variants = gpt52;
             };
             "gpt-5.3-codex" = {
-              mode = "responses";
               variants = gpt52;
             };
           };
@@ -461,7 +459,6 @@ in
             };
             "gpt-5.4-mini" = {
               mode = "responses";
-              variants = gpt52;
             };
             "gpt-5.5" = {
               mode = "responses";

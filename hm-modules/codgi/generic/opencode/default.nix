@@ -137,7 +137,10 @@ in
       "opencode/oh-my-openagent.json".text = builtins.toJSON {
         "$schema" =
           "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/refs/heads/dev/assets/oh-my-opencode.schema.json";
-        disabled_skills = [ "dev-browser" "playwright" ];
+        disabled_skills = [
+          "dev-browser"
+          "playwright"
+        ];
         browser_automation_engine = "agent-browser";
         git_master = {
           commit_footer = false;
