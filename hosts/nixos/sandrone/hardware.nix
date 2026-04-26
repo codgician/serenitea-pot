@@ -14,7 +14,7 @@
     supportedFilesystems = [ "vfat" ];
     kernelModules = [ ];
     kernelParams = [ "iommu.passthrough=1" ];
-    kernelPackages = pkgs.linuxPackages_6_18;
+    kernelPackages = pkgs.unstable.linuxPackages_latest;
     zfs.package = pkgs.zfs_2_4;
     extraModulePackages = [ ];
   };

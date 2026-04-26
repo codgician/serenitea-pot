@@ -136,7 +136,6 @@
   # Global packages
   environment.systemPackages = with pkgs; [
     firefox
-    chromium
     kitty
   ];
 
