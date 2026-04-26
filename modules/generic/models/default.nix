@@ -380,12 +380,15 @@ in
           models = {
             "gpt-5.5" = {
               variants = gpt52;
+              mode = "responses";
             };
             "gpt-5.4" = {
               variants = gpt52;
+              mode = "responses";
             };
             "gpt-5.3-codex" = {
               variants = gpt52;
+              mode = "responses";
             };
           };
         };
@@ -425,10 +428,12 @@ in
             modelPrefix = "github_copilot";
             tags = [ "github" ];
             extraParams.extra_headers = {
+              copilot-integration-id = "vscode-chat";
               editor-version = "vscode/${pkgs.vscode.version}";
               editor-plugin-version = "copilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
+              openai-intent = "conversation-agent";
               user-agent = "GithubCopilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
-              Copilot-Vision-Request = "true";
+              x-interaction-type = "conversation-agent";
             };
           };
           models = {
@@ -444,7 +449,7 @@ in
             # GPT-5.x chat models
             "gpt-5.2".variants = gpt52;
 
-            # GPT-5.x codex models (responses mode)
+            # GPT-5.x models (responses mode)
             "gpt-5.2-codex" = {
               mode = "responses";
               variants = gpt52;
