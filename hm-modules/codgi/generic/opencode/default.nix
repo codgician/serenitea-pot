@@ -101,11 +101,19 @@ in
             "/run/agenix*" = "deny";
           };
         };
-        provider.dendro = {
-          npm = "@ai-sdk/openai-compatible";
-          name = "dendro";
-          options.baseURL = "https://dendro.codgician.me/";
-          models = openCodeModels;
+        provider = {
+          dendro = {
+            npm = "@ai-sdk/openai-compatible";
+            name = "dendro";
+            options.baseURL = "https://dendro.codgician.me/v1";
+            models = openCodeModels;
+          };
+          dendro-responses = {
+            npm = "@ai-sdk/openai";
+            name = "dendro-responses";
+            options.baseURL = "https://dendro.codgician.me/v1";
+            models = openCodeModels;
+          };
         };
       };
     };
@@ -129,21 +137,35 @@ in
       "opencode/oh-my-openagent.json".text = builtins.toJSON {
         "$schema" =
           "https://raw.githubusercontent.com/code-yeongyu/oh-my-openagent/refs/heads/dev/assets/oh-my-opencode.schema.json";
-        disabled_skills = [ "dev-browser" ];
+        disabled_skills = [ "dev-browser" "playwright" ];
         browser_automation_engine = "agent-browser";
+        git_master = {
+          commit_footer = false;
+          include_co_authored_by = false;
+        };
         tmux.enabled = true;
         agents = {
           sisyphus.model = "dendro/claude-opus-4-7";
           sisyphus-junior.model = "dendro/claude-sonnet-4-6";
-          hephaestus.model = "dendro/gpt-5.5";
-          oracle.model = "dendro/gpt-5.5";
-          librarian.model = "dendro/gemini-3-flash-preview";
-          explore.model = "dendro/gemini-3-flash-preview";
-          multimodal-looker.model = "dendro/gemini-3-flash-preview";
+          hephaestus.model = "dendro-responses/gpt-5.5";
+          oracle.model = "dendro-responses/gpt-5.5";
+          librarian.model = "dendro-responses/gpt-5.4-mini";
+          explore.model = "dendro-responses/gpt-5.4-mini";
+          multimodal-looker.model = "dendro-responses/gpt-5.3-codex";
           metis.model = "dendro/claude-opus-4-7";
-          momus.model = "dendro/gpt-5.5";
+          momus.model = "dendro-responses/gpt-5.5";
           atlas.model = "dendro/claude-sonnet-4-6";
           prometheus.model = "dendro/claude-opus-4-7";
+        };
+        categories = {
+          visual-engineering.model = "dendro/gemini-3.1-pro-preview";
+          ultrabrain.model = "dendro-responses/gpt-5.5";
+          deep.model = "dendro-responses/gpt-5.5";
+          artistry.model = "dendro-responses/gpt-5.5";
+          quick.model = "dendro-responses/gpt-5.4-mini";
+          unspecified-low.model = "dendro/claude-sonnet-4-6";
+          unspecified-high.model = "dendro/claude-opus-4-7";
+          writing.model = "dendro/gemini-3-flash-preview";
         };
       };
     };
