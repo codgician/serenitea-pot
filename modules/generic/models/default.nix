@@ -177,14 +177,8 @@ let
 
   # GPT-5.2+ reasoning effort variants
   gpt52 = {
-    xhigh = {
-      reasoningEffort = "xhigh";
-      textVerbosity = "high";
-    };
-    high = {
-      reasoningEffort = "high";
-      textVerbosity = "high";
-    };
+    xhigh.reasoningEffort = "xhigh";
+    high.reasoningEffort = "high";
     medium.reasoningEffort = "medium";
     low.reasoningEffort = "low";
     minimal.reasoningEffort = "minimal";
