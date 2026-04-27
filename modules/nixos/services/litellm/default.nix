@@ -111,7 +111,7 @@ in
 
     imageTag = lib.mkOption {
       type = lib.types.str;
-      default = "v1.83.13-nightly";
+      default = "main-v1.83.10-stable";
       description = ''
         Container image tag for ${serviceName}.
       '';
