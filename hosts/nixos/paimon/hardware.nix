@@ -35,7 +35,7 @@
     kernelModules = [
       "kvm-amd"
     ];
-    kernelPackages = pkgs.linuxPackages_6_18;
+    kernelPackages = pkgs.unstable.linuxPackages_6_18;
 
     kernelParams = [
       "video=VGA-1:1600x900@60"
@@ -137,7 +137,15 @@
     nvidiaPersistenced = true;
     open = true;
     nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.production;
+    package =
+      let
+        nvidiaPackage = config.boot.kernelPackages.nvidiaPackages.production;
+      in
+      nvidiaPackage.overrideAttrs (old: {
+        passthru = old.passthru // {
+          inherit (nvidiaPackage.open) makeFlags;
+        };
+      });
   };
 
   # Limit nvidia GPU TDP

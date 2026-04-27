@@ -32,7 +32,15 @@
     nvidiaPersistenced = true;
     open = true;
     nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.production;
+    package =
+      let
+        nvidiaPackage = config.boot.kernelPackages.nvidiaPackages.production;
+      in
+      nvidiaPackage.overrideAttrs (old: {
+        passthru = old.passthru // {
+          inherit (nvidiaPackage.open) makeFlags;
+        };
+      });
   };
 
   # Global packages
