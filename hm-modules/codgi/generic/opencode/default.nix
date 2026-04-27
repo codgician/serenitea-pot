@@ -141,7 +141,7 @@ in
           "dev-browser"
           "playwright"
         ];
-        browser_automation_engine = "agent-browser";
+        browser_automation_engine.provider = "agent-browser";
         git_master = {
           commit_footer = false;
           include_co_authored_by = false;
