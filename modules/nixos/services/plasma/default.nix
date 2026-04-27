@@ -108,6 +108,10 @@ lib.optionalAttrs (lib.version >= "24.05") {
             kdePackages.breeze-gtk
             kdePackages.kio-admin
             kdePackages.krdp
+            kdePackages.krdc
+            kdePackages.krfb
+            kdePackages.kquickcharts
+            kdePackages.krecorder
             kdePackages.kwallet-pam
             qt6.qtvirtualkeyboard
           ]
