@@ -103,11 +103,18 @@
     }
   ];
 
-  home-manager.users.codgi.home.packages = with pkgs; [
-    microsoft-edge
-    intune-portal
-    azure-cli
-    yubikey-manager
-    yubico-piv-tool
-  ];
+  home-manager.users.codgi = {
+    home.packages = with pkgs; [
+      microsoft-edge
+      intune-portal
+      azure-cli
+      yubikey-manager
+      yubico-piv-tool
+      teams-for-linux
+    ];
+
+    xdg.configFile."teams-for-linux/config.json".text = builtins.toJSON {
+      auth.intune.enabled = true;
+    };
+  };
 }
