@@ -345,15 +345,10 @@ in
             "kimi-k2.6".provider = "azure_ai";
 
             # Azure AI provider - image generation
-            "flux-1-1-pro" = {
+            "flux-2-pro" = {
               provider = "azure_ai";
               mode = "image_generation";
-              baseModel = "azure_ai/FLUX-1.1-pro";
-            };
-            "flux-1-kontext-pro" = {
-              provider = "azure_ai";
-              mode = "image_generation";
-              baseModel = "azure_ai/FLUX.1-Kontext-pro";
+              baseModel = "azure_ai/FLUX.2-pro";
             };
 
             # Azure provider - OpenAI models
