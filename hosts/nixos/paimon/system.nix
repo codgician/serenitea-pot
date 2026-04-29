@@ -130,10 +130,8 @@
             warmupTimeout = 900;
             environmentVariables = {
               VLLM_USE_DEEP_GEMM = "0";
-              VLLM_USE_FLASHINFER_MOE_FP16 = "1";
               VLLM_USE_FLASHINFER_SAMPLER = "0";
             };
-            extraArgs = [ "--enable-expert-parallel" ];
           };
 
           embeddings = {
