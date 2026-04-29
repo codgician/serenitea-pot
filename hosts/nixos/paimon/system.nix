@@ -124,14 +124,9 @@
             reasoningParser = "qwen3";
             toolCallParser = "qwen3_coder";
             enablePrefixCaching = true;
-            enableChunkedPrefill = true;
             trustRemoteCode = true;
             warmupOnStart = true;
             warmupTimeout = 900;
-            environmentVariables = {
-              VLLM_USE_DEEP_GEMM = "0";
-              VLLM_USE_FLASHINFER_SAMPLER = "0";
-            };
           };
 
           embeddings = {
