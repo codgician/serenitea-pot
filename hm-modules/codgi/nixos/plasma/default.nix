@@ -21,48 +21,129 @@ in
   config = lib.mkIf cfg.enable {
     programs.plasma = {
       enable = true;
+      fonts.general = {
+        family = "Noto Sans";
+        pointSize = 11;
+      };
 
-      kwin.effects = {
-        blur = {
-          enable = true;
-          noiseStrength = 5;
-          strength = 15;
+      kwin = {
+        effects = {
+          blur = {
+            enable = true;
+            noiseStrength = 5;
+            strength = 15;
+          };
+          shakeCursor.enable = true;
+          snapHelper.enable = true;
         };
-        shakeCursor.enable = true;
-        snapHelper.enable = true;
+
+        titlebarButtons = {
+          left = [ ];
+          right = [
+            "minimize"
+            "maximize"
+            "close"
+          ];
+        };
       };
 
       panels = [
+        # Top bar: kickoff (NixOS) + app menu (left) | spacer | tray + clock (right)
         {
-          alignment = "center";
+          location = "top";
+          height = 36;
           floating = true;
-          height = 44;
-          hiding = "none";
+          alignment = "center";
           lengthMode = "fill";
-          location = "bottom";
+          hiding = "normalpanel";
           widgets = [
             {
               name = "org.kde.plasma.kickoff";
               config.General.icon = "nix-snowflake-white";
             }
-
-            "org.kde.plasma.panelspacer"
-
             {
-              name = "org.kde.plasma.icontasks";
-              config.General.launchers = [
-                "applications:org.kde.dolphin.desktop"
-                "applications:firefox.desktop"
-                "applications:org.kde.konsole.desktop"
-              ]
-              ++ (lib.optional (config.codgician.codgi.vscode.enable) "applications:code.desktop");
+              appMenu.compactView = false;
             }
-
-            "org.kde.plasma.panelspacer"
-            "org.kde.plasma.marginsseparator"
-            "org.kde.plasma.systemtray"
-            "org.kde.plasma.digitalclock"
+            {
+              panelSpacer.expanding = true;
+            }
+            {
+              systemTray = {
+                icons = {
+                  scaleToFit = false;
+                  spacing = "medium";
+                };
+              };
+            }
+            # Breathing room between tray icons and the clock.
+            {
+              panelSpacer = {
+                expanding = false;
+                length = 10;
+              };
+            }
+            {
+              digitalClock = {
+                time = {
+                  format = "12h";
+                  showSeconds = "never";
+                };
+                calendar.firstDayOfWeek = "monday";
+                date = {
+                  enable = true;
+                  format.custom = "ddd MMM d";
+                  position = "besideTime";
+                };
+                font = {
+                  family = "Noto Sans";
+                  weight = 400;
+                  size = 20;
+                };
+              };
+            }
+            # Peek at desktop, top-right corner (macOS-style hot corner).
             "org.kde.plasma.showdesktop"
+          ];
+        }
+
+        # Bottom dock: centered, fits content, hides under windows (macOS feel)
+        {
+          location = "bottom";
+          height = 56;
+          floating = true;
+          alignment = "center";
+          lengthMode = "fit";
+          hiding = "dodgewindows";
+          widgets = [
+            {
+              iconTasks = {
+                launchers = [
+                  "applications:org.kde.dolphin.desktop"
+                  "applications:firefox.desktop"
+                  "applications:org.kde.konsole.desktop"
+                ]
+                ++ (lib.optional (config.codgician.codgi.vscode.enable) "applications:code.desktop");
+                appearance = {
+                  fill = false;
+                  showTooltips = true;
+                  indicateAudioStreams = true;
+                  iconSpacing = "medium";
+                  rows = {
+                    maximum = 1;
+                    multirowView = "never";
+                  };
+                };
+                behavior = {
+                  grouping.method = "byProgramName";
+                  sortingMethod = "manually";
+                  showTasks = {
+                    onlyInCurrentScreen = false;
+                    onlyInCurrentDesktop = false;
+                    onlyInCurrentActivity = true;
+                  };
+                };
+              };
+            }
           ];
         }
       ];
@@ -86,7 +167,7 @@ in
       configFile = {
         kiorc.Confirmations.ConfirmEmptyTrash = true;
         breezerc.Style.MenuOpacity = 60;
-        plasmaashellrc.PlasmaViews.panelOpacity = 2;
+        plasmashellrc.PlasmaViews.panelOpacity = 2;
       };
     };
 

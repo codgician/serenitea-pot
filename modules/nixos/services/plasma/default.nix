@@ -105,6 +105,7 @@ lib.optionalAttrs (lib.version >= "24.05") {
             mesa-demos
             vulkan-tools
             aha
+            appmenu-glib-translator
             kdePackages.breeze-gtk
             kdePackages.kio-admin
             kdePackages.krdp
