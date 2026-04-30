@@ -14,7 +14,7 @@
     supportedFilesystems = [ "vfat" ];
     kernelModules = [ ];
     kernelParams = [ "iommu.passthrough=1" ];
-    kernelPackages = pkgs.unstable.linuxPackages_latest;
+    kernelPackages = pkgs.linuxPackages_latest;
     zfs.package = pkgs.zfs_2_4;
     extraModulePackages = [ ];
   };
@@ -32,15 +32,7 @@
     nvidiaPersistenced = true;
     open = true;
     nvidiaSettings = true;
-    package =
-      let
-        nvidiaPackage = config.boot.kernelPackages.nvidiaPackages.production;
-      in
-      nvidiaPackage.overrideAttrs (old: {
-        passthru = old.passthru // {
-          inherit (nvidiaPackage.open) makeFlags;
-        };
-      });
+    package = config.boot.kernelPackages.nvidiaPackages.production;
   };
 
   # Global packages
