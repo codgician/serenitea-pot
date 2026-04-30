@@ -21,9 +21,11 @@ in
   config = lib.mkIf cfg.enable {
     programs.plasma = {
       enable = true;
-      fonts.general = {
-        family = "Noto Sans";
-        pointSize = 11;
+      fonts = {
+        general = {
+          family = "Noto Sans";
+          pointSize = 10;
+        };
       };
 
       kwin = {
@@ -51,7 +53,7 @@ in
         # Top bar: kickoff (NixOS) + app menu (left) | spacer | tray + clock (right)
         {
           location = "top";
-          height = 36;
+          height = 32;
           floating = true;
           alignment = "center";
           lengthMode = "fill";
@@ -60,6 +62,13 @@ in
             {
               name = "org.kde.plasma.kickoff";
               config.General.icon = "nix-snowflake-white";
+            }
+            # Breathing room between menu icon and appMenu
+            {
+              panelSpacer = {
+                expanding = false;
+                length = 6;
+              };
             }
             {
               appMenu.compactView = false;
@@ -79,7 +88,7 @@ in
             {
               panelSpacer = {
                 expanding = false;
-                length = 10;
+                length = 6;
               };
             }
             {
@@ -97,8 +106,15 @@ in
                 font = {
                   family = "Noto Sans";
                   weight = 400;
-                  size = 11;
+                  size = 10;
                 };
+              };
+            }
+            # Breathing room between tray icons and the peek desktop icon.
+            {
+              panelSpacer = {
+                expanding = false;
+                length = 6;
               };
             }
             # Peek at desktop, top-right corner (macOS-style hot corner).
@@ -159,15 +175,43 @@ in
           size = 24;
         };
 
-        iconTheme = "Breeze Dark";
-        lookAndFeel = "org.kde.breezedark.desktop";
+        # Settings here mirror what `org.kde.breezedark.desktop` lookAndFeel
+        # would apply, but split into individual options so we can override
+        # the window decoration without plasma-manager warning that
+        # lookAndFeel may clobber our customizations.
+        colorScheme = "BreezeDark";
         theme = "breeze-dark";
+        splashScreen.theme = "org.kde.Breeze";
+
+        # Klassy KWin window decoration + matching widget (application) style
+        # + window-button icon theme. The decoration enables translucent title
+        # bars so the existing `kwin.effects.blur` produces an Aero / Fluent UI
+        # glass look. plasma-manager writes the decoration to the legacy
+        # `org.kde.kdecoration2` section of kwinrc.
+        #
+        # `klassy-dark` only ships custom window-button icons; everything else
+        # falls through to Breeze Dark via `Inherits=breeze-dark`.
+        iconTheme = "klassy-dark";
+        widgetStyle = "Klassy";
+        windowDecorations = {
+          library = "org.kde.klassy";
+          theme = "Klassy";
+        };
       };
 
       configFile = {
         kiorc.Confirmations.ConfirmEmptyTrash = true;
         breezerc.Style.MenuOpacity = 60;
         plasmashellrc.PlasmaViews.panelOpacity = 2;
+
+        # Plasma 6.3+ reads window decoration from `org.kde.kdecoration3`,
+        # but plasma-manager's `workspace.windowDecorations` only writes
+        # the legacy `org.kde.kdecoration2` section. Mirror the values
+        # here so the decoration actually applies on Plasma 6.3+.
+        # Drop this block once plasma-manager grows kdecoration3 support
+        kwinrc."org.kde.kdecoration3" = {
+          inherit (config.programs.plasma.workspace.windowDecorations) library theme;
+        };
       };
     };
 
@@ -197,6 +241,11 @@ in
       iconTheme.name = "breeze-dark";
       theme.name = "Breeze";
     };
+
+    # Klassy decoration + style + global theme plugin.
+    # Pulled from nixpkgs-unstable via overlays/01-unstable-packages
+    # because nixos-25.11-small does not ship it.
+    home.packages = [ pkgs.klassy ];
 
     # GPG with pinentry-qt for KDE
     services.gpg-agent.pinentry.package = pkgs.pinentry-qt;
