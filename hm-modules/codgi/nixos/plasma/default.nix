@@ -97,7 +97,7 @@ in
                 font = {
                   family = "Noto Sans";
                   weight = 400;
-                  size = 20;
+                  size = 11;
                 };
               };
             }
