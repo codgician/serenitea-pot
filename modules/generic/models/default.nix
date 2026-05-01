@@ -479,7 +479,7 @@ in
             tags = [ "nvidia" ];
           };
           models = {
-            "glm5.1".path = "z-ai/glm5.1";
+            "glm5.1".path = "z-ai/glm-5.1";
             "minimax-m2.7".path = "minimaxai/minimax-m2.7";
             "kimi-k2.5".path = "moonshotai/kimi-k2.5";
             "qwen3.5-397b-a17b".path = "qwen/qwen3.5-397b-a17b";

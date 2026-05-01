@@ -58,7 +58,7 @@ in
       settings = {
         openai_base_url = "https://dendro.codgician.me/v1";
         mcp_servers = lib.mkIf config.codgician.codgi.mcp.enable mcpServers;
-        model = "gpt-5.4";
+        model = "gpt-5.5";
       };
     };
   };
