@@ -338,8 +338,7 @@ in
           };
           models = {
             # Azure AI provider - chat models
-            "deepseek-v3.2".provider = "azure_ai";
-            "deepseek-v3.2-speciale".provider = "azure_ai";
+            "deepseek-v4-flash".provider = "azure_ai";
             "grok-4-20-non-reasoning".provider = "azure_ai";
             "grok-4-20-reasoning".provider = "azure_ai";
             "kimi-k2.6".provider = "azure_ai";
