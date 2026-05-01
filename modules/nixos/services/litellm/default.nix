@@ -28,6 +28,10 @@ let
     acc: m: acc // (lib.genAttrs m.aliases (_: m.model))
   ) { } config.codgician.models.all;
 
+  # Cap upstream wait. Reverse proxy gets a margin so LiteLLM trips first.
+  requestTimeout = 600;
+  reverseProxyTimeout = requestTimeout + 30;
+
   # LiteLLM config
   settings = {
     general_settings = {
@@ -43,6 +47,7 @@ let
       drop_params = true;
       modify_params = true;
       model_alias_map = aliasMap;
+      request_timeout = requestTimeout;
     };
     model_list = allModels;
     prompts = [
@@ -286,7 +291,15 @@ in
               outName = "favicon.ico";
             };
           in
-          (lib.optionalAttrs (favicon != null) {
+          {
+            # Align nginx timeouts with LiteLLM's request_timeout (plus margin).
+            "/".passthru.extraConfig = ''
+              proxy_connect_timeout ${builtins.toString reverseProxyTimeout}s;
+              proxy_send_timeout ${builtins.toString reverseProxyTimeout}s;
+              proxy_read_timeout ${builtins.toString reverseProxyTimeout}s;
+            '';
+          }
+          // (lib.optionalAttrs (favicon != null) {
             "= /favicon.png".passthru = mkNginxLocationForStaticFile favicon;
             "= /swagger/favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
             "= /swagger/favicon.png".passthru = mkNginxLocationForStaticFile favicon;
