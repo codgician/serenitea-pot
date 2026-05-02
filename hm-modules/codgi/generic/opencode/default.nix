@@ -146,7 +146,7 @@ in
           commit_footer = false;
           include_co_authored_by = false;
         };
-        tmux.enabled = true;
+        tmux.enabled = config.codgician.codgi.tmux.enable;
         agents = {
           sisyphus = {
             model = "dendro/claude-opus-4-7";

@@ -105,7 +105,6 @@ in
         vim
         fastfetch
         wget
-        tmux
         htop
         aria2
         iftop

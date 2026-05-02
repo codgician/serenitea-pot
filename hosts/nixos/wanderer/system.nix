@@ -33,6 +33,7 @@
         git.enable = true;
         pwsh.enable = true;
         ssh.enable = true;
+        tmux.enable = true;
         zsh.enable = true;
       };
 
