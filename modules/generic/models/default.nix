@@ -311,22 +311,21 @@ in
 
         # Azure models
         azure = {
-          transformer =
-            name: spec: {
-              inherit (spec) aliases mode variants;
-              litellmModelInfo = {
-                inherit (spec) mode;
-              }
-              // lib.optionalAttrs (spec.baseModel != null) {
-                base_model = spec.baseModel;
-              };
-              litellmParams = {
-                model = "${spec.provider}/${if spec.path != null then spec.path else name}";
-                api_base = "https://${azureSubdomain}.services.ai.azure.com";
-                api_key = "os.environ/AZURE_AKASHA_API_KEY";
-              };
-              tags = [ "azure" ];
+          transformer = name: spec: {
+            inherit (spec) aliases mode variants;
+            litellmModelInfo = {
+              inherit (spec) mode;
+            }
+            // lib.optionalAttrs (spec.baseModel != null) {
+              base_model = spec.baseModel;
             };
+            litellmParams = {
+              model = "${spec.provider}/${if spec.path != null then spec.path else name}";
+              api_base = "https://${azureSubdomain}.services.ai.azure.com";
+              api_key = "os.environ/AZURE_AKASHA_API_KEY";
+            };
+            tags = [ "azure" ];
+          };
           models = {
             # Azure AI provider - chat models
             "deepseek-v4-flash".provider = "azure_ai";
@@ -428,12 +427,12 @@ in
             "text-embedding-ada-002".mode = "embedding";
 
             # Anthropic models
-            "claude-opus-4-7" = {
+            "claude-opus-4-7-github" = {
               path = "claude-opus-4-7-1m-internal";
               variants = claudeOpus47;
             };
 
-            "claude-opus-4-6" = {
+            "claude-opus-4-6-github" = {
               path = "claude-opus-4-6-1m";
               variants = claudeOpus46;
             };
