@@ -121,3 +121,6 @@ config.tf.json
 
 # OpenCode
 .sisyphus/
+
+# Log files
+*.log
