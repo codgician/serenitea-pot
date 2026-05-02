@@ -412,12 +412,9 @@ in
             modelPrefix = "github_copilot";
             tags = [ "github" ];
             extraParams.extra_headers = {
-              copilot-integration-id = "vscode-chat";
-              editor-version = "vscode/${pkgs.vscode.version}";
-              editor-plugin-version = "copilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
-              openai-intent = "conversation-agent";
-              user-agent = "GithubCopilot/${pkgs.vscode-marketplace-release.github.copilot.version}";
-              x-interaction-type = "conversation-agent";
+              "Editor-Version" = "vscode/${pkgs.vscode.version}";
+              "Editor-Plugin-Version" = "copilot-chat/${pkgs.vscode-marketplace-release.github.copilot-chat.version}";
+              "User-Agent" = "GitHubCopilotChat/${pkgs.vscode-marketplace-release.github.copilot-chat.version}";
             };
           };
           models = {
@@ -426,23 +423,15 @@ in
             "text-embedding-3-small-inference".mode = "embedding";
             "text-embedding-ada-002".mode = "embedding";
 
-            # Anthropic models
-            "claude-opus-4-7-github" = {
-              path = "claude-opus-4-7-1m-internal";
-              variants = claudeOpus47;
-            };
-
-            "claude-opus-4-6-github" = {
-              path = "claude-opus-4-6-1m";
-              variants = claudeOpus46;
-            };
-
             # Gemini models
             "gemini-3-flash-preview" = { };
             "gemini-3.1-pro-preview".variants = geminiPro;
 
             # GPT-5.x chat models
-            "gpt-5.2".variants = gpt52;
+            "gpt-5.2" = {
+              mode = "responses";
+              variants = gpt52;
+            };
 
             # GPT-5.x models (responses mode)
             "gpt-5.2-codex" = {
