@@ -40,13 +40,18 @@ let
       default = { };
       description = "Model variants (e.g., reasoning effort levels)";
     };
+    path = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "Provider-local model path override; defaults to the model name.";
+    };
   };
 
   # ===========================================================================
   # Provider-specific model types (extending common options)
   # ===========================================================================
 
-  # Basic type for simple providers (anthropic, chatgpt, deepseek, google)
+  # Basic type for simple providers
   basicModelType = types.submodule {
     options = commonOptions;
   };
@@ -66,21 +71,6 @@ let
         type = types.nullOr types.str;
         default = null;
         description = "Override base_model (e.g., for versioned deployments)";
-      };
-    };
-  };
-
-  # GitHub: no additional options, but kept separate for clarity
-  githubModelType = types.submodule {
-    options = commonOptions;
-  };
-
-  # NVIDIA: adds required path for NIM
-  nvidiaModelType = types.submodule {
-    options = commonOptions // {
-      path = mkOption {
-        type = types.str;
-        description = "Full model path on NVIDIA NIM (e.g., 'z-ai/glm5')";
       };
     };
   };
@@ -106,7 +96,6 @@ let
   # Provider Transformers (typed spec → registry entry)
   # ===========================================================================
 
-  # Shared helper for providers using common options
   mkModel =
     {
       modelPrefix,
@@ -119,11 +108,10 @@ let
       inherit (spec) aliases mode variants;
       litellmModelInfo = {
         inherit (spec) mode;
-        base_model = "${modelPrefix}/${name}";
       }
       // extraModelInfo;
       litellmParams = {
-        model = "${modelPrefix}/${name}";
+        model = "${modelPrefix}/${if spec.path != null then spec.path else name}";
       }
       // lib.optionalAttrs (apiKeyEnv != null) { api_key = "os.environ/${apiKeyEnv}"; }
       // extraParams;
@@ -241,11 +229,11 @@ in
         description = "Google Gemini models";
       };
       github = mkOption {
-        type = mkProviderType githubModelType;
+        type = mkProviderType basicModelType;
         description = "GitHub Copilot models";
       };
       nvidia = mkOption {
-        type = mkProviderType nvidiaModelType;
+        type = mkProviderType basicModelType;
         description = "NVIDIA NIM models";
       };
     };
@@ -323,19 +311,22 @@ in
 
         # Azure models
         azure = {
-          transformer = name: spec: {
-            inherit (spec) aliases mode variants;
-            litellmModelInfo = {
-              inherit (spec) mode;
-              base_model = if spec.baseModel != null then spec.baseModel else "${spec.provider}/${name}";
+          transformer =
+            name: spec: {
+              inherit (spec) aliases mode variants;
+              litellmModelInfo = {
+                inherit (spec) mode;
+              }
+              // lib.optionalAttrs (spec.baseModel != null) {
+                base_model = spec.baseModel;
+              };
+              litellmParams = {
+                model = "${spec.provider}/${if spec.path != null then spec.path else name}";
+                api_base = "https://${azureSubdomain}.services.ai.azure.com";
+                api_key = "os.environ/AZURE_AKASHA_API_KEY";
+              };
+              tags = [ "azure" ];
             };
-            litellmParams = {
-              model = "${spec.provider}/${name}";
-              api_base = "https://${azureSubdomain}.services.ai.azure.com";
-              api_key = "os.environ/AZURE_AKASHA_API_KEY";
-            };
-            tags = [ "azure" ];
-          };
           models = {
             # Azure AI provider - chat models
             "deepseek-v4-flash".provider = "azure_ai";
@@ -436,6 +427,17 @@ in
             "text-embedding-3-small-inference".mode = "embedding";
             "text-embedding-ada-002".mode = "embedding";
 
+            # Anthropic models
+            "claude-opus-4-7" = {
+              path = "claude-opus-4-7-1m-internal";
+              variants = claudeOpus47;
+            };
+
+            "claude-opus-4-6" = {
+              path = "claude-opus-4-6-1m";
+              variants = claudeOpus46;
+            };
+
             # Gemini models
             "gemini-3-flash-preview" = { };
             "gemini-3.1-pro-preview".variants = geminiPro;
@@ -459,22 +461,18 @@ in
             "gpt-5.4-mini" = {
               mode = "responses";
             };
-            "gpt-5.5" = {
-              mode = "responses";
-              variants = gpt52;
-            };
+            # "gpt-5.5" = {
+            #   mode = "responses";
+            #   variants = gpt52;
+            # };
           };
         };
 
         # NVIDIA NIM models
         nvidia = {
-          transformer = name: spec: {
-            inherit (spec) aliases mode variants;
-            litellmModelInfo.mode = "chat";
-            litellmParams = {
-              model = "nvidia_nim/${spec.path}";
-              api_key = "os.environ/NVIDIA_NIM_API_KEY";
-            };
+          transformer = mkModel {
+            modelPrefix = "nvidia_nim";
+            apiKeyEnv = "NVIDIA_NIM_API_KEY";
             tags = [ "nvidia" ];
           };
           models = {
