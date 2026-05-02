@@ -73,8 +73,8 @@ in
         instructions = [
           (pkgs.writeText "nix.md" ''
             You are on a Nix managed system with arch ${pkgs.stdenv.hostPlatform.system}.
-            If you need to install new packages for one off tasks, please use `nix run` or create a nix shell.
-            If you need to configure an environment for a project, please create a flake.nix and use direnv with .envrc to load it.
+            To install new packages for one off tasks, use `nix run` or create a nix shell.
+            To configure an environment for a project, create a flake.nix and use direnv with .envrc to load it.
           '')
         ];
         plugin = [
