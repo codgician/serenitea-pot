@@ -1,5 +1,6 @@
 {
   config,
+  pkgs,
   lib,
   ...
 }:
@@ -18,5 +19,7 @@ in
         set -g allow-passthrough all
       '';
     };
+
+    home.packages = with pkgs; [ xclip ];
   };
 }
