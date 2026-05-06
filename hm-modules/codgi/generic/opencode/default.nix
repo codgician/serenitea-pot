@@ -75,6 +75,7 @@ in
             You are on a Nix managed system with arch ${pkgs.stdenv.hostPlatform.system}.
             To install new packages for one off tasks, use `nix run` or create a nix shell.
             To configure an environment for a project, create a flake.nix and use direnv with .envrc to load it.
+            Use /tmp/opencode for temporary files, and avoid writing to the home directory unless necessary.
           '')
         ];
         plugin = [
@@ -92,6 +93,7 @@ in
           edit = "allow";
           external_directory = {
             "*" = "ask";
+            "/tmp/opencode" = "allow";
             "/etc/ssh*" = "deny";
             "/run/agenix*" = "deny";
           };
@@ -100,7 +102,6 @@ in
             "git *" = "allow";
             "*git push*" = "ask";
             "*sudo*" = "ask";
-            "/nix/store*" = "ask";
             "brew*" = "ask";
           };
           list = {
