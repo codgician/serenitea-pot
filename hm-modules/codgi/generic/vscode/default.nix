@@ -63,7 +63,6 @@ in
             mkhl.direnv
           ]
           ++ (with pkgs.vscode-marketplace-release; [
-            github.copilot
             github.copilot-chat
             github.vscode-pull-request-github
             ms-vscode-remote.remote-ssh
@@ -91,9 +90,12 @@ in
             fontFamily = builtins.concatStringsSep ", " (builtins.map (x: "'${x}'") cfg.fontFamily);
             inherit (cfg) fontSize;
           };
-          remote.SSH.defaultExtensions = builtins.map (
-            ext: ext.vscodeExtUniqueId
-          ) config.programs.vscode.profiles.default.extensions;
+          remote.SSH = {
+            useLocalServer = false;
+            defaultExtensions = builtins.map (
+              ext: ext.vscodeExtUniqueId
+            ) config.programs.vscode.profiles.default.extensions;
+          };
           github.copilot = {
             nextEditSuggestions.enabled = true;
             chat = {
