@@ -91,7 +91,6 @@ in
             inherit (cfg) fontSize;
           };
           remote.SSH = {
-            useLocalServer = false;
             defaultExtensions = builtins.map (
               ext: ext.vscodeExtUniqueId
             ) config.programs.vscode.profiles.default.extensions;
