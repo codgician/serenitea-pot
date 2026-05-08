@@ -12,6 +12,7 @@ let
 
   # Filter text generation models by allowed providers
   allowedProviders = [
+    "chatgpt"
     "github"
     "anthropic"
     "nvidia"
