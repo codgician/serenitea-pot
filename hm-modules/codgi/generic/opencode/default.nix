@@ -94,7 +94,7 @@ in
           edit = "allow";
           external_directory = {
             "*" = "ask";
-            "/tmp/opencode" = "allow";
+            "/tmp/opencode/*" = "allow";
             "/etc/ssh*" = "deny";
             "/run/agenix*" = "deny";
           };

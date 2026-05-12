@@ -48,7 +48,6 @@
     "APTV" = 1630403500;
     "Home Assistant" = 1099568401;
     "CrystalFetch" = 6454431289;
-    "Shapr3D" = 1091675654;
   };
 
   # Homebrew casks
