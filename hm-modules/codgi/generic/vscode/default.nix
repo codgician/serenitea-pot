@@ -127,7 +127,9 @@ in
               };
             };
           };
-          "github.copilot.chat.editor.temporalContext.enabled" = true; # workaround
+          git = {
+            allowForcePush = true;
+          };
         };
       };
     };
