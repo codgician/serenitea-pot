@@ -75,7 +75,7 @@ with pubKeys.hosts;
   # Nix access tokens
   "nix-access-tokens.age" = {
     publicKeys = allHosts;
-    expiryDates = [ "2026-11-09" ];
+    expiryDates = [ "2026-08-12" ];
   };
 
   # GitLab secrets

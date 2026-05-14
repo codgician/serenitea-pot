@@ -67,7 +67,7 @@
       ];
       forceImportAll = true;
       # requestEncryptionCredentials handled by zfs-unlock module; other pools by zfs-mount preStart
-      package = pkgs.zfs_2_4;
+      package = pkgs.unstable.zfs_2_4;
     };
   };
 

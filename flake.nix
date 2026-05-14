@@ -38,7 +38,7 @@
     };
 
     proxmox-nixos = {
-      url = "github:SaumonNet/proxmox-nixos";
+      url = "github:codgician/proxmox-nixos/consistent-zfs";
       inputs = {
         nixpkgs-stable.follows = "nixpkgs";
         flake-compat.follows = "flake-compat";
