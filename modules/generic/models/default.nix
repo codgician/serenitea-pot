@@ -360,20 +360,21 @@ in
           transformer = mkModel {
             modelPrefix = "chatgpt";
             tags = [ "chatgpt" ];
+            extraParams.stream = "True";
           };
           models = {
-            "gpt-5.5" = {
-              variants = gpt52;
-              mode = "responses";
-            };
-            "gpt-5.4" = {
-              variants = gpt52;
-              mode = "responses";
-            };
-            "gpt-5.3-codex" = {
-              variants = gpt52;
-              mode = "responses";
-            };
+            # "gpt-5.5" = {
+            #   variants = gpt52;
+            #   mode = "responses";
+            # };
+            # "gpt-5.4" = {
+            #   variants = gpt52;
+            #   mode = "responses";
+            # };
+            # "gpt-5.3-codex" = {
+            #   variants = gpt52;
+            #   mode = "responses";
+            # };
           };
         };
 
@@ -449,10 +450,10 @@ in
             "gpt-5.4-mini" = {
               mode = "responses";
             };
-            # "gpt-5.5" = {
-            #   mode = "responses";
-            #   variants = gpt52;
-            # };
+            "gpt-5.5" = {
+              mode = "responses";
+              variants = gpt52;
+            };
           };
         };
 

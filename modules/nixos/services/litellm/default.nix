@@ -48,6 +48,7 @@ let
       modify_params = true;
       model_alias_map = aliasMap;
       request_timeout = requestTimeout;
+      stream = true;
     };
     model_list = allModels;
     prompts = [

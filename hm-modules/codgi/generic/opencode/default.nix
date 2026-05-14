@@ -172,11 +172,11 @@ in
             ];
           };
           hephaestus = {
-            model = "dendro/gpt-5.5";
+            model = "dendro-responses/gpt-5.5";
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           oracle = {
-            model = "dendro/gpt-5.5";
+            model = "dendro-responses/gpt-5.5";
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           librarian = {
@@ -188,7 +188,7 @@ in
             fallback_models = [ "github-copilot/gpt-5.4-mini" ];
           };
           multimodal-looker = {
-            model = "dendro/gpt-5.5";
+            model = "dendro-responses/gpt-5.5";
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           metis = {
@@ -199,7 +199,7 @@ in
             ];
           };
           momus = {
-            model = "dendro/gpt-5.5";
+            model = "dendro-responses/gpt-5.5";
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           atlas = {
@@ -223,15 +223,15 @@ in
             fallback_models = [ "google/gemini-3.1-pro-preview" ];
           };
           ultrabrain = {
-            model = "dendro/gpt-5.5";
+            model = "dendro-responses/gpt-5.5";
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           deep = {
-            model = "dendro/gpt-5.5";
+            model = "dendro-responses/gpt-5.5";
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           artistry = {
-            model = "dendro/gpt-5.5";
+            model = "dendro-responses/gpt-5.5";
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           quick = {
