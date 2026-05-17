@@ -110,7 +110,7 @@
         enable = true;
         cuda = true;
         cacheDir = "/xpool/llm/vllm-cache";
-        image = "vllm/vllm-openai:latest-cu130";
+        image = "vllm/vllm-openai:latest-cu129";
 
         instances = {
           qwen-chat = {
