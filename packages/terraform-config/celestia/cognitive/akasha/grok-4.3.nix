@@ -1,20 +1,20 @@
 { config, ... }:
 {
-  resource.azurerm_cognitive_deployment.akasha-gpt-audio-1-5 = {
-    name = "gpt-audio-1.5";
+  resource.azurerm_cognitive_deployment.akasha-grok-4-3 = {
+    name = "grok-4.3";
     cognitive_account_id = config.resource.azurerm_ai_services.akasha "id";
     version_upgrade_option = "OnceNewDefaultVersionAvailable";
     rai_policy_name = "Microsoft.DefaultV2";
 
     model = {
-      format = "OpenAI";
-      name = "gpt-audio-1.5";
-      version = "2026-02-23";
+      format = "xAI";
+      name = "grok-4.3";
+      version = "1";
     };
 
     sku = {
       name = "GlobalStandard";
-      capacity = 3000;
+      capacity = 50;
     };
   };
 }

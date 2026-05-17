@@ -329,8 +329,8 @@ in
           models = {
             # Azure AI provider - chat models
             "deepseek-v4-flash".provider = "azure_ai";
-            "grok-4-20-non-reasoning".provider = "azure_ai";
-            "grok-4-20-reasoning".provider = "azure_ai";
+            "deepseek-v4-pro".provider = "azure_ai";
+            "grok-4.3".provider = "azure_ai";
             "kimi-k2.6".provider = "azure_ai";
 
             # Azure AI provider - image generation
@@ -347,11 +347,6 @@ in
               variants = gpt52;
             };
             "gpt-image-2".mode = "image_generation";
-            "gpt-audio-1.5".baseModel = "azure/gpt-audio-1.5-2026-02-23";
-            "gpt-realtime-1.5" = {
-              mode = "realtime";
-              baseModel = "azure/gpt-realtime-1.5-2026-02-23";
-            };
           };
         };
 
