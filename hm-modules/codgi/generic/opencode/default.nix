@@ -180,11 +180,11 @@ in
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           librarian = {
-            model = "dendro/gpt-5.4-mini";
+            model = "dendro-responses/gpt-5.4-mini";
             fallback_models = [ "github-copilot/gpt-5.4-mini" ];
           };
           explore = {
-            model = "dendro/gpt-5.4-mini";
+            model = "dendro-responses/gpt-5.4-mini";
             fallback_models = [ "github-copilot/gpt-5.4-mini" ];
           };
           multimodal-looker = {
@@ -235,7 +235,7 @@ in
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           quick = {
-            model = "dendro/gpt-5.4-mini";
+            model = "dendro-responses/gpt-5.4-mini";
             fallback_models = [ "github-copilot/gpt-5.4-mini" ];
           };
           unspecified-low = {
