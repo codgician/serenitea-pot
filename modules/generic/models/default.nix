@@ -419,6 +419,17 @@ in
             };
           };
           models = {
+            # Anthropic models
+            "claude-opus-4-7" = {
+              variants = claudeOpus47;
+              path = "claude-opus-4.7-1m-internal";
+            };
+            "claude-opus-4-6" = {
+              variants = claudeOpus46;
+              path = "claude-opus-4.6-1m";
+            };
+            "claude-haiku-4-5".path = "claude-haiku-4.5";
+
             # Embedding models
             "text-embedding-3-small".mode = "embedding";
             "text-embedding-3-small-inference".mode = "embedding";
