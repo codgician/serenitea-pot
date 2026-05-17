@@ -101,9 +101,9 @@ in
             usage_ping_generation_enabled = false;
           };
 
-          pages = lib.mkIf (cfg.pages.domain != null) {
-            enabled = true;
-            host = cfg.pages.domain;
+          pages = {
+            enabled = cfg.pages.domain != null;
+            host = lib.mkIf (cfg.pages.domain != null) cfg.pages.domain;
             port = 443;
             https = true;
             external_https = [ "127.0.0.1:443" ];

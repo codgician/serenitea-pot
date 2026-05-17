@@ -414,7 +414,8 @@ in
             tags = [ "github" ];
             extraParams.extra_headers = {
               "Editor-Version" = "vscode/${pkgs.vscode.version}";
-              "Editor-Plugin-Version" = "copilot-chat/${pkgs.vscode-marketplace-release.github.copilot-chat.version}";
+              "Editor-Plugin-Version" =
+                "copilot-chat/${pkgs.vscode-marketplace-release.github.copilot-chat.version}";
               "User-Agent" = "GitHubCopilotChat/${pkgs.vscode-marketplace-release.github.copilot-chat.version}";
             };
           };
