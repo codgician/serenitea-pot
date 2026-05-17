@@ -37,6 +37,12 @@ in
       description = "Group under which GitLab runs.";
     };
 
+    pages.domain = lib.mkOption {
+      type = with types; nullOr str;
+      example = "example.org";
+      description = "Host name for GitLab Pages.";
+    };
+
     # Reverse proxy profile for nginx
     reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
       inherit serviceName;
@@ -83,46 +89,62 @@ in
           port = 25;
           domain = "codgician.me";
         };
-        extraConfig.gitlab = {
-          email_from = "bot@codgician.me";
-          email_reply_to = "bot@codgician.me";
-        };
 
-        # OmniAuth
-        extraConfig.omniauth = {
-          enabled = true;
-          allow_single_sign_on = [ "openid_connect" ];
-          block_auto_created_users = true;
-          providers = [
-            {
-              name = "openid_connect";
-              label = "Authelia";
-              icon = "https://www.authelia.com/images/branding/logo-cropped.png";
-              args = {
+        extraConfig = {
+          gitlab = {
+            email_from = "bot@codgician.me";
+            email_reply_to = "bot@codgician.me";
+
+            # Disable telemetry
+            include_optional_metrics_in_service_ping = false;
+            usage_ping_enabled = false;
+            usage_ping_generation_enabled = false;
+          };
+
+          pages = lib.mkIf (cfg.pages.domain != null) {
+            enabled = true;
+            host = cfg.pages.domain;
+            port = 443;
+            https = true;
+            external_https = [ "127.0.0.1:443" ];
+          };
+
+          # OmniAuth
+          omniauth = {
+            enabled = true;
+            allow_single_sign_on = [ "openid_connect" ];
+            block_auto_created_users = true;
+            providers = [
+              {
                 name = "openid_connect";
-                strategy_class = "OmniAuth::Strategies::OpenIDConnect";
-                issuer = "https://auth.codgician.me";
-                discovery = true;
-                scope = [
-                  "openid"
-                  "profile"
-                  "email"
-                  "groups"
-                ];
-                client_auth_method = "basic";
-                response_type = "code";
-                response_mode = "query";
-                uid_field = "preferred_username";
-                send_scope_to_token_endpoint = true;
-                pkce = true;
-                client_options = {
-                  identifier = "gitlab";
-                  secret._secret = config.age.secrets.gitlab-oidc-secret-authelia-main.path;
-                  redirect_uri = "https://${cfg.host}/users/auth/openid_connect/callback";
+                label = "Authelia";
+                icon = "https://www.authelia.com/images/branding/logo-cropped.png";
+                args = {
+                  name = "openid_connect";
+                  strategy_class = "OmniAuth::Strategies::OpenIDConnect";
+                  issuer = "https://auth.codgician.me";
+                  discovery = true;
+                  scope = [
+                    "openid"
+                    "profile"
+                    "email"
+                    "groups"
+                  ];
+                  client_auth_method = "basic";
+                  response_type = "code";
+                  response_mode = "query";
+                  uid_field = "preferred_username";
+                  send_scope_to_token_endpoint = true;
+                  pkce = true;
+                  client_options = {
+                    identifier = "gitlab";
+                    secret._secret = config.age.secrets.gitlab-oidc-secret-authelia-main.path;
+                    redirect_uri = "https://${cfg.host}/users/auth/openid_connect/callback";
+                  };
                 };
-              };
-            }
-          ];
+              }
+            ];
+          };
         };
       };
 
