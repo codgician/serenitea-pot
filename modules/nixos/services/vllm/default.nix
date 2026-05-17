@@ -292,7 +292,7 @@ in
 
     image = lib.mkOption {
       type = types.str;
-      default = "vllm/vllm-openai:v0.15.1";
+      default = "vllm/vllm-openai:latest";
       example = "vllm/vllm-openai:latest-cu130";
       description = ''
         Default image ref for instances that don't set their own `image`.
