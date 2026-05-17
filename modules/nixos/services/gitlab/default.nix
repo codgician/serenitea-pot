@@ -39,8 +39,9 @@ in
 
     pages.domain = lib.mkOption {
       type = with types; nullOr str;
+      default = null;
       example = "example.org";
-      description = "Host name for GitLab Pages.";
+      description = "Host name for GitLab Pages. Set to `null` to disable GitLab Pages.";
     };
 
     # Reverse proxy profile for nginx
