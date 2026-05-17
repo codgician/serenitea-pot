@@ -134,6 +134,7 @@
           nix.enable = true;
         };
         git.enable = true;
+        github-copilot-cli.enable = true;
         mcp.enable = true;
         opencode = {
           enable = true;
