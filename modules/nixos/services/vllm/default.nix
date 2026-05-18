@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  pkgs,
   ...
 }:
 let
@@ -211,30 +210,6 @@ let
           description = "Disable statistics logging.";
         };
 
-        warmupOnStart = lib.mkOption {
-          type = types.bool;
-          default = false;
-          description = "Send a warmup request after startup to pre-compile JIT kernels.";
-        };
-
-        warmupTimeout = lib.mkOption {
-          type = types.ints.positive;
-          default = 300;
-          description = ''
-            Upper bound (s) on the warmup script. Retries every 5s,
-            gives up after ceil(timeout/5) attempts (minimum 1).
-          '';
-        };
-
-        warmupPayload = lib.mkOption {
-          type = types.nullOr (types.attrsOf types.anything);
-          default = null;
-          description = ''
-            Override JSON body POSTed to /v1/chat/completions for warmup.
-            Null uses a minimal default `{model, messages, max_tokens: 1}`.
-          '';
-        };
-
         environmentVariables = lib.mkOption {
           type = types.attrsOf types.str;
           default = { };
@@ -344,50 +319,6 @@ in
     };
 
     virtualisation.oci-containers.containers = lib.mkMerge (map mkContainer instances);
-
-    systemd.services = lib.mkMerge (
-      map (
-        name:
-        let
-          c = cfg.instances.${name};
-          containerService = "podman-${serviceName}-${name}";
-          modelName = if c.servedModelName != null then c.servedModelName else c.model;
-          endpoint = "http://${c.host}:${toString c.port}";
-          retries = toString (lib.max 1 ((c.warmupTimeout + 4) / 5));
-          defaultPayload = {
-            model = modelName;
-            messages = [
-              {
-                role = "user";
-                content = "warmup";
-              }
-            ];
-            max_tokens = 1;
-          };
-          warmupBody = if c.warmupPayload != null then c.warmupPayload else defaultPayload;
-          warmupBodyJson = builtins.toJSON warmupBody;
-        in
-        lib.mkIf c.warmupOnStart {
-          "${containerService}".serviceConfig.ExecStartPost = [
-            (pkgs.writeShellScript "vllm-warmup-${name}" ''
-              set -u
-              for i in $(seq 1 ${retries}); do
-                if ${pkgs.curl}/bin/curl -sf ${endpoint}/health \
-                   && ${pkgs.curl}/bin/curl -sf ${endpoint}/v1/chat/completions \
-                        -H "Content-Type: application/json" \
-                        -o /dev/null \
-                        -d ${lib.escapeShellArg warmupBodyJson}; then
-                  exit 0
-                fi
-                sleep 5
-              done
-              echo "vllm-warmup-${name}: timed out after ${retries} attempts (${toString c.warmupTimeout}s)" >&2
-              exit 1
-            '')
-          ];
-        }
-      ) instances
-    );
 
     codgician.services.nginx = lib.mkMerge (
       map (

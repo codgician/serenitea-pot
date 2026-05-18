@@ -129,11 +129,13 @@
             enablePrefixCaching = true;
             enableChunkedPrefill = true;
             trustRemoteCode = true;
-            warmupOnStart = true;
-            warmupTimeout = 1200;
             extraArgs = [
               "--kv-cache-dtype"
               "turboquant_k8v4"
+              # TurboQuant doesn't support FA3's API yet; vLLM auto-downgrades
+              # to FA2. Set explicitly to silence the startup warning. On Ada
+              # SM 8.9 there is no FA3 performance to lose.
+              "--attention-config.flash_attn_version=2"
             ];
           };
 
