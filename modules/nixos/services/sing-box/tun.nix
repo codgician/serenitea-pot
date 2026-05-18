@@ -95,6 +95,7 @@ in
     # overrides that so only explicitly configured domains use TUN DNS.
     systemd.network.networks."50-sing-box-tun" = {
       matchConfig.Name = tunCfg.interfaceName;
+      linkConfig.RequiredForOnline = false;
       networkConfig = {
         DNSDefaultRoute = false;
         KeepConfiguration = "yes";
