@@ -110,23 +110,31 @@
         enable = true;
         cuda = true;
         cacheDir = "/xpool/llm/vllm-cache";
-        image = "vllm/vllm-openai:latest-cu129";
+        # Pinned to 0.21.0: first release with TurboQuant KV (PR #38479) and
+        # hybrid-model TurboQuant support (PR #39931) needed for Qwen3.6's
+        # linear/full attention mix. Smoke-tested with INT4-AutoRound weights.
+        image = "vllm/vllm-openai:v0.21.0-cu129";
 
         instances = {
           qwen-chat = {
-            model = "QuantTrio/Qwen3.6-35B-A3B-AWQ";
+            model = "Intel/Qwen3.6-27B-int4-AutoRound";
             port = 8000;
-            gpuMemoryUtilization = 0.651;
+            gpuMemoryUtilization = 0.71;
             maxModelLen = 262144;
-            maxNumSeqs = 8;
-            kvCacheDtype = "fp8";
-            maxNumBatchedTokens = 2096;
+            maxNumSeqs = 4;
+            # kvCacheDtype left as "auto" because the module enum doesn't know
+            # turboquant_*; passed explicitly via extraArgs below.
             reasoningParser = "qwen3";
             toolCallParser = "qwen3_coder";
             enablePrefixCaching = true;
+            enableChunkedPrefill = true;
             trustRemoteCode = true;
             warmupOnStart = true;
-            warmupTimeout = 900;
+            warmupTimeout = 1200;
+            extraArgs = [
+              "--kv-cache-dtype"
+              "turboquant_k8v4"
+            ];
           };
 
           embeddings = {
