@@ -17,8 +17,6 @@ let
       c.host
       "--port"
       (toString c.port)
-      "--download-dir"
-      "/root/.cache/huggingface"
     ]
     ++ lib.optionals (c.maxModelLen != null) [
       "--max-model-len"

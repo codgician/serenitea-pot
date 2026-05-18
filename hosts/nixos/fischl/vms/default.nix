@@ -22,10 +22,12 @@
 
             if [ "$command" = "started" ]; then
               systemctl set-property --runtime -- system.slice AllowedCPUs=0,1,6,7
+              systemctl set-property --runtime -- machine.slice AllowedCPUs=0,1,6,7
               systemctl set-property --runtime -- user.slice AllowedCPUs=0,1,6,7
               systemctl set-property --runtime -- init.scope AllowedCPUs=0,1,6,7
             elif [ "$command" = "release" ]; then
               systemctl set-property --runtime -- system.slice AllowedCPUs=0-7
+              systemctl set-property --runtime -- machine.slice AllowedCPUs=0-7
               systemctl set-property --runtime -- user.slice AllowedCPUs=0-7
               systemctl set-property --runtime -- init.scope AllowedCPUs=0-7
             fi

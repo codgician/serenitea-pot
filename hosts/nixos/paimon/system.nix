@@ -122,21 +122,17 @@
             gpuMemoryUtilization = 0.71;
             maxModelLen = 262144;
             maxNumSeqs = 4;
-            # kvCacheDtype left as "auto" because the module enum doesn't know
-            # turboquant_*; passed explicitly via extraArgs below.
+            # Mamba-cache alignment: hybrid arch picks block_size=2080
+            # (to ensure attention page size >= mamba page size). vLLM asserts
+            # block_size <= max_num_batched_tokens, but the default 2048 < 2080.
+            # Set explicitly to satisfy the constraint.
+            maxNumBatchedTokens = 2080;
+            kvCacheDtype = "fp8";
             reasoningParser = "qwen3";
             toolCallParser = "qwen3_coder";
             enablePrefixCaching = true;
             enableChunkedPrefill = true;
             trustRemoteCode = true;
-            extraArgs = [
-              "--kv-cache-dtype"
-              "turboquant_k8v4"
-              # TurboQuant doesn't support FA3's API yet; vLLM auto-downgrades
-              # to FA2. Set explicitly to silence the startup warning. On Ada
-              # SM 8.9 there is no FA3 performance to lose.
-              "--attention-config.flash_attn_version=2"
-            ];
           };
 
           embeddings = {
