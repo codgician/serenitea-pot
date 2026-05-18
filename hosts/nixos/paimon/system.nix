@@ -133,6 +133,10 @@
             enablePrefixCaching = true;
             enableChunkedPrefill = true;
             trustRemoteCode = true;
+            extraArgs = [
+              "--speculative-config"
+              ''{"method":"qwen3_next_mtp","num_speculative_tokens":2}''
+            ];
           };
 
           embeddings = {
