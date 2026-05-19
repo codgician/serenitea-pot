@@ -96,10 +96,7 @@
           enable = true;
           package = pkgs.codex-wrapped;
         };
-        claude-code = {
-          enable = true;
-          package = pkgs.claude-code-wrapped;
-        };
+        claude-code.enable = true;
         dev = {
           dotnet.enable = true;
           nix.enable = true;
@@ -159,23 +156,10 @@
   };
   networking.hostId = "357a80da";
 
-  # Thunderbolt networking (point-to-point link to Windows PC)
-  systemd.network = {
-    enable = true;
-    networks = {
-      "40-thunderbolt" = {
-        matchConfig.Name = "thunderbolt0";
-        address = [ "172.16.0.1/24" ];
-        networkConfig = {
-          ConfigureWithoutCarrier = true;
-          LinkLocalAddressing = "no";
-        };
-      };
-      "50-sing-box-tun" = {
-        dns = [ "192.168.0.1" ];
-        domains = [ "~lan" ];
-      };
-    };
+  # DNS for sing-box TUN (matchConfig supplied by the sing-box module)
+  systemd.network.networks."50-sing-box-tun" = {
+    dns = [ "192.168.0.1" ];
+    domains = [ "~lan" ];
   };
 
   # Use the systemd-boot EFI boot loader.

@@ -111,6 +111,7 @@
   # Thunderbolt Ethernet - static IP for direct connection
   systemd.network.enable = true;
 
+  # Thunderbolt networking (point-to-point link to Windows PC)
   systemd.network.networks."10-thunderbolt" = {
     matchConfig.Name = "thunderbolt0";
     address = [ "172.16.0.1/24" ];
