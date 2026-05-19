@@ -279,7 +279,10 @@ in
             mkModel {
               modelPrefix = "anthropic";
               apiKeyEnv = "ANTHROPIC_API_KEY";
-              tags = [ "anthropic" "remote" ];
+              tags = [
+                "anthropic"
+                "remote"
+              ];
               extraParams = {
                 use_in_pass_through = true;
                 extra_headers = {
@@ -324,7 +327,10 @@ in
               api_base = "https://${azureSubdomain}.services.ai.azure.com";
               api_key = "os.environ/AZURE_AKASHA_API_KEY";
             };
-            tags = [ "azure" "remote" ];
+            tags = [
+              "azure"
+              "remote"
+            ];
           };
           models = {
             # Azure AI provider - chat models
@@ -354,7 +360,10 @@ in
         chatgpt = {
           transformer = mkModel {
             modelPrefix = "chatgpt";
-            tags = [ "chatgpt" "remote" ];
+            tags = [
+              "chatgpt"
+              "remote"
+            ];
             extraParams.stream = "True";
           };
           models = {
@@ -378,7 +387,10 @@ in
           transformer = mkModel {
             modelPrefix = "deepseek";
             apiKeyEnv = "DEEPSEEK_API_KEY";
-            tags = [ "deepseek" "remote" ];
+            tags = [
+              "deepseek"
+              "remote"
+            ];
           };
           models = {
             "deepseek-v4-flash".variants = deepseek;
@@ -393,7 +405,10 @@ in
             mkModel {
               modelPrefix = "gemini";
               apiKeyEnv = "GEMINI_API_KEY";
-              tags = [ "google" "remote" ];
+              tags = [
+                "google"
+                "remote"
+              ];
             } name (spec // { mode = "image_generation"; });
           models = {
             "gemini-3-pro-image-preview" = { };
@@ -406,7 +421,10 @@ in
         github = {
           transformer = mkModel {
             modelPrefix = "github_copilot";
-            tags = [ "github" "remote" ];
+            tags = [
+              "github"
+              "remote"
+            ];
             extraParams.extra_headers = {
               "Editor-Version" = "vscode/${pkgs.vscode.version}";
               "Editor-Plugin-Version" =
@@ -469,7 +487,10 @@ in
           transformer = mkModel {
             modelPrefix = "nvidia_nim";
             apiKeyEnv = "NVIDIA_NIM_API_KEY";
-            tags = [ "nvidia" "remote" ];
+            tags = [
+              "nvidia"
+              "remote"
+            ];
           };
           models = {
             "glm5.1".path = "z-ai/glm-5.1";

@@ -253,6 +253,7 @@ let
         ]
         ++ lib.optionals cfg.cuda [ "--device=nvidia.com/gpu=all" ];
         cmd = [ c.model ] ++ mkServeArgs c;
+        environmentFiles = [ config.age.secrets.vllm-env.path ];
       };
   };
 

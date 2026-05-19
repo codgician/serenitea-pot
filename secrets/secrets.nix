@@ -140,6 +140,9 @@ with pubKeys.hosts;
   # PiKVM Basic Auth
   "saw-basic-auth.age".publicKeys = someHosts [ lumine ];
 
+  # vLLM secrets
+  "vllm-env.age".publicKeys = someHosts [ paimon ];
+
   # WireGuard preshared keys
   "wg-preshared-key-furina-lumine.age".publicKeys = someHosts [
     furina
