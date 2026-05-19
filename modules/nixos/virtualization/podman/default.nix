@@ -11,20 +11,22 @@ in
   options.codgician.virtualization.podman.enable = lib.mkEnableOption "podman";
 
   config = lib.mkIf cfg.enable {
-    # Podman configurations
-    virtualisation.podman = {
-      enable = true;
-      dockerCompat = true;
-      dockerSocket.enable = true;
-      autoPrune = {
+    virtualisation = {
+      # Podman configurations
+      podman = {
         enable = true;
-        dates = "weekly";
-        flags = [ "--all" ];
+        dockerCompat = true;
+        dockerSocket.enable = true;
+        autoPrune = {
+          enable = true;
+          dates = "weekly";
+          flags = [ "--all" ];
+        };
       };
-    };
 
-    # Set podman as oci-container backend
-    virtualisation.oci-containers.backend = "podman";
+      # Set podman as oci-container backend
+      oci-containers.backend = "podman";
+    };
 
     # Enable IPv4/IPv6 forwarding for container bridge egress
     boot.kernel.sysctl = {

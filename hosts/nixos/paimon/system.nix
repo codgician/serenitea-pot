@@ -118,6 +118,7 @@
         instances = {
           qwen-chat = {
             model = "Intel/Qwen3.6-27B-int4-AutoRound";
+            host = "0.0.0.0";
             port = 8000;
             gpuMemoryUtilization = 0.71;
             maxModelLen = 262144;
@@ -141,6 +142,7 @@
 
           embeddings = {
             model = "Qwen/Qwen3-Embedding-0.6B";
+            host = "0.0.0.0";
             port = 8001;
             gpuMemoryUtilization = 0.069;
             maxModelLen = 8192;

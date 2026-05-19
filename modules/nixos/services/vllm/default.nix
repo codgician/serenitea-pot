@@ -14,7 +14,7 @@ let
     c:
     [
       "--host"
-      c.host
+      "0.0.0.0"
       "--port"
       (toString c.port)
     ]
@@ -91,13 +91,19 @@ let
         host = lib.mkOption {
           type = types.str;
           default = "127.0.0.1";
-          description = "Host address for vLLM to listen on.";
+          description = ''
+            Host-side bind address for the published port. Docker maps the
+            container's port onto this address on the host.
+          '';
         };
 
         port = lib.mkOption {
           type = types.port;
           default = 8000;
-          description = "Port for vLLM to listen on.";
+          description = ''
+            Port vLLM listens on. Used as both the container-internal port
+            and the host-side mapped port.
+          '';
         };
 
         gpuMemoryUtilization = lib.mkOption {
@@ -245,9 +251,11 @@ let
         volumes = [
           "${cfg.cacheDir}:/root/.cache/huggingface:rw"
         ];
+        ports = [
+          "${c.host}:${toString c.port}:${toString c.port}"
+        ];
         extraOptions = [
           "--pull=newer"
-          "--net=host"
           "--shm-size=8g"
           "--ulimit=memlock=-1"
         ]
