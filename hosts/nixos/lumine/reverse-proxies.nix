@@ -24,7 +24,7 @@
     openvscode-server.reverseProxy = {
       enable = true;
       domains = [ "leyline.codgician.me" ];
-      proxyPass = "https://192.168.0.8";
+      proxyPass = "https://192.168.0.23";
     };
 
     comfyui.reverseProxy = {
@@ -73,7 +73,7 @@
     jupyter.reverseProxy = {
       enable = true;
       domains = [ "dragonspine.codgician.me" ];
-      proxyPass = "https://192.168.0.8";
+      proxyPass = "https://192.168.0.23";
     };
 
     open-webui.reverseProxy = {
@@ -89,21 +89,21 @@
         "fragments.codgician.me" = {
           enable = true;
           domains = [ "fragments.codgician.me" ];
-          locations."/".passthru.proxyPass = "https://192.168.0.8";
+          locations."/".passthru.proxyPass = "https://192.168.0.23";
         };
 
         "bubbles.codgician.me" = {
           enable = true;
           https = true;
           domains = [ "bubbles.codgician.me" ];
-          locations."/".passthru.proxyPass = "http://192.168.0.9:1234";
+          locations."/".passthru.proxyPass = "http://192.168.0.24:1234";
         };
 
         "hass.codgician.me" = {
           enable = true;
           https = true;
           domains = [ "hass.codgician.me" ];
-          locations."/".passthru.proxyPass = "http://192.168.0.7:8123";
+          locations."/".passthru.proxyPass = "http://192.168.0.11:8123";
         };
 
         "pve.codgician.me" = {
