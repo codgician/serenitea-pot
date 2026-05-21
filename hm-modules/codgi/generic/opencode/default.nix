@@ -16,6 +16,7 @@ let
     "github"
     "anthropic"
     "nvidia"
+    "vllm"
   ];
 
   filteredModels = builtins.filter (

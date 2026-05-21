@@ -75,6 +75,16 @@ let
     };
   };
 
+  # vLLM: adds api_base (required, per-model since deployments differ per host)
+  vllmModelType = types.submodule {
+    options = commonOptions // {
+      apiBase = mkOption {
+        type = types.str;
+        description = "Base URL of the vLLM-compatible OpenAI endpoint (e.g., http://paimon:8000/v1)";
+      };
+    };
+  };
+
   # Provider submodule: pairs a transformer with its models
   mkProviderType =
     modelType:
@@ -235,6 +245,10 @@ in
       nvidia = mkOption {
         type = mkProviderType basicModelType;
         description = "NVIDIA NIM models";
+      };
+      vllm = mkOption {
+        type = mkProviderType vllmModelType;
+        description = "Self-hosted vLLM (OpenAI-compatible) models";
       };
     };
 
@@ -497,6 +511,27 @@ in
             "minimax-m2.7".path = "minimaxai/minimax-m2.7";
             "kimi-k2.5".path = "moonshotai/kimi-k2.5";
             "qwen3.5-397b-a17b".path = "qwen/qwen3.5-397b-a17b";
+          };
+        };
+
+        # Self-hosted vLLM (OpenAI-compatible) models
+        vllm = {
+          transformer =
+            name: spec:
+            mkModel {
+              modelPrefix = "hosted_vllm";
+              apiKeyEnv = "HOSTED_VLLM_API_KEY";
+              tags = [
+                "vllm"
+                "local"
+              ];
+              extraParams.api_base = spec.apiBase;
+            } name spec;
+          models = {
+            "qwen3.6-27b-int4" = {
+              apiBase = "http://192.168.0.22:8000/v1";
+              path = "Intel/Qwen3.6-27B-int4-AutoRound";
+            };
           };
         };
       };
