@@ -117,16 +117,14 @@
             model = "Intel/Qwen3.6-27B-int4-AutoRound";
             host = "0.0.0.0";
             port = 8000;
-            gpuMemoryUtilization = 0.82;
+            gpuMemoryUtilization = 0.7525;
             extraArgs = [
               "--max-model-len"
               "262144"
               "--max-num-seqs"
-              "8"
-              # Floor is the hybrid arch's attention block_size (~1600-2080),
-              # since vLLM asserts max_num_batched_tokens >= block_size.
-              # 8192 sits well above the floor and keeps long-prompt prefill
-              # at 1-3 chunks for typical RAG contexts.
+              "4"
+              # Must be >= attention block_size (~1600-2080 for this hybrid
+              # arch); vLLM asserts the floor at startup.
               "--max-num-batched-tokens"
               "8192"
               "--kv-cache-dtype"
@@ -137,6 +135,7 @@
               "--tool-call-parser"
               "qwen3_coder"
               "--trust-remote-code"
+              "--enable-prefix-caching"
               "--enable-flashinfer-autotune"
               "--speculative-config"
               ''{"method":"mtp","num_speculative_tokens":2}''
