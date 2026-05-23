@@ -110,33 +110,46 @@
         enable = true;
         cuda = true;
         cacheDir = "/xpool/llm/vllm-cache";
-        # Pinned to 0.21.0: first release with TurboQuant KV (PR #38479) and
-        # hybrid-model TurboQuant support (PR #39931) needed for Qwen3.6's
-        # linear/full attention mix. Smoke-tested with INT4-AutoRound weights.
-        image = "vllm/vllm-openai:v0.21.0-cu129";
+        image = "vllm/vllm-openai:latest-cu129";
 
         instances = {
           qwen-chat = {
             model = "Intel/Qwen3.6-27B-int4-AutoRound";
             host = "0.0.0.0";
             port = 8000;
-            gpuMemoryUtilization = 0.71;
-            maxModelLen = 262144;
-            maxNumSeqs = 4;
-            # Mamba-cache alignment: hybrid arch picks block_size=2080
-            # (to ensure attention page size >= mamba page size). vLLM asserts
-            # block_size <= max_num_batched_tokens, but the default 2048 < 2080.
-            # Set explicitly to satisfy the constraint.
-            maxNumBatchedTokens = 2080;
-            kvCacheDtype = "fp8";
-            reasoningParser = "qwen3";
-            toolCallParser = "qwen3_coder";
-            enablePrefixCaching = true;
-            enableChunkedPrefill = true;
-            trustRemoteCode = true;
+            gpuMemoryUtilization = 0.82;
             extraArgs = [
+              "--max-model-len"
+              "262144"
+              "--max-num-seqs"
+              "8"
+              # Floor is the hybrid arch's attention block_size (~1600-2080),
+              # since vLLM asserts max_num_batched_tokens >= block_size.
+              # 8192 sits well above the floor and keeps long-prompt prefill
+              # at 1-3 chunks for typical RAG contexts.
+              "--max-num-batched-tokens"
+              "8192"
+              "--kv-cache-dtype"
+              "fp8"
+              "--reasoning-parser"
+              "qwen3"
+              "--enable-auto-tool-choice"
+              "--tool-call-parser"
+              "qwen3_coder"
+              "--trust-remote-code"
+              "--enable-flashinfer-autotune"
+              # Fairness for mixed short-chat + long-doc workloads: allow up
+              # to 2 concurrent prefills but at most 1 "long" (>16384 tok),
+              # so short prompts can ride alongside a bulk-summary prefill
+              # instead of queueing behind it.
+              "--long-prefill-token-threshold"
+              "16384"
+              "--max-long-partial-prefills"
+              "1"
+              "--max-num-partial-prefills"
+              "2"
               "--speculative-config"
-              ''{"method":"qwen3_next_mtp","num_speculative_tokens":2}''
+              ''{"method":"mtp","num_speculative_tokens":2}''
             ];
           };
 
@@ -144,9 +157,13 @@
             model = "Qwen/Qwen3-Embedding-0.6B";
             host = "0.0.0.0";
             port = 8001;
-            gpuMemoryUtilization = 0.069;
-            maxModelLen = 8192;
-            maxNumSeqs = 64;
+            gpuMemoryUtilization = 0.04;
+            extraArgs = [
+              "--max-model-len"
+              "8192"
+              "--max-num-seqs"
+              "64"
+            ];
           };
         };
       };

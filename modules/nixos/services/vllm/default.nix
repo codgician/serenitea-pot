@@ -17,55 +17,8 @@ let
       "0.0.0.0"
       "--port"
       (toString c.port)
-    ]
-    ++ lib.optionals (c.maxModelLen != null) [
-      "--max-model-len"
-      (toString c.maxModelLen)
-    ]
-    ++ lib.optionals (c.quantization != null) [
-      "--quantization"
-      c.quantization
-    ]
-    ++ lib.optionals (c.tensorParallelSize != 1) [
-      "--tensor-parallel-size"
-      (toString c.tensorParallelSize)
-    ]
-    ++ lib.optionals (c.gpuMemoryUtilization != 0.9) [
       "--gpu-memory-utilization"
       (toString c.gpuMemoryUtilization)
-    ]
-    ++ lib.optionals (c.dtype != "auto") [
-      "--dtype"
-      c.dtype
-    ]
-    ++ lib.optionals (c.kvCacheDtype != "auto") [
-      "--kv-cache-dtype"
-      c.kvCacheDtype
-    ]
-    ++ lib.optionals (c.maxNumSeqs != 256) [
-      "--max-num-seqs"
-      (toString c.maxNumSeqs)
-    ]
-    ++ lib.optionals (c.maxNumBatchedTokens != null) [
-      "--max-num-batched-tokens"
-      (toString c.maxNumBatchedTokens)
-    ]
-    ++ lib.optionals c.enablePrefixCaching [ "--enable-prefix-caching" ]
-    ++ lib.optionals c.enableChunkedPrefill [ "--enable-chunked-prefill" ]
-    ++ lib.optionals c.trustRemoteCode [ "--trust-remote-code" ]
-    ++ lib.optionals c.disableLogStats [ "--disable-log-stats" ]
-    ++ lib.optionals (c.servedModelName != null) [
-      "--served-model-name"
-      c.servedModelName
-    ]
-    ++ lib.optionals (c.toolCallParser != null) [
-      "--enable-auto-tool-choice"
-      "--tool-call-parser"
-      c.toolCallParser
-    ]
-    ++ lib.optionals (c.reasoningParser != null) [
-      "--reasoning-parser"
-      c.reasoningParser
     ]
     ++ c.extraArgs;
 
@@ -109,109 +62,12 @@ let
         gpuMemoryUtilization = lib.mkOption {
           type = types.float;
           default = 0.9;
-          description = "Fraction of GPU memory to use (0.0-1.0).";
-        };
-
-        dtype = lib.mkOption {
-          type = types.str;
-          default = "auto";
-          description = "Data type for model weights (auto, float16, bfloat16).";
-        };
-
-        kvCacheDtype = lib.mkOption {
-          type = types.enum [
-            "auto"
-            "fp8"
-            "fp8_e5m2"
-            "fp8_e4m3"
-          ];
-          default = "auto";
-          description = "KV cache data type. fp8 reduces memory ~50%.";
-        };
-
-        maxModelLen = lib.mkOption {
-          type = types.nullOr types.int;
-          default = null;
-          description = "Maximum sequence length.";
-        };
-
-        maxNumSeqs = lib.mkOption {
-          type = types.int;
-          default = 256;
-          description = "Maximum concurrent sequences.";
-        };
-
-        maxNumBatchedTokens = lib.mkOption {
-          type = types.nullOr types.int;
-          default = null;
-          description = "Max tokens per batch (required for Mamba cache alignment).";
-        };
-
-        quantization = lib.mkOption {
-          type = types.nullOr types.str;
-          default = null;
-          description = "Quantization method (e.g., awq, awq_marlin, gptq, gptq_marlin, fp8).";
-        };
-
-        tensorParallelSize = lib.mkOption {
-          type = types.int;
-          default = 1;
-          description = "Number of GPUs for tensor parallelism.";
-        };
-
-        enablePrefixCaching = lib.mkOption {
-          type = types.bool;
-          default = false;
-          description = "Enable prefix caching (recommended for agents).";
-        };
-
-        enableChunkedPrefill = lib.mkOption {
-          type = types.bool;
-          default = false;
-          description = "Enable chunked prefill to reduce memory spikes.";
-        };
-
-        trustRemoteCode = lib.mkOption {
-          type = types.bool;
-          default = false;
-          description = "Allow remote code execution from HF models.";
-        };
-
-        toolCallParser = lib.mkOption {
-          type = types.nullOr (
-            types.enum [
-              "mistral"
-              "llama3_json"
-              "hermes"
-              "xlam"
-              "qwen3_coder"
-            ]
-          );
-          default = null;
-          description = "Tool call parser (enables auto-tool-choice).";
-        };
-
-        reasoningParser = lib.mkOption {
-          type = types.nullOr (
-            types.enum [
-              "deepseek_r1"
-              "qwen3"
-            ]
-          );
-          default = null;
-          description = "Reasoning parser for CoT extraction.";
-        };
-
-        servedModelName = lib.mkOption {
-          type = types.nullOr types.str;
-          default = null;
-          description = "Custom model name in API responses.";
-        };
-
-        disableLogStats = lib.mkOption {
-          type = types.bool;
-          default = false;
-          description = "Disable statistics logging.";
+          description = ''
+            Fraction of GPU memory this instance may reserve (0.0-1.0).
+            Acts as the instance's GPU memory budget; when multiple
+            instances share a GPU, the sum across instances must stay
+            below 1.0.
+          '';
         };
 
         environmentVariables = lib.mkOption {
@@ -223,7 +79,18 @@ let
         extraArgs = lib.mkOption {
           type = types.listOf types.str;
           default = [ ];
-          description = "Additional vLLM serve arguments.";
+          description = ''
+            Additional vLLM serve arguments. Model-specific tuning flags
+            (e.g. `--max-model-len`, `--quantization`,
+            `--tensor-parallel-size`, `--dtype`, `--kv-cache-dtype`,
+            `--enable-prefix-caching`, `--trust-remote-code`,
+            `--tool-call-parser`, `--reasoning-parser`, etc.) should be
+            passed here.
+          '';
+          example = [
+            "--max-model-len"
+            "8192"
+          ];
         };
 
         reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
@@ -244,7 +111,6 @@ let
         image = if c.image != null then c.image else cfg.image;
         environment = {
           VLLM_NO_USAGE_STATS = "1";
-          HF_HUB_ENABLE_HF_TRANSFER = "1";
           HF_HUB_DOWNLOAD_TIMEOUT = "600";
         }
         // c.environmentVariables;
