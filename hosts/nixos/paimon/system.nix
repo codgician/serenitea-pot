@@ -138,16 +138,6 @@
               "qwen3_coder"
               "--trust-remote-code"
               "--enable-flashinfer-autotune"
-              # Fairness for mixed short-chat + long-doc workloads: allow up
-              # to 2 concurrent prefills but at most 1 "long" (>16384 tok),
-              # so short prompts can ride alongside a bulk-summary prefill
-              # instead of queueing behind it.
-              "--long-prefill-token-threshold"
-              "16384"
-              "--max-long-partial-prefills"
-              "1"
-              "--max-num-partial-prefills"
-              "2"
               "--speculative-config"
               ''{"method":"mtp","num_speculative_tokens":2}''
             ];
