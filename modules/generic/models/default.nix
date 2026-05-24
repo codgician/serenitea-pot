@@ -182,9 +182,10 @@ let
     none.reasoningEffort = "none";
   };
 
-  # Gemini Pro reasoning variants
-  geminiPro = {
+  # Gemini reasoning variants
+  gemini = {
     high.reasoningEffort = "high";
+    medium.reasoningEffort = "medium";
     low.reasoningEffort = "low";
   };
 
@@ -464,8 +465,8 @@ in
             "text-embedding-ada-002".mode = "embedding";
 
             # Gemini models
-            "gemini-3-flash-preview" = { };
-            "gemini-3.1-pro-preview".variants = geminiPro;
+            "gemini-3.5-flash".variants = gemini;
+            "gemini-3.1-pro-preview".variants = gemini;
 
             # GPT-5.x chat models
             "gpt-5.2" = {
