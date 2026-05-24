@@ -146,7 +146,7 @@
             model = "Qwen/Qwen3-Embedding-0.6B";
             host = "0.0.0.0";
             port = 8001;
-            gpuMemoryUtilization = 0.04;
+            gpuMemoryUtilization = 0.0675;
             extraArgs = [
               "--max-model-len"
               "8192"
