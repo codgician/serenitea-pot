@@ -49,6 +49,7 @@
         git.enable = true;
         mcp.enable = true;
         opencode.enable = true;
+        pi-coding-agent.enable = true;
         pwsh.enable = true;
         ssh.enable = true;
         tmux.enable = true;

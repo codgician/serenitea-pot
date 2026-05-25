@@ -18,6 +18,7 @@ final: prev: {
     azure-artifacts-credprovider
     git-credential-manager
     looking-glass-client
+    pi-coding-agent
     ;
 
   # Klassy isn't in nixos-25.11-small, so we reuse the unstable channel's
