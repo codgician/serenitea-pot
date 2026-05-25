@@ -102,6 +102,11 @@ in
       };
     };
 
+    # The TUN is brought up by sing-box at runtime and held in "configuring"
+    # by KeepConfiguration=yes, so it never reaches `configured`. Exclude it
+    # from wait-online to avoid a 2-minute boot-time timeout failure.
+    systemd.network.wait-online.ignoredInterfaces = [ tunCfg.interfaceName ];
+
     # Systemd capabilities for TUN
     systemd.services.sing-box.serviceConfig = {
       AmbientCapabilities = [

@@ -46,6 +46,21 @@ in
           experimental-features=['scale-monitor-framebuffer', 'xwayland-native-scaling']
         '';
       };
+
+      gnome = {
+        core-apps.enable = true;
+        core-developer-tools.enable = true;
+        core-os-services.enable = true;
+        core-shell.enable = true;
+        gcr-ssh-agent.enable = true;
+        glib-networking.enable = true;
+        gnome-keyring.enable = true;
+        gnome-remote-desktop.enable = true;
+        gnome-settings-daemon.enable = true;
+        localsearch.enable = true;
+        sushi.enable = true;
+        tinysparql.enable = true;
+      };
     };
 
     # Enable dconf
