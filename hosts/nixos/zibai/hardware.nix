@@ -41,6 +41,7 @@
     zfs = {
       extraPools = [ "dpool" ];
       forceImportAll = true;
+      forceImportRoot = true;
     };
   };
 

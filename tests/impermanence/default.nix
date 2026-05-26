@@ -50,7 +50,6 @@ let
         loader.efi.canTouchEfiVariables = true;
         supportedFilesystems = [ "zfs" ];
         zfs.devNodes = "/dev/disk/by-uuid";
-        zfs.forceImportAll = true;
         initrd.systemd.enable = true;
       };
 

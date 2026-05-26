@@ -66,6 +66,7 @@
         "xpool"
       ];
       forceImportAll = true;
+      forceImportRoot = true;
       # requestEncryptionCredentials handled by zfs-unlock module; other pools by zfs-mount preStart
       package = pkgs.unstable.zfs_2_4;
     };

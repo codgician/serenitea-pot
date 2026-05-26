@@ -95,6 +95,12 @@ in
     ipAddress = "192.168.0.21";
   };
 
+  # proxmox-nixos sets this as a string; 26.05 requires a list.
+  services.openssh.settings.AcceptEnv = lib.mkForce [
+    "LANG"
+    "LC_*"
+  ];
+
   # Enable dm-thin-pool kernel module for LVM thin provisioning
   boot.kernelModules = [ "dm-thin-pool" ];
 

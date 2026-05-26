@@ -70,8 +70,8 @@ in
     programs.opencode = {
       enable = true;
       enableMcpIntegration = config.codgician.codgi.mcp.enable;
+      tui.theme = "github";
       settings = {
-        theme = "github";
         instructions = [
           (pkgs.writeText "nix.md" ''
             You are on a Nix managed system with arch ${pkgs.stdenv.hostPlatform.system}.

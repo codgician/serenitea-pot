@@ -70,11 +70,11 @@ in
     # Enable resolved
     services.resolved = {
       enable = true;
-      llmnr = "true";
-      settings.Resolve = ''
-        MulticastDNS=yes
-        Cache=no-negative
-      '';
+      settings.Resolve = {
+        MulticastDNS = true;
+        Cache = "no-negative";
+        LLMNR = true;
+      };
     };
 
     # Enable mDNS
@@ -232,6 +232,9 @@ in
     };
 
     security.pam.sshAgentAuth.enable = true;
+
+    # 26.11 will flip this default to `false`; pin the legacy value explicitly.
+    boot.zfs.forceImportRoot = lib.mkIf config.boot.zfs.enabled (lib.mkDefault true);
 
     # ZFS common configurations
     services.zfs = lib.mkIf config.boot.zfs.enabled {

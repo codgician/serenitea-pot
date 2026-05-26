@@ -200,6 +200,8 @@ in
         package = pkgs.adw-gtk3;
       };
 
+      gtk4.theme = config.gtk.theme;
+
       # GTK3 settings
       gtk3.extraConfig = {
         gtk-application-prefer-dark-theme = true;

@@ -14,6 +14,19 @@ rec {
   # Get all folder full paths under specified path
   getFolderPaths = path: builtins.map (x: path + "/${x}") (getFolderNames path);
 
+  # Build an attrset of `folderName -> folderPath` for each subdirectory.
+  mapFolders =
+    path:
+    builtins.listToAttrs (
+      builtins.map (name: {
+        inherit name;
+        value = path + "/${name}";
+      }) (getFolderNames path)
+    );
+
+  # Merge `mapFolders` results from multiple source paths (right wins).
+  mergeFolders = paths: builtins.foldl' (acc: p: acc // mapFolders p) { } paths;
+
   # Get all regular file names under specified path
   getRegularFileNames = getDirContentByType "regular";
 
