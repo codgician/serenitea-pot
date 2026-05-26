@@ -29,15 +29,15 @@ let
       # Graphics/GUI (for matplotlib, etc.)
       libGL
       libGLU
-      xorg.libX11
-      xorg.libXext
-      xorg.libXrender
-      xorg.libXcursor
-      xorg.libXi
-      xorg.libXrandr
-      xorg.libXinerama
-      xorg.libXxf86vm
-      xorg.libxcb
+      libx11
+      libxext
+      libxrender
+      libxcursor
+      libxi
+      libxrandr
+      libxinerama
+      libxxf86vm
+      libxcb
       freetype
       fontconfig
 
