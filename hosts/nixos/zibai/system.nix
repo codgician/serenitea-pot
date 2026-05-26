@@ -83,7 +83,7 @@
         IPv6AcceptRA = true;
       };
       dhcpV4Config.RouteMetric = 100;
-      dhcpV6Config.RouteMetric = 100;
+      ipv6AcceptRAConfig.RouteMetric = 100;
       linkConfig.RequiredForOnline = "no-carrier";
     };
 
@@ -99,7 +99,7 @@
         RouteMetric = 600;
         UseMTU = true;
       };
-      dhcpV6Config.RouteMetric = 600;
+      ipv6AcceptRAConfig.RouteMetric = 600;
       linkConfig.RequiredForOnline = "no-carrier";
     };
   };
