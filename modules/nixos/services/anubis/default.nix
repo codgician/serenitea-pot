@@ -8,106 +8,82 @@ let
   cfg = config.codgician.services.anubis;
   nginxCfg = config.codgician.services.nginx;
   ageCfg = config.age.secrets;
-  types = lib.types;
+  inherit (lib) types optionalAttrs mkIf mkOption mkEnableOption;
   jsonFormat = pkgs.formats.json { };
 
-  # Collect all reverse proxies with anubis enabled
-  anubisEnabledProxies = lib.filterAttrs (
-    _: hostCfg: hostCfg.enable && hostCfg.anubis.enable
-  ) nginxCfg.reverseProxies;
+  # Reverse proxies with Anubis enabled.
+  anubisProxies = lib.filterAttrs (_: h: h.enable && h.anubis.enable) nginxCfg.reverseProxies;
 
-  # Sanitize name for use as systemd service name
-  sanitizeName = name: builtins.replaceStrings [ "." ] [ "-" ] name;
+  # systemd service names cannot contain dots.
+  sanitizeName = builtins.replaceStrings [ "." ] [ "-" ];
 
-  # Get the target URL from a reverse proxy config
-  # Looks for proxyPass in the root location's passthru
-  getTargetFromProxy =
-    hostCfg:
-    let
-      rootLocation = hostCfg.locations."/" or { };
-      passthru = rootLocation.passthru or { };
-    in
-    passthru.proxyPass or null;
+  # Extract proxyPass target from the root location, if any.
+  proxyTarget = hostCfg: hostCfg.locations."/".passthru.proxyPass or null;
 
-  # Generate Anubis instance config from a reverse proxy
-  mkAnubisInstance =
+  mkInstance =
     name: hostCfg:
     let
-      instanceName = sanitizeName name;
-      target = getTargetFromProxy hostCfg;
-      isHttpsTarget = target != null && lib.hasPrefix "https://" target;
-      # Use per-service override if set, otherwise fall back to global default
-      difficulty =
-        if hostCfg.anubis.difficulty != null then hostCfg.anubis.difficulty else cfg.defaultDifficulty;
-      ogPassthrough =
-        if hostCfg.anubis.ogPassthrough != null then
-          hostCfg.anubis.ogPassthrough
-        else
-          cfg.defaultOgPassthrough;
-      # Socket paths must use the new format: /run/anubis/anubis-<name>/
-      socketDir = "/run/anubis/anubis-${instanceName}";
+      target = proxyTarget hostCfg;
+      socketDir = "/run/anubis/anubis-${sanitizeName name}";
     in
     {
       enable = true;
       settings = {
         TARGET = target;
-        # Use new socket path format (required when multiple instances exist)
         BIND = "${socketDir}/anubis.sock";
         METRICS_BIND = "${socketDir}/anubis-metrics.sock";
-        DIFFICULTY = difficulty;
-        OG_PASSTHROUGH = ogPassthrough;
-        SERVE_ROBOTS_TXT = cfg.defaultServeRobotsTxt;
         COOKIE_PARTITIONED = true;
         COOKIE_SECURE = true;
         COOKIE_SAME_SITE = "Lax";
-        # For HTTPS backends: use Host header for SNI (backends have valid certs for their hostnames)
-        TARGET_SNI = if isHttpsTarget then "auto" else null;
+        # HTTPS backends usually have valid certs for their own hostname.
+        TARGET_SNI = if target != null && lib.hasPrefix "https://" target then "auto" else null;
       }
-      // lib.optionalAttrs (cfg.cookieDomain != null) { COOKIE_DOMAIN = cfg.cookieDomain; }
-      // lib.optionalAttrs (cfg.webmasterEmail != null) { WEBMASTER_EMAIL = cfg.webmasterEmail; };
-      botPolicy = cfg.botPolicy;
+      // optionalAttrs (hostCfg.anubis.difficulty != null) { DIFFICULTY = hostCfg.anubis.difficulty; }
+      // optionalAttrs (hostCfg.anubis.ogPassthrough != null) {
+        OG_PASSTHROUGH = hostCfg.anubis.ogPassthrough;
+      };
     };
 in
 {
   options.codgician.services.anubis = {
-    enable = lib.mkEnableOption "Anubis bot protection";
+    enable = mkEnableOption "Anubis bot protection";
 
-    defaultDifficulty = lib.mkOption {
+    defaultDifficulty = mkOption {
       type = types.ints.between 1 7;
       default = 4;
       description = "Default proof-of-work difficulty for all Anubis instances.";
     };
 
-    defaultOgPassthrough = lib.mkOption {
+    defaultOgPassthrough = mkOption {
       type = types.bool;
       default = true;
       description = "Allow social media preview bots (Open Graph) by default.";
     };
 
-    defaultServeRobotsTxt = lib.mkOption {
+    defaultServeRobotsTxt = mkOption {
       type = types.bool;
       default = false;
       description = "Serve a restrictive robots.txt that disallows AI scrapers by default.";
     };
 
-    cookieDomain = lib.mkOption {
+    cookieDomain = mkOption {
       type = types.nullOr types.str;
       default = null;
       example = "codgician.me";
       description = ''
-        The domain for Anubis challenge cookies. Set this to your base domain
-        (e.g., "codgician.me") to share challenge passes across subdomains.
+        Domain for Anubis challenge cookies. Set to your base domain to share
+        challenge passes across subdomains.
       '';
     };
 
-    webmasterEmail = lib.mkOption {
+    webmasterEmail = mkOption {
       type = types.nullOr types.str;
       default = null;
       example = "admin@codgician.me";
       description = "Contact email shown on Anubis error pages.";
     };
 
-    botPolicy = lib.mkOption {
+    botPolicy = mkOption {
       type = types.nullOr jsonFormat.type;
       default = null;
       example = lib.literalExpression ''
@@ -118,17 +94,19 @@ in
         }
       '';
       description = ''
-        Global bot policy configuration. Set to null to use Anubis built-in defaults.
+        Global bot policy. Set to null to use Anubis built-in defaults.
         See https://anubis.techaro.lol/docs/admin/policies for details.
       '';
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    # Add nginx user to anubis group for Unix socket access
+  config = mkIf cfg.enable {
+    # nginx needs access to the Anubis Unix sockets.
     users.users.nginx.extraGroups = [ "anubis" ];
 
-    # Configure upstream Anubis module
+    # Signing key for cross-subdomain cookie sharing.
+    codgician.system.agenix.secrets.anubis-env.owner = "anubis";
+
     services.anubis = {
       defaultOptions = {
         settings = {
@@ -136,33 +114,29 @@ in
           OG_PASSTHROUGH = cfg.defaultOgPassthrough;
           SERVE_ROBOTS_TXT = cfg.defaultServeRobotsTxt;
         }
-        // lib.optionalAttrs (cfg.webmasterEmail != null) { WEBMASTER_EMAIL = cfg.webmasterEmail; };
-        botPolicy = cfg.botPolicy;
-      };
+        // optionalAttrs (cfg.cookieDomain != null) { COOKIE_DOMAIN = cfg.cookieDomain; }
+        // optionalAttrs (cfg.webmasterEmail != null) { WEBMASTER_EMAIL = cfg.webmasterEmail; };
+      }
+      // optionalAttrs (cfg.botPolicy != null) { policy.settings = cfg.botPolicy; };
 
-      # Generate instances from enabled reverse proxies
       instances = lib.mapAttrs' (
-        name: hostCfg: lib.nameValuePair (sanitizeName name) (mkAnubisInstance name hostCfg)
-      ) anubisEnabledProxies;
+        name: hostCfg: lib.nameValuePair (sanitizeName name) (mkInstance name hostCfg)
+      ) anubisProxies;
     };
 
-    # Configure agenix secret for signing key (enables cross-subdomain cookie sharing)
-    codgician.system.agenix.secrets.anubis-env.owner = "anubis";
-
-    # Add EnvironmentFile to all Anubis instances for the signing key
+    # Inject the signing key into every Anubis instance.
     systemd.services = lib.mapAttrs' (
       name: _:
       lib.nameValuePair "anubis-${sanitizeName name}" {
         serviceConfig.EnvironmentFile = [ ageCfg.anubis-env.path ];
       }
-    ) anubisEnabledProxies;
+    ) anubisProxies;
 
-    # Assertions
     assertions = lib.mapAttrsToList (name: hostCfg: {
-      assertion = !hostCfg.anubis.enable || (getTargetFromProxy hostCfg) != null;
+      assertion = !hostCfg.anubis.enable || proxyTarget hostCfg != null;
       message = ''
-        anubis: Reverse proxy "${name}" has anubis.enable = true but no proxyPass configured
-        in locations."/".passthru. Anubis needs a target to protect.
+        anubis: Reverse proxy "${name}" has anubis.enable = true but no proxyPass
+        configured in locations."/".passthru. Anubis needs a target to protect.
       '';
     }) nginxCfg.reverseProxies;
   };
