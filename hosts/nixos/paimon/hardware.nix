@@ -35,7 +35,7 @@
     kernelModules = [
       "kvm-amd"
     ];
-    kernelPackages = pkgs.unstable.linuxPackages_6_18;
+    kernelPackages = pkgs.linuxPackages_6_18;
 
     kernelParams = [
       "video=VGA-1:1600x900@60"
@@ -68,7 +68,7 @@
       forceImportAll = true;
       forceImportRoot = true;
       # requestEncryptionCredentials handled by zfs-unlock module; other pools by zfs-mount preStart
-      package = pkgs.unstable.zfs_2_4;
+      package = pkgs.zfs_2_4;
     };
   };
 
