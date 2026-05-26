@@ -157,6 +157,11 @@
       url = "github:codgician/mkcreds";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    cix-linux-main = {
+      url = "github:cixtech/cix-linux-main";
+      flake = false;
+    };
   };
 
   outputs =

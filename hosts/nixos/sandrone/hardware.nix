@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
@@ -13,8 +14,14 @@
 
     supportedFilesystems = [ "vfat" ];
     kernelModules = [ ];
-    kernelParams = [ "iommu.passthrough=1" ];
-    kernelPackages = pkgs.linuxPackages_latest;
+    kernelParams = [
+      "iommu.passthrough=1"
+      # CIX P1 firmware leaves clocks lacking explicit Linux owners; without
+      # this the common clock framework gates them off during bring-up.
+      "clk_ignore_unused"
+    ];
+    kernelPackages = pkgs.linuxPackages_6_18;
+    kernelPatches = import ./kernel.nix { inherit inputs lib; };
     zfs.package = pkgs.zfs_2_4;
     extraModulePackages = [ ];
   };

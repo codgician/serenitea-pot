@@ -27,6 +27,22 @@
         "type": "github"
       }
     },
+    "cix-linux-main": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1778137841,
+        "narHash": "sha256-ntc23Nh3eOWgRcfZTTUWigLrs/LqEtIrYhFwiFiSDUc=",
+        "owner": "cixtech",
+        "repo": "cix-linux-main",
+        "rev": "3aad82491a599648d87ba1c47cec7968862fa165",
+        "type": "github"
+      },
+      "original": {
+        "owner": "cixtech",
+        "repo": "cix-linux-main",
+        "type": "github"
+      }
+    },
     "crane": {
       "locked": {
         "lastModified": 1779041105,
@@ -612,6 +628,7 @@
     "root": {
       "inputs": {
         "agenix": "agenix",
+        "cix-linux-main": "cix-linux-main",
         "darwin": "darwin",
         "darwin-unstable": "darwin-unstable",
         "disko": "disko",

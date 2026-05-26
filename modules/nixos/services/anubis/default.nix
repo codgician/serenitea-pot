@@ -8,7 +8,13 @@ let
   cfg = config.codgician.services.anubis;
   nginxCfg = config.codgician.services.nginx;
   ageCfg = config.age.secrets;
-  inherit (lib) types optionalAttrs mkIf mkOption mkEnableOption;
+  inherit (lib)
+    types
+    optionalAttrs
+    mkIf
+    mkOption
+    mkEnableOption
+    ;
   jsonFormat = pkgs.formats.json { };
 
   # Reverse proxies with Anubis enabled.
