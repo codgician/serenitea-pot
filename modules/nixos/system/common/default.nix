@@ -71,7 +71,7 @@ in
     services.resolved = {
       enable = true;
       llmnr = "true";
-      extraConfig = ''
+      settings.Resolve = ''
         MulticastDNS=yes
         Cache=no-negative
       '';
