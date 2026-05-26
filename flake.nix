@@ -18,8 +18,9 @@
   };
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11-small";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05-small";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/master";
+    nixpkgs-prev.url = "github:NixOS/nixpkgs/nixos-25.11-small";
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -40,14 +41,14 @@
     proxmox-nixos = {
       url = "github:codgician/proxmox-nixos/consistent-zfs";
       inputs = {
-        nixpkgs-stable.follows = "nixpkgs";
+        nixpkgs-stable.follows = "nixpkgs-prev";
         flake-compat.follows = "flake-compat";
         utils.follows = "flake-utils";
       };
     };
 
     darwin = {
-      url = "github:lnl7/nix-darwin/nix-darwin-25.11";
+      url = "github:lnl7/nix-darwin/nix-darwin-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -57,7 +58,7 @@
     };
 
     home-manager = {
-      url = "github:nix-community/home-manager/release-25.11";
+      url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -209,7 +210,7 @@
           name = "formatter";
           runtimeInputs = with pkgs; [
             treefmt
-            nixfmt-rfc-style
+            nixfmt
             mdformat
             yamlfmt
           ];

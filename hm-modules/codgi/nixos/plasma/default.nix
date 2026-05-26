@@ -240,6 +240,7 @@ in
       };
       iconTheme.name = "breeze-dark";
       theme.name = "Breeze";
+      gtk4.theme = config.gtk.theme;
     };
 
     # Klassy decoration + style + global theme plugin.

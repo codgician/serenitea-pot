@@ -10,7 +10,7 @@ in
 {
   security.acme.certs."${domain}" = {
     email = "codgician@outlook.com";
-    credentialsFile = config.age.secrets.tencent-dns-credential.path;
+    environmentFile = config.age.secrets.tencent-dns-credential.path;
     dnsProvider = "tencentcloud";
     group = with config.services.nginx; lib.mkIf enable user;
   };

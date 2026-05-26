@@ -21,7 +21,7 @@ in
         IgnoreUnknown UseKeychain
         UseKeychain yes
       '';
-      matchBlocks = {
+      settings = {
         "*" = {
           addKeysToAgent = "yes";
         };

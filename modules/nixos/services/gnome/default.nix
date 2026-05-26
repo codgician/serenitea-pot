@@ -30,7 +30,6 @@ in
 
         gdm = {
           enable = true;
-          wayland = true;
         };
 
         autoLogin = lib.mkIf (cfg.autoLoginUser != null) {

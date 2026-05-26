@@ -8,16 +8,19 @@
 let
   cfg = config.codgician.codgi.claude-code;
 
-  # Transform MCP server config to Claude Code format
-  # Supports both stdio ({ command, args?, env? }) and http ({ url, headers? })
   mkMcpServer =
     server:
     (builtins.removeAttrs server [ "disabled" ])
     // (lib.optionalAttrs (server ? url) { type = "http"; })
     // (lib.optionalAttrs (server ? command) { type = "stdio"; });
 
-  # Transform all MCP servers
   mcpServers = lib.mapAttrs (_: mkMcpServer) config.programs.mcp.servers;
+
+  skills = lib.codgician.mergeFolders [
+    "${inputs.superpowers}/skills"
+    "${inputs.skills}/skills"
+    "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
+  ];
 in
 {
   options.codgician.codgi.claude-code = {
@@ -39,17 +42,9 @@ in
       enable = true;
       package = cfg.package;
 
-      # MCP integration
       mcpServers = lib.mkIf config.codgician.codgi.mcp.enable mcpServers;
 
-      skillsDir = pkgs.symlinkJoin {
-        name = "claude-code-skills";
-        paths = [
-          "${inputs.superpowers}/skills"
-          "${inputs.skills}/skills"
-          "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
-        ];
-      };
+      inherit skills;
 
       settings = {
         env = {
