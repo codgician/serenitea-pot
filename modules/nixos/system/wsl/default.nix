@@ -53,6 +53,6 @@ in
     hardware.graphics.enable = true;
 
     environment.sessionVariables = env;
-    services.displayManager.environment = env;
+    services.displayManager.generic.environment = env;
   };
 }

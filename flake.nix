@@ -210,7 +210,7 @@
           name = "formatter";
           runtimeInputs = with pkgs; [
             treefmt
-            nixfmt-rfc-style
+            nixfmt
             mdformat
             yamlfmt
           ];
