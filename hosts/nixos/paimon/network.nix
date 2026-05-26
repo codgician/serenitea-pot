@@ -151,10 +151,10 @@ in
         };
         dhcpV4Config.RouteMetric = 1024;
         dhcpV6Config = {
-          RouteMetric = 1024;
           DUIDType = "vendor";
           DUIDRawData = "00:00:ab:11:75:d9:96:0e:f8:35:fe:2f";
         };
+        ipv6AcceptRAConfig.RouteMetric = 1024;
         linkConfig.RequiredForOnline = "no-carrier";
       };
 
@@ -176,10 +176,10 @@ in
           UseRoutes = "no";
         };
         dhcpV6Config = {
-          RouteMetric = 2048;
           DUIDType = "vendor";
           DUIDRawData = "00:00:ab:11:75:d9:96:0e:f8:35:fe:0f";
         };
+        ipv6AcceptRAConfig.RouteMetric = 2048;
         linkConfig.RequiredForOnline = "no-carrier";
         routes = [
           {
