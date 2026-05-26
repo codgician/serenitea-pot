@@ -20,7 +20,6 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05-small";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/master";
-    nixpkgs-prev.url = "github:NixOS/nixpkgs/nixos-25.11-small";
     nixos-generators = {
       url = "github:nix-community/nixos-generators";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -39,9 +38,9 @@
     };
 
     proxmox-nixos = {
-      url = "github:codgician/proxmox-nixos/consistent-zfs";
+      url = "github:codgician/proxmox-nixos/nixos-26.05";
       inputs = {
-        nixpkgs-stable.follows = "nixpkgs-prev";
+        nixpkgs-stable.follows = "nixpkgs";
         flake-compat.follows = "flake-compat";
         utils.follows = "flake-utils";
       };
