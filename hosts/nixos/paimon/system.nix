@@ -235,6 +235,14 @@
             "guest ok" = "no";
             "fruit:time machine" = "yes";
             "fruit:time machine max size" = "2T";
+
+            # Time Machine reliability with SMB multichannel enabled.
+            "strict sync" = "yes";
+            "durable handles" = "yes";
+            "kernel share modes" = "no";
+            "posix locking" = "no";
+            "case sensitive" = "true";
+            "vfs objects" = "catia fruit streams_xattr";
           };
         };
       };

@@ -59,6 +59,10 @@ in
           "dns proxy" = "no";
 
           "strict sync" = "no";
+          
+          "smb2 leases" = "yes";
+          "kernel oplocks" = "no";
+          "oplock break wait time" = "0";
 
           "vfs objects" = "catia fruit streams_xattr aio_pthread";
           "aio read size" = "1";
