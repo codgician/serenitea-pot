@@ -52,7 +52,7 @@
       options kvmfr static_size_mb=512
     '';
 
-    kernelPackages = pkgs.linuxPackages_6_18;
+    kernelPackages = pkgs.linuxPackages;
     zfs.package = pkgs.zfs_2_4;
     supportedFilesystems = [ "vfat" ];
   };
@@ -99,7 +99,7 @@
     powerManagement.enable = true;
     open = false;
     nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.production;
+    package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
   };
 
   # TPM
