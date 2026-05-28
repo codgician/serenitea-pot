@@ -22,6 +22,10 @@
       # CIX P1 firmware leaves clocks lacking explicit Linux owners; without
       # this the common clock framework gates them off during bring-up.
       "clk_ignore_unused"
+      # The aarch64 default CMA reservation (32 MiB, set by
+      # CMA_SIZE_MBYTES in common-config.nix) is exhausted before
+      # `linlondp` can allocate fbdev framebuffers
+      "cma=512M"
     ];
     kernelPackages = pkgs.linuxPackages_6_18;
     kernelPatches = import ./kernel.nix { inherit inputs lib; };
@@ -49,8 +53,15 @@
   # backend can still override per-invocation.
   environment.sessionVariables.LIBVA_DRIVER_NAME = "cix";
 
-  # Load nvidia driver for Xorg and Wayland
-  services.xserver.videoDrivers = [ "nvidia" ];
+  # Use `modesetting` as the primary X11 driver so Xorg/Xwayland picks up
+  # whichever DRM device has a connected monitor (here: `linlondp` on the
+  # CIX display engine, since the monitor is on the CIX-side DP outputs).
+  # Keep `nvidia` so the discrete GPU remains available for compute
+  # (CUDA, nvidia-uvm) without claiming the display.
+  services.xserver.videoDrivers = [
+    "modesetting"
+    "nvidia"
+  ];
 
   hardware.nvidia = {
     modesetting.enable = true;
@@ -71,6 +82,7 @@
     usbutils
     powertop
     nvtopPackages.nvidia
+    nvtopPackages.panthor
     # CIX-patched ffmpeg as the system `ffmpeg`. Adds V4L2 M2M
     # decode/encode for the CIX P1 VPU on top of upstream 5.1.7;
     # nothing removed, so every existing `ffmpeg` invocation keeps
