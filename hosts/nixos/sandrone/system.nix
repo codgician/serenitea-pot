@@ -17,7 +17,11 @@
     users.codgi = with lib.codgician; {
       enable = true;
       hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
-      extraGroups = [ "wheel" ];
+      extraGroups = [
+        "wheel"
+        "video"
+        "render"
+      ];
     };
   };
 
