@@ -34,6 +34,12 @@ in
         iproute2
         coreutils
       ];
+
+      # Don't re-run on `nixos-rebuild switch`: re-running can bounce VF netdevs
+      # and disturb VMs holding passthrough VFs. Changes apply on next boot.
+      restartIfChanged = false;
+      stopIfChanged = false;
+
       unitConfig = {
         DefaultDependencies = false;
         ConditionPathExists = "/sys/bus/pci/devices/${pciBase}.0";
@@ -76,17 +82,20 @@ in
               echo "WARNING: Failed to set lag_port_select_mode on $dev"
           }
 
+          # Safe to re-run: same-value writes are kernel no-ops and re-binding a
+          # bound VF fails harmlessly (-EBUSY). VF count change (step 4) is guarded.
+
           # 1. Set lag_port_select_mode on BOTH PFs (must match for LAG)
           echo "Setting lag_port_select_mode=multiport_esw on both PFs..."
           set_lag_mode ${pf0} ${pci0}
           set_lag_mode ${pf1} ${pci1}
 
-          # 2. Switch both PFs to switchdev mode (idempotent — fails harmlessly if already set)
+          # 2. Switch both PFs to switchdev mode (no-op if already switchdev)
           echo "Switching to switchdev mode..."
           devlink dev eswitch set pci/${pci0} mode switchdev 2>/dev/null || echo "pci/${pci0}: already switchdev or unchanged"
           devlink dev eswitch set pci/${pci1} mode switchdev 2>/dev/null || echo "pci/${pci1}: already switchdev or unchanged"
 
-          # 3. Enable multiport eSwitch (idempotent — fails harmlessly if already enabled)
+          # 3. Enable multiport eSwitch (no-op if already enabled)
           echo "Enabling esw_multiport..."
           devlink dev param set pci/${pci0} name esw_multiport value true cmode runtime 2>/dev/null ||
             echo "esw_multiport: already enabled or unchanged"
@@ -102,45 +111,49 @@ in
             echo ${toString numVfs} > /sys/class/net/${pf0}/device/sriov_numvfs
           fi
 
-          # 5. Set MAC addresses (idempotent)
+          # 5. Set PF-side admin (eSwitch) MAC per VF. The host VF netdev MAC is set
+          #    by the .link files below; this is only for eSwitch consistency.
           echo "Configuring VF MAC addresses..."
           ${lib.concatStringsSep "\n" (
             lib.imap0 (i: mac: "ip link set ${pf0} vf ${toString i} mac ${mac}") vfMacs
           )}
 
-          # 6. Unbind passthrough VFs (for VM/container assignment)
+          # 6. Unbind passthrough VFs (for VM/container vfio assignment).
           echo "Unbinding passthrough VFs..."
           ${lib.concatMapStringsSep "\n" (
             addr: "echo ${addr} > /sys/bus/pci/drivers/mlx5_core/unbind 2>/dev/null || true"
           ) passthruVfPciAddrs}
 
-          # 7. Ensure host VFs are bound
+          # 7. Ensure host VFs are bound (harmless -EBUSY if already bound).
           echo "Binding host VFs..."
           ${lib.concatMapStringsSep "\n" (
             addr: "echo ${addr} > /sys/bus/pci/drivers/mlx5_core/bind 2>/dev/null || true"
           ) hostVfPciAddrs}
 
-          # 8. Set MAC addresses on host VF netdevs (if present)
-          # (ip link set PF vf N mac X only sets admin MAC; host-bound VFs need direct config)
-          # In switchdev mode, VF netdevs may not exist if traffic goes through representors.
-          echo "Configuring host VF MAC addresses..."
-          ${lib.concatStringsSep "\n" (
-            lib.imap0 (
-              i: mac:
-              "if [ -e /sys/class/net/${getVfName 0 i} ]; then ip link set ${getVfName 0 i} address ${mac}; fi"
-            ) (lib.take hostVfs vfMacs)
-          )}
-
-          # Report status
           echo "=== Configuration Complete ==="
-          echo "VFs created: $(cat /sys/class/net/${pf0}/device/sriov_numvfs)"
-          devlink dev param show pci/${pci0} name esw_multiport 2>/dev/null || true
         '';
     };
 
   # Set route metric
   systemd.network = {
     config.routeTables.failover = 2048;
+
+    # Pin each host VF's MAC by PCI path so the netdev is born with the right MAC
+    # (before carrier), avoiding the duplicate-IPv6-address race. NamePolicy mirrors
+    # 99-default.link, else this file suppresses naming and the VF becomes eth0/eth1.
+    links = builtins.listToAttrs (
+      lib.genList (i: {
+        name = "10-${getVfName 0 i}";
+        value = {
+          matchConfig.Path = "pci-${pciBase}.${toString (i + 2)}";
+          linkConfig = {
+            MACAddress = builtins.elemAt vfMacs i;
+            NamePolicy = "keep kernel database onboard slot path";
+          };
+        };
+      }) hostVfs
+    );
+
     networks = {
       # High speed NIC (first VF for host)
       "10-${getVfName 0 0}" = {
