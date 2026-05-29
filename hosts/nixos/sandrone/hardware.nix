@@ -53,6 +53,25 @@
   # backend can still override per-invocation.
   environment.sessionVariables.LIBVA_DRIVER_NAME = "cix";
 
+  # Silence the linlondp display engine's benign "err detect: ...
+  # EMPTY|ACE0" flood. These are status-register snapshots the IRQ
+  # handler reads during normal commit/flip activity, NOT real faults
+  # (verified on hardware: AXIED=0, no TBU fault, fires at idle on a
+  # 1080p output; a genuine underrun would set the separate URUN bit).
+  # linlondp is a verbatim copy of mainline ARM `komeda`, which
+  # classifies ACE0/IBSY as error-class and DRM_ERRORs them — a
+  # known-noisy upstream behavior (cf. dri-devel 2022-07 "FLIP happened
+  # but no pending commit"). `err_verbosity` is komeda's own debugfs
+  # knob for exactly this; 0 disables event printing without touching
+  # genuine probe/repair paths. A udev RUN re-applies it on every
+  # linlondp bind because the value resets to the 0x0001 default on
+  # driver re-probe (e.g. display reconfiguration) — a boot-time
+  # oneshot would miss those. Verified the RUN reaches debugfs and
+  # clears all five pipe instances.
+  services.udev.extraRules = ''
+    ACTION=="add|change", SUBSYSTEM=="platform", DRIVER=="linlondp", RUN+="${pkgs.runtimeShell} -c 'for f in /sys/kernel/debug/linlondp*/err_verbosity; do [ -w \"$$f\" ] && echo 0 > \"$$f\"; done'"
+  '';
+
   # Use `modesetting` as the primary X11 driver so Xorg/Xwayland picks up
   # whichever DRM device has a connected monitor (here: `linlondp` on the
   # CIX display engine, since the monitor is on the CIX-side DP outputs).
