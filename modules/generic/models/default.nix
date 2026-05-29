@@ -308,6 +308,10 @@ in
               // lib.optionalAttrs (!isHaiku) { prompt_id = "claude-code"; };
             } name spec;
           models = {
+            "claude-opus-4-8" = {
+              aliases = [ "claude-opus-4.8" ];
+              variants = claudeOpus47;
+            };
             "claude-opus-4-7" = {
               aliases = [ "claude-opus-4.7" ];
               variants = claudeOpus47;
@@ -449,6 +453,10 @@ in
           };
           models = {
             # Anthropic models
+            "claude-opus-4-8-200k" = {
+              variants = claudeOpus47;
+              path = "claude-opus-4.8";
+            };
             "claude-opus-4-7" = {
               variants = claudeOpus47;
               path = "claude-opus-4.7-1m-internal";
