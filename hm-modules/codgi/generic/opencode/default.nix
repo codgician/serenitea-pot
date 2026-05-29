@@ -158,10 +158,10 @@ in
         tmux.enabled = config.codgician.codgi.tmux.enable;
         agents = {
           sisyphus = {
-            model = "dendro/claude-opus-4-7";
+            model = "dendro/claude-opus-4-8";
             fallback_models = [
-              "anthropic/claude-opus-4-7"
-              "github-copilot/claude-opus-4-7"
+              "anthropic/claude-opus-4-8"
+              "github-copilot/claude-opus-4-8"
             ];
           };
           sisyphus-junior = {
@@ -192,10 +192,10 @@ in
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           metis = {
-            model = "dendro/claude-opus-4-7";
+            model = "dendro/claude-opus-4-8";
             fallback_models = [
               "github-copilot/claude-opus-4.7-1m-internal"
-              "anthropic/claude-opus-4-7"
+              "anthropic/claude-opus-4-8"
             ];
           };
           momus = {
@@ -210,10 +210,10 @@ in
             ];
           };
           prometheus = {
-            model = "dendro/claude-opus-4-7";
+            model = "dendro/claude-opus-4-8";
             fallback_models = [
               "github-copilot/claude-opus-4.7-1m-internal"
-              "anthropic/claude-opus-4-7"
+              "anthropic/claude-opus-4-8"
             ];
           };
         };
@@ -246,10 +246,10 @@ in
             ];
           };
           unspecified-high = {
-            model = "dendro/claude-opus-4-7";
+            model = "dendro/claude-opus-4-8";
             fallback_models = [
               "github-copilot/claude-opus-4.7-1m-internal"
-              "anthropic/claude-opus-4-7"
+              "anthropic/claude-opus-4-8"
             ];
           };
           writing = {
