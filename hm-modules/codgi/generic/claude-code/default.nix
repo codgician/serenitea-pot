@@ -10,7 +10,7 @@ let
 
   mkMcpServer =
     server:
-    (builtins.removeAttrs server [ "disabled" ])
+    (removeAttrs server [ "disabled" ])
     // (lib.optionalAttrs (server ? url) { type = "http"; })
     // (lib.optionalAttrs (server ? command) { type = "stdio"; });
 
@@ -50,6 +50,11 @@ in
         env = {
           CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
+          CLAUDE_CODE_EFFORT_LEVEL = "max";
+          ANTHROPIC_MODEL = "claude-opus-4-8";
+          ANTHROPIC_DEFAULT_SONNET_MODEL = "claude-sonnet-4-6";
+          ANTHROPIC_DEFAULT_OPUS_MODEL = "claude-opus-4-8";
+          ANTHROPIC_DEFAULT_HAIKU_MODEL = "claude-haiku-4-5";
         };
         permissions = {
           allow = [
