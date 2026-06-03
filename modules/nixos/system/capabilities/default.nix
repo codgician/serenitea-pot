@@ -27,21 +27,16 @@ in
     hasDesktop = mkCapability ''
       Whether a desktop environment is installed (e.g. GNOME or Plasma).
       Derived from the enabled desktop environment modules.
-    '';
 
-    hasDesktopKeyring = mkCapability ''
-      Whether a desktop keyring (e.g. GNOME Keyring or KDE Wallet) is
-      available and unlocked as part of the graphical login session.
-      Derived from the enabled desktop environment modules.
-
-      Note: this describes a desktop-session secret store. It does not
-      imply the keyring is reachable from non-graphical sessions such as
+      A desktop environment also implies a graphical login session with a
+      keyring (GNOME Keyring or KDE Wallet) that is unlocked via PAM. Note
+      that such a keyring describes a desktop-session secret store; it does
+      not imply the keyring is reachable from non-graphical sessions such as
       SSH, where it is typically locked.
     '';
   };
 
   config.codgician.system.capabilities = {
     hasDesktop = hasDesktopEnvironment;
-    hasDesktopKeyring = hasDesktopEnvironment;
   };
 }

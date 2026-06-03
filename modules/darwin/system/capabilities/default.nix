@@ -21,16 +21,13 @@ in
     hasDesktop = mkCapability ''
       Whether a desktop environment is installed.
       Always true on Darwin as macOS always provides the Aqua desktop.
-    '';
 
-    hasDesktopKeyring = mkCapability ''
-      Whether a desktop keyring is available as part of the login session.
-      Always true on Darwin as the macOS Keychain is always available.
+      A desktop environment also implies a login-session keyring; on Darwin
+      this is always available via the macOS Keychain.
     '';
   };
 
   config.codgician.system.capabilities = {
     hasDesktop = true;
-    hasDesktopKeyring = true;
   };
 }

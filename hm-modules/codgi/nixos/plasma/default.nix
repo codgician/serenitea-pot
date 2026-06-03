@@ -251,6 +251,20 @@ in
     # GPG with pinentry-qt for KDE
     services.gpg-agent.pinentry.package = pkgs.pinentry-qt;
 
+    # Route SSH passphrase prompts through ksshaskpass so they are stored in
+    # (and later silently retrieved from) the PAM-unlocked KWallet. GNOME uses
+    # its own native GCR prompt instead, so this lives in the Plasma module.
+    # home.sessionVariables covers shell-launched ssh; systemd.user mirror
+    # covers ssh launched from KDE app launcher / krunner / DBus activation.
+    home.sessionVariables = {
+      SSH_ASKPASS = lib.getExe pkgs.kdePackages.ksshaskpass;
+      SSH_ASKPASS_REQUIRE = "prefer";
+    };
+    systemd.user.sessionVariables = {
+      SSH_ASKPASS = lib.getExe pkgs.kdePackages.ksshaskpass;
+      SSH_ASKPASS_REQUIRE = "prefer";
+    };
+
     # Hack: fix .gtkrc-2.0 becoming a real file instead of a symlink
     home.activation.rm-gtkrc-2-0 = lib.hm.dag.entryBefore [ "checkLinkTargets" ] ''
       if [ ! -L $HOME/.gtkrc-2.0 ]; then
