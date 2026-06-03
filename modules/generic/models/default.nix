@@ -189,6 +189,13 @@ let
     low.reasoningEffort = "low";
   };
 
+  # MAI reasoning variants
+  mai = {
+    high.reasoningEffort = "high";
+    medium.reasoningEffort = "medium";
+    low.reasoningEffort = "low";
+  };
+
   # ===========================================================================
   # Build Registry from typed config
   # ===========================================================================
@@ -501,6 +508,13 @@ in
             "gpt-5.5" = {
               mode = "responses";
               variants = gpt52;
+            };
+
+            # MAI models
+            "mai-code-1-flash" = {
+              mode = "responses";
+              variants = mai;
+              path = "mai-code-1-flash-internal";
             };
           };
         };
