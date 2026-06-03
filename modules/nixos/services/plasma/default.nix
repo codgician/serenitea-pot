@@ -28,9 +28,6 @@ lib.optionalAttrs (lib.version >= "24.05") {
   };
 
   config = lib.mkIf cfg.enable {
-    # KDE Wallet provides secret storage
-    codgician.system.capabilities.hasSecretStorage = true;
-
     services = {
       xserver.enable = true;
       displayManager = {

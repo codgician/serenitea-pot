@@ -1,6 +1,5 @@
 {
   config,
-  osConfig ? { },
   lib,
   pkgs,
   ...
@@ -9,6 +8,9 @@ let
   cfg = config.codgician.codgi.git;
   pubKeys = import (lib.codgician.secretsDir + "/pubkeys.nix");
   isDarwin = pkgs.stdenvNoCC.isDarwin;
+
+  # Platform keyring for GCM: macOS Keychain, or Secret Service on Linux.
+  credentialStore = if isDarwin then "keychain" else "secretservice";
 
   # Identity submodule type
   identityType = lib.types.submodule {
@@ -40,17 +42,6 @@ in
 {
   options.codgician.codgi.git = {
     enable = lib.mkEnableOption "Git user configurations.";
-
-    useGitCredentialManager = lib.mkOption {
-      type = lib.types.bool;
-      default = osConfig.codgician.system.capabilities.hasSecretStorage or false;
-      description = ''
-        Use Git Credential Manager (GCM) for credential storage.
-        Supports Azure DevOps, GitHub, GitLab, and Bitbucket.
-        Requires a secret storage backend (GNOME Keyring, KDE Wallet, or macOS Keychain).
-        Defaults to true when a secret storage backend is available.
-      '';
-    };
 
     identities = lib.mkOption {
       type = lib.types.attrsOf identityType;
@@ -116,17 +107,13 @@ in
       includes = directoryIncludes;
 
       settings = rec {
-        credential = lib.mkMerge [
-          # GCM for hosts with secret storage
-          (lib.mkIf cfg.useGitCredentialManager {
-            helper = "${pkgs.git-credential-manager}/bin/git-credential-manager";
-            credentialStore = lib.mkIf (!isDarwin) "secretservice";
-          })
-          # Fallback to osxkeychain on Darwin without GCM
-          (lib.mkIf (isDarwin && !cfg.useGitCredentialManager) {
-            helper = "osxkeychain";
-          })
-        ];
+        # GCM is the credential helper for non-GitHub HTTPS hosts (GitHub uses
+        # gh below). OAuth via the browser flow; Azure DevOps thus needs an
+        # interactive desktop session (its tenant bans device-code).
+        credential = {
+          helper = lib.getExe pkgs.git-credential-manager;
+          inherit credentialStore;
+        };
 
         # Azure DevOps requires useHttpPath to determine organization from URL
         "credential \"https://dev.azure.com\"".useHttpPath = true;
@@ -148,7 +135,9 @@ in
 
     programs.gh = {
       enable = true;
-      gitCredentialHelper.enable = false; # Use GCM instead for multi-account support
+      # gh handles GitHub credentials (overrides GCM for github.com/gist),
+      # sharing one token between the CLI and git.
+      gitCredentialHelper.enable = true;
       settings.editor = lib.getExe pkgs.vim;
     };
   };
