@@ -8,13 +8,8 @@ let
   flakePath = lib.codgician.rootDir + "/flake.nix";
   substituters = (import flakePath).nixConfig.extra-substituters;
   trusted-public-keys = (import flakePath).nixConfig.extra-trusted-public-keys;
-  cfg = config.codgician.system.nix;
 in
 {
-  options.codgician.system.nix = {
-    useCnMirror = lib.mkEnableOption "China mainland mirror for nix binary cache";
-  };
-
   config = {
     nix = {
       # Use latest nix
@@ -38,7 +33,7 @@ in
       settings = {
         inherit trusted-public-keys;
         substituters =
-          (lib.optionals cfg.useCnMirror [
+          (lib.optionals config.codgician.system.common.inChina [
             "https://mirrors.tuna.tsinghua.edu.cn/nix-channels/store?priority=10"
           ])
           ++ substituters;

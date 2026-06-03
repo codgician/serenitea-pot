@@ -113,6 +113,13 @@ let
           VLLM_NO_USAGE_STATS = "1";
           HF_HUB_DOWNLOAD_TIMEOUT = "600";
         }
+        // lib.optionalAttrs config.codgician.system.common.inChina {
+          # Download models from ModelScope instead of Hugging Face in
+          # mainland China. vLLM parses this as `.lower() == "true"`, so the
+          # value must be "True"/"true" (not "1"). The `modelscope` package
+          # is preinstalled in the official `vllm/vllm-openai` image.
+          VLLM_USE_MODELSCOPE = "True";
+        }
         // c.environmentVariables;
         volumes = [
           "${cfg.cacheDir}:/root/.cache/huggingface:rw"

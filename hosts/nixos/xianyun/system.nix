@@ -48,6 +48,7 @@
 
     system = {
       auto-upgrade.enable = true;
+      common.inChina = true;
       impermanence = {
         enable = true;
         wipeOnShutdown.zfs = {
@@ -55,7 +56,6 @@
           datasets = [ "zroot/root" ];
         };
       };
-      nix.useCnMirror = true;
     };
 
     users.codgi = with lib.codgician; {

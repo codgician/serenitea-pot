@@ -15,7 +15,7 @@
         masApps = (import ./brew.nix).masApps;
       };
       common.enable = true;
-      nix.useCnMirror = true;
+      common.inChina = true;
     };
 
     users.codgi.enable = true;

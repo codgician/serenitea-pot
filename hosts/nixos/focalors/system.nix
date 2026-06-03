@@ -16,9 +16,9 @@ in
 
     system = {
       auto-upgrade.enable = true;
+      common.inChina = true;
       impermanence.enable = true;
       secure-boot.enable = true;
-      nix.useCnMirror = true;
     };
 
     users.codgi = with lib.codgician; {

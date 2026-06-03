@@ -266,6 +266,7 @@
 
     system = {
       auto-upgrade.enable = true;
+      common.inChina = true;
       impermanence = {
         enable = true;
         wipeOnShutdown.zfs = {
@@ -274,7 +275,6 @@
         };
       };
       secure-boot.enable = true;
-      nix.useCnMirror = true;
     };
 
     virtualization.podman.enable = true;
