@@ -25,7 +25,7 @@ in
 
     audit.enable = lib.mkOption {
       type = lib.types.bool;
-      default = false;
+      default = true;
       description = "Linux kernel audit subsystem and auditd userspace daemon.";
     };
   };
@@ -182,20 +182,6 @@ in
         wheelNeedsPassword = false;
       };
     };
-
-    # Kernel audit is independent from AppArmor. When enabled, turn it on from
-    # the cmdline (with an enlarged backlog) so events before auditd starts are
-    # captured; otherwise disable it. The `lsm=` parameter is managed by NixOS
-    # via `security.lsm` (AppArmor adds itself), so it is intentionally absent
-    # here.
-    boot.kernelParams =
-      if cfg.audit.enable then
-        [
-          "audit=1"
-          "audit_backlog_limit=${builtins.toString config.security.audit.backlogLimit}"
-        ]
-      else
-        [ "audit=0" ];
 
     # systemd-boot common configurations
     boot.loader.systemd-boot = {

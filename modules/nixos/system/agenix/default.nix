@@ -12,10 +12,17 @@ in
     };
   };
 
-  # Workaround impermanence
-  config.age.identityPaths =
-    if impermanenceCfg.enable then
-      builtins.map (x: impermanenceCfg.path + x) cfg.hostIdentityPaths
-    else
-      cfg.hostIdentityPaths;
+  config = {
+    # Workaround impermanence
+    age.identityPaths =
+      if impermanenceCfg.enable then
+        builtins.map (x: impermanenceCfg.path + x) cfg.hostIdentityPaths
+      else
+        cfg.hostIdentityPaths;
+
+    # Audit access to agenix secrets directory
+    security.audit.rules = [
+      "-w /run/agenix.d -p r -k agenix-secret-access"
+    ];
+  };
 }
