@@ -17,9 +17,16 @@ let
 in
 {
   options.codgician.system.common = {
+    apparmor.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "AppArmor mandatory access control (enforcement with journald-visible logs).";
+    };
+
     audit.enable = lib.mkOption {
+      type = lib.types.bool;
       default = false;
-      description = "Linux kernel audits";
+      description = "Linux kernel audit subsystem and auditd userspace daemon.";
     };
   };
 
@@ -162,7 +169,9 @@ in
 
       auditd.enable = cfg.audit.enable;
       apparmor = {
-        enable = cfg.audit.enable;
+        # NixOS automatically appends "apparmor" to `security.lsm` and sets
+        # `apparmor=1` when enabled, so no manual `lsm=` wiring is needed.
+        enable = cfg.apparmor.enable;
         packages = with pkgs; [ apparmor-profiles ];
         killUnconfinedConfinables = true;
       };
@@ -174,13 +183,16 @@ in
       };
     };
 
-    # Enlarge audit backlog limit
+    # Kernel audit is independent from AppArmor. When enabled, turn it on from
+    # the cmdline (with an enlarged backlog) so events before auditd starts are
+    # captured; otherwise disable it. The `lsm=` parameter is managed by NixOS
+    # via `security.lsm` (AppArmor adds itself), so it is intentionally absent
+    # here.
     boot.kernelParams =
       if cfg.audit.enable then
         [
           "audit=1"
           "audit_backlog_limit=${builtins.toString config.security.audit.backlogLimit}"
-          "lsm=landlock,lockdown,yama,integrity,safesetid,apparmor,bpf"
         ]
       else
         [ "audit=0" ];
