@@ -244,8 +244,6 @@ in
     };
 
     # Klassy decoration + style + global theme plugin.
-    # Pulled from nixpkgs-unstable via overlays/01-unstable-packages
-    # because nixos-25.11-small does not ship it.
     home.packages = [ pkgs.klassy ];
 
     # GPG with pinentry-qt for KDE

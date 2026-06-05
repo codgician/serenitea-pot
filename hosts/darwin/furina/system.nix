@@ -12,7 +12,7 @@
           # "playcover/playcover"
         ];
         casks = (import ./brew.nix).casks;
-        masApps = (import ./brew.nix).masApps;
+        #masApps = (import ./brew.nix).masApps;
       };
       common.enable = true;
       common.inChina = true;
@@ -58,7 +58,7 @@
       };
 
       home = {
-        stateVersion = "25.11";
+        stateVersion = "26.05";
         packages =
           with pkgs;
           [
