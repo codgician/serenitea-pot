@@ -149,5 +149,5 @@
     trackpad.Clicking = true;
   };
 
-  system.stateVersion = 6;
+  system.stateVersion = 7;
 }

@@ -148,7 +148,6 @@ if [[ "$platform" == "nixos" ]]; then
         ssh.enable = true;
         zsh.enable = true;
       };
-
       home.stateVersion = "26.05";
       home.packages = with pkgs; [
         iperf3
@@ -228,7 +227,7 @@ else
   };
 
   system.primaryUser = "codgi";
-  system.stateVersion = 6;
+  system.stateVersion = 7;
 }
 EOF
 fi
