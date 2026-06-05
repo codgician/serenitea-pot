@@ -60,7 +60,7 @@
     grafana.reverseProxy = {
       enable = true;
       domains = [ "lumenstone.codgician.me" ];
-      proxyPass = "http://192.168.0.22";
+      proxyPass = "https://192.168.0.22";
       anubis.enable = true;
     };
 
