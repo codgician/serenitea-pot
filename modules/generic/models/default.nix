@@ -460,7 +460,7 @@ in
           };
           models = {
             # Anthropic models
-            "claude-opus-4-8-200k" = {
+            "claude-opus-4-8" = {
               variants = claudeOpus47;
               path = "claude-opus-4.8";
             };
