@@ -191,6 +191,17 @@ in
       };
     }
 
+    # Impermanence relocates the SSH host key (see the files list above) onto
+    # ${cfg.path}. sops-nix derives its age decryption key from that host key and
+    # must read it during the EARLY secrets-for-users activation phase, before
+    # the /persist bind-mounts settle -- so point sops at the real persisted
+    # path. Owned here (the optional module) rather than in the always-on secrets
+    # module, since impermanence is what moved the key. Non-impermanence hosts
+    # keep sops-nix's default (the ed25519 key from services.openssh.hostKeys).
+    (lib.mkIf cfg.enable {
+      sops.age.sshKeyPaths = [ (cfg.path + "/etc/ssh/ssh_host_ed25519_key") ];
+    })
+
     (lib.mkIf cfg.wipeOnShutdown.zfs.enable {
       systemd.shutdownRamfs.contents."/etc/systemd/system-shutdown/impermanence-wipe-zfs".source =
         let
