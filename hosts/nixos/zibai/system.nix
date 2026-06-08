@@ -62,7 +62,7 @@
   networking.wireless = {
     enable = true;
     scanOnLowSignal = true;
-    secretsFile = config.age.secrets.wireless-env.path;
+    secretsFile = config.codgician.secrets.templates."wireless-env".path;
     networks."grassland" = {
       pskRaw = "ext:GRASSLAND_PASS";
     };

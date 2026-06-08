@@ -77,7 +77,7 @@ in
             "Read(*.pem)"
             "Read(*.key)"
             "Read(/etc/ssh*)"
-            "Read(/run/agenix*)"
+            "Read(/run/secrets*)"
             # Dangerous commands
             "Bash(rm -rf *)"
             "Bash(sudo *)"

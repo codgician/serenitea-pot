@@ -7,7 +7,6 @@
 let
   cfg = config.codgician.services.anubis;
   nginxCfg = config.codgician.services.nginx;
-  ageCfg = config.age.secrets;
   inherit (lib)
     types
     optionalAttrs
@@ -110,9 +109,6 @@ in
     # nginx needs access to the Anubis Unix sockets.
     users.users.nginx.extraGroups = [ "anubis" ];
 
-    # Signing key for cross-subdomain cookie sharing.
-    codgician.system.agenix.secrets.anubis-env.owner = "anubis";
-
     services.anubis = {
       defaultOptions = {
         settings = {
@@ -134,7 +130,7 @@ in
     systemd.services = lib.mapAttrs' (
       name: _:
       lib.nameValuePair "anubis-${sanitizeName name}" {
-        serviceConfig.EnvironmentFile = [ ageCfg.anubis-env.path ];
+        serviceConfig.EnvironmentFile = [ config.codgician.secrets.templates."anubis-env".path ];
       }
     ) anubisProxies;
 

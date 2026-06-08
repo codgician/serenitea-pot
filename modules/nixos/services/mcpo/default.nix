@@ -17,12 +17,12 @@ let
         "-y"
         "@amap/amap-maps-mcp-server"
       ];
-      env.AMAP_MAPS_API_KEY._secret = config.age.secrets.mcp-amap-api-key.path;
+      env.AMAP_MAPS_API_KEY._secret = config.codgician.secrets.files.mcp-amap-api-key.path;
     };
     context7 = {
       type = "streamable_http";
       url = "https://mcp.context7.com/mcp";
-      headers.CONTEXT7_API_KEY._secret = config.age.secrets.context7-api-key.path;
+      headers.CONTEXT7_API_KEY._secret = config.codgician.secrets.files.context7-api-key.path;
     };
     fetch = {
       command = "uvx";
@@ -42,12 +42,12 @@ let
         "-y"
         "@modelcontextprotocol/server-google-maps"
       ];
-      env.GOOGLE_MAPS_API_KEY._secret = config.age.secrets.mcp-google-maps-api-key.path;
+      env.GOOGLE_MAPS_API_KEY._secret = config.codgician.secrets.files.mcp-google-maps-api-key.path;
     };
     github = {
       type = "streamable_http";
       url = "https://api.githubcopilot.com/mcp/";
-      headers.Authorization._secret = config.age.secrets.github-auth-header.path;
+      headers.Authorization._secret = config.codgician.secrets.files.github-auth-header.path;
     };
     paper-search = {
       command = "uv";

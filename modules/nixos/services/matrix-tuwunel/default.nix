@@ -84,7 +84,7 @@ in
             "turn:turn.codgician.me?transport=udp"
             "turn:turn.codgician.me?transport=tcp"
           ];
-          turn_secret_file = config.age.secrets.tuwunel-turn-secret.path;
+          turn_secret_file = config.codgician.secrets.files.tuwunel-turn-secret.path;
           turn_ttl = 86400;
         }
         // lib.optionalAttrs cfg.zfsOptimizations {
@@ -98,7 +98,7 @@ in
             {
               brand = "authelia";
               client_id = serviceName;
-              client_secret_file = config.age.secrets.tuwunel-oidc-secret-authelia-main.path;
+              client_secret_file = config.codgician.secrets.files.tuwunel-oidc-secret-authelia-main.path;
               issuer_url = autheliaUrl;
               callback_url = "https://${cfg.domain}/_matrix/client/unstable/login/sso/callback/${serviceName}";
               default = true;
@@ -130,8 +130,8 @@ in
       };
       users.groups.tuwunel.members = [ "nginx" ];
 
-      # Agenix secrets
-      codgician.system.agenix.secrets = {
+      # sops secrets
+      codgician.secrets.files = {
         tuwunel-oidc-secret-authelia-main = {
           owner = serviceUser;
           group = serviceUser;

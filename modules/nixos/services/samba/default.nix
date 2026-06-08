@@ -97,7 +97,9 @@ in
               user:
               let
                 passwordFile =
-                  config.age.secrets."${lib.codgician.getAgeSecretNameFromPath userCfg.${user}.passwordAgeFile}".path;
+                  config.codgician.secrets.files."${lib.codgician.getAgeSecretNameFromPath
+                    userCfg.${user}.passwordAgeFile
+                  }".path;
               in
               ''
                 echo "Refreshing samba password for: ${user}"

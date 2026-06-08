@@ -27,10 +27,10 @@ sudo mkdir -p /mnt/persist/etc/ssh/
 sudo ssh-keygen -t ed25519 -f /mnt/persist/etc/ssh/ssh_host_ed25519_key -C ""
 ```
 
-Add generated public key to `/secrets/pubkeys.nix`, then navigate to `/secrets` and run following command to rekey all credentials:
+Add generated public key to `/secrets/pubkeys.nix`, then run following command from the repo root to rekey all credentials:
 
 ```bash
-agenix -r
+nix run .#secrets -- rekey
 ```
 
 ## Install NixOS

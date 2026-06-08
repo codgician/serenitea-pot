@@ -9,7 +9,8 @@
   screen,
   tmux,
   aria2,
-  agenix,
+  sops,
+  ssh-to-age,
   disko,
   smartmontools,
   acpica-tools,
@@ -48,7 +49,8 @@ let
               screen
               tmux
               aria2
-              agenix
+              sops
+              ssh-to-age
               disko
               smartmontools
               acpica-tools

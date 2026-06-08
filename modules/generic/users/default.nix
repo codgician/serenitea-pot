@@ -43,7 +43,9 @@ let
         default = null;
         visible = isLinux;
         description = ''
-          Path to hashed password file encrypted managed by agenix.
+          Path identifying the hashed-password secret (its basename without the
+          .age suffix selects the managed secret). Decrypted early as a
+          neededForUsers secret so it backs users.users.<name>.hashedPasswordFile.
         '';
       };
 
@@ -51,8 +53,9 @@ let
         type = with types; nullOr path;
         default = null;
         description = ''
-          Path to plain password file encrypted managed by agenix.
-          This option does not set login password.
+          Path identifying the plaintext-password secret (basename without .age
+          selects the managed secret). Consumed at runtime (e.g. by smbpasswd);
+          this option does not set the login password.
         '';
       };
 
@@ -88,23 +91,41 @@ let
         (import ./${name} { inherit config lib pkgs; })
 
         {
-          codgician.system = {
-            # Agenix secrets
-            agenix.secrets =
-              let
-                credFiles =
-                  cfg.${name}.extraAgeFiles
-                  ++ (builtins.filter (x: x != null) [
-                    cfg.${name}.passwordAgeFile
-                    cfg.${name}.hashedPasswordAgeFile
-                  ]);
-                credNames = builtins.map (x: lib.codgician.getAgeSecretNameFromPath x) credFiles;
-              in
-              lib.genAttrs credNames (_: {
+          # Secrets
+          codgician.secrets.files =
+            let
+              nameOf = lib.codgician.getAgeSecretNameFromPath;
+              # Only declare secrets THIS host can decrypt; a host that is not a
+              # recipient must not try to materialize the file (activation fails).
+              thisHostKeys = lib.codgician.registry.pubkeys.hosts.${config.networking.hostName} or [ ];
+              canDecrypt =
+                n:
+                lib.any (k: builtins.elem k thisHostKeys) (lib.codgician.registry.secrets.${n}.publicKeys or [ ]);
+
+              # passwordAgeFile (plaintext, read at runtime e.g. by smbpasswd) and
+              # extraAgeFiles stay user-owned in /run/secrets.
+              runtimeNames = builtins.map nameOf (
+                cfg.${name}.extraAgeFiles
+                ++ lib.optional (cfg.${name}.passwordAgeFile != null) cfg.${name}.passwordAgeFile
+              );
+              # hashedPasswordAgeFile feeds users.users.<name>.hashedPasswordFile,
+              # read before /run/secrets exists, so it must decrypt early
+              # (neededForUsers) and therefore be root-owned.
+              hashedNames = lib.optional (cfg.${name}.hashedPasswordAgeFile != null) (
+                nameOf cfg.${name}.hashedPasswordAgeFile
+              );
+
+              runtimeDecls = lib.genAttrs (builtins.filter canDecrypt runtimeNames) (_: {
                 owner = name;
               });
-          }
-          // lib.optionalAttrs (config.codgician.system ? impermanence) {
+              hashedDecls = lib.genAttrs (builtins.filter canDecrypt hashedNames) (_: {
+                neededForUsers = true;
+              });
+            in
+            # hashed wins on collision (root + neededForUsers).
+            runtimeDecls // hashedDecls;
+
+          codgician.system = lib.optionalAttrs (config.codgician.system ? impermanence) {
             # Impermanence: persist home directory if enabled
             impermanence.extraItems = [
               {
@@ -132,7 +153,7 @@ let
               if cfg.${name}.hashedPasswordAgeFile == null then
                 invalidHashedPasswordFile.outPath
               else
-                config.age.secrets."${lib.codgician.getAgeSecretNameFromPath
+                config.codgician.secrets.files."${lib.codgician.getAgeSecretNameFromPath
                   cfg.${name}.hashedPasswordAgeFile
                 }".path;
           };

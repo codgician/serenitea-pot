@@ -13,7 +13,7 @@
     "192.168.72.0/24"
     "fd00:c0d9:1c72::/48"
   ];
-  privateKeyFile = config.age.secrets.wg-private-key-xianyun.path;
+  privateKeyFile = config.codgician.secrets.files.wg-private-key-xianyun.path;
   publicKey = "Uw99L+A6C9/cEzPmowLT8vC+cELdhcXAs61rjHb1hyY=";
   persistentKeepalive = 25;
 }

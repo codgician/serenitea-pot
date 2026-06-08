@@ -2,7 +2,8 @@
 
 pkgs.mkShell {
   buildInputs = with pkgs; [
-    agenix
+    sops
+    ssh-to-age
     direnv
     git
     nixd

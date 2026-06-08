@@ -94,14 +94,13 @@ in
       };
     };
 
-    codgician.system = {
-      # Agenix secret for OAuth2 token
-      agenix.secrets."sasl-xoauth2" = {
-        owner = cfg.user;
-        group = cfg.group;
-        mode = "0600";
-      };
+    codgician.secrets.files."sasl-xoauth2" = {
+      owner = cfg.user;
+      group = cfg.group;
+      mode = "0600";
+    };
 
+    codgician.system = {
       # Impermanence
       impermanence.extraItems = [
         {
@@ -121,7 +120,7 @@ in
     environment.etc."sasl-xoauth2.conf" = {
       inherit (cfg) group user;
       mode = "0600";
-      source = config.age.secrets.sasl-xoauth2.path;
+      source = config.codgician.secrets.files.sasl-xoauth2.path;
     };
 
     # Add an activation script to check token file existence

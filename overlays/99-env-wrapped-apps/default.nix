@@ -20,7 +20,9 @@ let
     };
 in
 {
-  claude-code-wrapped = mkEnvWrappedApplication final.claude-code "/run/agenix/claude-code-env";
-  codex-wrapped = mkEnvWrappedApplication final.codex "/run/agenix/codex-env";
-  droid-wrapped = mkEnvWrappedApplication final.nur.repos.codgician.droid "/run/agenix/droid-env";
+  # Env bundles are sops-nix host templates, rendered at activation to
+  # /run/secrets/rendered/<name> (see modules/nixos/system/secrets).
+  claude-code-wrapped = mkEnvWrappedApplication final.claude-code "/run/secrets/rendered/claude-code-env";
+  codex-wrapped = mkEnvWrappedApplication final.codex "/run/secrets/rendered/codex-env";
+  droid-wrapped = mkEnvWrappedApplication final.nur.repos.codgician.droid "/run/secrets/rendered/droid-env";
 }

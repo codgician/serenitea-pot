@@ -105,7 +105,7 @@ rec {
     ++ [
       # Darwin modules
       outputs.modules.darwin
-      agenix.darwinModules.default
+      sops-nix.darwinModules.sops
     ];
 
   # All NixOS modules for building system
@@ -128,7 +128,7 @@ rec {
       outputs.modules.nixos
       impermanence.nixosModules.impermanence
       disko.nixosModules.disko
-      agenix.nixosModules.default
+      sops-nix.nixosModules.sops
       lanzaboote.nixosModules.lanzaboote
       nixos-generators.nixosModules.all-formats
       nixos-wsl.nixosModules.wsl

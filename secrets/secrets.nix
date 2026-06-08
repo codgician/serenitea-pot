@@ -1,163 +1,204 @@
+{ pubkeys }: # pubkeys = import ./pubkeys.nix
 let
-  pubKeys = import ./pubkeys.nix;
+  inherit (pubkeys)
+    someHosts
+    allHosts
+    allServers
+    publicServers
+    hosts
+    ;
 in
-with pubKeys;
-with pubKeys.hosts;
 {
-  # Authelia
-  "authelia-main-jwt.age".publicKeys = someHosts [ paimon ];
-  "authelia-main-session.age".publicKeys = someHosts [ paimon ];
-  "authelia-main-storage.age".publicKeys = someHosts [ paimon ];
-  "authelia-main-jwks.age".publicKeys = someHosts [ paimon ];
+  inherit pubkeys;
 
-  # Anubis
-  "anubis-env.age".publicKeys = someHosts [ lumine ];
+  # Every entry is a raw `values/<name>` sops file. Recipients come from one of
+  # two sources (see lib/sops.nix):
+  #   - explicit `publicKeys` here  -> directly-consumed secrets (host reads the
+  #     decrypted file verbatim via codgician.secrets.files.<name>.path), or
+  #   - derived from referencing templates -> env-bundle components (the template
+  #     that composes the value supplies the recipients).
+  # A secret with neither is unencryptable and fails at eval. The operator key is
+  # always present via the someHosts/allHosts/... aliases.
+  secrets = {
+    # --- Direct single-value secrets (explicit recipients = agenix parity) ---
 
-  # Claude Code
-  "claude-code-env.age".publicKeys = allHosts;
+    # Authelia (paimon)
+    authelia-main-jwt.publicKeys = someHosts [ hosts.paimon ];
+    authelia-main-session.publicKeys = someHosts [ hosts.paimon ];
+    authelia-main-storage.publicKeys = someHosts [ hosts.paimon ];
+    authelia-main-jwks.publicKeys = someHosts [ hosts.paimon ];
 
-  # Codex
-  "codex-env.age".publicKeys = allHosts;
+    # Docker
+    docker-pat.publicKeys = allServers;
 
-  # Droid
-  "droid-env.age".publicKeys = allHosts;
+    # Sasl XOAuth2
+    sasl-xoauth2 = {
+      publicKeys = allServers;
+      expiryDate = "2027-08-10";
+    };
 
-  # Docker
-  "docker-pat.age".publicKeys = allServers;
+    # MCP servers
+    context7-api-key.publicKeys = allHosts;
+    github-auth-header.publicKeys = allHosts;
+    mcp-amap-api-key.publicKeys = someHosts [ hosts.paimon ];
+    mcp-google-maps-api-key.publicKeys = someHosts [ hosts.paimon ];
 
-  # Sasl XOAuth2 config
-  "sasl-xoauth2.age" = {
-    publicKeys = allServers;
-    expiryDates = [ "2027-08-10" ];
-  };
+    # OIDC secrets
+    grafana-oidc-secret-authelia-main.publicKeys = someHosts [ hosts.paimon ];
+    jellyfin-oidc-secret-authelia-main.publicKeys = someHosts [ hosts.paimon ];
+    meshcentral-oidc-secret-authelia-main.publicKeys = someHosts [ hosts.fischl ];
+    proxmox-ve-oidc-secret-authelia-main.publicKeys = someHosts [ hosts.paimon ];
 
-  # MCP Servers
-  "context7-api-key.age".publicKeys = allHosts;
-  "github-auth-header.age".publicKeys = allHosts;
-
-  # OIDC secrets
-  "grafana-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];
-  "jellyfin-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];
-  "meshcentral-oidc-secret-authelia-main.age".publicKeys = someHosts [ fischl ];
-  "proxmox-ve-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];
-
-  # Wireless credentials
-  "wireless-env.age".publicKeys = someHosts [ zibai ];
-
-  # User password
-  "codgi-password.age".publicKeys = someHosts [
-    jahoda
-    paimon
-  ];
-  "codgi-hashed-password.age".publicKeys = allHosts;
-  "smb-password.age".publicKeys = someHosts [ paimon ];
-  "smb-hashed-password.age".publicKeys = someHosts [ paimon ];
-  "smb-qiaoying-password.age".publicKeys = someHosts [ zibai ];
-  "smb-qiaoying-hashed-password.age".publicKeys = someHosts [ zibai ];
-  "kiosk-hashed-password.age".publicKeys = someHosts [ ];
-
-  # NUT password
-  "nut-password.age".publicKeys = someHosts [
-    fischl
-    paimon
-  ];
-  "upsmon-password.age".publicKeys = someHosts [
-    fischl
-    paimon
-  ];
-
-  # Cloudflare token
-  "cloudflare-credential.age".publicKeys = allServers;
-
-  # Tencent Cloud DNS
-  "tencent-dns-credential.age".publicKeys = someHosts [ xianyun ];
-
-  # Nix access tokens
-  "nix-access-tokens.age" = {
-    publicKeys = allHosts;
-    expiryDates = [ "2026-08-12" ];
-  };
-
-  # GitLab secrets
-  "gitlab-init-root-password.age".publicKeys = someHosts [ paimon ];
-  "gitlab-db.age".publicKeys = someHosts [ paimon ];
-  "gitlab-jws.age".publicKeys = someHosts [ paimon ];
-  "gitlab-otp.age".publicKeys = someHosts [ paimon ];
-  "gitlab-secret.age".publicKeys = someHosts [ paimon ];
-  "gitlab-active-record-salt.age".publicKeys = someHosts [ paimon ];
-  "gitlab-active-record-primary-key.age".publicKeys = someHosts [ paimon ];
-  "gitlab-active-record-deterministic-key.age".publicKeys = someHosts [ paimon ];
-  "gitlab-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];
-
-  # Grafana secrets
-  "grafana-admin-password.age".publicKeys = someHosts [ paimon ];
-  "grafana-secret-key.age".publicKeys = someHosts [ paimon ];
-
-  # Tuwunel secrets
-  "tuwunel-oidc-secret-authelia-main.age".publicKeys = someHosts [ paimon ];
-  "tuwunel-turn-secret.age".publicKeys = someHosts [ paimon ];
-
-  # mcp secrets
-  "mcp-amap-api-key.age".publicKeys = someHosts [ paimon ];
-  "mcp-google-maps-api-key.age".publicKeys = someHosts [ paimon ];
-
-  # Open-WebUI secrets
-  "open-webui-env.age".publicKeys = someHosts [ paimon ];
-  "open-terminal-api-key.age".publicKeys = someHosts [ paimon ];
-
-  # LiteLLM secrets
-  "litellm-env.age".publicKeys = someHosts [
-    furina
-    lumine
-    paimon
-    wanderer
-  ];
-
-  # MiroFish secrets
-  "mirofish-env.age".publicKeys = someHosts [ paimon ];
-
-  # Sing secrets
-  "sing-ech-keys.age".publicKeys = publicServers;
-  "sing-codgi-proxy-password.age".publicKeys = publicServers ++ hosts.jahoda;
-  "sing-lxm75-proxy-password.age".publicKeys = publicServers;
-  "sing-itscd-proxy-password.age".publicKeys = publicServers;
-
-  # Terraform secrets
-  "terraform-env.age" = {
-    publicKeys = users.codgi;
-    expiryDates = [
-      "2027-02-04" # ARM_CLIENT_SECRET: caribert
+    # User passwords (neededForUsers consumers set the flag in their module)
+    codgi-password.publicKeys = someHosts [
+      hosts.jahoda
+      hosts.paimon
     ];
+    codgi-hashed-password.publicKeys = allHosts;
+    smb-password.publicKeys = someHosts [ hosts.paimon ];
+    smb-hashed-password.publicKeys = someHosts [ hosts.paimon ];
+    smb-qiaoying-password.publicKeys = someHosts [ hosts.zibai ];
+    smb-qiaoying-hashed-password.publicKeys = someHosts [ hosts.zibai ];
+    # kiosk has no host recipient in agenix today (someHosts [ ]); operator only.
+    kiosk-hashed-password.publicKeys = someHosts [ ];
+
+    # NUT / UPS
+    nut-password.publicKeys = someHosts [
+      hosts.fischl
+      hosts.paimon
+    ];
+    upsmon-password.publicKeys = someHosts [
+      hosts.fischl
+      hosts.paimon
+    ];
+
+    # Cloudflare (DNS-01) credential
+    cloudflare-credential.publicKeys = allServers;
+
+    # Tencent Cloud DNS
+    tencent-dns-credential.publicKeys = someHosts [ hosts.xianyun ];
+
+    # Nix access tokens
+    nix-access-tokens = {
+      publicKeys = allHosts;
+      expiryDate = "2026-08-12";
+    };
+
+    # GitLab
+    gitlab-init-root-password.publicKeys = someHosts [ hosts.paimon ];
+    gitlab-db.publicKeys = someHosts [ hosts.paimon ];
+    gitlab-jws.publicKeys = someHosts [ hosts.paimon ];
+    gitlab-otp.publicKeys = someHosts [ hosts.paimon ];
+    gitlab-secret.publicKeys = someHosts [ hosts.paimon ];
+    gitlab-active-record-salt.publicKeys = someHosts [ hosts.paimon ];
+    gitlab-active-record-primary-key.publicKeys = someHosts [ hosts.paimon ];
+    gitlab-active-record-deterministic-key.publicKeys = someHosts [ hosts.paimon ];
+    gitlab-oidc-secret-authelia-main.publicKeys = someHosts [ hosts.paimon ];
+
+    # Grafana
+    grafana-admin-password.publicKeys = someHosts [ hosts.paimon ];
+    grafana-secret-key.publicKeys = someHosts [ hosts.paimon ];
+
+    # Tuwunel (Matrix)
+    tuwunel-oidc-secret-authelia-main.publicKeys = someHosts [ hosts.paimon ];
+    tuwunel-turn-secret.publicKeys = someHosts [ hosts.paimon ];
+
+    # Open-WebUI direct (open-terminal api key; the env bundle is a template)
+    open-terminal-api-key.publicKeys = someHosts [ hosts.paimon ];
+
+    # Sing-box
+    sing-ech-keys.publicKeys = publicServers;
+    sing-codgi-proxy-password.publicKeys = publicServers ++ hosts.jahoda;
+    sing-lxm75-proxy-password.publicKeys = publicServers;
+    sing-itscd-proxy-password.publicKeys = publicServers;
+
+    # PiKVM basic auth (rendered behind nginx on lumine)
+    saw-basic-auth.publicKeys = someHosts [ hosts.lumine ];
+
+    # WireGuard private keys (per-host)
+    wg-private-key-furina.publicKeys = someHosts [ hosts.furina ];
+    wg-private-key-lumine.publicKeys = someHosts [ hosts.lumine ];
+    wg-private-key-lumidouce.publicKeys = someHosts [ ];
+    wg-private-key-qiaoying.publicKeys = someHosts [ ];
+    wg-private-key-xianyun.publicKeys = someHosts [ hosts.xianyun ];
+
+    # WireGuard preshared keys (per peer-pair)
+    wg-preshared-key-furina-lumine.publicKeys = someHosts [
+      hosts.furina
+      hosts.lumine
+    ];
+    wg-preshared-key-furina-xianyun.publicKeys = someHosts [
+      hosts.furina
+      hosts.xianyun
+    ];
+    wg-preshared-key-lumidouce-lumine.publicKeys = someHosts [ hosts.lumine ];
+    wg-preshared-key-lumidouce-xianyun.publicKeys = someHosts [ hosts.xianyun ];
+    wg-preshared-key-lumine-qiaoying.publicKeys = someHosts [ hosts.lumine ];
+    wg-preshared-key-lumine-xianyun.publicKeys = someHosts [
+      hosts.lumine
+      hosts.xianyun
+    ];
+    wg-preshared-key-qiaoying-xianyun.publicKeys = someHosts [ hosts.xianyun ];
+
+    # --- Template-derived components (recipients from referencing templates) ---
+
+    # terraform.env (app-scoped, operator only). GCP auth is NOT here: the GCP
+    # service-account key lives solely in the gcp-credentials.json raw secret
+    # (tfmgr decrypts it to a tmpfs file and points terraform at it through
+    # GOOGLE_APPLICATION_CREDENTIALS), so the old terraform-env GOOGLE_CREDENTIALS
+    # value is dropped as a duplicate.
+    arm-client-secret.expiryDate = "2027-02-04"; # caribert service principal
+    arm-access-key = { };
+    cloudflare-api-token = { };
+    cloudflare-email = { };
+
+    # GCP service-account credential. Stored as a single fully-encrypted raw
+    # value (the whole JSON is opaque ciphertext, so the service-account
+    # identity in client_email/project_id is not exposed in git). The name omits
+    # a `.json` extension to satisfy the [a-z0-9-]+ secret-name contract; the
+    # content is what matters. tfmgr decrypts it to a tmpfs file and points
+    # GOOGLE_APPLICATION_CREDENTIALS there. Operator-only: no host/template refs.
+    gcp-credentials.publicKeys = pubkeys.users.codgi;
+
+    # Shared env-bundle components (referenced by 2+ templates -> union recipients)
+    anthropic-auth-token = { }; # claude-code-env + droid-env
+    vllm-api-key = { }; # litellm-env + vllm-env
+    gemini-api-key = { }; # litellm-env + open-webui-env
+    litellm-proxy-admin-id = { }; # litellm-env PROXY_ADMIN_ID + UI_USERNAME
+
+    # litellm-env components
+    litellm-master-key = { };
+    litellm-generic-client-secret = { };
+    litellm-ui-password = { };
+    litellm-azure-akasha-api-key = { };
+    litellm-deepseek-api-key = { };
+    litellm-nvidia-nim-api-key = { };
+    litellm-anthropic-api-key = { };
+
+    # open-webui-env components
+    open-webui-secret-key = { };
+    open-webui-google-pse-engine-id = { };
+    open-webui-google-pse-api-key = { };
+    open-webui-oauth-client-secret = { };
+    open-webui-openai-api-base-urls = { };
+
+    # anubis-env component
+    anubis-ed25519-private-key-hex = { };
+
+    # mirofish-env components
+    mirofish-llm-api-key = { };
+    mirofish-llm-base-url = { };
+    mirofish-llm-model-name = { };
+    mirofish-zep-api-key = { };
+
+    # claude-code-env component (ANTHROPIC_BASE_URL; AUTH_TOKEN is shared above)
+    claude-code-anthropic-base-url = { };
+
+    # codex-env component
+    codex-openai-api-key = { };
+
+    # wireless-env components
+    wireless-codgi-pass = { };
+    wireless-grassland-pass = { };
   };
-
-  # WireGuard private keys
-  "wg-private-key-furina.age".publicKeys = someHosts [ furina ];
-  "wg-private-key-lumine.age".publicKeys = someHosts [ lumine ];
-  "wg-private-key-lumidouce.age".publicKeys = someHosts [ ];
-  "wg-private-key-qiaoying.age".publicKeys = someHosts [ ];
-  "wg-private-key-xianyun.age".publicKeys = someHosts [ xianyun ];
-
-  # PiKVM Basic Auth
-  "saw-basic-auth.age".publicKeys = someHosts [ lumine ];
-
-  # vLLM secrets
-  "vllm-env.age".publicKeys = someHosts [ paimon ];
-
-  # WireGuard preshared keys
-  "wg-preshared-key-furina-lumine.age".publicKeys = someHosts [
-    furina
-    lumine
-  ];
-  "wg-preshared-key-furina-xianyun.age".publicKeys = someHosts [
-    furina
-    xianyun
-  ];
-  "wg-preshared-key-lumidouce-lumine.age".publicKeys = someHosts [ lumine ];
-  "wg-preshared-key-lumidouce-xianyun.age".publicKeys = someHosts [ xianyun ];
-  "wg-preshared-key-lumine-qiaoying.age".publicKeys = someHosts [ lumine ];
-  "wg-preshared-key-lumine-xianyun.age".publicKeys = someHosts [
-    lumine
-    xianyun
-  ];
-  "wg-preshared-key-qiaoying-xianyun.age".publicKeys = someHosts [ xianyun ];
 }

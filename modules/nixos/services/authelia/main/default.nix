@@ -66,13 +66,13 @@ in
         inherit (cfg) user group;
 
         secrets = {
-          jwtSecretFile = config.age.secrets."authelia-main-jwt".path;
-          sessionSecretFile = config.age.secrets."authelia-main-session".path;
-          storageEncryptionKeyFile = config.age.secrets."authelia-main-storage".path;
+          jwtSecretFile = config.codgician.secrets.files."authelia-main-jwt".path;
+          sessionSecretFile = config.codgician.secrets.files."authelia-main-session".path;
+          storageEncryptionKeyFile = config.codgician.secrets.files."authelia-main-storage".path;
         };
 
         settingsFiles = [
-          config.age.secrets."authelia-main-jwks".path
+          config.codgician.secrets.files."authelia-main-jwks".path
         ];
 
         settings = {
@@ -239,8 +239,8 @@ in
         unixSocketPerm = 660;
       };
 
-      # Agenix secrets
-      codgician.system.agenix.secrets =
+      # sops secrets
+      codgician.secrets.files =
         lib.genAttrs
           [
             "authelia-main-jwt"

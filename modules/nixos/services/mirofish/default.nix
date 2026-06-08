@@ -75,7 +75,7 @@ in
         }
         // cfg.environment;
 
-        environmentFiles = [ config.age.secrets.mirofish-env.path ];
+        environmentFiles = [ config.codgician.secrets.templates."mirofish-env".path ];
 
         ports = [
           "127.0.0.1:${toString cfg.frontendPort}:3010"

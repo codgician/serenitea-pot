@@ -304,7 +304,7 @@ in
           package
           ;
         inherit environment;
-        environmentFile = config.age.secrets.open-webui-env.path;
+        environmentFile = config.codgician.secrets.templates."open-webui-env".path;
       };
 
       systemd.services.open-webui = {

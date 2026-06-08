@@ -88,7 +88,7 @@ in
                 endpoint =
                   with hostOptions.${peer};
                   if (domain == null || port == null) then null else "${domain}:${builtins.toString port}";
-                presharedKeyFile = config.age.secrets.${getPresharedKeyName intCfg.host peer}.path;
+                presharedKeyFile = config.codgician.secrets.files.${getPresharedKeyName intCfg.host peer}.path;
                 dynamicEndpointRefreshSeconds = 5;
               }) intCfg.peers;
             }) cfg.interfaces;

@@ -16,7 +16,7 @@ in
       servers = {
         context7 = {
           url = "https://mcp.context7.com/mcp/";
-          headers.CONTEXT7_API_KEY = "{file:${osConfig.age.secrets.context7-api-key.path}}";
+          headers.CONTEXT7_API_KEY = "{file:${osConfig.codgician.secrets.files.context7-api-key.path}}";
         };
         grep_app.url = "https://mcp.grep.app";
       };

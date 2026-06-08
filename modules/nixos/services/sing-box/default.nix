@@ -79,8 +79,8 @@ in
       ${cfg.domain}.enable = true;
     };
 
-    # Agenix secrets
-    codgician.system.agenix.secrets =
+    # Secrets
+    codgician.secrets.files =
       lib.genAttrs (builtins.map (x: "sing-${x}-proxy-password") cfg.users)
         (name: {
           owner = user;

@@ -13,7 +13,7 @@
     "192.168.0.0/24"
     "fd00:c0d9:1c00::/48"
   ];
-  privateKeyFile = config.age.secrets.wg-private-key-lumidouce.path;
+  privateKeyFile = config.codgician.secrets.files.wg-private-key-lumidouce.path;
   publicKey = "1QYPFw1YL0Px4+41YvBLX4qgXH4KTz9JOqzNbMnlgR8=";
   persistentKeepalive = 25;
 }

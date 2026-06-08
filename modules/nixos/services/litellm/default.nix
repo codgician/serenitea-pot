@@ -222,7 +222,7 @@ in
       services.litellm = {
         enable = true;
         inherit (cfg) host port stateDir;
-        environmentFile = config.age.secrets.litellm-env.path;
+        environmentFile = config.codgician.secrets.templates."litellm-env".path;
         inherit environment settings;
       };
 
@@ -260,7 +260,7 @@ in
           "/config.yaml"
         ];
         inherit environment;
-        environmentFiles = [ config.age.secrets.litellm-env.path ];
+        environmentFiles = [ config.codgician.secrets.templates."litellm-env".path ];
       };
     })
 

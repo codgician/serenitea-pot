@@ -16,7 +16,7 @@ nix run .#tfmgr -- plan  # Terraform preview
 
 ### NEVER
 - Commit without user request
-- Reference secrets directly (`"/run/agenix/..."`) — use `config.age.secrets.<name>.path`
+- Reference secrets directly (`"/run/secrets/..."`) — use `config.codgician.secrets.files.<name>.path` (or `templates."<name>".path` for env-bundles)
 - Write raw `.tf` files — use Terranix Nix expressions
 - Use `${...}` interpolation in Terranix — use `config.resource.X.Y "attr"`
 - Bypass `mk*System` builders
@@ -29,7 +29,7 @@ nix run .#tfmgr -- plan  # Terraform preview
 - Run `git add` before `nix eval/build` (flakes only see tracked files)
 - Show command output when claiming completion
 - Check the need of adding impermanence and systemd.tmpfiles.rules lines when adding new NixOS service modules
-- Request approval for: deploy, `tfmgr apply`, `agenix -r`
+- Request approval for: deploy, `tfmgr apply`, `nix run .#secrets -- rekey`
 
 ## Key Patterns
 

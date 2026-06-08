@@ -104,9 +104,9 @@ in
           };
 
           security = {
-            secret_key = "$__file{${config.age.secrets.grafana-secret-key.path}}";
+            secret_key = "$__file{${config.codgician.secrets.files.grafana-secret-key.path}}";
             strict_transport_security = cfg.reverseProxy.enable;
-            admin_password = "$__file{${config.age.secrets.grafana-admin-password.path}}";
+            admin_password = "$__file{${config.codgician.secrets.files.grafana-admin-password.path}}";
           };
 
           server = {
@@ -124,7 +124,7 @@ in
             name = "Authelia";
             icon = "signin";
             client_id = "grafana";
-            client_secret = "$__file{${config.age.secrets.grafana-oidc-secret-authelia-main.path}}";
+            client_secret = "$__file{${config.codgician.secrets.files.grafana-oidc-secret-authelia-main.path}}";
             scopes = [
               "openid"
               "profile"
@@ -226,8 +226,8 @@ in
             }
           ];
 
-      # Agenix secrets
-      codgician.system.agenix.secrets =
+      # sops secrets
+      codgician.secrets.files =
         lib.genAttrs
           [
             "grafana-admin-password"

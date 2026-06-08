@@ -110,9 +110,9 @@ in
           actions = [ "SET" ];
           instcmds = [ "ALL" ];
           upsmon = "primary";
-          passwordFile = config.age.secrets.nut-password.path;
+          passwordFile = config.codgician.secrets.files.nut-password.path;
         };
-        "upsmon".passwordFile = config.age.secrets.upsmon-password.path;
+        "upsmon".passwordFile = config.codgician.secrets.files.upsmon-password.path;
       };
 
       # Devices
@@ -126,7 +126,7 @@ in
           user = "admin";
           powerValue = 1;
           type = "master";
-          passwordFile = config.age.secrets.nut-password.path;
+          passwordFile = config.codgician.secrets.files.nut-password.path;
           system = name;
         }) cfg.devices;
 

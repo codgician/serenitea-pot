@@ -1,7 +1,7 @@
 { config, pkgs, ... }:
 {
-  # Agenix secrets
-  codgician.system.agenix.secrets.saw-basic-auth.owner = "nginx";
+  # Secrets
+  codgician.secrets.files.saw-basic-auth.owner = "nginx";
 
   codgician.services = {
     # Global Anubis configuration
@@ -131,7 +131,7 @@
             extraConfig = ''
               client_max_body_size 128M;
               proxy_buffering off;
-              include ${config.age.secrets.saw-basic-auth.path};
+              include ${config.codgician.secrets.files.saw-basic-auth.path};
             '';
           };
         };

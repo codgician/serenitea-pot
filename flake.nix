@@ -83,13 +83,9 @@
       };
     };
 
-    agenix = {
-      url = "github:ryantm/agenix";
-      inputs = {
-        darwin.follows = "darwin";
-        home-manager.follows = "home-manager";
-        nixpkgs.follows = "nixpkgs";
-      };
+    sops-nix = {
+      url = "github:Mic92/sops-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     nixvirt = {
@@ -190,6 +186,12 @@
 
       # Export custom library
       inherit lib;
+
+      # SOPS creation-rule metadata (consumed by `nix run .#secrets -- rekey`)
+      sopsRules = lib.codgician.sopsRules;
+
+      # Text templates with placeholder tokens (consumed by `secrets -- render`)
+      renderedTemplates = lib.codgician.renderedTemplates;
 
       # Apps: `nix run .#appName`
       apps = (

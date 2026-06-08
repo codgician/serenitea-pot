@@ -89,14 +89,14 @@ in
             "*.env.*" = "deny";
             "*.env.example" = "allow";
             "/etc/ssh*" = "deny";
-            "/run/agenix*" = "deny";
+            "/run/secrets*" = "deny";
           };
           edit = "allow";
           external_directory = {
             "*" = "ask";
             "/tmp/*" = "allow";
             "/etc/ssh*" = "deny";
-            "/run/agenix*" = "deny";
+            "/run/secrets*" = "deny";
           };
           bash = {
             "*" = "allow";
@@ -107,7 +107,7 @@ in
           };
           list = {
             "*" = "allow";
-            "/run/agenix*" = "deny";
+            "/run/secrets*" = "deny";
           };
         };
         provider = {

@@ -27,7 +27,7 @@ in
   nix.settings.trusted-users = [ name ];
 
   # User-scope secrets
-  codgician.system.agenix.secrets = {
+  codgician.secrets.files = {
     context7-api-key.owner = "codgi";
     github-auth-header.owner = "codgi";
   };

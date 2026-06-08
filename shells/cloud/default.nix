@@ -2,7 +2,8 @@
 
 pkgs.mkShell {
   buildInputs = with pkgs; [
-    agenix
+    sops
+    ssh-to-age
     azure-cli
     azure-storage-azcopy
     cf-terraforming

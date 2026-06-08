@@ -11,7 +11,7 @@
     "192.168.254.254/32"
     "fd00:c0d9:1cff::254/128"
   ];
-  privateKeyFile = config.age.secrets.wg-private-key-furina.path;
+  privateKeyFile = config.codgician.secrets.files.wg-private-key-furina.path;
   publicKey = "90o8pyE8uvb+MAjCvHzxgQKu+yMtbie5cXtSnldoJSk=";
   persistentKeepalive = 25;
 }

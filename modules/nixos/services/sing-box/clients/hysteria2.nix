@@ -50,7 +50,7 @@ in
         tag = clientCfg.tag;
         server = clientCfg.server;
         server_port = serverCfg.publicPort;
-        password._secret = config.age.secrets."sing-${clientCfg.user}-proxy-password".path;
+        password._secret = config.codgician.secrets.files."sing-${clientCfg.user}-proxy-password".path;
         down_mbps = lib.mkIf (clientCfg.downMbps != null) clientCfg.downMbps;
         up_mbps = lib.mkIf (clientCfg.upMbps != null) clientCfg.upMbps;
         hop_interval = "30s";

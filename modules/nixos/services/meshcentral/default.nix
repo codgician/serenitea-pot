@@ -56,7 +56,7 @@ in
                 in
                 {
                   client_id = "meshcentral";
-                  client_secret._secret = config.age.secrets.meshcentral-oidc-secret-authelia-main.path;
+                  client_secret._secret = config.codgician.secrets.files.meshcentral-oidc-secret-authelia-main.path;
                   redirect_uri = "${url}/auth-oidc-callback";
                   post_logout_redirect_uri = "${url}/login";
                   token_endpoint_auth_method = "client_secret_post";

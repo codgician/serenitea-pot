@@ -91,13 +91,13 @@ in
           key_path = certDir + "/key.pem";
           ech = {
             enabled = true;
-            key_path = config.age.secrets."sing-ech-keys".path;
+            key_path = config.codgician.secrets.files."sing-ech-keys".path;
           };
         };
 
         users = builtins.map (name: {
           inherit name;
-          password._secret = config.age.secrets."sing-${name}-proxy-password".path;
+          password._secret = config.codgician.secrets.files."sing-${name}-proxy-password".path;
         }) serverCfg.users;
       }
     ];

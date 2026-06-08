@@ -69,15 +69,16 @@ in
         port = 443;
 
         # Secrets
-        initialRootPasswordFile = config.age.secrets.gitlab-init-root-password.path;
+        initialRootPasswordFile = config.codgician.secrets.files.gitlab-init-root-password.path;
         secrets = {
-          dbFile = config.age.secrets.gitlab-db.path;
-          jwsFile = config.age.secrets.gitlab-jws.path;
-          otpFile = config.age.secrets.gitlab-otp.path;
-          secretFile = config.age.secrets.gitlab-secret.path;
-          activeRecordSaltFile = config.age.secrets.gitlab-active-record-salt.path;
-          activeRecordPrimaryKeyFile = config.age.secrets.gitlab-active-record-primary-key.path;
-          activeRecordDeterministicKeyFile = config.age.secrets.gitlab-active-record-deterministic-key.path;
+          dbFile = config.codgician.secrets.files.gitlab-db.path;
+          jwsFile = config.codgician.secrets.files.gitlab-jws.path;
+          otpFile = config.codgician.secrets.files.gitlab-otp.path;
+          secretFile = config.codgician.secrets.files.gitlab-secret.path;
+          activeRecordSaltFile = config.codgician.secrets.files.gitlab-active-record-salt.path;
+          activeRecordPrimaryKeyFile = config.codgician.secrets.files.gitlab-active-record-primary-key.path;
+          activeRecordDeterministicKeyFile =
+            config.codgician.secrets.files.gitlab-active-record-deterministic-key.path;
         };
 
         # Mail settings
@@ -139,7 +140,7 @@ in
                   pkce = true;
                   client_options = {
                     identifier = "gitlab";
-                    secret._secret = config.age.secrets.gitlab-oidc-secret-authelia-main.path;
+                    secret._secret = config.codgician.secrets.files.gitlab-oidc-secret-authelia-main.path;
                     redirect_uri = "https://${cfg.host}/users/auth/openid_connect/callback";
                   };
                 };
@@ -155,8 +156,8 @@ in
       # PostgreSQL
       codgician.services.postgresql.enable = true;
 
-      # Agenix secrets
-      codgician.system.agenix.secrets =
+      # sops secrets
+      codgician.secrets.files =
         lib.genAttrs
           [
             "gitlab-init-root-password"

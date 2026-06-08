@@ -17,7 +17,7 @@ let
   # Configuration with ._secret for API key
   # Note: use container defaults (0.0.0.0:8000) inside, only remap port on host
   settings = {
-    api_key._secret = config.age.secrets.open-terminal-api-key.path;
+    api_key._secret = config.codgician.secrets.files.open-terminal-api-key.path;
   }
   // cfg.settings;
 in

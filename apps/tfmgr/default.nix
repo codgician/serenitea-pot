@@ -6,8 +6,11 @@
 }:
 
 let
-  terraformAgeFileName = "terraform-env.age";
+  name = builtins.baseNameOf ./.;
   secretsDir = lib.codgician.secretsDir;
+  gcpCredsFile = "${secretsDir}/values/gcp-credentials";
+  tfConfig = outputs.packages.${pkgs.stdenv.hostPlatform.system}.terraform-config;
+  secretsApp = outputs.apps.${pkgs.stdenv.hostPlatform.system}.secrets.program;
 in
 {
   type = "app";
@@ -18,110 +21,77 @@ in
   };
 
   program = lib.getExe (
-    pkgs.writeShellApplication rec {
-      name = builtins.baseNameOf ./.;
+    pkgs.writeShellApplication {
+      inherit name;
       runtimeInputs = with pkgs; [
         coreutils
         terraform
-        agenix
+        sops
       ];
 
       text = ''
-        function warn() {
-          printf '%s\n' "$*" >&2
+        set -euo pipefail
+
+        warn() { printf '%s\n' "$*" >&2; }
+        err() { warn "$*"; exit 1; }
+
+        show_help() {
+          cat <<EOF
+        ${name} - review and apply terraform configurations.
+
+        Usage: ${name} [command]
+
+        Commands:
+          validate    Check whether generated config.tf.json is valid
+          plan        Show infrastructure changes from new configuration
+          apply       Apply infrastructure changes from new configuration
+          import      Import existing resource into terraform state
+          state       Run terraform state subcommands
+          shell       Open a shell with terraform env variables
+
+        Options:
+          -h --help        Show this screen
+          --auto-approve   Auto-approve terraform changes when applying
+        EOF
         }
 
-        function err() {
-          warn "$*"
-          exit 1
-        }
-
-        # Display help message
-        function show_help {
-          echo '${name} - review and apply terraform configurations.'
-          echo ' '
-          echo 'Usage: ${name} [command]'
-          echo ' '
-          echo 'Commands:'
-          echo ' '
-          echo '  validate    Check whether generated config.tf.json is valid'
-          echo '  plan        Show infrastructure changes from new configuration'
-          echo '  apply       Apply infrastructure changes from new configuration'
-          echo '  import      Import existing resource into terraform state'
-          echo '  state       Run terraform state subcommands'
-          echo '  shell       Open a shell with terraform env variables' 
-          echo ' '
-          echo 'Options:'
-          echo ' '
-          echo ' -h --help        Show this screen'
-          echo ' --auto-approve   Auto-approve terraform changes when applying'
-          echo ' '
-        }
-
-        # Init: decrypt terraform secrets and set environment variables
-        function init {
-          dir=$(pwd)
-          cd ${secretsDir}
-
-          [ -f "./${terraformAgeFileName}" ] || { 
-            err "${terraformAgeFileName} not found under ${secretsDir}"; 
-          }
-
-          envs=$(agenix -d terraform-env.age)
-          [ -n "$envs" ] || { 
-            err "Terraform envs should not be empty. Decryption failure?"; 
-          }
-
-          # Set IFS to newline to split $envs into individual lines
-          OLD_IFS="$IFS"
-          IFS=$'\n'
-
-          # Loop through each line in the $envs variable
-          for line in $envs; do
-              # Skip empty lines or lines without an '=' (or just a key)
-              if [[ "$line" =~ ^[^=]+=[[:space:]]*$ ]]; then
-                # Handle cases like VAR_EMPTY= or VAR_ONLY_KEY=
-                key="''${line%%=*}"
-                value=""
-              elif [[ "$line" =~ ^[^=]+=.+ ]]; then
-                # This regex ensures there's at least one char after the equals sign
-                IFS='=' read -r key value <<< "$line"
-              else
-                # Skip lines that don't look like KEY=VALUE
-                continue
-              fi
-
-              # Check if the value is already double-quoted
-              if [[ "$value" == \"*\" ]]; then
-                # If it's already double-quoted, assume it's properly escaped internally.
-                quoted_value="$value"
-              elif [[ "$value" == \'*\' ]]; then
-                # If it's single-quoted, assume it's properly escaped internally
-                quoted_value="$value"
-              else
-                # If the value is unquoted (like {"a":"b"} or hello world),
-                # use printf %q to safely quote it for shell assignment.
-                quoted_value=$(printf %q "$value")
-              fi
-              export_command="export ''${key}=''${quoted_value}"
-              eval "$export_command"
-          done
-          # Restore original IFS
-          IFS="$OLD_IFS"
-          
-          cd "$dir"
+        # Regenerate config.tf.json (contains no secrets, only resource IDs).
+        tf_config() {
           [ ! -e config.tf.json ] || rm -f config.tf.json
-          cp ${outputs.packages.${pkgs.stdenv.hostPlatform.system}.terraform-config} config.tf.json
-          terraform init
+          cp ${tfConfig} config.tf.json
         }
 
-        if test $# -eq 0; then
+        # Run a terraform op with secrets in scope. Two unified-model sources,
+        # both raw sops values decrypted to 0600 tmpfs files, removed on exit:
+        #   - terraform.env text template → rendered to a tmpfs file, sourced as
+        #     env vars (ARM_*, CLOUDFLARE_*). The azurerm backend needs ARM_ACCESS_KEY
+        #     for `terraform init`, so init runs here too.
+        #   - gcp-credentials raw value → decrypted to a tmpfs file;
+        #     GOOGLE_APPLICATION_CREDENTIALS points terraform there.
+        tf_with_secrets() {
+          [ -f "${gcpCredsFile}" ] || err "gcp-credentials missing; run 'nix run .#secrets -- edit gcp-credentials'"
+          local env_file gcp_file
+          env_file="$(${secretsApp} render terraform.env)" || err "render terraform.env failed"
+          umask 077
+          gcp_file="$(mktemp "''${XDG_RUNTIME_DIR:-/dev/shm}/tfmgr-gcp.XXXXXX")"
+          trap 'rm -f "$env_file" "$gcp_file"' EXIT INT TERM
+          sops decrypt --input-type binary --output-type binary "${gcpCredsFile}" > "$gcp_file" \
+            || err "decrypt gcp-credentials failed"
+          set -a
+          # shellcheck disable=SC1090
+          source "$env_file"
+          GOOGLE_APPLICATION_CREDENTIALS="$gcp_file"
+          set +a
+          sh -c "terraform init && $*"
+        }
+
+        if [ $# -eq 0 ]; then
           show_help
-          exit 1 
+          exit 1
         fi
 
         tfargs=""
-        while test $# -gt 0; do
+        while [ $# -gt 0 ]; do
           case "$1" in
             -h|--help)
               show_help
@@ -131,43 +101,33 @@ in
               tfargs+=" --auto-approve"
               ;;
             validate)
-              init
-              terraform validate
+              tf_config
+              tf_with_secrets "terraform validate"
               ;;
             plan)
-              init
-              terraform plan
+              tf_config
+              tf_with_secrets "terraform plan"
               ;;
             apply)
-              init
-              for i in {1..3}; do
-                echo "Attempt #$i"
-                if eval "terraform apply $tfargs"; then
-                  break
-                fi
-              done
+              tf_config
+              tf_with_secrets "terraform apply$tfargs || terraform apply$tfargs || terraform apply$tfargs"
               ;;
             import)
-              init
+              tf_config
               shift
               [ $# -ge 2 ] || err "Usage: ${name} import <addr> <id>"
-              terraform import "$1" "$2"
+              tf_with_secrets "terraform import $1 $2"
               shift
               ;;
             state)
-              init
+              tf_config
               shift
-              terraform state "$@"
-              # Consume remaining args
-              while test $# -gt 0; do shift; done
+              tf_with_secrets "terraform state $*"
+              while [ $# -gt 0 ]; do shift; done
               ;;
             shell)
-              init
-              if [[ -z $SHELL ]]; then
-                warn "SHELL not set, using bash shell"
-                SHELL=${lib.getExe pkgs.bash}
-              fi
-              exec $SHELL
+              tf_config
+              tf_with_secrets "''${SHELL:-${lib.getExe pkgs.bash}}"
               ;;
             *)
               warn "Unrecognized command: $1"

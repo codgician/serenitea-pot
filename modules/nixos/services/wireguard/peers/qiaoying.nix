@@ -13,7 +13,7 @@
     "192.168.6.0/24"
     "fd00:c0d9:1c06::/48"
   ];
-  privateKeyFile = config.age.secrets.wg-private-key-qiaoying.path;
+  privateKeyFile = config.codgician.secrets.files.wg-private-key-qiaoying.path;
   publicKey = "suqw1v+IDCnupiBU0pHex25qQtb1En2DwofDKoZQrU0=";
   persistentKeepalive = 25;
 }

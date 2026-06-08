@@ -59,7 +59,7 @@ in
 
       script = ''
         set -ea
-        source ${config.age.secrets.litellm-env.path}
+        source ${config.codgician.secrets.templates."litellm-env".path}
         exec ${lib.getExe cfg.package} --host "${cfg.host}" --port ${builtins.toString cfg.port} --config "${configFile}"
       '';
 
@@ -71,11 +71,6 @@ in
         StandardErrorPath = "${cfg.stateDir}/err.log";
         StandardOutPath = "${cfg.stateDir}/out.log";
       };
-    };
-
-    # Agenix secret must be readable by the daemon user
-    codgician.system.agenix.secrets.litellm-env = {
-      owner = serviceName;
     };
 
     # Ensure directories exist and permissions correct

@@ -11,12 +11,6 @@ in
     # Enable OpenSSH
     services.openssh.enable = true;
 
-    # Set identity path for agenix
-    age.identityPaths = [
-      "/etc/ssh/ssh_host_ed25519_key"
-      "/etc/ssh/ssh_host_rsa_key"
-    ];
-
     # PAM configuration
     security.pam.services.sudo_local = {
       enable = true;

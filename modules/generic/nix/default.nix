@@ -26,8 +26,8 @@ in
         experimental-features = nix-command flakes
         accept-flake-config = true
       ''
-      + (lib.optionalString (config.age.secrets ? "nix-access-tokens") ''
-        !include ${config.age.secrets.nix-access-tokens.path}
+      + (lib.optionalString (config.codgician.secrets.files ? "nix-access-tokens") ''
+        !include ${config.codgician.secrets.files.nix-access-tokens.path}
       '');
       optimise.automatic = true;
       settings = {
@@ -46,7 +46,13 @@ in
       nix-fast-build
     ];
 
-    # Agenix secrets
-    codgician.system.agenix.secrets.nix-access-tokens.mode = "0644";
+    # nix-access-tokens is auto-declared only on hosts that are recipients;
+    # widen its mode there without force-declaring it on non-recipient hosts
+    # (which could not decrypt it). Gate on registry recipiency (not on
+    # config.codgician.secrets.files, which would self-reference).
+    codgician.secrets.files = lib.mkIf (lib.any
+      (k: builtins.elem k (lib.codgician.registry.pubkeys.hosts.${config.networking.hostName} or [ ]))
+      (lib.codgician.registry.secrets.nix-access-tokens.publicKeys or [ ])
+    ) { nix-access-tokens.mode = "0644"; };
   };
 }
