@@ -81,6 +81,7 @@ in
         ];
         plugin = [
           "oh-my-openagent"
+          "@simonwjackson/opencode-direnv"
         ];
         permission = {
           read = {
