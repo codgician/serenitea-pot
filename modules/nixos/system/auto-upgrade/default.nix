@@ -11,13 +11,13 @@ in
     # Auto upgrade
     system.autoUpgrade = {
       enable = true;
-      dates = "03:00";
+      dates = "04:30";
       operation = "switch";
       randomizedDelaySec = "1h";
       allowReboot = true;
       rebootWindow = {
-        lower = "03:00";
-        upper = "05:00";
+        lower = "04:30";
+        upper = "05:30";
       };
     };
   };
