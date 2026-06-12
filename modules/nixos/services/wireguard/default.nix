@@ -84,6 +84,7 @@ in
                   name
                   publicKey
                   allowedIPs
+                  persistentKeepalive
                   ;
                 endpoint =
                   with hostOptions.${peer};
