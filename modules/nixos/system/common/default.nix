@@ -25,8 +25,14 @@ in
 
     audit.enable = lib.mkOption {
       type = lib.types.bool;
-      default = !config.boot.isContainer;
-      defaultText = "!config.boot.isContainer";
+      # Disabled by default: on kernel 6.18.x the audit subsystem rejects every
+      # AUDIT_SET netlink op with EOPNOTSUPP when AppArmor is an active LSM,
+      # making `audit-rules-nixos.service` fail and flooding the kernel log with
+      # "error in audit_log_subj_ctx". See https://github.com/NixOS/nixpkgs/issues/483085.
+      # We keep AppArmor (which we actively enforce) and define no custom audit
+      # rules, so audit is the lower-value subsystem to drop until the kernel
+      # regression is fixed upstream. Re-enable per-host once resolved.
+      default = false;
       description = "Linux kernel audit subsystem and auditd userspace daemon.";
     };
   };
