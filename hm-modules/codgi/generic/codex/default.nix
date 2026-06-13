@@ -8,20 +8,23 @@
 let
   cfg = config.codgician.codgi.codex;
 
-  # Transform MCP server config to Codex format
-  # Codex uses `http_headers` instead of `headers` and `enabled` instead of `disabled`
+  # Transform MCP servers to Codex format: `http_headers` instead of `headers`,
+  # a native `enabled` flag instead of `disabled`, and no `type` field.
   mkMcpServer =
     server:
-    (lib.removeAttrs server [
-      "disabled"
-      "headers"
-    ])
-    // (lib.optionalAttrs (server ? headers) { http_headers = server.headers; })
+    (
+      if server.command != null then
+        { inherit (server) command args env; }
+      else
+        {
+          inherit (server) url;
+        }
+        // lib.optionalAttrs (server.headers != { }) { http_headers = server.headers; }
+    )
     // {
       enabled = !(server.disabled or false);
     };
 
-  # Transform all MCP servers
   mcpServers = lib.mapAttrs (_: mkMcpServer) config.programs.mcp.servers;
 in
 {

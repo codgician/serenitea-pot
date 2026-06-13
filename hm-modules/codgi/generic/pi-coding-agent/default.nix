@@ -8,47 +8,24 @@
 let
   cfg = config.codgician.codgi.pi-coding-agent;
 
-  # Transform MCP server config to oh-my-pi format.
-  # Pi (omp) accepts standard MCP server definitions:
-  #   - stdio: { command, args?, env? }
-  #   - http/sse: { url, headers?, type? }
-  # See https://omp.sh/docs/providers and the discovery rules in oh-my-pi
-  # which can auto-import sibling tool configs (.claude, .codex, .cursor, ...).
+  # Transform MCP servers to oh-my-pi format (stdio / http).
+  # See https://omp.sh/docs/providers.
   mkMcpServer =
     server:
-    let
-      hasCommand = server ? command;
-      hasUrl = server ? url;
-      baseServer = builtins.removeAttrs server [
-        "disabled"
-        "command"
-        "args"
-        "env"
-        "url"
-        "headers"
-        "type"
-      ];
-    in
-    assert hasCommand || hasUrl;
-    assert !(hasCommand && hasUrl);
-    baseServer
-    // (lib.optionalAttrs hasCommand {
-      type = server.type or "stdio";
-      inherit (server) command;
-      args = server.args or [ ];
-      env = server.env or { };
-    })
-    // (lib.optionalAttrs hasUrl {
-      type = server.type or "http";
-      inherit (server) url;
-      headers = server.headers or { };
-    });
+    if server.command != null then
+      {
+        type = "stdio";
+        inherit (server) command args env;
+      }
+    else
+      {
+        type = "http";
+        inherit (server) url headers;
+      };
 
-  # Filter disabled servers BEFORE transformation, then transform
-  enabledServers = lib.filterAttrs (
-    _: server: !(server.disabled or false)
-  ) config.programs.mcp.servers;
-  mcpServers = lib.mapAttrs (_: mkMcpServer) enabledServers;
+  mcpServers = lib.mapAttrs (_: mkMcpServer) (
+    lib.filterAttrs (_: server: !(server.disabled or false)) config.programs.mcp.servers
+  );
 
   # Skills directory combining all skill sources
   skillsDir = pkgs.symlinkJoin {

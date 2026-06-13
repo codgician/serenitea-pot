@@ -27,40 +27,23 @@ let
     provider = "generic-chat-completion-api";
   };
 
-  # Transform MCP server config to Droid format
-  # Droid supports: "stdio" for command-based, "http" for URL-based servers
+  # Droid supports "stdio" for command-based and "http" for URL-based servers.
   mkMcpServer =
     server:
-    let
-      hasCommand = server ? command;
-      hasUrl = server ? url;
-      baseServer = builtins.removeAttrs server [
-        "disabled"
-        "command"
-        "args"
-        "env"
-        "url"
-        "headers"
-        "type"
-      ];
-    in
-    baseServer
-    // (lib.optionalAttrs hasCommand {
-      type = server.type or "stdio";
-      inherit (server) command;
-      args = server.args or [ ];
-      env = server.env or { };
-    })
-    // (lib.optionalAttrs hasUrl {
-      type = server.type or "http";
-      inherit (server) url;
-      headers = server.headers or { };
-    });
+    if server.command != null then
+      {
+        type = "stdio";
+        inherit (server) command args env;
+      }
+    else
+      {
+        type = "http";
+        inherit (server) url headers;
+      };
 
-  enabledServers = lib.filterAttrs (
-    _: server: !(server.disabled or false)
-  ) config.programs.mcp.servers;
-  mcpServers = lib.mapAttrs (_: mkMcpServer) enabledServers;
+  mcpServers = lib.mapAttrs (_: mkMcpServer) (
+    lib.filterAttrs (_: server: !(server.disabled or false)) config.programs.mcp.servers
+  );
   mcpConfigJson = builtins.toJSON { inherit mcpServers; };
 
   skillsDir = pkgs.symlinkJoin {

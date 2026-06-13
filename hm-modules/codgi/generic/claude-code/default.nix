@@ -8,11 +8,19 @@
 let
   cfg = config.codgician.codgi.claude-code;
 
+  # Transform MCP servers to Claude Code format (stdio / http).
   mkMcpServer =
     server:
-    (removeAttrs server [ "disabled" ])
-    // (lib.optionalAttrs (server ? url) { type = "http"; })
-    // (lib.optionalAttrs (server ? command) { type = "stdio"; });
+    if server.command != null then
+      {
+        type = "stdio";
+        inherit (server) command args env;
+      }
+    else
+      {
+        type = "http";
+        inherit (server) url headers;
+      };
 
   mcpServers = lib.mapAttrs (_: mkMcpServer) config.programs.mcp.servers;
 
