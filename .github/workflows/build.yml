@@ -30,7 +30,7 @@ jobs:
           opt: true
           varcache: true
       - name: Checkout new change
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - name: Enable KVM
@@ -75,7 +75,7 @@ jobs:
           varcache: true
           debug: true
       - name: Checkout new change
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - uses: cachix/install-nix-action@v31
@@ -103,7 +103,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Checkout new change
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
       - uses: cachix/install-nix-action@v31
