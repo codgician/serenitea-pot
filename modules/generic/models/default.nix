@@ -315,26 +315,26 @@ in
               // lib.optionalAttrs (!isHaiku) { prompt_id = "claude-code"; };
             } name spec;
           models = {
-            "claude-opus-4-8" = {
-              aliases = [ "claude-opus-4.8" ];
-              variants = claudeOpus47;
-            };
-            "claude-opus-4-7" = {
-              aliases = [ "claude-opus-4.7" ];
-              variants = claudeOpus47;
-            };
-            # Opus 4.6 supports effort-based control (including max effort)
-            "claude-opus-4-6" = {
-              aliases = [ "claude-opus-4.6" ];
-              variants = claudeOpus46;
-            };
-            # Haiku doesn't support extended thinking
-            "claude-haiku-4-5".aliases = [ "claude-haiku-4.5" ];
-            # Sonnet 4.6 supports effort-based control (no max effort)
-            "claude-sonnet-4-6" = {
-              aliases = [ "claude-sonnet-4.6" ];
-              variants = claudeSonnet46;
-            };
+            # "claude-opus-4-8" = {
+            #   aliases = [ "claude-opus-4.8" ];
+            #   variants = claudeOpus47;
+            # };
+            # "claude-opus-4-7" = {
+            #   aliases = [ "claude-opus-4.7" ];
+            #   variants = claudeOpus47;
+            # };
+            # # Opus 4.6 supports effort-based control (including max effort)
+            # "claude-opus-4-6" = {
+            #   aliases = [ "claude-opus-4.6" ];
+            #   variants = claudeOpus46;
+            # };
+            # # Haiku doesn't support extended thinking
+            # "claude-haiku-4-5".aliases = [ "claude-haiku-4.5" ];
+            # # Sonnet 4.6 supports effort-based control (no max effort)
+            # "claude-sonnet-4-6" = {
+            #   aliases = [ "claude-sonnet-4.6" ];
+            #   variants = claudeSonnet46;
+            # };
           };
         };
 
