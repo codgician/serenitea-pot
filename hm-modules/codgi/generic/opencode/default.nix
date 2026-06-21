@@ -158,14 +158,14 @@ in
         tmux.enabled = config.codgician.codgi.tmux.enable;
         agents = {
           sisyphus = {
-            model = "dendro/claude-opus-4-8";
+            model = "dendro-responses/claude-opus-4-8";
             fallback_models = [
               "anthropic/claude-opus-4-8"
               "github-copilot/claude-opus-4-8"
             ];
           };
           sisyphus-junior = {
-            model = "dendro/claude-sonnet-4-6";
+            model = "dendro-responses/claude-sonnet-4-6";
             fallback_models = [
               "anthropic/claude-sonnet-4-6"
               "github-copilot/claude-sonnet-4-6"
@@ -180,21 +180,21 @@ in
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           librarian = {
-            model = "dendro/gemini-3.5-flash";
-            fallback_models = [ "github-copilot/gemini-3.5-flash" ];
+            model = "dendro-responses/gpt-5.4-mini";
+            fallback_models = [ "github-copilot/gpt-5.4-mini" ];
           };
           explore = {
-            model = "dendro/gemini-3.5-flash";
-            fallback_models = [ "github-copilot/gemini-3.5-flash" ];
+            model = "dendro-responses/gpt-5.4-mini";
+            fallback_models = [ "github-copilot/gpt-5.4-mini" ];
           };
           multimodal-looker = {
             model = "dendro-responses/gpt-5.5";
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           metis = {
-            model = "dendro/claude-opus-4-8";
+            model = "dendro-responses/claude-opus-4-8";
             fallback_models = [
-              "github-copilot/claude-opus-4.7-1m-internal"
+              "github-copilot/claude-opus-4.8"
               "anthropic/claude-opus-4-8"
             ];
           };
@@ -203,23 +203,23 @@ in
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           atlas = {
-            model = "dendro/claude-sonnet-4-6";
+            model = "dendro-responses/claude-sonnet-4-6";
             fallback_models = [
               "github-copilot/claude-sonnet-4.6-1m"
               "anthropic/claude-sonnet-4-6"
             ];
           };
           prometheus = {
-            model = "dendro/claude-opus-4-8";
+            model = "dendro-responses/claude-opus-4-8";
             fallback_models = [
-              "github-copilot/claude-opus-4.7-1m-internal"
+              "github-copilot/claude-opus-4.8"
               "anthropic/claude-opus-4-8"
             ];
           };
         };
         categories = {
           visual-engineering = {
-            model = "dendro/gemini-3.5-flash";
+            model = "dendro-responses/gemini-3.5-flash";
             fallback_models = [ "github-copilot/gemini-3.5-flash" ];
           };
           ultrabrain = {
@@ -231,29 +231,32 @@ in
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           artistry = {
-            model = "dendro/gemini-3.5-flash";
-            fallback_models = [ "github-copilot/gemini-3.5-flash" ];
+            model = "dendro-responses/gemini-3.1-pro-preview";
+            fallback_models = [ "github-copilot/gemini-3.1-pro-preview" ];
           };
           quick = {
             model = "dendro-responses/gpt-5.4-mini";
             fallback_models = [ "github-copilot/gpt-5.4-mini" ];
           };
           unspecified-low = {
-            model = "dendro/claude-sonnet-4-6";
+            model = "dendro-responses/claude-sonnet-4-6";
             fallback_models = [
-              "github-copilot/claude-sonnet-4.6-1m"
+              "github-copilot/claude-sonnet-4.6"
               "anthropic/claude-sonnet-4-6"
             ];
           };
           unspecified-high = {
-            model = "dendro/claude-opus-4-8";
+            model = "dendro-responses/claude-opus-4-8";
             fallback_models = [
-              "github-copilot/claude-opus-4.7-1m-internal"
+              "github-copilot/claude-opus-4.8"
               "anthropic/claude-opus-4-8"
             ];
           };
           writing = {
-            model = "dendro/gemini-3.5-flash";
+            model = "dendro-responses/gemini-3.5-flash";
+            fallback_models = [
+              "github-copilot/gemini-3.5-flash"
+            ];
           };
         };
       };
