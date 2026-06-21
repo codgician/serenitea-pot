@@ -466,11 +466,11 @@ in
             };
             "claude-opus-4-7" = {
               variants = claudeOpus47;
-              path = "claude-opus-4.7-1m-internal";
+              path = "claude-opus-4.7";
             };
             "claude-opus-4-6" = {
               variants = claudeOpus46;
-              path = "claude-opus-4.6-1m";
+              path = "claude-opus-4.6";
             };
             "claude-haiku-4-5".path = "claude-haiku-4.5";
 
