@@ -5,11 +5,29 @@
 }:
 let
   cfg = config.codgician.codgi.opencode;
-
-  # Enable mDNS when hostname is not localhost (service is network-exposed)
-  enableMdns = cfg.web.hostname != "127.0.0.1" && cfg.web.hostname != "localhost";
+  inherit (lib) types;
 in
 {
+  options.codgician.codgi.opencode = {
+    web = {
+      enable = lib.mkEnableOption "opencode web interface";
+
+      hostname = lib.mkOption {
+        type = types.str;
+        default = "127.0.0.1";
+        description = "Hostname for opencode web interface to listen on.";
+      };
+
+      port = lib.mkOption {
+        type = types.port;
+        default = 3030;
+        description = "Port for opencode web interface to listen on.";
+      };
+
+      enableMdns = lib.mkEnableOption "mDNS for local network discovery";
+    };
+  };
+
   config = lib.mkIf (cfg.enable && cfg.web.enable) {
     systemd.user.services.opencode-web = {
       Unit = {
@@ -26,9 +44,9 @@ in
             "--hostname"
             cfg.web.hostname
             "--port"
-            (builtins.toString cfg.web.port)
+            (toString cfg.web.port)
           ]
-          ++ lib.optionals enableMdns [ "--mdns" ]
+          ++ lib.optionals cfg.web.enableMdns [ "--mdns" ]
         );
         Restart = "on-failure";
         RestartSec = "5s";

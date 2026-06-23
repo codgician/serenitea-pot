@@ -49,28 +49,12 @@ in
     enable = lib.mkEnableOption "opencode";
 
     package = lib.mkOption {
-      type = lib.types.package;
+      type = types.package;
       default = pkgs.opencode;
       defaultText = lib.literalExpression "pkgs.opencode";
       description = ''
         The OpenCode package to install.
       '';
-    };
-
-    web = {
-      enable = lib.mkEnableOption "opencode web interface";
-
-      hostname = lib.mkOption {
-        type = types.str;
-        default = "127.0.0.1";
-        description = "Hostname for opencode web interface to listen on.";
-      };
-
-      port = lib.mkOption {
-        type = types.port;
-        default = 3030;
-        description = "Port for opencode web interface to listen on.";
-      };
     };
   };
 
