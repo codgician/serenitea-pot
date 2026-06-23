@@ -138,6 +138,7 @@
         mcp.enable = true;
         opencode = {
           enable = true;
+          package = pkgs.opencode-wrapped;
           web.enable = true;
         };
         pwsh.enable = true;

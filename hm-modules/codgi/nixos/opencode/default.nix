@@ -21,7 +21,7 @@ in
       Service = {
         ExecStart = lib.concatStringsSep " " (
           [
-            (lib.getExe config.programs.opencode.package)
+            (lib.getExe cfg.package)
             "web"
             "--hostname"
             cfg.web.hostname

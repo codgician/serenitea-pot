@@ -48,7 +48,10 @@
         github-copilot-cli.enable = true;
         git.enable = true;
         mcp.enable = true;
-        opencode.enable = true;
+        opencode = {
+          enable = true;
+          package = pkgs.opencode-wrapped;
+        };
         pi-coding-agent.enable = true;
         pwsh.enable = true;
         ssh.enable = true;

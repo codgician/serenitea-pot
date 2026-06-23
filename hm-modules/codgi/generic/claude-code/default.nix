@@ -48,7 +48,7 @@ in
     home.packages = with pkgs.nur.repos.codgician; [ agent-browser ];
     programs.claude-code = {
       enable = true;
-      package = cfg.package;
+      inherit (cfg) package;
 
       mcpServers = lib.mkIf config.codgician.codgi.mcp.enable mcpServers;
 

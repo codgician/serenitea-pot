@@ -48,6 +48,15 @@ in
   options.codgician.codgi.opencode = {
     enable = lib.mkEnableOption "opencode";
 
+    package = lib.mkOption {
+      type = lib.types.package;
+      default = pkgs.opencode;
+      defaultText = lib.literalExpression "pkgs.opencode";
+      description = ''
+        The OpenCode package to install.
+      '';
+    };
+
     web = {
       enable = lib.mkEnableOption "opencode web interface";
 
@@ -69,8 +78,12 @@ in
     home.packages = with pkgs.nur.repos.codgician; [ agent-browser ];
     programs.opencode = {
       enable = true;
+      inherit (cfg) package;
       enableMcpIntegration = config.codgician.codgi.mcp.enable;
-      tui.theme = "github";
+      tui = {
+        theme = "github";
+        plugin = [ "oh-my-openagent" ];
+      };
       settings = {
         instructions = [
           (pkgs.writeText "nix.md" ''
@@ -115,7 +128,10 @@ in
           dendro = {
             npm = "@ai-sdk/openai-compatible";
             name = "dendro";
-            options.baseURL = "https://dendro.codgician.me/v1";
+            options = {
+              baseURL = "https://dendro.codgician.me/v1";
+              apiKey = "{env:DENDRO_API_KEY}";
+            };
             models = openCodeModels;
           };
         };

@@ -6,7 +6,7 @@
     pubkeys.hosts.paimon
     pubkeys.hosts.wanderer
   ];
-  
+
   # Consumed via systemd EnvironmentFile (read by systemd as root before the
   # service drops privileges), so the rendered file stays root-owned like agenix.
   content = ''

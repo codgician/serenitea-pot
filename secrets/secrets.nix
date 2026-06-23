@@ -163,7 +163,7 @@ in
     # Shared env-bundle components (referenced by 2+ templates -> union recipients)
     vllm-api-key = { }; # litellm-env + vllm-env
     gemini-api-key = { }; # litellm-env + open-webui-env
-    
+
     # litellm-env components
     litellm-master-key = { };
     litellm-oidc-client-secret = { };
