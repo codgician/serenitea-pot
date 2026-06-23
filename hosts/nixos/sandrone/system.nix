@@ -36,10 +36,7 @@
           rust.enable = true;
         };
 
-        claude-code = {
-          enable = true;
-          package = pkgs.claude-code-wrapped;
-        };
+        claude-code.enable = true;
         git.enable = true;
         mcp.enable = true;
         opencode.enable = true;

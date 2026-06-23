@@ -125,10 +125,7 @@
     { ... }:
     {
       codgician.codgi = {
-        claude-code = {
-          enable = true;
-          package = pkgs.claude-code-wrapped;
-        };
+        claude-code.enable = true;
         dev = {
           dotnet.enable = true;
           nix.enable = true;
@@ -138,7 +135,6 @@
         mcp.enable = true;
         opencode = {
           enable = true;
-          package = pkgs.opencode-wrapped;
           web.enable = true;
         };
         pwsh.enable = true;

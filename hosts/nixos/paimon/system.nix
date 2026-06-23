@@ -287,10 +287,7 @@
       codgician.codgi = {
         dev.nix.enable = true;
         git.enable = true;
-        opencode = {
-          enable = true;
-          package = pkgs.opencode-wrapped;
-        };
+        opencode.enable = true;
         mcp.enable = true;
         pwsh.enable = true;
         ssh.enable = true;

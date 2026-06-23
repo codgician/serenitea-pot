@@ -28,10 +28,7 @@
     { pkgs, ... }:
     {
       codgician.codgi = {
-        claude-code = {
-          enable = true;
-          package = pkgs.claude-code-wrapped;
-        };
+        claude-code.enable = true;
         codex = {
           enable = true;
           package = pkgs.codex-wrapped;
@@ -48,10 +45,7 @@
         github-copilot-cli.enable = true;
         git.enable = true;
         mcp.enable = true;
-        opencode = {
-          enable = true;
-          package = pkgs.opencode-wrapped;
-        };
+        opencode.enable = true;
         pi-coding-agent.enable = true;
         pwsh.enable = true;
         ssh.enable = true;

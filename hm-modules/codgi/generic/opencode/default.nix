@@ -114,7 +114,7 @@ in
             name = "dendro";
             options = {
               baseURL = "https://dendro.codgician.me/v1";
-              apiKey = "{env:DENDRO_API_KEY}";
+              apiKey = "{file:${osConfig.codgician.secrets.templates."litellm-user-api-key".path}}";
             };
             models = openCodeModels;
           };
