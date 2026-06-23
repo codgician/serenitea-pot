@@ -2,6 +2,6 @@
 {
   publicKeys = pubkeys.allHosts;
   content = ''
-    PROVIDER_API_KEY=${ref "anthropic-auth-token"}
+    PROVIDER_API_KEY=${ref "litellm-user-api-key"}
   '';
 }

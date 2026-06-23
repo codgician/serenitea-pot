@@ -17,7 +17,7 @@ let
         "-y"
         "@amap/amap-maps-mcp-server"
       ];
-      env.AMAP_MAPS_API_KEY._secret = config.codgician.secrets.files.mcp-amap-api-key.path;
+      env.AMAP_MAPS_API_KEY._secret = config.codgician.secrets.files.amap-api-key.path;
     };
     context7 = {
       type = "streamable_http";
@@ -42,7 +42,7 @@ let
         "-y"
         "@modelcontextprotocol/server-google-maps"
       ];
-      env.GOOGLE_MAPS_API_KEY._secret = config.codgician.secrets.files.mcp-google-maps-api-key.path;
+      env.GOOGLE_MAPS_API_KEY._secret = config.codgician.secrets.files.google-maps-api-key.path;
     };
     github = {
       type = "streamable_http";

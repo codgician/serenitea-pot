@@ -40,8 +40,8 @@ in
     # MCP servers
     context7-api-key.publicKeys = allHosts;
     github-auth-header.publicKeys = allHosts;
-    mcp-amap-api-key.publicKeys = someHosts [ hosts.paimon ];
-    mcp-google-maps-api-key.publicKeys = someHosts [ hosts.paimon ];
+    amap-api-key.publicKeys = someHosts [ hosts.paimon ];
+    google-maps-api-key.publicKeys = someHosts [ hosts.paimon ];
 
     # OIDC secrets
     grafana-oidc-secret-authelia-main.publicKeys = someHosts [ hosts.paimon ];
@@ -161,38 +161,31 @@ in
     gcp-credentials.publicKeys = pubkeys.users.codgi;
 
     # Shared env-bundle components (referenced by 2+ templates -> union recipients)
-    anthropic-auth-token = { }; # claude-code-env + droid-env
     vllm-api-key = { }; # litellm-env + vllm-env
     gemini-api-key = { }; # litellm-env + open-webui-env
-    litellm-proxy-admin-id = { }; # litellm-env PROXY_ADMIN_ID + UI_USERNAME
-
+    
     # litellm-env components
     litellm-master-key = { };
-    litellm-generic-client-secret = { };
+    litellm-oidc-client-secret = { };
     litellm-ui-password = { };
-    litellm-azure-akasha-api-key = { };
-    litellm-deepseek-api-key = { };
-    litellm-nvidia-nim-api-key = { };
-    litellm-anthropic-api-key = { };
+    azure-akasha-api-key = { };
+    deepseek-api-key = { };
+    nvidia-nim-api-key = { };
+    anthropic-api-key = { };
+    litellm-proxy-admin-id = { };
+
+    # litellm api keys
+    litellm-user-api-key = { };
+    litellm-akasha-api-key = { };
 
     # open-webui-env components
     open-webui-secret-key = { };
-    open-webui-google-pse-engine-id = { };
-    open-webui-google-pse-api-key = { };
+    google-pse-engine-id = { };
+    google-pse-api-key = { };
     open-webui-oauth-client-secret = { };
-    open-webui-openai-api-base-urls = { };
 
     # anubis-env component
     anubis-ed25519-private-key-hex = { };
-
-    # mirofish-env components
-    mirofish-llm-api-key = { };
-    mirofish-llm-base-url = { };
-    mirofish-llm-model-name = { };
-    mirofish-zep-api-key = { };
-
-    # claude-code-env component (ANTHROPIC_BASE_URL; AUTH_TOKEN is shared above)
-    claude-code-anthropic-base-url = { };
 
     # codex-env component
     codex-openai-api-key = { };
