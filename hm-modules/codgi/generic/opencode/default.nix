@@ -118,12 +118,6 @@ in
             options.baseURL = "https://dendro.codgician.me/v1";
             models = openCodeModels;
           };
-          dendro-responses = {
-            npm = "@ai-sdk/openai";
-            name = "dendro-responses";
-            options.baseURL = "https://dendro.codgician.me/v1";
-            models = openCodeModels;
-          };
         };
       };
     };
@@ -158,59 +152,59 @@ in
         tmux.enabled = config.codgician.codgi.tmux.enable;
         agents = {
           sisyphus = {
-            model = "dendro-responses/claude-opus-4-8";
+            model = "dendro/claude-opus-4-8";
             fallback_models = [
               "anthropic/claude-opus-4-8"
               "github-copilot/claude-opus-4-8"
             ];
           };
           sisyphus-junior = {
-            model = "dendro-responses/claude-sonnet-4-6";
+            model = "dendro/claude-sonnet-4-6";
             fallback_models = [
               "anthropic/claude-sonnet-4-6"
               "github-copilot/claude-sonnet-4-6"
             ];
           };
           hephaestus = {
-            model = "dendro-responses/gpt-5.5";
+            model = "dendro/gpt-5.5";
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           oracle = {
-            model = "dendro-responses/gpt-5.5";
+            model = "dendro/gpt-5.5";
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           librarian = {
-            model = "dendro-responses/gpt-5.4-mini";
+            model = "dendro/gpt-5.4-mini";
             fallback_models = [ "github-copilot/gpt-5.4-mini" ];
           };
           explore = {
-            model = "dendro-responses/gpt-5.4-mini";
+            model = "dendro/gpt-5.4-mini";
             fallback_models = [ "github-copilot/gpt-5.4-mini" ];
           };
           multimodal-looker = {
-            model = "dendro-responses/gpt-5.5";
+            model = "dendro/gpt-5.5";
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           metis = {
-            model = "dendro-responses/claude-opus-4-8";
+            model = "dendro/claude-opus-4-8";
             fallback_models = [
               "github-copilot/claude-opus-4.8"
               "anthropic/claude-opus-4-8"
             ];
           };
           momus = {
-            model = "dendro-responses/gpt-5.5";
+            model = "dendro/gpt-5.5";
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           atlas = {
-            model = "dendro-responses/claude-sonnet-4-6";
+            model = "dendro/claude-sonnet-4-6";
             fallback_models = [
               "github-copilot/claude-sonnet-4.6-1m"
               "anthropic/claude-sonnet-4-6"
             ];
           };
           prometheus = {
-            model = "dendro-responses/claude-opus-4-8";
+            model = "dendro/claude-opus-4-8";
             fallback_models = [
               "github-copilot/claude-opus-4.8"
               "anthropic/claude-opus-4-8"
@@ -219,41 +213,41 @@ in
         };
         categories = {
           visual-engineering = {
-            model = "dendro-responses/gemini-3.5-flash";
+            model = "dendro/gemini-3.5-flash";
             fallback_models = [ "github-copilot/gemini-3.5-flash" ];
           };
           ultrabrain = {
-            model = "dendro-responses/gpt-5.5";
+            model = "dendro/gpt-5.5";
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           deep = {
-            model = "dendro-responses/gpt-5.5";
+            model = "dendro/gpt-5.5";
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           artistry = {
-            model = "dendro-responses/gemini-3.1-pro-preview";
+            model = "dendro/gemini-3.1-pro-preview";
             fallback_models = [ "github-copilot/gemini-3.1-pro-preview" ];
           };
           quick = {
-            model = "dendro-responses/gpt-5.4-mini";
+            model = "dendro/gpt-5.4-mini";
             fallback_models = [ "github-copilot/gpt-5.4-mini" ];
           };
           unspecified-low = {
-            model = "dendro-responses/claude-sonnet-4-6";
+            model = "dendro/claude-sonnet-4-6";
             fallback_models = [
               "github-copilot/claude-sonnet-4.6"
               "anthropic/claude-sonnet-4-6"
             ];
           };
           unspecified-high = {
-            model = "dendro-responses/claude-opus-4-8";
+            model = "dendro/claude-opus-4-8";
             fallback_models = [
               "github-copilot/claude-opus-4.8"
               "anthropic/claude-opus-4-8"
             ];
           };
           writing = {
-            model = "dendro-responses/gemini-3.5-flash";
+            model = "dendro/gemini-3.5-flash";
             fallback_models = [
               "github-copilot/gemini-3.5-flash"
             ];
