@@ -80,6 +80,18 @@ in
       description = "Port for mcpo to listen on.";
     };
 
+    servers = lib.mkOption {
+      type = with types; listOf str;
+      readOnly = true;
+      default = builtins.attrNames mcpoConfig.mcpServers;
+      description = ''
+        Names of the MCP servers exposed by mcpo. Each is reachable at
+        `http://127.0.0.1:''${toString port}/<name>`. Read-only; derived from
+        the mcpo server definitions so consumers (e.g. open-webui tool servers)
+        stay in sync.
+      '';
+    };
+
     dataDir = lib.mkOption {
       type = types.path;
       default = defaultDataDir;

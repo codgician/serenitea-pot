@@ -18,14 +18,121 @@ let
 
   ollamaCfg = config.codgician.services.ollama;
   vllmCfg = config.codgician.services.vllm;
+  mcpoCfg = config.codgician.services.mcpo;
   ollamaEmbeddingModel = "hf.co/Qwen/Qwen3-Embedding-4B-GGUF:Q4_K_M";
   pgDbName = "open-webui";
   pgDbHost = "/run/postgresql";
+
+  # Group id of "akasha-users" persisted in the open-webui database, referenced
+  # by access grants baked into the persisted UI state below.
+  akashaUsersGroupId = "b3840ad7-9a95-4fe6-950b-b68437209f70";
+  akashaUsersReadGrant = {
+    principal_type = "group";
+    principal_id = akashaUsersGroupId;
+    permission = "read";
+  };
+
+  # Tool servers are the MCP endpoints exposed by mcpo, each reachable at
+  # http://127.0.0.1:<mcpo port>/<server name>. Presentation (display name and
+  # description) and access scope are open-webui concerns, keyed by the mcpo
+  # server name. Servers without an entry here fall back to their OpenAPI spec
+  # for naming and are shared with akasha-users. "github" is admin-only (empty
+  # grants), matching the state that was persisted in the database.
+  toolServerMeta = {
+    time = {
+      name = "Time";
+      description = "Get current time.";
+    };
+    fetch = {
+      name = "Fetch";
+      description = "Fetch file behind a URL.";
+    };
+    paper-search = {
+      name = "Paper Search";
+      description = "Search papers.";
+    };
+    google-maps = {
+      name = "Google Maps";
+      description = "Find locations on Google Maps";
+    };
+    amap-maps = {
+      name = "高德地图";
+      description = "Find location on Amaps (高德地图)";
+    };
+    grep_app = {
+      name = "grep.app";
+      description = "Rapid code search";
+    };
+    context7 = {
+      name = "Context7";
+      description = "Pulls up-to-date, version-specific documentation and code examples straight from the source.";
+    };
+    github = {
+      name = "GitHub";
+      description = "Access GitHub for code and operations";
+      adminOnly = true;
+    };
+  };
+
+  mkToolServer =
+    name:
+    let
+      meta = toolServerMeta.${name} or { };
+    in
+    {
+      url = "http://127.0.0.1:${builtins.toString mcpoCfg.port}/${name}";
+      path = "openapi.json";
+      type = "openapi";
+      auth_type = "bearer";
+      headers = null;
+      key = "";
+      config = {
+        enable = true;
+        function_name_filter_list = "";
+        access_grants = lib.optional (!(meta.adminOnly or false)) akashaUsersReadGrant;
+      };
+      spec_type = "url";
+      spec = "";
+      info = {
+        id = "";
+        name = meta.name or name;
+        description = meta.description or "";
+      };
+    };
+
+  toolServerConnections = map mkToolServer mcpoCfg.servers;
+
+  defaultModelMetadata.capabilities = {
+    vision = true;
+    citations = true;
+    web_search = true;
+    file_upload = true;
+    file_context = true;
+    builtin_tools = true;
+    status_updates = true;
+    code_interpreter = true;
+    image_generation = true;
+  };
+
+  doclingParams = {
+    do_ocr = true;
+    ocr_engine = "auto";
+    table_mode = "accurate";
+    pdf_backend = "dlparse_v4";
+    do_code_enrichment = true;
+    do_formula_enrichment = true;
+    do_picture_description = true;
+    picture_description_preset = "default";
+  };
 
   environment = {
     # Enable CUDA
     USE_CUDA_DOCKER = "True";
     ENV = "prod";
+    # Always honour environment variables over the database so configuration
+    # stays consistent with this module. Values below mirror the state that was
+    # previously persisted in the database while persistence was enabled.
+    ENABLE_PERSISTENT_CONFIG = "False";
     WEBUI_AUTH = "True";
     WEBUI_NAME = "Akasha";
     WEBUI_URL = webuiUrl;
@@ -74,10 +181,14 @@ let
     # Search
     ENABLE_WEB_SEARCH = "True";
     WEB_SEARCH_ENGINE = "google_pse";
-    WEB_SEARCH_RESULT_COUNT = "5";
+    WEB_SEARCH_RESULT_COUNT = "3";
     WEB_SEARCH_CONCURRENT_REQUESTS = "10";
+    WEB_SEARCH_TRUST_ENV = "False";
     # RAG
-    ENABLE_RAG_HYBRID_SEARCH = "True";
+    ENABLE_RAG_HYBRID_SEARCH = "False";
+    ENABLE_RAG_HYBRID_SEARCH_ENRICHED_TEXTS = "True";
+    RAG_TEXT_SPLITTER = "token";
+    CHUNK_SIZE = "800";
     PDF_EXTRACT_IMAGES = "True";
     ENABLE_SEARCH_QUERY = "True";
     ENABLE_RAG_WEB_SEARCH = "True";
@@ -94,16 +205,11 @@ let
         let
           inst = vllmCfg.instances.${cfg.embedding.vllm.instance};
         in
-        "http://${inst.host}:${builtins.toString inst.port}/v1"
+        # The embedding backend is always co-located with open-webui.
+        "http://127.0.0.1:${builtins.toString inst.port}/v1"
       else
         null;
-    RAG_OPENAI_API_KEY =
-      if cfg.embedding.engine == "openai" then
-        cfg.embedding.openai.apiKey
-      else if cfg.embedding.engine == "vllm" then
-        cfg.embedding.vllm.apiKey
-      else
-        null;
+    # RAG_OPENAI_API_KEY provided in env
     RAG_TOP_K = "5";
     RAG_TOP_K_RERANKER = "5";
     RAG_RELEVANCE_THRESHOLD = "0.3";
@@ -115,10 +221,32 @@ let
     DATABASE_URL = lib.mkIf (cfg.database == "postgresql") "postgresql:///${pgDbName}?host=${pgDbHost}";
     # Vector Database
     VECTOR_DB = lib.mkIf (cfg.database == "postgresql") "pgvector";
+    # Image generation (OpenAI-compatible engine via LiteLLM)
+    ENABLE_IMAGE_GENERATION = "True";
+    IMAGE_GENERATION_ENGINE = "openai";
+    IMAGE_GENERATION_MODEL = "gpt-image-2";
+    IMAGE_SIZE = "";
+    ENABLE_IMAGE_EDIT = "True";
+    IMAGE_EDIT_ENGINE = "openai";
+    IMAGE_EDIT_MODEL = "gpt-image-2";
+    # IMAGES_OPENAI_API_BASE_URL / IMAGES_OPENAI_API_KEY and the edit variants
+    # are provided through the environment file (secrets template).
+    # Audio: browser-side speech-to-text (no server credentials required)
+    AUDIO_STT_ENGINE = "web";
+    # Connections, sharing and webhooks
+    ENABLE_DIRECT_CONNECTIONS = "True";
+    ENABLE_USER_WEBHOOKS = "True";
+    JWT_EXPIRES_IN = "7d";
+    TASK_MODEL_EXTERNAL = "gpt-5.4-nano";
+    DEFAULT_MODEL_METADATA = builtins.toJSON defaultModelMetadata;
     # Misc
     ENABLE_REALTIME_CHAT_SAVE = "True";
     ENABLE_CHAT_RESPONSE_BASE64_IMAGE_URL_CONVERSION = "True";
   }
+  // (lib.optionalAttrs mcpoCfg.enable {
+    # Tool servers (MCP endpoints exposed by mcpo)
+    TOOL_SERVER_CONNECTIONS = builtins.toJSON toolServerConnections;
+  })
   // (lib.optionalAttrs config.codgician.services.docling-serve.enable {
     # Docling (PDF extraction engine)
     CONTENT_EXTRACTION_ENGINE = "docling";
@@ -127,6 +255,7 @@ let
       "http://${host}:${builtins.toString port}";
     DOCLING_OCR_ENGINE = "rapidocr";
     DOCLING_OCR_LANG = "english,chinese";
+    DOCLING_PARAMS = builtins.toJSON doclingParams;
   });
 in
 {
