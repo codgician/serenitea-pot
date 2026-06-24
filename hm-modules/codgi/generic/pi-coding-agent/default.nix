@@ -11,8 +11,7 @@ let
 
   jsonFormat = pkgs.formats.json { };
 
-  # Filter text generation models by allowed providers (mirrors opencode's
-  # dendro provider: all routed through the LiteLLM proxy).
+  # Providers routed through the dendro LiteLLM proxy (mirrors opencode).
   allowedProviders = [
     "chatgpt"
     "github"
@@ -25,27 +24,17 @@ let
     m: builtins.elem m.provider allowedProviders
   ) osConfig.codgician.models.textGenerationModels;
 
-  # pi thinking levels, in canonical order (see pi.dev/docs/latest/models).
-  piThinkingLevels = [
-    "off"
-    "minimal"
-    "low"
-    "medium"
-    "high"
-    "xhigh"
-  ];
+  # Registry mode -> pi API type. Each model talks to its native LiteLLM
+  # surface, avoiding LiteLLM's chat<->responses bridging.
+  modeToApi = {
+    chat = "openai-completions";
+    responses = "openai-responses";
+  };
 
-  # Each pi thinking level resolves to the first registry effort key the model
-  # actually defines (preference order, first match wins). The map VALUE is the
-  # exact effort string sent to the provider, so name mismatches are handled
-  # precisely instead of relying on pi's default mapping:
-  #   registry `none`  -> pi `off`     (Claude has no `none`, so it stays on)
-  #   registry `max`   -> pi `xhigh`   (true ceiling, preferred over `xhigh`)
-  #   registry `xhigh` -> pi `xhigh`   (only when the model has no `max`)
-  # A Claude model that supports `max` natively therefore gets `xhigh -> "max"`
-  # rather than a dropped or mismatched effort. Models exposing both `xhigh` and
-  # `max` (Opus 4.7+) surface `max` at pi's ceiling; the intermediate `xhigh`
-  # tier is shadowed because pi has no slot above `xhigh`.
+  # pi thinking level -> registry effort keys, in preference order (first key
+  # the model defines wins). Map values are the exact effort strings sent
+  # upstream, so name mismatches resolve precisely. `max` outranks `xhigh` at
+  # pi's ceiling, so Claude models reach `max` natively.
   piLevelToEffortKeys = {
     off = [ "none" ];
     minimal = [ "minimal" ];
@@ -58,29 +47,23 @@ let
     ];
   };
 
-  # Resolve a pi level to the exact provider effort string, or null when the
-  # model defines none of the candidate efforts (unsupported -> hidden in pi).
-  resolvePiLevel =
-    variantKeys: level:
+  # First candidate effort the model defines, or null when none (hidden in pi).
+  resolveEffort =
+    variantKeys: candidates:
     let
-      candidates = builtins.filter (k: builtins.elem k variantKeys) piLevelToEffortKeys.${level};
+      matches = builtins.filter (k: builtins.elem k variantKeys) candidates;
     in
-    if candidates == [ ] then null else builtins.head candidates;
+    if matches == [ ] then null else builtins.head matches;
 
-  # Full `thinkingLevelMap`: every pi level mapped to its provider effort string
-  # or null. Explicit string values (e.g. `xhigh -> "max"`) mirror the official
-  # pi docs example and make the exact request payload auditable.
+  # thinkingLevelMap: every pi level -> effort string or null.
   mkThinkingLevelMap =
     m:
     let
       variantKeys = builtins.attrNames m.variants;
     in
-    builtins.listToAttrs (
-      map (level: lib.nameValuePair level (resolvePiLevel variantKeys level)) piThinkingLevels
-    );
+    builtins.mapAttrs (_level: resolveEffort variantKeys) piLevelToEffortKeys;
 
-  # Transform a registry model into a pi model entry. `id` matches the LiteLLM
-  # model name (m.model), and `input` mirrors opencode's modalities.
+  # Registry model -> pi model entry. `id` matches the LiteLLM model name.
   mkPiModel =
     m:
     let
@@ -88,6 +71,7 @@ let
     in
     {
       id = m.model;
+      api = modeToApi.${m.mode};
       input = [
         "text"
         "image"
@@ -100,12 +84,12 @@ let
 
   piModels = map mkPiModel filteredModels;
 
-  # Single OpenAI-compatible provider pointing at the dendro LiteLLM proxy,
-  # authenticated with the per-user API key secret (read at request time).
+  # OpenAI-compatible provider for the dendro LiteLLM proxy. Per-model `api`
+  # picks the surface; `apiKey` reads the secret at request time.
   modelsJson = {
     providers.dendro = {
       baseUrl = "https://dendro.codgician.me/v1";
-      api = "openai-responses";
+      api = "openai-completions";
       apiKey = "!cat ${osConfig.codgician.secrets.templates."litellm-user-api-key".path}";
       models = piModels;
     };
