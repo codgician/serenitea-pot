@@ -28,7 +28,7 @@
         user = "codgi";
 
         # Haskell kernel (Nix-managed)
-        extraKernels.ihaskell = {
+        kernels.ihaskell.default = {
           enable = true;
           extraPackages =
             ps: with ps; [
@@ -62,11 +62,14 @@
             ];
         };
 
-        # Python kernel (lazy pip-based for agile experimentation)
-        extraKernels.python-lazy = {
+        # Python kernel (uv/pip inside an FHS sandbox for agile experimentation).
+        # The venv lives on /lab (persistent bind mount) and is provisioned with
+        # an uv-managed standalone CPython on first launch, so it behaves like a
+        # vanilla pip/uv environment on any other Linux distribution.
+        kernels.python.default = {
           enable = true;
-          # Default packages installed on first kernel launch
-          # Add more via !pip install in notebooks
+          # Default packages installed on first kernel launch.
+          # Add more later via !uv pip install in notebooks.
           defaultPackages = [
             "numpy"
             "pandas"
