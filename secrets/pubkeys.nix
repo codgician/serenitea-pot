@@ -22,6 +22,14 @@ rec {
     ];
   };
 
+  loginKeys = {
+    codgi = users.codgi ++ [
+      # Secure Enclave key on furina
+      "sk-ecdsa-sha2-nistp256@openssh.com AAAAInNrLWVjZHNhLXNoYTItbmlzdHAyNTZAb3BlbnNzaC5jb20AAAAIbmlzdHAyNTYAAABBBOUwhW9s2miIEdEICF3d/QWjNQiBs90q89JbK/nIENWDRM0D9nirU/couH1AmlI3L+v9xDgibqHcqzg3rt85He8AAAAEc3NoOg=="
+    ];
+    shijiazhang = users.shijiazhang;
+  };
+
   # Aliases
   someHosts = xs: (builtins.concatLists xs) ++ users.codgi;
 

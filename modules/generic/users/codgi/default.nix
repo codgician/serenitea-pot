@@ -13,7 +13,7 @@ in
       description = "Shijia Zhang";
       createHome = true;
       shell = pkgs.zsh;
-      openssh.authorizedKeys.keys = pubKeys.users.${name};
+      openssh.authorizedKeys.keys = pubKeys.loginKeys.${name};
     }
 
     # Linux-specific configurations
