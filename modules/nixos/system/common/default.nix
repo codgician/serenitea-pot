@@ -25,7 +25,8 @@ in
 
     audit.enable = lib.mkOption {
       type = lib.types.bool;
-      default = true;
+      default = !config.boot.isContainer;
+      defaultText = lib.literalExpression "!config.boot.isContainer";
       description = "Linux kernel audit subsystem and auditd userspace daemon.";
     };
   };
