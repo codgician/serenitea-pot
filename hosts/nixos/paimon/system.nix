@@ -55,6 +55,8 @@
         zfsOptimizations = true;
       };
 
+      redis.rootDir = "/opool/redis";
+
       nixos-vscode-server.enable = true;
 
       # Chat
