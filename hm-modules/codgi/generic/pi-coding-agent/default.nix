@@ -15,7 +15,6 @@ let
   allowedProviders = [
     "chatgpt"
     "github"
-    "anthropic"
     "nvidia"
     "vllm"
   ];

@@ -226,10 +226,6 @@ in
   options.codgician.models = {
     # Provider specifications (typed inputs)
     providers = {
-      anthropic = mkOption {
-        type = mkProviderType basicModelType;
-        description = "Anthropic Claude models";
-      };
       azure = mkOption {
         type = mkProviderType azureModelType;
         description = "Azure AI models";
@@ -291,53 +287,6 @@ in
       # Provider definitions (transformer + models)
       # =========================================================================
       providers = {
-        # Anthropic Claude models
-        anthropic = {
-          transformer =
-            name: spec:
-            let
-              isHaiku = lib.hasInfix "haiku" name;
-            in
-            mkModel {
-              modelPrefix = "anthropic";
-              apiKeyEnv = "ANTHROPIC_API_KEY";
-              tags = [
-                "anthropic"
-                "remote"
-              ];
-              extraParams = {
-                use_in_pass_through = true;
-                extra_headers = {
-                  "anthropic-beta" =
-                    "oauth-2025-04-20,interleaved-thinking-2025-05-14,claude-code-20250219,context-1m-2025-08-07,fine-grained-tool-streaming-2025-05-14";
-                };
-              }
-              // lib.optionalAttrs (!isHaiku) { prompt_id = "claude-code"; };
-            } name spec;
-          models = {
-            # "claude-opus-4-8" = {
-            #   aliases = [ "claude-opus-4.8" ];
-            #   variants = claudeOpus47;
-            # };
-            # "claude-opus-4-7" = {
-            #   aliases = [ "claude-opus-4.7" ];
-            #   variants = claudeOpus47;
-            # };
-            # # Opus 4.6 supports effort-based control (including max effort)
-            # "claude-opus-4-6" = {
-            #   aliases = [ "claude-opus-4.6" ];
-            #   variants = claudeOpus46;
-            # };
-            # # Haiku doesn't support extended thinking
-            # "claude-haiku-4-5".aliases = [ "claude-haiku-4.5" ];
-            # # Sonnet 4.6 supports effort-based control (no max effort)
-            # "claude-sonnet-4-6" = {
-            #   aliases = [ "claude-sonnet-4.6" ];
-            #   variants = claudeSonnet46;
-            # };
-          };
-        };
-
         # Azure models
         azure = {
           transformer = name: spec: {
@@ -459,7 +408,7 @@ in
             };
           };
           models = {
-            # Anthropic models
+            # Claude models
             "claude-opus-4-8" = {
               variants = claudeOpus47;
               path = "claude-opus-4.8";

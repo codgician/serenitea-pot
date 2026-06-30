@@ -171,7 +171,6 @@ in
     azure-akasha-api-key = { };
     deepseek-api-key = { };
     nvidia-nim-api-key = { };
-    anthropic-api-key = { };
     litellm-proxy-admin-id = { };
 
     # litellm api keys

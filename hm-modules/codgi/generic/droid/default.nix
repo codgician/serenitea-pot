@@ -10,7 +10,6 @@ let
   cfg = config.codgician.codgi.droid;
   allowedProviders = [
     "github"
-    "anthropic"
     "nvidia"
   ];
 

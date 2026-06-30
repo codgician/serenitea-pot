@@ -14,7 +14,6 @@ let
   allowedProviders = [
     "chatgpt"
     "github"
-    "anthropic"
     "nvidia"
     "vllm"
   ];
@@ -154,14 +153,12 @@ in
           sisyphus = {
             model = "dendro/claude-opus-4-8";
             fallback_models = [
-              "anthropic/claude-opus-4-8"
               "github-copilot/claude-opus-4-8"
             ];
           };
           sisyphus-junior = {
             model = "dendro/claude-sonnet-4-6";
             fallback_models = [
-              "anthropic/claude-sonnet-4-6"
               "github-copilot/claude-sonnet-4-6"
             ];
           };
@@ -189,7 +186,6 @@ in
             model = "dendro/claude-opus-4-8";
             fallback_models = [
               "github-copilot/claude-opus-4.8"
-              "anthropic/claude-opus-4-8"
             ];
           };
           momus = {
@@ -200,14 +196,12 @@ in
             model = "dendro/claude-sonnet-4-6";
             fallback_models = [
               "github-copilot/claude-sonnet-4.6-1m"
-              "anthropic/claude-sonnet-4-6"
             ];
           };
           prometheus = {
             model = "dendro/claude-opus-4-8";
             fallback_models = [
               "github-copilot/claude-opus-4.8"
-              "anthropic/claude-opus-4-8"
             ];
           };
         };
@@ -236,14 +230,12 @@ in
             model = "dendro/claude-sonnet-4-6";
             fallback_models = [
               "github-copilot/claude-sonnet-4.6"
-              "anthropic/claude-sonnet-4-6"
             ];
           };
           unspecified-high = {
             model = "dendro/claude-opus-4-8";
             fallback_models = [
               "github-copilot/claude-opus-4.8"
-              "anthropic/claude-opus-4-8"
             ];
           };
           writing = {

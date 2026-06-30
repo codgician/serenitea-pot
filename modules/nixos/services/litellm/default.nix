@@ -51,16 +51,7 @@ let
       stream = true;
     };
     model_list = allModels;
-    prompts = [
-      {
-        prompt_id = "claude-code";
-        litellm_params = {
-          prompt_id = "claude-code";
-          prompt_integration = "dotprompt";
-          dotprompt_content = builtins.readFile ./claude-code.prompt;
-        };
-      }
-    ];
+    prompts = [ ];
   };
 
   # Redis socket path (different for container vs nixpkgs)

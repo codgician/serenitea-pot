@@ -19,7 +19,6 @@
     GEMINI_API_KEY=${ref "gemini-api-key"}
     DEEPSEEK_API_KEY=${ref "deepseek-api-key"}
     NVIDIA_NIM_API_KEY=${ref "nvidia-nim-api-key"}
-    ANTHROPIC_API_KEY=${ref "anthropic-api-key"}
     HOSTED_VLLM_API_KEY=${ref "vllm-api-key"}
   '';
 }

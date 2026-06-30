@@ -122,7 +122,6 @@ are self-describing files (next section).
   # never list publicKeys here. `mock` is the fake used in VM tests.
   secrets = {
     github-token      = { mock = "ghp_mock00000000000000000000000000000000"; };
-    anthropic-api-key = { mock = "sk-ant-mock00000000000000000000000000000"; };
     deepseek-api-key  = { mock = "sk-mock0000000000000000000000000000000000"; };
     litellm-oidc      = { mock = "mock-oidc-client-secret"; };
 
@@ -180,7 +179,6 @@ auto-discovered via `lib.codgician.getNixFileNamesWithoutExt`, so adding a file
   publicKeys = pubkeys.someHosts [ pubkeys.hosts.paimon pubkeys.hosts.lumine ];
   owner = "litellm";
   content = ''
-    ANTHROPIC_API_KEY=${ref "anthropic-api-key"}
     DEEPSEEK_API_KEY=${ref "deepseek-api-key"}
     GITHUB_TOKEN=${ref "github-token"}
     GENERIC_CLIENT_SECRET=${ref "litellm-oidc"}
@@ -644,10 +642,10 @@ Darwin's identity path is set analogously in
 ## Consumer migration
 
 ```nix
-# env file: composes anthropic-api-key + github-token + ... (template)
+# env file containing api keys
 environmentFile = config.codgician.secrets.files."litellm.env".path;
 
-# header: shapes the shared github-token (template)
+# header: shapes the shared github-token
 headers.Authorization._secret = config.codgician.secrets.files."mcpo-github-header".path;
 
 # single value used verbatim (passthrough template)
@@ -707,7 +705,7 @@ in
 }
 ```
 
-This requires `secrets.anthropic-api-key.mock`, `secrets.github-token.mock`, etc.
+This requires `secrets.github-token.mock`, etc.
 (every secret `litellm.env` references). A missing one fails the build naming the
 secret.
 
