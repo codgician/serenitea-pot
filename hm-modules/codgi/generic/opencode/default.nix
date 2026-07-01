@@ -153,13 +153,13 @@ in
           sisyphus = {
             model = "dendro/claude-opus-4-8";
             fallback_models = [
-              "github-copilot/claude-opus-4-8"
+              "github-copilot/claude-opus-4.8"
             ];
           };
           sisyphus-junior = {
-            model = "dendro/claude-sonnet-4-6";
+            model = "dendro/claude-sonnet-5";
             fallback_models = [
-              "github-copilot/claude-sonnet-4-6"
+              "github-copilot/claude-sonnet-5"
             ];
           };
           hephaestus = {
@@ -193,9 +193,9 @@ in
             fallback_models = [ "github-copilot/gpt-5.5" ];
           };
           atlas = {
-            model = "dendro/claude-sonnet-4-6";
+            model = "dendro/claude-sonnet-5";
             fallback_models = [
-              "github-copilot/claude-sonnet-4.6-1m"
+              "github-copilot/claude-sonnet-5"
             ];
           };
           prometheus = {
@@ -227,9 +227,9 @@ in
             fallback_models = [ "github-copilot/gpt-5.4-mini" ];
           };
           unspecified-low = {
-            model = "dendro/claude-sonnet-4-6";
+            model = "dendro/claude-sonnet-5";
             fallback_models = [
-              "github-copilot/claude-sonnet-4.6"
+              "github-copilot/claude-sonnet-5"
             ];
           };
           unspecified-high = {
