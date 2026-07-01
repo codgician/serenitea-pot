@@ -415,7 +415,7 @@ in
             "claude-sonnet-5".variants = claudeOpus47;
             "claude-sonnet-4-6" = {
               variants = claudeOpus46;
-              path = "claude-sonnet-4.6"
+              path = "claude-sonnet-4.6";
             };
             "claude-haiku-4-5".path = "claude-haiku-4.5";
 
