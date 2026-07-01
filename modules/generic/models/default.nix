@@ -132,17 +132,8 @@ let
   # Variant Definitions (shared across providers)
   # ===========================================================================
 
-  # Claude Sonnet 4.6 effort-based variants
+  # Claude Sonnet / Opus 4.6 reasoning efforts
   # See: https://platform.claude.com/docs/en/build-with-claude/effort
-  claudeSonnet46 = lib.genAttrs [ "high" "medium" "low" ] (effort: {
-    thinking = {
-      type = "adaptive";
-      display = "summarized";
-    };
-    output_config = { inherit effort; };
-  });
-
-  # Claude Opus 4.6 extends Sonnet 4.6 with max effort
   claudeOpus46 = lib.genAttrs [ "max" "high" "medium" "low" ] (effort: {
     thinking = {
       type = "adaptive";
@@ -151,7 +142,7 @@ let
     output_config = { inherit effort; };
   });
 
-  # Claude Opus 4.7 extends Opus 4.7 with xhigh effort
+  # Claude Opus 4.7 extends Opus 4.6 with xhigh effort
   claudeOpus47 = lib.genAttrs [ "max" "xhigh" "high" "medium" "low" ] (effort: {
     thinking = {
       type = "adaptive";
@@ -420,6 +411,11 @@ in
             "claude-opus-4-6" = {
               variants = claudeOpus46;
               path = "claude-opus-4.6";
+            };
+            "claude-sonnet-5".variants = claudeOpus47;
+            "claude-sonnet-4-6" = {
+              variants = claudeOpus46;
+              path = "claude-sonnet-4.6"
             };
             "claude-haiku-4-5".path = "claude-haiku-4.5";
 
