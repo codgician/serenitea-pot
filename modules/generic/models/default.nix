@@ -475,10 +475,7 @@ in
             ];
           };
           models = {
-            "glm5.2".path = "z-ai/glm-5.2";
-            "minimax-m3".path = "minimaxai/minimax-m3";
             "kimi-k2.6".path = "moonshotai/kimi-k2.6";
-            "qwen3.5-397b-a17b".path = "qwen/qwen3.5-397b-a17b";
             "nemotron-3-ultra-550b-a55b".path = "nvidia/nemotron-3-ultra-550b-a55b";
           };
         };
