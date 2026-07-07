@@ -109,7 +109,7 @@ in
         };
         provider = {
           dendro = {
-            npm = "@ai-sdk/openai-compatible";
+            npm = "@ai-sdk/openai";
             name = "dendro";
             options = {
               baseURL = "https://dendro.codgician.me/v1";
