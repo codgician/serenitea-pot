@@ -164,14 +164,15 @@ let
     };
   };
 
+  # GPT-5.6+ reasoning effort variants
+  gpt56 = lib.genAttrs [ "xhigh" "high" "medium" "low" "none" ] (reasoningEffort: {
+    inherit reasoningEffort;
+  });
+
   # GPT-5.2+ reasoning effort variants
-  gpt52 = {
-    xhigh.reasoningEffort = "xhigh";
-    high.reasoningEffort = "high";
-    medium.reasoningEffort = "medium";
-    low.reasoningEffort = "low";
-    none.reasoningEffort = "none";
-  };
+  gpt52 = lib.genAttrs [ "xhigh" "high" "medium" "low" "none" ] (reasoningEffort: {
+    inherit reasoningEffort;
+  });
 
   # Gemini reasoning variants
   gemini = {
@@ -456,15 +457,15 @@ in
             };
             "gpt-5.6-luna" = {
               mode = "responses";
-              variants = gpt52;
+              variants = gpt56;
             };
             "gpt-5.6-sol" = {
               mode = "responses";
-              variants = gpt52;
+              variants = gpt56;
             };
             "gpt-5.6-terra" = {
               mode = "responses";
-              variants = gpt52;
+              variants = gpt56;
             };
 
             # MAI models
