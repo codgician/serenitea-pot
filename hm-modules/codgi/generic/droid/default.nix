@@ -11,6 +11,7 @@ let
   allowedProviders = [
     "github"
     "nvidia"
+    "xai"
   ];
 
   filteredModels = builtins.filter (

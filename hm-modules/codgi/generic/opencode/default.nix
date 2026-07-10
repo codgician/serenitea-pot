@@ -16,6 +16,7 @@ let
     "github"
     "nvidia"
     "vllm"
+    "xai"
   ];
 
   filteredModels = builtins.filter (

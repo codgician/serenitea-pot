@@ -188,6 +188,11 @@ let
     low.reasoningEffort = "low";
   };
 
+  # Grok 4.5 reasoning effort variants (reasoning cannot be disabled)
+  grok45 = lib.genAttrs [ "high" "medium" "low" ] (reasoningEffort: {
+    inherit reasoningEffort;
+  });
+
   # ===========================================================================
   # Build Registry from typed config
   # ===========================================================================
@@ -241,6 +246,10 @@ in
       nvidia = mkOption {
         type = mkProviderType basicModelType;
         description = "NVIDIA NIM models";
+      };
+      xai = mkOption {
+        type = mkProviderType basicModelType;
+        description = "xAI models";
       };
       vllm = mkOption {
         type = mkProviderType vllmModelType;
@@ -491,6 +500,19 @@ in
             "kimi-k2.6".path = "moonshotai/kimi-k2.6";
             "nemotron-3-ultra-550b-a55b".path = "nvidia/nemotron-3-ultra-550b-a55b";
           };
+        };
+
+        # xAI models using locally stored OAuth credentials
+        xai = {
+          transformer = mkModel {
+            modelPrefix = "xai";
+            tags = [
+              "xai"
+              "remote"
+            ];
+            extraParams.use_xai_oauth = true;
+          };
+          models."grok-4.5".variants = grok45;
         };
 
         # Self-hosted vLLM (OpenAI-compatible) models
