@@ -454,12 +454,24 @@ in
               mode = "responses";
               variants = gpt52;
             };
+            "gpt-5.6-luna" = {
+              mode = "responses";
+              variants = gpt52;
+            };
+            "gpt-5.6-sol" = {
+              mode = "responses";
+              variants = gpt52;
+            };
+            "gpt-5.6-terra" = {
+              mode = "responses";
+              variants = gpt52;
+            };
 
             # MAI models
             "mai-code-1-flash" = {
               mode = "responses";
               variants = mai;
-              path = "mai-code-1-flash-internal";
+              path = "mai-code-1-flash-picker";
             };
           };
         };
