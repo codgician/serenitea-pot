@@ -27,8 +27,8 @@ jobs:
         run: nix flake update >> $GITHUB_STEP_SUMMARY
       - name: Set timezone (UTC+8)
         run: |
-          sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-          echo "Asia/Shanghai" | sudo tee /etc/timezone
+          sudo ln -sf /usr/share/zoneinfo/Asia/Singapore /etc/localtime
+          echo "Asia/Singapore" | sudo tee /etc/timezone
           date
       - name: Push changes
         id: push

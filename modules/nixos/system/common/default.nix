@@ -98,7 +98,7 @@ in
     };
 
     # Time zone.
-    time.timeZone = "Asia/Shanghai";
+    time.timeZone = "Asia/Singapore";
 
     # Locales
     i18n = {
