@@ -49,7 +49,6 @@ let
   skillsDir = pkgs.symlinkJoin {
     name = "droid-skills";
     paths = [
-      "${inputs.skills}/skills"
       "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
     ];
   };

@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  inputs,
   ...
 }:
 let
@@ -34,14 +33,6 @@ let
 
   # MCP config JSON
   mcpConfigJson = builtins.toJSON { inherit mcpServers; };
-
-  # Skills directory combining all skill sources
-  skillsDir = pkgs.symlinkJoin {
-    name = "copilot-cli-skills";
-    paths = [
-      "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
-    ];
-  };
 in
 {
   options.codgician.codgi.github-copilot-cli = {
@@ -65,7 +56,12 @@ in
 
     home.file = {
       # Link skills directory to ~/.copilot/skills
-      ".copilot/skills".source = skillsDir;
+      ".copilot/skills".source = pkgs.symlinkJoin {
+        name = "copilot-cli-skills";
+        paths = [
+          "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
+        ];
+      };
     }
     // lib.optionalAttrs config.codgician.codgi.mcp.enable {
       # Link MCP config to ~/.copilot/mcp-config.json

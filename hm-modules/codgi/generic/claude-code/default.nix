@@ -26,7 +26,6 @@ let
   mcpServers = lib.mapAttrs (_: mkMcpServer) config.programs.mcp.servers;
 
   skills = lib.codgician.mergeFolders [
-    "${inputs.skills}/skills"
     "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
   ];
 in

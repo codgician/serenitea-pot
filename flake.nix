@@ -138,11 +138,6 @@
       };
     };
 
-    skills = {
-      url = "github:anthropics/skills";
-      flake = false;
-    };
-
     mkcreds = {
       url = "github:codgician/mkcreds";
       inputs.nixpkgs.follows = "nixpkgs";
