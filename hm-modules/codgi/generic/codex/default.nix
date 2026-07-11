@@ -48,7 +48,6 @@ in
     home.file.".agents/skills".source = pkgs.symlinkJoin {
       name = "codex-skills";
       paths = [
-        "${inputs.superpowers}/skills"
         "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
       ];
     };

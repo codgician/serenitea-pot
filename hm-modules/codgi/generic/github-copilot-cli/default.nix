@@ -39,7 +39,6 @@ let
   skillsDir = pkgs.symlinkJoin {
     name = "copilot-cli-skills";
     paths = [
-      "${inputs.superpowers}/skills"
       "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
     ];
   };

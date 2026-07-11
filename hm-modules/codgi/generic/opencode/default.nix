@@ -123,12 +123,11 @@ in
     };
 
     xdg.configFile = {
-      # Register superpowers + agent-browser skill
+      # Register agent-browser skill
       "opencode/skills" = {
         source = pkgs.symlinkJoin {
           name = "opencode-skills";
           paths = [
-            "${inputs.superpowers}/skills"
             "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
           ];
         };
