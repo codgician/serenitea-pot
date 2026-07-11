@@ -70,8 +70,7 @@ let
       if cfg.backend == "nixpkgs" then "${cfg.stateDir}/github" else "/config/github";
     "CHATGPT_TOKEN_DIR" =
       if cfg.backend == "nixpkgs" then "${cfg.stateDir}/chatgpt" else "/config/chatgpt";
-    "XAI_OAUTH_TOKEN_DIR" =
-      if cfg.backend == "nixpkgs" then "${cfg.stateDir}/xai" else "/config/xai";
+    "XAI_OAUTH_TOKEN_DIR" = if cfg.backend == "nixpkgs" then "${cfg.stateDir}/xai" else "/config/xai";
     "REDIS_URL" = "unix://${redisSocketPath}";
   }
   // (lib.optionalAttrs (cfg.adminUi.enable) {

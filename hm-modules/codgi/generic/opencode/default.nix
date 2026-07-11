@@ -91,7 +91,7 @@ in
           };
           edit = "allow";
           external_directory = {
-            "*" = "ask";
+            "*" = "allow";
             "/tmp/*" = "allow";
             "/etc/ssh*" = "deny";
             "/run/secrets*" = "deny";

@@ -45,6 +45,7 @@
         github-copilot-cli.enable = true;
         git.enable = true;
         mcp.enable = true;
+        oh-my-pi.enable = true;
         opencode.enable = true;
         pi-coding-agent.enable = true;
         pwsh.enable = true;
