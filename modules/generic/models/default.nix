@@ -72,6 +72,11 @@ let
         default = null;
         description = "Override base_model (e.g., for versioned deployments)";
       };
+      apiVersion = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        description = "Override Azure api_version (e.g., for image edits needing 2025-04-01-preview)";
+      };
     };
   };
 
@@ -302,6 +307,9 @@ in
               model = "${spec.provider}/${if spec.path != null then spec.path else name}";
               api_base = "https://${azureSubdomain}.services.ai.azure.com";
               api_key = "os.environ/AZURE_AKASHA_API_KEY";
+            }
+            // lib.optionalAttrs (spec.apiVersion != null) {
+              api_version = spec.apiVersion;
             };
             tags = [
               "azure"
@@ -328,7 +336,13 @@ in
             "gpt-5.4-pro" = {
               variants = gpt52;
             };
-            "gpt-image-2".mode = "image_generation";
+            "gpt-image-2" = {
+              mode = "image_generation";
+              # gpt-image edits require api-version >= 2025-04-01-preview.
+              # LiteLLM's Azure image-edit transform has no v1 (/openai/v1/)
+              # routing and defaults to 2025-02-01-preview, which 404s on edits.
+              apiVersion = "2025-04-01-preview";
+            };
           };
         };
 
