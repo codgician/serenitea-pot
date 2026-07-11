@@ -17,6 +17,7 @@ in
       extraConfig = ''
         set -g set-clipboard on
         set -g allow-passthrough all
+        set -g extended-keys on
       '';
     };
 
