@@ -18,6 +18,7 @@ in
         set -g set-clipboard on
         set -g allow-passthrough all
         set -g extended-keys on
+        set -g extended-keys-format csi-u
       '';
     };
 

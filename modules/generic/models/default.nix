@@ -165,7 +165,7 @@ let
   };
 
   # GPT-5.6+ reasoning effort variants
-  gpt56 = lib.genAttrs [ "xhigh" "high" "medium" "low" "none" ] (reasoningEffort: {
+  gpt56 = lib.genAttrs [ "max" "xhigh" "high" "medium" "low" "none" ] (reasoningEffort: {
     inherit reasoningEffort;
   });
 
