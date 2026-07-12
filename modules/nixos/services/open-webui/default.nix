@@ -180,7 +180,7 @@ let
     RAG_FILE_MAX_SIZE = "100"; # MB
     # Search
     ENABLE_WEB_SEARCH = "True";
-    WEB_SEARCH_ENGINE = "google_pse";
+    WEB_SEARCH_ENGINE = "exa";
     WEB_SEARCH_RESULT_COUNT = "3";
     WEB_SEARCH_CONCURRENT_REQUESTS = "10";
     WEB_SEARCH_TRUST_ENV = "False";
@@ -192,7 +192,7 @@ let
     PDF_EXTRACT_IMAGES = "True";
     ENABLE_SEARCH_QUERY = "True";
     ENABLE_RAG_WEB_SEARCH = "True";
-    RAG_WEB_SEARCH_ENGINE = "google_pse";
+    RAG_WEB_SEARCH_ENGINE = "exa";
     RAG_EMBEDDING_ENGINE = if cfg.embedding.engine == "vllm" then "openai" else cfg.embedding.engine;
     RAG_EMBEDDING_MODEL = cfg.embedding.model;
     RAG_OLLAMA_BASE_URL = lib.mkIf (

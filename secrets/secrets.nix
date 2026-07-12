@@ -179,8 +179,7 @@ in
 
     # open-webui-env components
     open-webui-secret-key = { };
-    google-pse-engine-id = { };
-    google-pse-api-key = { };
+    exa-api-key = { };
     open-webui-oauth-client-secret = { };
 
     # anubis-env component
