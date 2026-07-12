@@ -292,6 +292,7 @@
         opencode.enable = true;
         mcp.enable = true;
         pi-coding-agent.enable = true;
+        oh-my-pi.enable = true;
         pwsh.enable = true;
         ssh.enable = true;
         tmux.enable = true;
