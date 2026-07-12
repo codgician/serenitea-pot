@@ -7,6 +7,15 @@
 }:
 let
   cfg = config.codgician.codgi.codex;
+  codexConfigFile =
+    if config.home.preferXdgDirectories then
+      "${config.xdg.configHome}/codex/config.toml"
+    else
+      "${config.home.homeDirectory}/.codex/config.toml";
+  tomlkitPython = pkgs.python3.withPackages (pythonPackages: [ pythonPackages.tomlkit ]);
+  staticSettings =
+    (pkgs.formats.toml { }).generate "codex-static-settings"
+      config.programs.codex.settings;
 
   # Transform MCP servers to Codex format: `http_headers` instead of `headers`,
   # a native `enabled` flag instead of `disabled`, and no `type` field.
@@ -39,6 +48,7 @@ in
         The Codex package to install.
       '';
     };
+
   };
 
   config = lib.mkIf cfg.enable {
@@ -55,12 +65,27 @@ in
     programs.codex = {
       enable = true;
       package = cfg.package;
-
       settings = {
-        openai_base_url = "https://dendro.codgician.me/v1";
+        model_provider = "litellm";
+        model_providers.litellm = {
+          name = "LiteLLM";
+          base_url = "https://dendro.codgician.me/v1";
+          env_key = "OPENAI_API_KEY";
+          wire_api = "responses";
+        };
         mcp_servers = lib.mkIf config.codgician.codgi.mcp.enable mcpServers;
-        model = "gpt-5.5";
+        model = "gpt-5.6-sol";
       };
     };
+
+    # TODO: Replace this workaround with Home Manager's native mutable-settings
+    # option when https://github.com/nix-community/home-manager/issues/9397 merges.
+
+    home.file."${codexConfigFile}".enable = false;
+
+    home.activation.codexMutableSettings = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+      ${lib.getExe tomlkitPython} ${./merge-settings.py} ${lib.escapeShellArg codexConfigFile} ${lib.escapeShellArg staticSettings}
+    '';
+
   };
 }
