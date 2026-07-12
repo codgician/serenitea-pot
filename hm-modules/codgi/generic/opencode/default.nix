@@ -3,7 +3,6 @@
   lib,
   osConfig,
   pkgs,
-  inputs,
   ...
 }:
 let
@@ -59,7 +58,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = with pkgs.nur.repos.codgician; [ agent-browser ];
+    home.packages = [ pkgs.nur.repos.codgician.agent-browser ];
     programs.opencode = {
       enable = true;
       inherit (cfg) package;

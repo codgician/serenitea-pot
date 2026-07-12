@@ -101,8 +101,8 @@ in
 
     package = lib.mkOption {
       type = types.package;
-      default = pkgs.pi-coding-agent;
-      defaultText = lib.literalExpression "pkgs.pi-coding-agent";
+      default = pkgs.pi;
+      defaultText = lib.literalExpression "pkgs.pi";
       description = ''
         The pi-coding-agent package to install.
       '';

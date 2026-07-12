@@ -40,8 +40,8 @@ in
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.github-copilot-cli;
-      defaultText = lib.literalExpression "pkgs.github-copilot-cli";
+      default = pkgs.copilot-cli;
+      defaultText = lib.literalExpression "pkgs.copilot-cli";
       description = ''
         The GitHub Copilot CLI package to install.
       '';

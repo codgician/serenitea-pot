@@ -3,7 +3,6 @@
   lib,
   osConfig,
   pkgs,
-  inputs,
   ...
 }:
 let
@@ -59,8 +58,8 @@ in
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.nur.repos.codgician.droid;
-      defaultText = lib.literalExpression "pkgs.nur.repos.codgician.droid";
+      default = pkgs.droid;
+      defaultText = lib.literalExpression "pkgs.droid";
       description = ''
         The Droid package to install.
       '';

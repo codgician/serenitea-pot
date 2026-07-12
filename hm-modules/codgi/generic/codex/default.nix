@@ -2,7 +2,6 @@
   config,
   lib,
   pkgs,
-  inputs,
   ...
 }:
 let
@@ -58,7 +57,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = with pkgs.nur.repos.codgician; [ agent-browser ];
+    home.packages = [ pkgs.nur.repos.codgician.agent-browser ];
 
     # Link skills directory to ~/.agents/skills
     home.file.".agents/skills".source = pkgs.symlinkJoin {
