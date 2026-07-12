@@ -774,8 +774,9 @@ drifted.
 
 Because the operator key is on every rule, `secrets-rekey` runs entirely from the
 operator's laptop — no target host private key needed. The operator key is
-passphrase-protected, so a bulk rekey decrypts each file once; `ssh-add` first to
-avoid per-file prompts.
+passphrase-protected. The secrets app backports `getsops/sops#2009` so SOPS can
+derive its `ssh-to-age` X25519 identity; `ssh-agent` is not consulted, and SOPS
+prompts through the controlling terminal for each file whose recipients change.
 
 #### New-host cold start
 
@@ -832,8 +833,10 @@ For each entry in the agenix registry (old secrets/secrets.nix):
    pipes `sops -e <(agenix -d <old>)` so plaintext flows only through process
    substitution — **never** a store path, `/tmp`, or stdout — and **diffs by exit
    code only** to prove the value round-tripped (no bytes printed). New blobs land
-   at `secrets/values/*.age` beside the untouched agenix files. Your SSH key is
-   passphrase-protected; `ssh-add` once before the batch.
+   at `secrets/values/*.age` beside the untouched agenix files. For the
+   passphrase-protected operator key, set `SOPS_AGE_SSH_PRIVATE_KEY_FILE` to the
+   private-key path and answer SOPS's terminal prompt; `ssh-agent` cannot supply
+   the derived X25519 identity.
 1. **Authoring is secret-free.** The registry, templates, module, `lib/sops.nix`,
    and apps are written from **public keys and structure** only; `.sops.yaml` is
    generated from public keys (`ssh-to-age`). None of this touches plaintext, so it

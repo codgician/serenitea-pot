@@ -5,6 +5,13 @@
 }:
 let
   name = "secrets";
+  # Backport getsops/sops#2009 at a2d65b16: derive the X25519 identity
+  # corresponding to an ssh-to-age recipient from an SSH private key. This is
+  # operator-only; deployed hosts retain sops-nix's stock SOPS package.
+  sopsWithSshToAgeFix = pkgs.sops.overrideAttrs (old: {
+    patches = (old.patches or [ ]) ++ [ ./sops-ssh-to-age.patch ];
+    vendorHash = "sha256-zNIU2Cz6e8cxLu5mcizw5/1rJCWO6qAEARQQ2VOxmkM=";
+  });
 
   helpText = ''
     ${name} - manage sops-encrypted secrets for this flake
@@ -35,13 +42,13 @@ in
   program = lib.getExe (
     pkgs.writeShellApplication {
       inherit name;
-      runtimeInputs = with pkgs; [
-        coreutils
-        git
-        nix
-        sops
-        ssh-to-age
-        yq-go
+      runtimeInputs = [
+        pkgs.coreutils
+        pkgs.git
+        pkgs.nix
+        sopsWithSshToAgeFix
+        pkgs.ssh-to-age
+        pkgs.yq-go
       ];
 
       text = ''

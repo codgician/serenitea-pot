@@ -7,6 +7,12 @@
 }:
 let
   cfg = config.codgician.codgi.codex;
+  codexConfigDir =
+    if config.home.preferXdgDirectories then
+      "${lib.removePrefix config.home.homeDirectory config.xdg.configHome}/codex"
+    else
+      ".codex";
+
   codexConfigFile =
     if config.home.preferXdgDirectories then
       "${config.xdg.configHome}/codex/config.toml"
@@ -81,7 +87,7 @@ in
     # TODO: Replace this workaround with Home Manager's native mutable-settings
     # option when https://github.com/nix-community/home-manager/issues/9397 merges.
 
-    home.file."${codexConfigFile}".enable = false;
+    home.file."${codexConfigDir}/config.toml".enable = false;
 
     home.activation.codexMutableSettings = lib.hm.dag.entryAfter [ "linkGeneration" ] ''
       ${lib.getExe tomlkitPython} ${./merge-settings.py} ${lib.escapeShellArg codexConfigFile} ${lib.escapeShellArg staticSettings}
