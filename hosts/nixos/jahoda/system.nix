@@ -103,6 +103,7 @@
         };
         opencode.enable = true;
         mcp.enable = true;
+        oh-my-pi.enable = true;
         github-copilot-cli.enable = true;
         git = {
           enable = true;
