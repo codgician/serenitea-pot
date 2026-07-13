@@ -29,13 +29,18 @@ rec {
     ]
     ++ (lib.optional (isLinuxSystem system) inputs.proxmox-nixos.overlays.${system});
 
+  # nixpkgs master no longer supports x86_64-darwin after 26.05. Keep that
+  # system on the release input while all supported systems continue on master.
+  getUnstableNixpkgs =
+    system: if system == "x86_64-darwin" then inputs.nixpkgs else inputs.nixpkgs-unstable;
+
   getOverlays =
     system:
     (getCommonOverlays system)
     ++ [
       (final: prev: {
         # Lazy unstable - only evaluated when pkgs.unstable.* is accessed
-        unstable = import inputs.nixpkgs-unstable {
+        unstable = import (getUnstableNixpkgs system) {
           inherit system;
           config = {
             allowUnfree = true;
