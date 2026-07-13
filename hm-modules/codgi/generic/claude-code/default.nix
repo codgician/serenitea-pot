@@ -24,9 +24,6 @@ let
 
   mcpServers = lib.mapAttrs (_: mkMcpServer) config.programs.mcp.servers;
 
-  skills = lib.codgician.mergeFolders [
-    "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
-  ];
 in
 {
   options.codgician.codgi.claude-code = {
@@ -44,13 +41,15 @@ in
 
   config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.nur.repos.codgician.agent-browser ];
+    # Bypass programs.claude-code.skills: Home Manager inspects those paths
+    # during evaluation, which would realize this target-platform source derivation.
+    home.file."${config.programs.claude-code.configDir}/skills/agent-browser".source =
+      "${pkgs.nur.repos.codgician.agent-browser.src}/skills/agent-browser";
     programs.claude-code = {
       enable = true;
       inherit (cfg) package;
 
       mcpServers = lib.mkIf config.codgician.codgi.mcp.enable mcpServers;
-
-      inherit skills;
 
       settings = {
         apiKeyHelper =
