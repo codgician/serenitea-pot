@@ -526,7 +526,9 @@ in
             ];
             extraParams.use_xai_oauth = true;
           };
-          models."grok-4.5".variants = grok45;
+          models = {
+            # "grok-4.5".variants = grok45;
+          };
         };
 
         # Self-hosted vLLM (OpenAI-compatible) models
