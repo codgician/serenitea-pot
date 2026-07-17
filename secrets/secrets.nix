@@ -78,10 +78,9 @@ in
     # Tencent Cloud DNS
     tencent-dns-credential.publicKeys = someHosts [ hosts.xianyun ];
 
-    # Nix access tokens
-    nix-access-tokens = {
-      publicKeys = allHosts;
-      expiryDate = "2026-08-12";
+    # GitHub
+    github-access-token = {
+      expiryDate = "2026-10-15";
     };
 
     # GitLab
