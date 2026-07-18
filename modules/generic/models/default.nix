@@ -331,11 +331,6 @@ in
             };
 
             # Azure provider - OpenAI models
-            "gpt-4o-transcribe-diarize".mode = "audio_transcription";
-            "gpt-5.4-nano" = { };
-            "gpt-5.4-pro" = {
-              variants = gpt52;
-            };
             "gpt-image-2" = {
               mode = "image_generation";
               # gpt-image edits require api-version >= 2025-04-01-preview.

@@ -14,6 +14,7 @@ let
   # Providers routed through the Dendro LiteLLM proxy. Family profiles filter
   # this shared registry without changing the transport path.
   allowedProviders = [
+    "azure"
     "chatgpt"
     "deepseek"
     "github"

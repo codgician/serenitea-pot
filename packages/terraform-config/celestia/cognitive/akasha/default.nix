@@ -12,9 +12,6 @@ in
     ./deepseek-v4-flash.nix
     ./deepseek-v4-pro.nix
     ./flux.2-pro.nix
-    ./gpt-4o-transcribe-diarize.nix
-    ./gpt-5.4-nano.nix
-    ./gpt-5.4-pro.nix
     ./gpt-image-2.nix
     ./grok-4.3.nix
     ./kimi-k2.6.nix
