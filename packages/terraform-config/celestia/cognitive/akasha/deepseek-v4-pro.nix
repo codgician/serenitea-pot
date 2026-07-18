@@ -2,7 +2,7 @@
 {
   resource.azurerm_cognitive_deployment.akasha-deepseek-v4-pro = {
     name = "deepseek-v4-pro";
-    cognitive_account_id = config.resource.azurerm_ai_services.akasha "id";
+    cognitive_account_id = config.resource.azurerm_cognitive_account.akasha "id";
     version_upgrade_option = "OnceNewDefaultVersionAvailable";
     rai_policy_name = "Microsoft.DefaultV2";
 

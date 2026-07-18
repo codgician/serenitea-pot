@@ -7,8 +7,6 @@
 
 let
   name = builtins.baseNameOf ./.;
-  secretsDir = lib.codgician.secretsDir;
-  gcpCredsFile = "${secretsDir}/values/gcp-credentials";
   tfConfig = outputs.packages.${pkgs.stdenv.hostPlatform.system}.terraform-config;
   secretsApp = outputs.apps.${pkgs.stdenv.hostPlatform.system}.secrets.program;
 in
@@ -26,7 +24,6 @@ in
       runtimeInputs = with pkgs; [
         coreutils
         terraform
-        sops
       ];
 
       text = ''
@@ -61,83 +58,54 @@ in
           cp ${tfConfig} config.tf.json
         }
 
-        # Run a terraform op with secrets in scope. Two unified-model sources,
-        # both raw sops values decrypted to 0600 tmpfs files, removed on exit:
-        #   - terraform.env text template → rendered to a tmpfs file, sourced as
-        #     env vars (ARM_*, CLOUDFLARE_*). The azurerm backend needs ARM_ACCESS_KEY
-        #     for `terraform init`, so init runs here too.
-        #   - gcp-credentials raw value → decrypted to a tmpfs file;
-        #     GOOGLE_APPLICATION_CREDENTIALS points terraform there.
+        # Materialize all credentials once, initialize Terraform, run the requested
+        # command with its original argv, then let `secrets run` clean up.
         tf_with_secrets() {
-          [ -f "${gcpCredsFile}" ] || err "gcp-credentials missing; run 'nix run .#secrets -- edit gcp-credentials'"
-          local env_file gcp_file
-          env_file="$(${secretsApp} render terraform.env)" || err "render terraform.env failed"
-          umask 077
-          gcp_file="$(mktemp "''${XDG_RUNTIME_DIR:-/dev/shm}/tfmgr-gcp.XXXXXX")"
-          trap 'rm -f "$env_file" "$gcp_file"' EXIT INT TERM
-          sops decrypt --input-type binary --output-type binary "${gcpCredsFile}" > "$gcp_file" \
-            || err "decrypt gcp-credentials failed"
-          set -a
-          # shellcheck disable=SC1090
-          source "$env_file"
-          GOOGLE_APPLICATION_CREDENTIALS="$gcp_file"
-          set +a
-          sh -c "terraform init && $*"
+          ${secretsApp} run terraform.env \
+            GOOGLE_APPLICATION_CREDENTIALS=gcp-credentials \
+            -- ${lib.getExe pkgs.bash} -c '${lib.getExe pkgs.terraform} init && exec "$@"' tfmgr "$@"
         }
 
-        if [ $# -eq 0 ]; then
-          show_help
-          exit 1
-        fi
+        [ $# -gt 0 ] || { show_help; exit 1; }
+        command="$1"
+        shift
 
-        tfargs=""
-        while [ $# -gt 0 ]; do
-          case "$1" in
-            -h|--help)
-              show_help
-              exit 0
-              ;;
-            --auto-approve)
-              tfargs+=" --auto-approve"
-              ;;
-            validate)
-              tf_config
-              tf_with_secrets "terraform validate"
-              ;;
-            plan)
-              tf_config
-              tf_with_secrets "terraform plan"
-              ;;
-            apply)
-              tf_config
-              tf_with_secrets "terraform apply$tfargs || terraform apply$tfargs || terraform apply$tfargs"
-              ;;
-            import)
-              tf_config
-              shift
-              [ $# -ge 2 ] || err "Usage: ${name} import <addr> <id>"
-              tf_with_secrets "terraform import $1 $2"
-              shift
-              ;;
-            state)
-              tf_config
-              shift
-              tf_with_secrets "terraform state $*"
-              while [ $# -gt 0 ]; do shift; done
-              ;;
-            shell)
-              tf_config
-              tf_with_secrets "''${SHELL:-${lib.getExe pkgs.bash}}"
-              ;;
-            *)
-              warn "Unrecognized command: $1"
-              echo ""
-              show_help
-              exit 1
-              ;;
-          esac
-          shift
-        done
+        case "$command" in
+          -h|--help)
+            show_help
+            ;;
+          validate)
+            tf_config
+            tf_with_secrets ${lib.getExe pkgs.terraform} validate "$@"
+            ;;
+          plan)
+            tf_config
+            tf_with_secrets ${lib.getExe pkgs.terraform} plan "$@"
+            ;;
+          apply)
+            tf_config
+            tf_with_secrets ${lib.getExe pkgs.terraform} apply "$@"
+            ;;
+          import)
+            [ $# -ge 2 ] || err "Usage: ${name} import <addr> <id>"
+            tf_config
+            tf_with_secrets ${lib.getExe pkgs.terraform} import "$@"
+            ;;
+          state)
+            tf_config
+            tf_with_secrets ${lib.getExe pkgs.terraform} state "$@"
+            ;;
+          shell)
+            tf_config
+            tf_with_secrets "''${SHELL:-${lib.getExe pkgs.bash}}" "$@"
+            ;;
+          *)
+            warn "Unrecognized command: $command"
+            echo ""
+            show_help
+            exit 1
+            ;;
+        esac
       '';
     }
   );

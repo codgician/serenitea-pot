@@ -131,10 +131,6 @@
 
     vscode-server = {
       url = "github:nix-community/nixos-vscode-server";
-      inputs = {
-        flake-utils.follows = "flake-utils";
-        nixpkgs.follows = "nixpkgs";
-      };
     };
 
     terranix = {

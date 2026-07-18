@@ -24,8 +24,11 @@ let
       check            Assert every encrypted file's recipients match .sops.yaml
                        (read-only; safe for CI; no decryption)
       edit <name>      Create or rotate a raw secret secrets/values/<name>
-      render <tpl>     Render a text template to a 0600 tmpfs file, print its path
+      render <tpl>     Render a text template to a 0600 temporary file, print its path
                        (app-side activation; decrypts refs, raw-substitutes)
+      run <tpl> [ENV=secret ...] -- <command> [args...]
+                       Run a command with one rendered env template and optional
+                       raw secrets exposed as temporary-file environment variables
       for              List the raw secrets defined in this flake
 
     OPTIONS:
@@ -57,6 +60,16 @@ in
         err() { echo "Error: $*" >&2; exit 1; }
         log() { echo "$*" >&2; }
 
+        temporary_files=()
+
+        cleanup_temporary_files() {
+          [ "''${#temporary_files[@]}" -eq 0 ] || rm -f -- "''${temporary_files[@]}"
+        }
+
+        trap cleanup_temporary_files EXIT
+        trap 'exit 130' INT
+        trap 'exit 143' TERM
+
         show_help() { cat >&2 <<'EOF'
         ${helpText}
         EOF
@@ -66,6 +79,49 @@ in
 
         # Convert an ssh ed25519 public key to its age recipient.
         ssh_pub_to_age() { ssh-to-age; }
+
+        # Derive the operator's age identity once per command. An SSH agent cannot
+        # export the Ed25519 private material required by ssh-to-age, so unlock the
+        # private key directly and cache only the derived identity in a 0600 file.
+        prepare_operator_identity() {
+          if [ -n "''${SOPS_AGE_KEY:-}''${SOPS_AGE_KEY_FILE:-}''${SOPS_AGE_KEY_CMD:-}" ]; then
+            return
+          fi
+
+          local ssh_key runtime_dir identity_file passphrase attempt
+          ssh_key="''${SOPS_AGE_SSH_PRIVATE_KEY_FILE:-$HOME/.ssh/id_ed25519}"
+          [ -f "$ssh_key" ] || err "SOPS operator SSH key not found: $ssh_key"
+
+          runtime_dir="''${XDG_RUNTIME_DIR:-}"
+          if [ -z "$runtime_dir" ]; then
+            runtime_dir="''${TMPDIR:-/tmp}"
+          fi
+          umask 077
+          identity_file="$(mktemp "$runtime_dir/sops-age-identity.XXXXXX")"
+          temporary_files+=("$identity_file")
+
+          if SSH_TO_AGE_PASSPHRASE="" ssh-to-age -private-key -i "$ssh_key" -o "$identity_file" 2>/dev/null; then
+            export SOPS_AGE_KEY_FILE="$identity_file"
+            return
+          fi
+
+          for attempt in 1 2 3; do
+            printf 'Enter passphrase for %s (attempt %d/3): ' "$ssh_key" "$attempt" >&2
+            if ! IFS= read -r -s passphrase </dev/tty; then
+              err "cannot read the SSH key passphrase without a controlling terminal"
+            fi
+            printf '\n' >&2
+            if SSH_TO_AGE_PASSPHRASE="$passphrase" ssh-to-age -private-key -i "$ssh_key" -o "$identity_file" 2>/dev/null; then
+              unset passphrase
+              export SOPS_AGE_KEY_FILE="$identity_file"
+              return
+            fi
+            unset passphrase
+            log "Incorrect SSH key passphrase."
+          done
+
+          err "failed to unlock $ssh_key after 3 attempts"
+        }
 
         # Emit .sops.yaml from the flake's sopsRules metadata. Public keys only.
         write_sops_config() {
@@ -234,30 +290,16 @@ in
           log "Edited secrets/values/$n"
         }
 
-        # render <template>: app-side activation for TEXT templates only. Decrypts
-        # each ref, substitutes its placeholder, writes a 0600 tmpfs file, prints
-        # the path. Caller removes it.
-        #
-        # CONTRACT (text-only): this renderer is sound for UTF-8/env-style values.
-        # It is NOT byte-transparent: command substitution strips trailing
-        # newlines from each decrypted value, and bash strings cannot carry NUL.
-        # That is fine for dotenv-style refs (KEY=value, no trailing newline
-        # significance) but a binary secret must be consumed as a whole file
-        # (codgician.secrets.files.<n>.path), never composed through a template.
-        # A decrypted value that itself contains a placeholder token is rejected
-        # below so later substitutions cannot corrupt or cross-contaminate output.
-        do_render() {
-          local tpl="$1" root
-          [ -n "$tpl" ] || err "usage: ${name} render <template>"
+        # Render a text template to a caller-selected file. This is intentionally
+        # text-only: command substitution strips trailing newlines and Bash cannot
+        # carry NUL bytes. Structured credentials stay as raw temporary files.
+        render_template() {
+          local tpl="$1" out="$2" root content ref val placeholder
           root="$(repo_root)"
-          local content out
           content="$(nix eval --raw ".#renderedTemplates.\"$tpl\".placeholderContent" 2>/dev/null)" \
             || err "no template '$tpl'"
-          umask 077
-          out="$(mktemp "''${XDG_RUNTIME_DIR:-/dev/shm}/secrets-render.XXXXXX")"
-          local ref
+
           for ref in $(nix eval --json ".#renderedTemplates.\"$tpl\".refs" | yq -p json -r '.[]'); do
-            local val placeholder
             placeholder="<SOPS:$ref:PLACEHOLDER>"
             val="$(sops decrypt --input-type binary --output-type binary "$root/secrets/values/$ref")"
             case "$val" in
@@ -267,7 +309,72 @@ in
             content="''${content//"$placeholder"/$val}"
           done
           printf '%s' "$content" > "$out"
+        }
+
+        do_render() {
+          local tpl="$1" runtime_dir out
+          [ -n "$tpl" ] || err "usage: ${name} render <template>"
+          prepare_operator_identity
+
+          runtime_dir="''${XDG_RUNTIME_DIR:-}"
+          if [ -z "$runtime_dir" ]; then
+            runtime_dir="''${TMPDIR:-/tmp}"
+          fi
+          umask 077
+          out="$(mktemp "$runtime_dir/secrets-render.XXXXXX")"
+          render_template "$tpl" "$out"
           printf '%s\n' "$out"
+        }
+
+        do_run() {
+          local tpl="''${1:-}" runtime_dir env_file binding env_name secret_name secret_file raw_file
+          [ -n "$tpl" ] || err "usage: ${name} run <template> [ENV=secret ...] -- <command> [args...]"
+          shift
+
+          local -a bindings=()
+          while [ $# -gt 0 ] && [ "$1" != "--" ]; do
+            bindings+=("$1")
+            shift
+          done
+          [ $# -gt 0 ] || err "missing -- before command"
+          shift
+          [ $# -gt 0 ] || err "missing command"
+
+          prepare_operator_identity
+          runtime_dir="''${XDG_RUNTIME_DIR:-}"
+          if [ -z "$runtime_dir" ]; then
+            runtime_dir="''${TMPDIR:-/tmp}"
+          fi
+          umask 077
+
+          env_file="$(mktemp "$runtime_dir/secrets-env.XXXXXX")"
+          temporary_files+=("$env_file")
+          render_template "$tpl" "$env_file"
+          set -a
+          # shellcheck disable=SC1090
+          source "$env_file"
+          set +a
+
+          for binding in "''${bindings[@]}"; do
+            case "$binding" in
+              *=*) ;;
+              *) err "invalid raw-secret binding '$binding'; expected ENV=secret" ;;
+            esac
+            env_name="''${binding%%=*}"
+            secret_name="''${binding#*=}"
+            [[ "$env_name" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || err "invalid environment variable name '$env_name'"
+            [[ "$secret_name" =~ ^[A-Za-z0-9._-]+$ ]] || err "invalid secret name '$secret_name'"
+            secret_file="$(repo_root)/secrets/values/$secret_name"
+            [ -f "$secret_file" ] || err "secret '$secret_name' does not exist"
+
+            raw_file="$(mktemp "$runtime_dir/secrets-raw.XXXXXX")"
+            temporary_files+=("$raw_file")
+            sops decrypt --input-type binary --output-type binary "$secret_file" > "$raw_file"
+            printf -v "$env_name" '%s' "$raw_file"
+            export "''${env_name?}"
+          done
+
+          "$@"
         }
 
         do_for() {
@@ -290,6 +397,7 @@ in
           check) do_check ;;
           edit) do_edit "''${1:-}" ;;
           render) do_render "''${1:-}" ;;
+          run) do_run "$@" ;;
           for) do_for ;;
           *) err "Unknown command: $cmd (try --help)" ;;
         esac

@@ -391,22 +391,21 @@ turns that blob into something its consumer can read*:
 
 | Consumption | Built by app via | Example |
 | --- | --- | --- |
-| **Composed text** (env files, configs) | `nix run .#secrets -- render <name>` decrypts each `ref`ed value and raw-substitutes it into the template → text on tmpfs | `terraform.env` (4 `ARM_*`/`CLOUDFLARE_*` vars) |
-| **Whole file** (structured credential) | `sops decrypt` the raw value → a `0600` tmpfs file; pass its path to the consumer | `gcp-credentials` (GCP service-account JSON) |
+| **Composed text** (env files, configs) | `secrets render <name>` decrypts each `ref`ed value and raw-substitutes it into a temporary file | `terraform.env` (4 `ARM_*`/`CLOUDFLARE_*` vars) |
+| **Whole file** (structured credential) | `secrets run` decrypts the raw value byte-for-byte to a temporary file and exports its path | `gcp-credentials` (GCP service-account JSON) |
 
-Both live in `secrets/values/`, both are recipients-derived/explicit through the
-same `.sops.yaml` generation, both are mockable. A composed template reads several
-values and substitutes; a structured credential is decrypted once and consumed as a
-path — but it is the *same* raw blob shape underneath, never a special on-disk form.
+Both live in `secrets/values/`, both use the same generated `.sops.yaml` policy,
+and both are mockable. `secrets run` owns the complete process lifecycle: it
+unlocks once, materializes every requested input, executes the consumer, then
+removes the identity and plaintext files.
 
-### `render`: the app-side of activation
+### `render` and `run`: app-side activation
 
-`nix run .#secrets -- render <template>` is the workstation equivalent of host
-activation for a **text** template: it decrypts the raw `secrets` the template
-`ref`s, performs the *same raw* placeholder substitution, and writes the result to a
-`0600` tmpfs file (`$XDG_RUNTIME_DIR`/`/dev/shm`). The app sets the file as its env
-source / path and removes it on exit (`trap`). No `jq`, no composition — pure
-substitution, identical to host render.
+`secrets render <template>` is the workstation equivalent of host activation
+for callers that need a rendered file. `secrets run <template> [ENV=secret ...] -- <command>` is preferred for applications: it renders and
+sources the text template, exposes each structured secret through a temporary
+file environment variable, executes the command, and cleans up on exit. Both
+use `$XDG_RUNTIME_DIR`, `$TMPDIR`, or `/tmp` with `0600` permissions.
 
 ### Structured credentials: decrypted whole, never templated
 
@@ -415,7 +414,7 @@ contains embedded `\n`, so it must round-trip byte-for-byte and can never be
 composed through string substitution. It is stored as a single **fully-encrypted**
 raw value (`secrets/values/gcp-credentials`): the whole JSON is opaque ciphertext,
 so the service-account identity (`client_email`/`project_id`) is not exposed in git.
-The app decrypts it once to a `0600` tmpfs file and passes that path to the consumer
+The app decrypts it once to a `0600` temporary file and passes that path to the consumer
 (`GOOGLE_APPLICATION_CREDENTIALS`), removing it on exit. The name omits a `.json`
 extension to satisfy the `[a-z0-9-]+` secret-name contract — the consumer reads the
 file's *contents*, so the filename is irrelevant.
@@ -461,11 +460,11 @@ unskippable rather than remembered.
 
 # nix run .#secrets-check            — CI drift guard (see below)
 
-# nix run .#secrets-render -- <template>   — app-side activation
-#   decrypt the raw secrets a TEXT template ref's, raw-substitute the
-#   placeholders, write 0600 tmpfs file; print its path. For app consumers
-#   that have no host activation (e.g. tfmgr). Structured secrets use
-#   `sops exec-file` directly, not this.
+# nix run .#secrets -- render <template>   — return a rendered text file
+# nix run .#secrets -- run <template> [ENV=secret ...] -- <command> [args...]
+#   unlock once, render and source the text template, expose whole-file secrets
+#   through environment variables, run the consumer, and remove every temporary
+#   identity/plaintext file on exit
 ```
 
 ### `secrets-check`: closing the policy/ciphertext gap
@@ -774,9 +773,10 @@ drifted.
 
 Because the operator key is on every rule, `secrets-rekey` runs entirely from the
 operator's laptop — no target host private key needed. The operator key is
-passphrase-protected. The secrets app backports `getsops/sops#2009` so SOPS can
-derive its `ssh-to-age` X25519 identity; `ssh-agent` is not consulted, and SOPS
-prompts through the controlling terminal for each file whose recipients change.
+passphrase-protected. The secrets app derives and caches its `ssh-to-age` X25519
+identity in a temporary `0600` file for each command. `ssh-agent` cannot export
+the private material required for this conversion, so the app prompts for the
+SSH key passphrase, allowing three attempts.
 
 #### New-host cold start
 

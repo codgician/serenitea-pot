@@ -65,7 +65,7 @@ in
         env = {
           CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
-          CLAUDE_CODE_EFFORT_LEVEL = "max";
+          CLAUDE_CODE_EFFORT_LEVEL = "xhigh";
           ANTHROPIC_BASE_URL = "https://dendro.codgician.me";
           ANTHROPIC_MODEL = "claude-opus-4-8";
           ANTHROPIC_DEFAULT_SONNET_MODEL = "claude-sonnet-5";

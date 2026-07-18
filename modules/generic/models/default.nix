@@ -14,7 +14,7 @@ let
   terraformConf =
     builtins.fromJSON
       outputs.packages.${pkgs.stdenv.hostPlatform.system}.terraform-config.value;
-  azureSubdomain = terraformConf.resource.azurerm_ai_services.akasha.custom_subdomain_name;
+  azureSubdomain = terraformConf.resource.azurerm_cognitive_account.akasha.custom_subdomain_name;
   deployedModelNames = lib.mapAttrsToList (_: v: v.name) (
     terraformConf.resource.azurerm_cognitive_deployment or { }
   );

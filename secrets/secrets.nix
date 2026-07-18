@@ -142,10 +142,9 @@ in
     # --- Template-derived components (recipients from referencing templates) ---
 
     # terraform.env (app-scoped, operator only). GCP auth is NOT here: the GCP
-    # service-account key lives solely in the gcp-credentials.json raw secret
-    # (tfmgr decrypts it to a tmpfs file and points terraform at it through
-    # GOOGLE_APPLICATION_CREDENTIALS), so the old terraform-env GOOGLE_CREDENTIALS
-    # value is dropped as a duplicate.
+    # service-account key lives solely in the gcp-credentials raw secret.
+    # `secrets run` decrypts it to a temporary file and exports its path through
+    # GOOGLE_APPLICATION_CREDENTIALS, avoiding a duplicate template value.
     arm-client-secret.expiryDate = "2027-02-04"; # caribert service principal
     arm-access-key = { };
     cloudflare-api-token = { };
@@ -155,8 +154,8 @@ in
     # value (the whole JSON is opaque ciphertext, so the service-account
     # identity in client_email/project_id is not exposed in git). The name omits
     # a `.json` extension to satisfy the [a-z0-9-]+ secret-name contract; the
-    # content is what matters. tfmgr decrypts it to a tmpfs file and points
-    # GOOGLE_APPLICATION_CREDENTIALS there. Operator-only: no host/template refs.
+    # content is what matters. `secrets run` exports a temporary decrypted file
+    # through GOOGLE_APPLICATION_CREDENTIALS. Operator-only: no host/template refs.
     gcp-credentials.publicKeys = pubkeys.users.codgi;
 
     # Shared env-bundle components (referenced by 2+ templates -> union recipients)

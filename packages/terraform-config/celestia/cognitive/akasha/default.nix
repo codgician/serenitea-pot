@@ -2,7 +2,10 @@
 let
   location = "swedencentral";
   resource_group_name = config.resource.azurerm_resource_group.celestia.name;
-  inherit (config.provider.azurerm) tenant_id client_id;
+  cognitive_account_id =
+    "/subscriptions/"
+    + config.provider.azurerm.subscription_id
+    + "/resourceGroups/celestia/providers/Microsoft.CognitiveServices/accounts/akasha";
 in
 {
   imports = [
@@ -17,54 +20,37 @@ in
     ./kimi-k2.6.nix
   ];
 
+  # Preserve the existing account while changing from the deprecated resource type.
+  removed = [
+    {
+      from = "azurerm_ai_services.akasha";
+      lifecycle.destroy = false;
+    }
+  ];
+
+  import = [
+    {
+      to = "azurerm_cognitive_account.akasha";
+      id = cognitive_account_id;
+    }
+  ];
+
   resource = {
-    azurerm_ai_services.akasha = rec {
+    azurerm_cognitive_account.akasha = rec {
       name = "akasha";
       custom_subdomain_name = name;
-      public_network_access = "Enabled";
+      identity.type = "SystemAssigned";
+      kind = "AIServices";
       inherit location resource_group_name;
+      project_management_enabled = true;
+      public_network_access_enabled = true;
       sku_name = "S0";
     };
 
-    azurerm_key_vault.akasha-keyvault = {
-      name = "akasha-keyvault";
-      inherit location resource_group_name tenant_id;
-      sku_name = "standard";
-      purge_protection_enabled = true;
-    };
-
-    azurerm_key_vault_access_policy.akasha-keyvault-policy = {
-      key_vault_id = config.resource.azurerm_key_vault.akasha-keyvault "id";
-      inherit tenant_id;
-      object_id = client_id;
-      key_permissions = [
-        "Create"
-        "Get"
-        "Delete"
-        "Purge"
-        "GetRotationPolicy"
-      ];
-    };
-
-    azurerm_storage_account.akashastorage = {
-      name = "akashastorage";
-      inherit location resource_group_name;
-      account_tier = "Standard";
-      account_replication_type = "LRS";
-    };
-
-    azurerm_ai_foundry.akasha = {
+    azurerm_cognitive_account_project.akasha = {
       name = "akasha";
-      inherit location resource_group_name;
-      storage_account_id = config.resource.azurerm_storage_account.akashastorage "id";
-      key_vault_id = config.resource.azurerm_key_vault.akasha-keyvault "id";
-      identity.type = "SystemAssigned";
-    };
-
-    azurerm_ai_foundry_project.akasha-ai-project = {
-      name = "akasha-ai-project";
+      cognitive_account_id = config.resource.azurerm_cognitive_account.akasha "id";
       inherit location;
-      ai_services_hub_id = config.resource.azurerm_ai_foundry.akasha "id";
       identity.type = "SystemAssigned";
     };
   };
