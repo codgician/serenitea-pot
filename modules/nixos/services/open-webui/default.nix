@@ -237,7 +237,7 @@ let
     ENABLE_DIRECT_CONNECTIONS = "True";
     ENABLE_USER_WEBHOOKS = "True";
     JWT_EXPIRES_IN = "7d";
-    TASK_MODEL_EXTERNAL = "gpt-5.4-nano";
+    TASK_MODEL_EXTERNAL = "gpt-5.6-luna";
     DEFAULT_MODEL_METADATA = builtins.toJSON defaultModelMetadata;
     # Misc
     ENABLE_REALTIME_CHAT_SAVE = "True";
