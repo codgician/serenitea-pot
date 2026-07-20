@@ -3,17 +3,19 @@
 final: prev:
 let
   fakeUbuntuOsRelease = prev.writeText "fake-os-release-ubuntu" ''
+    PRETTY_NAME="Ubuntu 26.04 LTS"
     NAME="Ubuntu"
-    VERSION="24.04.4 LTS (Noble Numbat)"
+    VERSION_ID="26.04"
+    VERSION="26.04 (Resolute Raccoon)"
+    VERSION_CODENAME=resolute
     ID=ubuntu
     ID_LIKE=debian
-    PRETTY_NAME="Ubuntu 24.04.4 LTS"
-    VERSION_ID="24.04"
-    VERSION_CODENAME=noble
-    UBUNTU_CODENAME=noble
     HOME_URL="https://www.ubuntu.com/"
     SUPPORT_URL="https://help.ubuntu.com/"
     BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+    PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+    UBUNTU_CODENAME=resolute
+    LOGO=ubuntu-logo
   '';
 
   intune-portal-unwrapped = prev.nur.repos.codgician.intune-portal;

@@ -11,8 +11,6 @@
   users.groups.microsoft-identity-broker = { };
 
   environment.systemPackages = with pkgs; [
-    microsoft-identity-broker
-    intune-portal
     libpwquality
   ];
 
@@ -118,6 +116,8 @@
       yubikey-manager
       yubico-piv-tool
       teams-for-linux
+      microsoft-identity-broker
+      intune-portal
     ];
 
     xdg.configFile."teams-for-linux/config.json".text = builtins.toJSON {
