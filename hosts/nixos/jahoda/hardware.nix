@@ -99,7 +99,6 @@
     powerManagement.enable = true;
     open = false;
     nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.legacy_580;
   };
 
   # TPM
