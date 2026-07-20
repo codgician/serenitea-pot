@@ -120,6 +120,9 @@
       intune-portal
     ];
 
+    # OneAuth resolves the conventional "login" alias, which KWallet does not create by default.
+    programs.plasma.configFile.kwalletrc."org.freedesktop.secrets.aliases".login = "kdewallet";
+
     xdg.configFile."teams-for-linux/config.json".text = builtins.toJSON {
       auth.intune.enabled = true;
     };

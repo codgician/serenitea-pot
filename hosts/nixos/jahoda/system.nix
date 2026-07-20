@@ -8,8 +8,8 @@
   # My settings
   codgician = {
     services = {
-      gnome.enable = true;
       nixos-vscode-server.enable = true;
+      plasma.enable = true;
 
       sing-box = {
         enable = true;
@@ -112,11 +112,11 @@
             "~/GitHub/" = "personal";
           };
         };
-        gnome.favoriteApps = [
-          "org.gnome.Nautilus.desktop"
-          "microsoft-edge.desktop"
-          "org.gnome.Console.desktop"
-          "code.desktop"
+        plasma.launchers = [
+          "applications:org.kde.dolphin.desktop"
+          "applications:microsoft-edge.desktop"
+          "applications:org.kde.konsole.desktop"
+          "applications:code.desktop"
         ];
         pwsh.enable = true;
         ssh.enable = true;
@@ -144,6 +144,7 @@
           cider-2
           virt-manager
           looking-glass-client
+          telegram-desktop
         ]
         ++ (with pkgs.nur.repos.codgician; [
           nanokvm-usb
@@ -158,9 +159,12 @@
   networking.hostId = "357a80da";
 
   # DNS for sing-box TUN (matchConfig supplied by the sing-box module)
-  systemd.network.networks."50-sing-box-tun" = {
-    dns = [ "192.168.0.1" ];
-    domains = [ "~lan" ];
+  systemd.network = {
+    wait-online.enable = false;
+    networks."50-sing-box-tun" = {
+      dns = [ "192.168.0.1" ];
+      domains = [ "~lan" ];
+    };
   };
 
   # Use the systemd-boot EFI boot loader.

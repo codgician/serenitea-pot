@@ -118,6 +118,35 @@
     "net.ipv6.conf.all.proxy_ndp" = "1";
   };
 
+  # Select internationalisation properties.
+  environment.variables = {
+    GTK_IM_MODULE = "fcitx";
+    QT_IM_MODULE = "fcitx";
+    XMODIFIERS = "@im=fcitx";
+  };
+  i18n = {
+    defaultLocale = "en_US.UTF-8";
+    supportedLocales = [
+      "en_US.UTF-8/UTF-8"
+      "zh_CN.UTF-8/UTF-8"
+    ];
+    inputMethod = {
+      enable = true;
+      type = "fcitx5";
+      fcitx5 = {
+        addons =
+          with pkgs;
+          with qt6Packages;
+          [
+            fcitx5-rime
+            rime-data
+            fcitx5-chinese-addons
+          ];
+        waylandFrontend = true;
+      };
+    };
+  };
+
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
   # on your system were taken. It's perfectly fine and recommended to leave

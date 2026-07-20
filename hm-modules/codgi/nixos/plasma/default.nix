@@ -16,6 +16,17 @@ in
       default = osConfig.services.desktopManager.plasma6.enable;
       description = "Enable dotfiles for KDE plasma desktop.";
     };
+
+    launchers = lib.mkOption {
+      type = with types; listOf str;
+      default = [
+        "applications:org.kde.dolphin.desktop"
+        "applications:firefox.desktop"
+        "applications:org.kde.konsole.desktop"
+        "applications:code.desktop"
+      ];
+      description = "Items to pin in launcher.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -133,12 +144,7 @@ in
           widgets = [
             {
               iconTasks = {
-                launchers = [
-                  "applications:org.kde.dolphin.desktop"
-                  "applications:firefox.desktop"
-                  "applications:org.kde.konsole.desktop"
-                ]
-                ++ (lib.optional (config.codgician.codgi.vscode.enable) "applications:code.desktop");
+                inherit (cfg) launchers;
                 appearance = {
                   fill = false;
                   showTooltips = true;
@@ -175,27 +181,16 @@ in
           size = 24;
         };
 
-        # Settings here mirror what `org.kde.breezedark.desktop` lookAndFeel
-        # would apply, but split into individual options so we can override
-        # the window decoration without plasma-manager warning that
-        # lookAndFeel may clobber our customizations.
+        # Configure Breeze explicitly so switching from another theme also
+        # resets the persisted Plasma appearance settings.
         colorScheme = "BreezeDark";
         theme = "breeze-dark";
         splashScreen.theme = "org.kde.Breeze";
-
-        # Klassy KWin window decoration + matching widget (application) style
-        # + window-button icon theme. The decoration enables translucent title
-        # bars so the existing `kwin.effects.blur` produces an Aero / Fluent UI
-        # glass look. plasma-manager writes the decoration to the legacy
-        # `org.kde.kdecoration2` section of kwinrc.
-        #
-        # `klassy-dark` only ships custom window-button icons; everything else
-        # falls through to Breeze Dark via `Inherits=breeze-dark`.
-        iconTheme = "klassy-dark";
-        widgetStyle = "Klassy";
+        iconTheme = "breeze-dark";
+        widgetStyle = "Breeze";
         windowDecorations = {
-          library = "org.kde.klassy";
-          theme = "Klassy";
+          library = "org.kde.breeze";
+          theme = "Breeze";
         };
       };
 
@@ -205,10 +200,8 @@ in
         plasmashellrc.PlasmaViews.panelOpacity = 2;
 
         # Plasma 6.3+ reads window decoration from `org.kde.kdecoration3`,
-        # but plasma-manager's `workspace.windowDecorations` only writes
-        # the legacy `org.kde.kdecoration2` section. Mirror the values
-        # here so the decoration actually applies on Plasma 6.3+.
-        # Drop this block once plasma-manager grows kdecoration3 support
+        # while plasma-manager currently writes the legacy
+        # `org.kde.kdecoration2` section. Mirror the selected Breeze decoration.
         kwinrc."org.kde.kdecoration3" = {
           inherit (config.programs.plasma.workspace.windowDecorations) library theme;
         };
@@ -243,24 +236,20 @@ in
       gtk4.theme = config.gtk.theme;
     };
 
-    # Klassy decoration + style + global theme plugin.
-    home.packages = [ pkgs.klassy ];
-
     # GPG with pinentry-qt for KDE
     services.gpg-agent.pinentry.package = pkgs.pinentry-qt;
 
-    # Route SSH passphrase prompts through ksshaskpass so they are stored in
-    # (and later silently retrieved from) the PAM-unlocked KWallet. GNOME uses
-    # its own native GCR prompt instead, so this lives in the Plasma module.
-    # home.sessionVariables covers shell-launched ssh; systemd.user mirror
-    # covers ssh launched from KDE app launcher / krunner / DBus activation.
+    # Keep ksshaskpass discoverable by the host portal and use it only when
+    # OpenSSH has no controlling terminal. Interactive ssh-add must read the
+    # passphrase directly from its TTY; forcing askpass there causes needless
+    # graphical retries. The systemd mirror covers KDE-launched applications.
+    home.packages = [ pkgs.kdePackages.ksshaskpass ];
+
     home.sessionVariables = {
       SSH_ASKPASS = lib.getExe pkgs.kdePackages.ksshaskpass;
-      SSH_ASKPASS_REQUIRE = "prefer";
     };
     systemd.user.sessionVariables = {
       SSH_ASKPASS = lib.getExe pkgs.kdePackages.ksshaskpass;
-      SSH_ASKPASS_REQUIRE = "prefer";
     };
 
     # Hack: fix .gtkrc-2.0 becoming a real file instead of a symlink
