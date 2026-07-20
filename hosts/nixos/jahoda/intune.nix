@@ -25,6 +25,14 @@
     module: ${pkgs.opensc}/lib/pkcs11/opensc-pkcs11.so
   '';
 
+  # Keep PIV available to desktop applications without letting GDM switch away
+  # from password authentication when a company smart card is inserted.
+  programs.dconf.profiles.gdm.databases = [
+    {
+      settings."org/gnome/login-screen".enable-smartcard-authentication = false;
+    }
+  ];
+
   systemd = {
     sockets.intune-daemon = {
       description = "Intune daemon control socket";
@@ -106,7 +114,6 @@
   home-manager.users.codgi = {
     home.packages = with pkgs; [
       microsoft-edge
-      intune-portal
       azure-cli
       yubikey-manager
       yubico-piv-tool

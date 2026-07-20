@@ -16,13 +16,7 @@ let
     BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
   '';
 
-  intune-portal-unwrapped = prev.unstable.intune-portal.overrideAttrs (_: rec {
-    version = "1.2603.31-noble";
-    src = prev.fetchurl {
-      url = "https://packages.microsoft.com/ubuntu/24.04/prod/pool/main/i/intune-portal/intune-portal_${version}_amd64.deb";
-      hash = "sha256-0braaXnRa04CUQdJx0ZFwe5qfjsJNzTtGqaKQV5Z6Yw=";
-    };
-  });
+  intune-portal-unwrapped = prev.nur.repos.codgician.intune-portal;
 
   mkBwrapWrapper =
     name:
@@ -63,11 +57,5 @@ in
 
   inherit intune-portal-unwrapped fakeUbuntuOsRelease;
 
-  microsoft-identity-broker = prev.unstable.microsoft-identity-broker.overrideAttrs (_: rec {
-    version = "3.0.1";
-    src = prev.fetchurl {
-      url = "https://packages.microsoft.com/ubuntu/24.04/prod/pool/main/m/microsoft-identity-broker/microsoft-identity-broker_${version}-noble_amd64.deb";
-      hash = "sha256-cbG+HJ1nuOyxR/sd1P69QTEUaklywbJOP7o6K7l6SEs=";
-    };
-  });
+  microsoft-identity-broker = prev.unstable.microsoft-identity-broker;
 }
