@@ -9,7 +9,23 @@
   codgician = {
     services = {
       nixos-vscode-server.enable = true;
-      plasma.enable = true;
+      hyprland = {
+        enable = true;
+        monitors = [
+          {
+            output = "DP-3";
+            mode = "3840x2160@60";
+            position = "0x0";
+            scale = 1.5;
+          }
+          {
+            output = "HDMI-A-1";
+            mode = "3840x2160@60";
+            position = "2560x0";
+            scale = 1.5;
+          }
+        ];
+      };
 
       sing-box = {
         enable = true;
@@ -112,12 +128,6 @@
             "~/GitHub/" = "personal";
           };
         };
-        plasma.launchers = [
-          "applications:org.kde.dolphin.desktop"
-          "applications:microsoft-edge.desktop"
-          "applications:org.kde.konsole.desktop"
-          "applications:code.desktop"
-        ];
         pwsh.enable = true;
         ssh.enable = true;
         tmux.enable = true;
@@ -136,6 +146,7 @@
           "x-scheme-handler/unknown" = "microsoft-edge.desktop";
         };
       };
+      xdg.configFile."mimeapps.list".force = true;
 
       home.stateVersion = "26.05";
       home.packages =

@@ -17,16 +17,17 @@ let
       inherit description;
     };
 
-  # Desktop environments that provide a graphical session (and a keyring).
+  # Graphical sessions that provide a desktop and login-session keyring.
   hasDesktopEnvironment =
     (config.codgician.services.gnome.enable or false)
+    || (config.codgician.services.hyprland.enable or false)
     || (config.codgician.services.plasma.enable or false);
 in
 {
   options.codgician.system.capabilities = {
     hasDesktop = mkCapability ''
-      Whether a desktop environment is installed (e.g. GNOME or Plasma).
-      Derived from the enabled desktop environment modules.
+      Whether a graphical desktop is installed (e.g. GNOME, Hyprland, or Plasma).
+      Derived from the enabled desktop session modules.
 
       A desktop environment also implies a graphical login session with a
       keyring (GNOME Keyring or KDE Wallet) that is unlocked via PAM. Note
