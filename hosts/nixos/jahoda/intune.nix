@@ -125,6 +125,7 @@
 
     xdg.configFile."teams-for-linux/config.json".text = builtins.toJSON {
       auth.intune.enabled = true;
+      disableGpu = false;
     };
   };
 }

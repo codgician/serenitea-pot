@@ -8,6 +8,70 @@
 let
   cfg = config.codgician.codgi.plasma;
   types = lib.types;
+  allSides =
+    value:
+    lib.genAttrs [
+      "top"
+      "right"
+      "bottom"
+      "left"
+    ] (_: value);
+  allCorners =
+    value:
+    lib.genAttrs [
+      "topLeft"
+      "topRight"
+      "bottomRight"
+      "bottomLeft"
+    ] (_: value);
+
+  dockPanelSettings = {
+    panel.normal = {
+      enabled = true;
+      blurBehind = true;
+      backgroundColor = {
+        enabled = true;
+        alpha = 0.55;
+        sourceType = 1;
+        systemColor = "backgroundColor";
+        systemColorSet = "Window";
+      };
+      radius = {
+        enabled = true;
+        corner = allCorners 8;
+      };
+      margin = {
+        enabled = true;
+        side = allSides 6;
+      };
+      border = {
+        enabled = true;
+        width = 1;
+        color = {
+          enabled = true;
+          alpha = 0.12;
+          sourceType = 0;
+          custom = "#FFFFFF";
+        };
+      };
+    };
+    nativePanel.background = {
+      enabled = true;
+      opacity = 0.01;
+      shadow = false;
+    };
+  };
+
+  dockPanelColorizer = {
+    plasmaPanelColorizer = {
+      general = {
+        enable = true;
+        hideWidget = true;
+      };
+      settings.General.globalSettings = builtins.toJSON dockPanelSettings;
+    };
+  };
+
 in
 {
   options.codgician.codgi.plasma = {
@@ -66,20 +130,15 @@ in
           location = "top";
           height = 32;
           floating = true;
+          opacity = "translucent";
           alignment = "center";
           lengthMode = "fill";
           hiding = "normalpanel";
           widgets = [
+            "org.kde.plasma.marginsseparator"
             {
               name = "org.kde.plasma.kickoff";
               config.General.icon = "nix-snowflake-white";
-            }
-            # Breathing room between menu icon and appMenu
-            {
-              panelSpacer = {
-                expanding = false;
-                length = 6;
-              };
             }
             {
               appMenu.compactView = false;
@@ -93,13 +152,6 @@ in
                   scaleToFit = false;
                   spacing = "medium";
                 };
-              };
-            }
-            # Breathing room between tray icons and the clock.
-            {
-              panelSpacer = {
-                expanding = false;
-                length = 6;
               };
             }
             {
@@ -119,13 +171,6 @@ in
                   weight = 400;
                   size = 10;
                 };
-              };
-            }
-            # Breathing room between tray icons and the peek desktop icon.
-            {
-              panelSpacer = {
-                expanding = false;
-                length = 6;
               };
             }
             # Peek at desktop, top-right corner (macOS-style hot corner).
@@ -166,6 +211,7 @@ in
                 };
               };
             }
+            dockPanelColorizer
           ];
         }
       ];
@@ -197,7 +243,6 @@ in
       configFile = {
         kiorc.Confirmations.ConfirmEmptyTrash = true;
         breezerc.Style.MenuOpacity = 60;
-        plasmashellrc.PlasmaViews.panelOpacity = 2;
 
         # Plasma 6.3+ reads window decoration from `org.kde.kdecoration3`,
         # while plasma-manager currently writes the legacy

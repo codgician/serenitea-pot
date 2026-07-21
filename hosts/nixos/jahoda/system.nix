@@ -178,7 +178,9 @@
           virt-manager
           looking-glass-client-nvhack
           telegram-desktop
-          remmina
+          nextcloud-talk-desktop
+          element-desktop
+          discord
         ]
         ++ (with pkgs.nur.repos.codgician; [
           nanokvm-usb
@@ -213,8 +215,6 @@
 
   # Select internationalisation properties.
   environment.variables = {
-    GTK_IM_MODULE = "fcitx";
-    QT_IM_MODULE = "fcitx";
     XMODIFIERS = "@im=fcitx";
   };
   i18n = {
@@ -273,7 +273,7 @@
   ];
 
   # Global packages
-  environment.systemPackages = [ ];
+  environment.systemPackages = with pkgs; [ chromium ];
 
   # Enable zram swap
   zramSwap.enable = true;
