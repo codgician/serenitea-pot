@@ -138,15 +138,7 @@
     nvidiaPersistenced = true;
     open = true;
     nvidiaSettings = true;
-    package =
-      let
-        nvidiaPackage = config.boot.kernelPackages.nvidiaPackages.production;
-      in
-      nvidiaPackage.overrideAttrs (old: {
-        passthru = old.passthru // {
-          inherit (nvidiaPackage.open) makeFlags;
-        };
-      });
+    package = config.boot.kernelPackages.nvidiaPackages.production;
   };
 
   # Limit nvidia GPU TDP

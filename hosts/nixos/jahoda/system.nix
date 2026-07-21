@@ -145,6 +145,9 @@
         zsh.enable = true;
       };
 
+      programs.plasma.configFile.kwinrc.Wayland."InputMethod[$e]" =
+        "${pkgs.fcitx5}/share/applications/fcitx5-wayland-launcher.desktop";
+
       # Set Microsoft Edge as default browser
       xdg.mimeApps = {
         enable = true;
@@ -166,6 +169,7 @@
           virt-manager
           looking-glass-client
           telegram-desktop
+          remmina
         ]
         ++ (with pkgs.nur.repos.codgician; [
           nanokvm-usb
@@ -198,22 +202,44 @@
   };
 
   # Select internationalisation properties.
+  environment.variables = {
+    GTK_IM_MODULE = "fcitx";
+    QT_IM_MODULE = "fcitx";
+    XMODIFIERS = "@im=fcitx";
+  };
   i18n = {
     defaultLocale = "en_US.UTF-8";
     supportedLocales = [
       "en_US.UTF-8/UTF-8"
       "zh_CN.UTF-8/UTF-8"
     ];
-    extraLocaleSettings = {
-      LC_ADDRESS = "en_US.UTF-8";
-      LC_IDENTIFICATION = "en_US.UTF-8";
-      LC_MEASUREMENT = "en_US.UTF-8";
-      LC_MONETARY = "en_US.UTF-8";
-      LC_NAME = "en_US.UTF-8";
-      LC_NUMERIC = "en_US.UTF-8";
-      LC_PAPER = "en_US.UTF-8";
-      LC_TELEPHONE = "en_US.UTF-8";
-      LC_TIME = "en_US.UTF-8";
+    inputMethod = {
+      enable = true;
+      type = "fcitx5";
+      fcitx5 = {
+        addons =
+          with pkgs;
+          with qt6Packages;
+          [
+            fcitx5-rime
+            rime-data
+            fcitx5-chinese-addons
+          ];
+        waylandFrontend = true;
+        settings.inputMethod = {
+          GroupOrder."0" = "Default";
+          "Groups/0" = {
+            "Default Layout" = "us";
+            DefaultIM = "pinyin";
+            Name = "Default";
+          };
+          "Groups/0/Items/0".Name = "keyboard-us";
+          "Groups/0/Items/1" = {
+            Layout = "us";
+            Name = "pinyin";
+          };
+        };
+      };
     };
   };
 

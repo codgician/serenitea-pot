@@ -49,7 +49,7 @@
 
     extraModulePackages = with config.boot.kernelPackages; [ kvmfr ];
     extraModprobeConfig = ''
-      options kvmfr static_size_mb=512
+      options kvmfr static_size_mb=256
     '';
 
     kernelPackages = pkgs.linuxPackages;
@@ -71,6 +71,8 @@
     label = "crypted-code";
     keyFile = "/sysroot/persist/keys/crypted-code.key";
   };
+
+  hardware.bluetooth.enable = true;
 
   # Enable OpenGL and VA-API for NVIDIA
   hardware.graphics = {
@@ -97,8 +99,11 @@
   hardware.nvidia = {
     modesetting.enable = true;
     powerManagement.enable = true;
-    open = false;
+    gsp.enable = true;
+    nvidiaPersistenced = true;
+    open = true;
     nvidiaSettings = true;
+    package = config.boot.kernelPackages.nvidiaPackages.production;
   };
 
   # TPM
