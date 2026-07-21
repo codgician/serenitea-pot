@@ -202,8 +202,11 @@ in
         # Plasma 6.3+ reads window decoration from `org.kde.kdecoration3`,
         # while plasma-manager currently writes the legacy
         # `org.kde.kdecoration2` section. Mirror the selected Breeze decoration.
-        kwinrc."org.kde.kdecoration3" = {
-          inherit (config.programs.plasma.workspace.windowDecorations) library theme;
+        kwinrc = {
+          "org.kde.kdecoration3" = {
+            inherit (config.programs.plasma.workspace.windowDecorations) library theme;
+          };
+          Wayland.InputMethod = "${osConfig.i18n.inputMethod.package}/share/applications/fcitx5-wayland-launcher.desktop";
         };
       };
     };
@@ -233,7 +236,11 @@ in
       };
       iconTheme.name = "breeze-dark";
       theme.name = "Breeze";
-      gtk4.theme = config.gtk.theme;
+      gtk3.extraConfig.gtk-im-module = "fcitx";
+      gtk4 = {
+        theme = config.gtk.theme;
+        extraConfig.gtk-im-module = "fcitx";
+      };
     };
 
     # GPG with pinentry-qt for KDE

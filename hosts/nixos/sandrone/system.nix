@@ -52,7 +52,6 @@
           kdeglobals.KScreen.ScaleFactor = 2;
           kwinrc = {
             Xwayland.Scale = 2;
-            Wayland."InputMethod[$e]" = "${pkgs.fcitx5}/share/applications/fcitx5-wayland-launcher.desktop";
           };
         };
       };

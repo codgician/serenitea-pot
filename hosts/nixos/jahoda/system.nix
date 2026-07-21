@@ -157,9 +157,6 @@
         zsh.enable = true;
       };
 
-      programs.plasma.configFile.kwinrc.Wayland."InputMethod[$e]" =
-        "${pkgs.fcitx5}/share/applications/fcitx5-wayland-launcher.desktop";
-
       # Set Microsoft Edge as default browser
       xdg.mimeApps = {
         enable = true;
