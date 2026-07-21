@@ -130,8 +130,6 @@ in
 
   services.pulseaudio.enable = false;
 
-  programs.kdeconnect.enable = true;
-
   # Disable systemd tpm2 due to incompatibility
   systemd.tpm2.enable = false;
 

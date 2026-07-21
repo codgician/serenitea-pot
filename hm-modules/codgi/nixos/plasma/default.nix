@@ -239,6 +239,12 @@ in
     # GPG with pinentry-qt for KDE
     services.gpg-agent.pinentry.package = pkgs.pinentry-qt;
 
+    # KDE Connect
+    services.kdeconnect = {
+      enable = true;
+      indicator = true;
+    };
+
     # Keep ksshaskpass discoverable by the host portal and use it only when
     # OpenSSH has no controlling terminal. Interactive ssh-add must read the
     # passphrase directly from its TTY; forcing askpass there causes needless

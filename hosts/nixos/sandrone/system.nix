@@ -114,8 +114,6 @@
 
   services.pulseaudio.enable = false;
 
-  programs.kdeconnect.enable = true;
-
   # Security
   users.mutableUsers = false;
   users.users.root.hashedPassword = "!";

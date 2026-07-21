@@ -39,6 +39,7 @@ in
 
     # Enable dconf
     programs.dconf.enable = true;
+
     # Nixpkgs Electron wrappers use this to enable native Wayland and its IME protocol.
     environment.sessionVariables.NIXOS_OZONE_WL = "1";
 

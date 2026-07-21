@@ -107,6 +107,18 @@
   # Home manager
   home-manager.users.codgi =
     { ... }:
+    let
+      # Native Wayland rendering can interleave pointer-surface commits with NVIDIA
+      # explicit-sync commits. Use XWayland to avoid syncobj protocol crashes.
+      lookingGlassClient = pkgs.looking-glass-client.overrideAttrs (old: {
+        nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.makeWrapper ];
+        postFixup = (old.postFixup or "") + ''
+          wrapProgram $out/bin/looking-glass-client \
+            --unset WAYLAND_DISPLAY \
+            --add-flags app:renderer=OpenGL
+        '';
+      });
+    in
     {
       codgician.codgi = {
         codex = {
@@ -167,7 +179,7 @@
         [
           cider-2
           virt-manager
-          looking-glass-client
+          lookingGlassClient
           telegram-desktop
           remmina
         ]
