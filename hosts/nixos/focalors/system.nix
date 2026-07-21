@@ -76,10 +76,11 @@ in
   networking.networkmanager.enable = true;
   networking.hostId = "41182c40";
 
-  # SDDM default scaling
-  services.displayManager.sddm.settings.General = {
-    GreeterEnvironment = "QT_SCREEN_SCALE_FACTORS=2,QT_FONT_DPI=192";
-  };
+  # Plasma Login Manager currently reads wallpaper configuration from the main file.
+  environment.etc."plasmalogin.conf".text = ''
+    [Greeter][Wallpaper][org.kde.image][General]
+    Image=file://${wallpaper}
+  '';
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -147,12 +148,6 @@ in
     firefox
     virt-manager
     kitty
-
-    # SDDM login wallpaper
-    (pkgs.writeTextDir "share/sddm/themes/breeze/theme.conf.user" ''
-      [General]
-      background=${wallpaper}
-    '')
   ];
 
   # Enable zram swap

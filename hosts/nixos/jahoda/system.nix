@@ -9,8 +9,9 @@
   codgician = {
     services = {
       nixos-vscode-server.enable = true;
+      plasma.enable = true;
       hyprland = {
-        enable = true;
+        enable = false;
         monitors = [
           {
             output = "DP-3";
@@ -128,6 +129,15 @@
             "~/GitHub/" = "personal";
           };
         };
+
+        plasma.launchers = [
+          "applications:org.kde.dolphin.desktop"
+          "applications:microsoft-edge.desktop"
+          "applications:org.kde.konsole.desktop"
+          "applications:code.desktop"
+          "applications:teams-for-linux.desktop"
+        ];
+
         pwsh.enable = true;
         ssh.enable = true;
         tmux.enable = true;

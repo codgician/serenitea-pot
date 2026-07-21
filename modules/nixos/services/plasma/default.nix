@@ -8,17 +8,9 @@ let
   cfg = config.codgician.services.plasma;
   types = lib.types;
 in
-lib.optionalAttrs (lib.version >= "24.05") {
+{
   options.codgician.services.plasma = {
     enable = lib.mkEnableOption "Plasma Desktop.";
-
-    hidpi = lib.mkEnableOption "Hi-DPI support.";
-
-    wayland = lib.mkOption {
-      type = types.bool;
-      default = true;
-      description = "Enable Wayland support for Plasma Desktop.";
-    };
 
     autoLoginUser = lib.mkOption {
       type = types.nullOr types.str;
@@ -32,17 +24,7 @@ lib.optionalAttrs (lib.version >= "24.05") {
       xserver.enable = true;
       displayManager = {
         defaultSession = "plasma";
-
-        sddm = {
-          enable = true;
-          enableHidpi = cfg.hidpi;
-          theme = "breeze";
-          wayland = {
-            enable = cfg.wayland;
-            compositor = "kwin";
-          };
-        };
-
+        plasma-login-manager.enable = true;
         autoLogin = lib.mkIf (cfg.autoLoginUser != null) {
           enable = true;
           user = cfg.autoLoginUser;
@@ -78,13 +60,13 @@ lib.optionalAttrs (lib.version >= "24.05") {
       wlr.enable = true;
     };
 
-    # Persist SDDM config
+    # Persist Plasma Login Manager config
     codgician.system.impermanence.extraItems = [
       {
-        path = "/var/lib/sddm";
+        path = "/var/lib/plasmalogin";
         type = "directory";
-        user = "sddm";
-        group = "sddm";
+        user = "plasmalogin";
+        group = "plasmalogin";
         mode = "0755";
       }
     ];
@@ -92,29 +74,25 @@ lib.optionalAttrs (lib.version >= "24.05") {
     # Install optional dependencies
     services.fwupd.enable = true;
     environment = {
-      systemPackages =
-        with pkgs;
-        (
-          [
-            pciutils
-            usbutils
-            clinfo
-            mesa-demos
-            vulkan-tools
-            aha
-            appmenu-glib-translator
-            kdePackages.breeze-gtk
-            kdePackages.kio-admin
-            kdePackages.krdp
-            kdePackages.krdc
-            kdePackages.krfb
-            kdePackages.kquickcharts
-            kdePackages.krecorder
-            kdePackages.kwallet-pam
-            qt6.qtvirtualkeyboard
-          ]
-          ++ (lib.optionals cfg.wayland [ wayland-utils ])
-        );
+      systemPackages = with pkgs; [
+        pciutils
+        usbutils
+        clinfo
+        mesa-demos
+        vulkan-tools
+        aha
+        appmenu-glib-translator
+        kdePackages.breeze-gtk
+        kdePackages.kio-admin
+        kdePackages.krdp
+        kdePackages.krdc
+        kdePackages.krfb
+        kdePackages.kquickcharts
+        kdePackages.krecorder
+        kdePackages.kwallet-pam
+        qt6.qtvirtualkeyboard
+        wayland-utils
+      ];
     };
   };
 }

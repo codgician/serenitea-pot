@@ -66,11 +66,6 @@
   # Enable Network Manager
   networking.networkmanager.enable = true;
 
-  # SDDM default scaling
-  services.displayManager.sddm.settings.General = {
-    # GreeterEnvironment = "QT_SCREEN_SCALE_FACTORS=2,QT_FONT_DPI=192";
-  };
-
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
