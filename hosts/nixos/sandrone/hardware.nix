@@ -79,18 +79,7 @@
   # (CUDA, nvidia-uvm) without claiming the display.
   services.xserver.videoDrivers = [
     "modesetting"
-    "nvidia"
   ];
-
-  hardware.nvidia = {
-    modesetting.enable = true;
-    powerManagement.enable = true;
-    gsp.enable = true;
-    nvidiaPersistenced = true;
-    open = true;
-    nvidiaSettings = true;
-    package = config.boot.kernelPackages.nvidiaPackages.production;
-  };
 
   # Global packages
   environment.systemPackages = with pkgs; [
