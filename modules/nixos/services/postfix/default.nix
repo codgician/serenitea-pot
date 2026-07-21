@@ -118,8 +118,7 @@ in
     ];
 
     environment.etc."sasl-xoauth2.conf" = {
-      inherit (cfg) group user;
-      mode = "0600";
+      mode = "direct-symlink";
       source = config.codgician.secrets.files.sasl-xoauth2.path;
     };
 
