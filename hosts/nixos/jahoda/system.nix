@@ -110,7 +110,7 @@
     let
       # Native Wayland rendering can interleave pointer-surface commits with NVIDIA
       # explicit-sync commits. Use XWayland to avoid syncobj protocol crashes.
-      lookingGlassClient = pkgs.looking-glass-client.overrideAttrs (old: {
+      looking-glass-client-nvhack = pkgs.looking-glass-client.overrideAttrs (old: {
         nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ pkgs.makeWrapper ];
         postFixup = (old.postFixup or "") + ''
           wrapProgram $out/bin/looking-glass-client \
@@ -179,7 +179,7 @@
         [
           cider-2
           virt-manager
-          lookingGlassClient
+          looking-glass-client-nvhack
           telegram-desktop
           remmina
         ]
