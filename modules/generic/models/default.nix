@@ -444,6 +444,7 @@ in
             "text-embedding-ada-002".mode = "embedding";
 
             # Gemini models
+            "gemini-3.6-flash".variants = gemini;
             "gemini-3.5-flash".variants = gemini;
             "gemini-3.1-pro-preview".variants = gemini;
 
