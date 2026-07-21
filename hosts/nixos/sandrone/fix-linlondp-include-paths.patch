@@ -1,0 +1,27 @@
+From: serenitea-pot <noreply@localhost>
+Date: Tue, 21 Jul 2026 00:00:00 +0000
+Subject: [PATCH] drm: cix: fix Linlon Kbuild include paths
+
+The CIX patchset prefixes $(src) with $(srctree), but Kbuild already makes
+$(src) source-tree-relative. The resulting duplicated path prevents Linlon
+sources from finding headers under linlon-dp/include.
+---
+ drivers/gpu/drm/cix/linlon-dp/Makefile | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/cix/linlon-dp/Makefile b/drivers/gpu/drm/cix/linlon-dp/Makefile
+--- a/drivers/gpu/drm/cix/linlon-dp/Makefile
++++ b/drivers/gpu/drm/cix/linlon-dp/Makefile
+@@ -1,8 +1,8 @@
+ # SPDX-License-Identifier: GPL-2.0
+ 
+ ccflags-y := \
+-    -I $(srctree)/$(src)/include \
+-    -I $(srctree)/$(src)
++    -I $(src)/include \
++    -I $(src)
+ 
+ linlon-dp-y := \
+     linlondp_drv.o \
+-- 
+2.50.1

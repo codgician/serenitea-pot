@@ -13,6 +13,11 @@ let
     patch = "${patchDir}/${name}";
   }) (builtins.filter (lib.hasSuffix ".patch") (lib.codgician.getRegularFileNames patchDir));
 
+  linlonIncludePathFix = {
+    name = "fix-linlondp-include-paths";
+    patch = ./fix-linlondp-include-paths.patch;
+  };
+
   # Kconfig settings the CIX patches need but which aren't yet picked up
   # automatically by nixpkgs `common-config.nix` for our profile.
   cixExtraConfig = {
@@ -60,6 +65,7 @@ let
 in
 cixPatches
 ++ [
+  linlonIncludePathFix
   cixExtraConfig
   preemptPin
 ]
