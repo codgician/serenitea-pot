@@ -42,6 +42,7 @@ in
         git.enable = true;
         mcp.enable = true;
         opencode.enable = true;
+        plasma.wallpaper = wallpaper;
         pwsh.enable = true;
         ssh.enable = true;
         tmux.enable = true;
@@ -49,19 +50,13 @@ in
         zsh.enable = true;
       };
 
-      programs.plasma = {
-        workspace = { inherit wallpaper; };
-        configFile = {
-          plasmarc.Wallpapers.usersWallpapers = wallpaper;
-          kdeglobals.KScreen.ScaleFactor = 2;
-          kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General" = {
-            Image = wallpaper;
-            PreviewImage = wallpaper;
-          };
-          kwinrc = {
-            Xwayland.Scale = 2;
-          };
+      programs.plasma.configFile = {
+        kdeglobals.KScreen.ScaleFactor = 2;
+        kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General" = {
+          Image = wallpaper;
+          PreviewImage = wallpaper;
         };
+        kwinrc.Xwayland.Scale = 2;
       };
 
       home.stateVersion = "26.05";

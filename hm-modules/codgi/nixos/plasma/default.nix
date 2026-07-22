@@ -8,69 +8,131 @@
 let
   cfg = config.codgician.codgi.plasma;
   types = lib.types;
-  allSides =
-    value:
-    lib.genAttrs [
-      "top"
-      "right"
-      "bottom"
-      "left"
-    ] (_: value);
-  allCorners =
-    value:
-    lib.genAttrs [
-      "topLeft"
-      "topRight"
-      "bottomRight"
-      "bottomLeft"
-    ] (_: value);
+  clockFont = {
+    family = "Noto Sans";
+    weight = 400;
+    size = 9;
+  };
+  uniform = names: value: lib.genAttrs names (_: value);
+  allSides = uniform [
+    "top"
+    "right"
+    "bottom"
+    "left"
+  ];
+  allCorners = uniform [
+    "topLeft"
+    "topRight"
+    "bottomRight"
+    "bottomLeft"
+  ];
 
-  dockPanelSettings = {
-    panel.normal = {
-      enabled = true;
-      blurBehind = true;
-      backgroundColor = {
+  mkGlassSettings =
+    {
+      margin,
+      radius ? 8,
+    }:
+    {
+      panel.normal = {
         enabled = true;
-        alpha = 0.55;
-        sourceType = 1;
-        systemColor = "backgroundColor";
-        systemColorSet = "Window";
-      };
-      radius = {
-        enabled = true;
-        corner = allCorners 8;
-      };
-      margin = {
-        enabled = true;
-        side = allSides 6;
-      };
-      border = {
-        enabled = true;
-        width = 1;
-        color = {
+        blurBehind = true;
+        backgroundColor = {
           enabled = true;
-          alpha = 0.12;
-          sourceType = 0;
-          custom = "#FFFFFF";
+          alpha = 0.55;
+          sourceType = 1;
+          systemColor = "backgroundColor";
+          systemColorSet = "Window";
+        };
+        radius = {
+          enabled = true;
+          corner = allCorners radius;
+        };
+        margin = {
+          enabled = true;
+          side = margin;
+        };
+        border = {
+          enabled = true;
+          width = 1;
+          color = {
+            enabled = true;
+            alpha = 0.12;
+            sourceType = 0;
+            custom = "#FFFFFF";
+          };
         };
       };
+      nativePanel.background = {
+        enabled = true;
+        opacity = 0.01;
+        shadow = false;
+      };
     };
-    nativePanel.background = {
-      enabled = true;
-      opacity = 0.01;
-      shadow = false;
-    };
-  };
 
-  dockPanelColorizer = {
+  mkPanelColorizer = settings: extra: {
     plasmaPanelColorizer = {
       general = {
         enable = true;
         hideWidget = true;
       };
-      settings.General.globalSettings = builtins.toJSON dockPanelSettings;
+      settings.General = {
+        globalSettings = builtins.toJSON settings;
+      }
+      // extra;
     };
   };
+
+  mkTopPanelSettings =
+    radius:
+    lib.recursiveUpdate
+      (mkGlassSettings {
+        margin = allSides 0;
+        inherit radius;
+      })
+      {
+        panel.normal.padding = {
+          enabled = true;
+          side = (allSides 0) // {
+            right = 4;
+            left = 4;
+          };
+        };
+        widgets.normal = {
+          enabled = true;
+          margin = {
+            enabled = true;
+            side = (allSides 0) // {
+              top = 5;
+              bottom = 5;
+            };
+          };
+          spacing = 4;
+        };
+      };
+
+  topPanelNormalSettings = mkTopPanelSettings 8;
+  topPanelMaximizedSettings = mkTopPanelSettings 0;
+  mkPreset =
+    settings:
+    pkgs.writeTextDir "settings.json" (
+      builtins.toJSON {
+        globalSettings = settings;
+      }
+    );
+
+  topPanelColorizer = mkPanelColorizer topPanelNormalSettings {
+    animatePropertyChanges = true;
+    animationDuration = 200;
+    presetAutoloading = builtins.toJSON {
+      enabled = true;
+      filterByScreen = true;
+      normal = "${mkPreset topPanelNormalSettings}";
+      maximized = "${mkPreset topPanelMaximizedSettings}";
+    };
+  };
+  dockPanelColorizer = mkPanelColorizer (mkGlassSettings {
+    margin = allSides 6;
+  }) { };
 
 in
 {
@@ -91,9 +153,32 @@ in
       ];
       description = "Items to pin in launcher.";
     };
+
+    wallpaper = lib.mkOption {
+      type = with types; nullOr (either path (listOf path));
+      default = "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers/Flow";
+      description = "Desktop wallpaper package, or one image path per screen.";
+    };
+
+    wallpaperFillMode = lib.mkOption {
+      type =
+        with types;
+        nullOr (enum [
+          "stretch"
+          "preserveAspectFit"
+          "preserveAspectCrop"
+          "tile"
+          "tileVertically"
+          "tileHorizontally"
+          "pad"
+        ]);
+      default = "preserveAspectCrop";
+      description = "How Plasma scales the configured wallpaper.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
+
     programs.plasma = {
       enable = true;
       fonts = {
@@ -125,7 +210,7 @@ in
       };
 
       panels = [
-        # Top bar: kickoff (NixOS) + app menu (left) | spacer | tray + clock (right)
+        # Nix + metrics | weather + clock + notes | tray + notifications + desktop
         {
           location = "top";
           height = 32;
@@ -135,23 +220,71 @@ in
           lengthMode = "fill";
           hiding = "normalpanel";
           widgets = [
-            "org.kde.plasma.marginsseparator"
+            {
+              panelSpacer = {
+                expanding = false;
+                length = 2;
+              };
+            }
             {
               name = "org.kde.plasma.kickoff";
               config.General.icon = "nix-snowflake-white";
             }
             {
-              appMenu.compactView = false;
+              panelSpacer = {
+                expanding = false;
+                length = 6;
+              };
+            }
+            {
+              systemMonitor = {
+                title = "System";
+                showTitle = false;
+                displayStyle = "org.kde.ksysguard.textonly";
+                sensors = [
+                  {
+                    name = "cpu/all/usage";
+                    color = "101,180,255";
+                    label = "CPU:";
+                  }
+                  {
+                    name = "memory/physical/usedPercent";
+                    color = "130,210,130";
+                    label = "RAM:";
+                  }
+                  {
+                    name = "gpu/gpu1/usage";
+                    color = "210,140,255";
+                    label = "GPU:";
+                  }
+                ];
+              };
             }
             {
               panelSpacer.expanding = true;
             }
             {
-              systemTray = {
-                icons = {
-                  scaleToFit = false;
-                  spacing = "medium";
+              name = "org.kde.plasma.weather";
+              config = {
+                WeatherStation = {
+                  provider = "wettercom";
+                  placeInfo = "place|Suzhou, Jiangsu Sheng, CN|extra|CN0JS0008;Suzhou";
+                  placeDisplayName = "Suzhou, Jiangsu Sheng, CN";
+                  updateInterval = 30;
                 };
+                Appearance.showTemperatureInCompactMode = true;
+                Units = {
+                  temperatureUnit = 6001; # Celsius
+                  pressureUnit = 5007; # Kilopascal
+                  speedUnit = 9001; # Kilometer per hour
+                  visibilityUnit = 2007; # Kilometer
+                };
+              };
+            }
+            {
+              panelSpacer = {
+                expanding = false;
+                length = 4;
               };
             }
             {
@@ -166,22 +299,50 @@ in
                   format.custom = "ddd MMM d";
                   position = "besideTime";
                 };
-                font = {
-                  family = "Noto Sans";
-                  weight = 400;
-                  size = 10;
-                };
+                font = clockFont;
               };
             }
-            # Peek at desktop, top-right corner (macOS-style hot corner).
-            "org.kde.plasma.showdesktop"
+            {
+              panelSpacer = {
+                expanding = false;
+                length = 4;
+              };
+            }
+            {
+              name = "org.kde.plasma.notes";
+              config.General = {
+                color = "translucent";
+                fontSize = 12;
+                pinOpen = false;
+              };
+            }
+            {
+              panelSpacer.expanding = true;
+            }
+            {
+              systemTray = {
+                icons = {
+                  scaleToFit = false;
+                  spacing = "medium";
+                };
+                items.hidden = [ "org.kde.plasma.notifications" ];
+              };
+            }
+            "org.kde.plasma.notifications"
+            {
+              panelSpacer = {
+                expanding = false;
+                length = 2;
+              };
+            }
+            topPanelColorizer
           ];
         }
 
         # Bottom dock: centered, fits content, hides under windows (macOS feel)
         {
           location = "bottom";
-          height = 56;
+          height = 72;
           floating = true;
           alignment = "center";
           lengthMode = "fit";
@@ -222,6 +383,8 @@ in
       };
 
       workspace = {
+        wallpaper = lib.mkIf (cfg.wallpaper != null) cfg.wallpaper;
+        wallpaperFillMode = lib.mkIf (cfg.wallpaperFillMode != null) cfg.wallpaperFillMode;
         cursor = {
           theme = "Breeze";
           size = 24;
@@ -248,6 +411,13 @@ in
         # while plasma-manager currently writes the legacy
         # `org.kde.kdecoration2` section. Mirror the selected Breeze decoration.
         kwinrc = {
+          ElectricBorders = {
+            TopLeft = "ApplicationLauncher";
+            TopRight = "ShowDesktop";
+            BottomLeft = "ActivityManager";
+            BottomRight = "None";
+          };
+          "Effect-overview".BorderActivate = "3";
           "org.kde.kdecoration3" = {
             inherit (config.programs.plasma.workspace.windowDecorations) library theme;
           };
@@ -301,7 +471,10 @@ in
     # OpenSSH has no controlling terminal. Interactive ssh-add must read the
     # passphrase directly from its TTY; forcing askpass there causes needless
     # graphical retries. The systemd mirror covers KDE-launched applications.
-    home.packages = [ pkgs.kdePackages.ksshaskpass ];
+    home.packages = with pkgs.kdePackages; [
+      kdeplasma-addons
+      ksshaskpass
+    ];
 
     home.sessionVariables = {
       SSH_ASKPASS = lib.getExe pkgs.kdePackages.ksshaskpass;
