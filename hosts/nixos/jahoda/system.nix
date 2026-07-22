@@ -175,6 +175,7 @@
         with pkgs;
         [
           cider-2
+          easyeffects
           virt-manager
           looking-glass-client-nvhack
           telegram-desktop
