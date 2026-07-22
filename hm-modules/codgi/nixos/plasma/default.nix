@@ -110,8 +110,8 @@ let
         };
       };
 
-  topPanelNormalSettings = mkTopPanelSettings 8;
-  topPanelMaximizedSettings = mkTopPanelSettings 0;
+  topPanelFloatingSettings = mkTopPanelSettings 8;
+  topPanelAttachedSettings = mkTopPanelSettings 0;
   mkPreset =
     settings:
     pkgs.writeTextDir "settings.json" (
@@ -120,14 +120,14 @@ let
       }
     );
 
-  topPanelColorizer = mkPanelColorizer topPanelNormalSettings {
+  topPanelColorizer = mkPanelColorizer topPanelFloatingSettings {
     animatePropertyChanges = true;
     animationDuration = 200;
     presetAutoloading = builtins.toJSON {
       enabled = true;
       filterByScreen = true;
-      normal = "${mkPreset topPanelNormalSettings}";
-      maximized = "${mkPreset topPanelMaximizedSettings}";
+      floating = "${mkPreset topPanelFloatingSettings}";
+      normal = "${mkPreset topPanelAttachedSettings}";
     };
   };
   dockPanelColorizer = mkPanelColorizer (mkGlassSettings {
