@@ -8,6 +8,7 @@
   # My settings
   codgician = {
     services = {
+      fcitx5.enable = true;
       nixos-vscode-server.enable = true;
       plasma.enable = true;
       hyprland = {
@@ -215,41 +216,23 @@
   };
 
   # Select internationalisation properties.
-  environment.variables = {
-    XMODIFIERS = "@im=fcitx";
-  };
   i18n = {
     defaultLocale = "en_US.UTF-8";
     supportedLocales = [
       "en_US.UTF-8/UTF-8"
       "zh_CN.UTF-8/UTF-8"
     ];
-    inputMethod = {
-      enable = true;
-      type = "fcitx5";
-      fcitx5 = {
-        addons =
-          with pkgs;
-          with qt6Packages;
-          [
-            fcitx5-rime
-            rime-data
-            fcitx5-chinese-addons
-          ];
-        waylandFrontend = true;
-        settings.inputMethod = {
-          GroupOrder."0" = "Default";
-          "Groups/0" = {
-            "Default Layout" = "us";
-            DefaultIM = "pinyin";
-            Name = "Default";
-          };
-          "Groups/0/Items/0".Name = "keyboard-us";
-          "Groups/0/Items/1" = {
-            Layout = "us";
-            Name = "pinyin";
-          };
-        };
+    inputMethod.fcitx5.settings.inputMethod = {
+      GroupOrder."0" = "Default";
+      "Groups/0" = {
+        "Default Layout" = "us";
+        DefaultIM = "pinyin";
+        Name = "Default";
+      };
+      "Groups/0/Items/0".Name = "keyboard-us";
+      "Groups/0/Items/1" = {
+        Layout = "us";
+        Name = "pinyin";
       };
     };
   };
