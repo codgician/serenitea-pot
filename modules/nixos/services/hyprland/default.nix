@@ -127,6 +127,11 @@ in
         withUWSM = true;
         xwayland.enable = true;
       };
+      noctalia = {
+        enable = true;
+        systemd.enable = true;
+        recommendedServices.enable = true;
+      };
       regreet = {
         enable = true;
         font = {

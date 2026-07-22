@@ -133,6 +133,7 @@ rec {
       outputs.modules.nixos
       impermanence.nixosModules.impermanence
       disko.nixosModules.disko
+      noctalia.nixosModules.default
       sops-nix.nixosModules.sops
       lanzaboote.nixosModules.lanzaboote
       nixos-generators.nixosModules.all-formats
