@@ -82,7 +82,7 @@
     ];
   };
 
-  # Logitech 
+  # Logitech
   hardware.logitech.wireless = {
     enable = true;
     enableGraphical = true;
