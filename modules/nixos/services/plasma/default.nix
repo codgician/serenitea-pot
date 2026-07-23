@@ -93,6 +93,7 @@ in
         kdePackages.kquickcharts
         kdePackages.krecorder
         kdePackages.kwallet-pam
+        kdePackages.plasma-camera
         qt6.qtvirtualkeyboard
         wayland-utils
       ];

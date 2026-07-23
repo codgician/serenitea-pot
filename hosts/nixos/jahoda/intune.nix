@@ -126,6 +126,11 @@
     xdg.configFile."teams-for-linux/config.json".text = builtins.toJSON {
       auth.intune.enabled = true;
       disableGpu = false;
+      graphApi.enabled = true;
+      quickChat = {
+        enabled = true;
+        shortcut = "CommandOrControl+Alt+Q";
+      };
     };
   };
 }

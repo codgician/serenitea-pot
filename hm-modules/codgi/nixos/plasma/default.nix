@@ -418,6 +418,11 @@ in
             BottomRight = "None";
           };
           "Effect-overview".BorderActivate = "3";
+          Plugins.kwin4_effect_shapecornersEnabled = true;
+          "Round-Corners" = {
+            InactiveCornerRadius = 8;
+            Size = 8;
+          };
           "org.kde.kdecoration3" = {
             inherit (config.programs.plasma.workspace.windowDecorations) library theme;
           };
@@ -471,9 +476,10 @@ in
     # OpenSSH has no controlling terminal. Interactive ssh-add must read the
     # passphrase directly from its TTY; forcing askpass there causes needless
     # graphical retries. The systemd mirror covers KDE-launched applications.
-    home.packages = with pkgs.kdePackages; [
-      kdeplasma-addons
-      ksshaskpass
+    home.packages = [
+      pkgs.kde-rounded-corners
+      pkgs.kdePackages.kdeplasma-addons
+      pkgs.kdePackages.ksshaskpass
     ];
 
     home.sessionVariables = {
