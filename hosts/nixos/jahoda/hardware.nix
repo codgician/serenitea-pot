@@ -82,6 +82,12 @@
     ];
   };
 
+  # Logitech 
+  hardware.logitech.wireless = {
+    enable = true;
+    enableGraphical = true;
+  };
+
   # Global packages
   environment.systemPackages = with pkgs; [
     lm_sensors

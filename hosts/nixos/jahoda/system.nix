@@ -176,6 +176,7 @@
         with pkgs;
         [
           cider-2
+          splayer
           easyeffects
           virt-manager
           looking-glass-client-nvhack

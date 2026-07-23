@@ -22,7 +22,11 @@ in
           pkgs.fcitx5-mellow-themes
         ];
         waylandFrontend = true;
-        settings.addons.classicui.globalSection.Theme = "kwinblur-mellow-youlan";
+        settings.globalOptions."Hotkey/TriggerKeys"."0" = "Super+space";
+        settings.addons = {
+          classicui.globalSection.Theme = "kwinblur-mellow-youlan-dark";
+          pinyin.globalSection.CloudPinyinEnabled = true;
+        };
       };
     };
   };
