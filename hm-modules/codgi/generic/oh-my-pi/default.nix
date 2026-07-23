@@ -111,209 +111,28 @@ let
     };
   };
 
-  # The default profile is plain `omp` at ~/.omp/agent. Named profiles inherit
-  # this configuration and store their OMP-native state separately.
-  profiles = {
-    default = {
-      setupVersion = 1;
+  profiles = import ./profiles { inherit pkgs; };
 
-      modelRoles = {
-        default = "dendro/gpt-5.6-sol";
-        smol = "dendro/gpt-5.4-mini";
-        task = "dendro/claude-sonnet-5";
-        slow = "dendro/claude-opus-4-8:xhigh";
-        plan = "dendro/claude-opus-4-8:xhigh";
-        advisor = "dendro/claude-sonnet-5:medium";
-        vision = "dendro/gemini-3.1-pro-preview:high";
-        designer = "dendro/gemini-3.1-pro-preview:high";
-        commit = "dendro/kimi-k2.6";
-        tiny = "dendro/gpt-5.4-mini";
-      };
-      modelProviderOrder = [ "dendro" ];
-      providers.webSearch = "exa";
-      defaultThinkingLevel = "high";
+  profileConfigFiles = builtins.mapAttrs (
+    name: settings: yamlFormat.generate "omp-${name}-config.yml" settings
+  ) profiles;
 
-      statusLine.preset = "full";
-      tools = {
-        approvalMode = "yolo";
-        discoveryMode = "auto";
+  modelsFile = yamlFormat.generate "omp-models.yml" modelsYaml;
+
+  mkProfileFiles =
+    name: agentDir:
+    {
+      "${agentDir}/config.yml" = {
+        source = profileConfigFiles.${name};
+        force = true;
       };
-      secrets.enabled = true;
-      task = {
-        batch = true;
-        maxConcurrency = 8;
-        isolation = {
-          mode = "auto";
-          merge = "patch";
-        };
-        showResolvedModelBadge = true;
-      };
-      async.enabled = true;
-      skills = {
-        enabled = true;
-        enableSkillCommands = true;
-        enableCodexUser = false;
-        enableClaudeUser = false;
-        enableClaudeProject = true;
-        enablePiUser = false;
-        enablePiProject = true;
-        enableAgentsUser = false;
-        enableAgentsProject = true;
-        customDirectories = [ "${pkgs.nur.repos.codgician.agent-browser.src}/skills" ];
-      };
-      advisor = {
-        enabled = false;
-        subagents = false;
-        syncBacklog = "off";
-      };
-      memory.backend = "off";
-      autolearn = {
-        enabled = false;
-        autoContinue = false;
-      };
-      github.enabled = true;
-      compaction = {
-        enabled = true;
-        strategy = "snapcompact";
-        midTurnEnabled = true;
-        remoteEnabled = true;
-        autoContinue = true;
+    }
+    // lib.optionalAttrs (name != "github-copilot") {
+      "${agentDir}/models.yml" = {
+        source = modelsFile;
+        force = true;
       };
     };
-
-    # Family-isolated profiles for user-driven comparisons. Each one overrides
-    # every role so background work cannot silently cross model families.
-    gpt = {
-      enabledModels = [
-        "dendro/gpt-5.2"
-        "dendro/gpt-5.2-codex"
-        "dendro/gpt-5.3-codex"
-        "dendro/gpt-5.4"
-        "dendro/gpt-5.4-mini"
-        "dendro/gpt-5.5"
-        "dendro/gpt-5.6-luna"
-        "dendro/gpt-5.6-terra"
-        "dendro/gpt-5.6-sol"
-      ];
-      modelRoles = {
-        default = "dendro/gpt-5.6-terra:high";
-        smol = "dendro/gpt-5.4-mini";
-        task = "dendro/gpt-5.6-luna:medium";
-        slow = "dendro/gpt-5.6-sol:xhigh";
-        plan = "dendro/gpt-5.6-sol:xhigh";
-        advisor = "dendro/gpt-5.5:high";
-        vision = "dendro/gpt-5.5:medium";
-        designer = "dendro/gpt-5.5:medium";
-        commit = "dendro/gpt-5.4-mini";
-        tiny = "dendro/gpt-5.4-mini";
-      };
-    };
-
-    claude = {
-      enabledModels = [
-        "dendro/claude-haiku-4-5"
-        "dendro/claude-sonnet-4-6"
-        "dendro/claude-sonnet-5"
-        "dendro/claude-opus-4-6"
-        "dendro/claude-opus-4-7"
-        "dendro/claude-opus-4-8"
-      ];
-      modelRoles = {
-        default = "dendro/claude-sonnet-5";
-        smol = "dendro/claude-haiku-4-5";
-        task = "dendro/claude-sonnet-5";
-        slow = "dendro/claude-opus-4-8:xhigh";
-        plan = "dendro/claude-opus-4-8:xhigh";
-        advisor = "dendro/claude-opus-4-8:high";
-        vision = "dendro/claude-sonnet-5:high";
-        designer = "dendro/claude-sonnet-5:high";
-        commit = "dendro/claude-haiku-4-5";
-        tiny = "dendro/claude-haiku-4-5";
-      };
-    };
-
-    gemini = {
-      enabledModels = [
-        "dendro/gemini-3.1-pro-preview"
-        "dendro/gemini-3.5-flash"
-      ];
-      modelRoles = {
-        default = "dendro/gemini-3.1-pro-preview:high";
-        smol = "dendro/gemini-3.5-flash:low";
-        task = "dendro/gemini-3.5-flash:high";
-        slow = "dendro/gemini-3.1-pro-preview:high";
-        plan = "dendro/gemini-3.1-pro-preview:high";
-        advisor = "dendro/gemini-3.1-pro-preview:high";
-        vision = "dendro/gemini-3.1-pro-preview:high";
-        designer = "dendro/gemini-3.1-pro-preview:high";
-        commit = "dendro/gemini-3.5-flash:low";
-        tiny = "dendro/gemini-3.5-flash:low";
-      };
-    };
-
-    grok = {
-      enabledModels = [ "dendro/grok-4.5" ];
-      modelRoles = {
-        default = "dendro/grok-4.5:medium";
-        smol = "dendro/grok-4.5:low";
-        task = "dendro/grok-4.5:medium";
-        slow = "dendro/grok-4.5:high";
-        plan = "dendro/grok-4.5:high";
-        advisor = "dendro/grok-4.5:high";
-        vision = "dendro/grok-4.5:high";
-        designer = "dendro/grok-4.5:high";
-        commit = "dendro/grok-4.5:low";
-        tiny = "dendro/grok-4.5:low";
-      };
-    };
-
-    china = {
-      enabledModels = [
-        "dendro/deepseek-v4-flash"
-        "dendro/deepseek-v4-pro"
-        "dendro/kimi-k2.6"
-      ];
-      modelRoles = {
-        default = "dendro/deepseek-v4-pro:high";
-        smol = "dendro/deepseek-v4-flash:low";
-        task = "dendro/deepseek-v4-flash:high";
-        slow = "dendro/deepseek-v4-pro:high";
-        plan = "dendro/deepseek-v4-pro:high";
-        advisor = "dendro/kimi-k2.6";
-        vision = "dendro/deepseek-v4-pro:high";
-        designer = "dendro/deepseek-v4-pro:high";
-        commit = "dendro/kimi-k2.6";
-        tiny = "dendro/deepseek-v4-flash:low";
-      };
-    };
-
-    private = {
-      enabledModels = [ "dendro/qwen3.6-27b-int4" ];
-      cycleOrder = [ "default" ];
-      defaultThinkingLevel = "minimal";
-      modelRoles = {
-        default = "dendro/qwen3.6-27b-int4";
-        smol = "dendro/qwen3.6-27b-int4";
-        task = "dendro/qwen3.6-27b-int4";
-        slow = "dendro/qwen3.6-27b-int4";
-        plan = "dendro/qwen3.6-27b-int4";
-        advisor = "dendro/qwen3.6-27b-int4";
-        vision = "dendro/qwen3.6-27b-int4";
-        designer = "dendro/qwen3.6-27b-int4";
-        commit = "dendro/qwen3.6-27b-int4";
-        tiny = "dendro/qwen3.6-27b-int4";
-      };
-      web_search.enabled = false;
-      fetch.enabled = false;
-      browser.enabled = false;
-      github.enabled = false;
-      images.blockImages = true;
-      compaction = {
-        strategy = "context-full";
-        remoteEnabled = false;
-      };
-    };
-  };
 
 in
 {
@@ -329,6 +148,14 @@ in
       '';
     };
 
+    defaultProfile = lib.mkOption {
+      type = types.enum (builtins.attrNames profiles);
+      default = "dendro";
+      description = ''
+        The oh-my-pi profile selected when no explicit --profile is given.
+      '';
+    };
+
   };
 
   config = lib.mkIf cfg.enable {
@@ -340,26 +167,7 @@ in
         force = true;
       };
     }
-    // lib.mergeAttrsList (
-      lib.mapAttrsToList (
-        name: profile:
-        let
-          isDefault = name == "default";
-          agentDir = if isDefault then ".omp/agent" else ".omp/profiles/${name}/agent";
-          outputName = if isDefault then "omp" else "omp-${name}";
-          settings = if isDefault then profile else lib.recursiveUpdate profiles.default profile;
-        in
-        {
-          "${agentDir}/config.yml" = {
-            source = yamlFormat.generate "${outputName}-config.yml" settings;
-            force = true;
-          };
-          "${agentDir}/models.yml" = {
-            source = yamlFormat.generate "omp-models.yml" modelsYaml;
-            force = true;
-          };
-        }
-      ) profiles
-    );
+    // mkProfileFiles cfg.defaultProfile ".omp/agent"
+    // lib.concatMapAttrs (name: _profile: mkProfileFiles name ".omp/profiles/${name}/agent") profiles;
   };
 }

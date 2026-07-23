@@ -133,7 +133,10 @@
         };
         opencode.enable = true;
         mcp.enable = true;
-        oh-my-pi.enable = true;
+        oh-my-pi = {
+          enable = true;
+          defaultProfile = "github-copilot";
+        };
         github-copilot-cli.enable = true;
         git = {
           enable = true;
@@ -184,6 +187,7 @@
           nextcloud-talk-desktop
           element-desktop
           discord
+          voxtype-onnx
         ]
         ++ (with pkgs.nur.repos.codgician; [
           nanokvm-usb
