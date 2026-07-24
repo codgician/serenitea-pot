@@ -44,6 +44,7 @@ let
       autoContinue = false;
     };
     github.enabled = true;
+    share.store = "gist";
     compaction = {
       enabled = true;
       strategy = "snapcompact";
