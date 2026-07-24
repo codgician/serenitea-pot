@@ -17,6 +17,8 @@ let
 in
 {
   options.codgician.system.common = {
+    audio.enable = lib.mkEnableOption "PipeWire audio stack";
+
     apparmor.enable = lib.mkOption {
       type = lib.types.bool;
       default = true;
@@ -74,6 +76,15 @@ in
       enable = true;
       enableCompletion = true;
     };
+
+    # Audio
+    services.pipewire = lib.mkIf cfg.audio.enable {
+      enable = true;
+      alsa.enable = true;
+      alsa.support32Bit = true;
+      pulse.enable = true;
+    };
+    services.pulseaudio.enable = lib.mkIf cfg.audio.enable false;
 
     # Enable resolved
     services.resolved = {
@@ -163,6 +174,8 @@ in
     ];
 
     security = {
+      rtkit.enable = lib.mkIf cfg.audio.enable true;
+
       audit = {
         enable = cfg.audit.enable;
         backlogLimit = 8192;

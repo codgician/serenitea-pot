@@ -95,15 +95,7 @@ in
     ];
   };
 
-  # Enable pipewire.
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-  };
-
-  services.pulseaudio.enable = false;
+  codgician.system.common.audio.enable = true;
 
   # Disable systemd tpm2 due to incompatibility
   systemd.tpm2.enable = false;

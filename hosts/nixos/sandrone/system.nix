@@ -84,15 +84,7 @@
     ];
   };
 
-  # Enable pipewire.
-  services.pipewire = {
-    enable = true;
-    alsa.enable = true;
-    alsa.support32Bit = true;
-    pulse.enable = true;
-  };
-
-  services.pulseaudio.enable = false;
+  codgician.system.common.audio.enable = true;
 
   # Security
   users.mutableUsers = false;
