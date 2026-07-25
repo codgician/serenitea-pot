@@ -1,0 +1,45 @@
+name: update models
+on:
+  schedule:
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+  copilot-requests: write
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+jobs:
+  update-models:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-slim
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 1
+          persist-credentials: 'true'
+      - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            accept-flake-config = true
+            experimental-features = nix-command flakes
+            builders-use-substitutes = true
+      - name: Refresh provider models
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ github.token }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_NIM_API_KEY }}
+        run: nix shell nixpkgs#curl nixpkgs#jq -c bash modules/generic/models/update.sh
+      - name: Validate model registry
+        run: |
+          git add modules/generic/models/providers
+          nix flake check
+      - name: Push changes
+        run: |
+          if [[ -n "$(git status --porcelain -- modules/generic/models/providers)" ]]; then
+            git config user.name github-actions[bot]
+            git config user.email github-actions[bot]@users.noreply.github.com
+            git add modules/generic/models/providers
+            git commit -m "bot: refresh model registry"
+            git push
+          else
+            echo "Model registry is unchanged."
+          fi

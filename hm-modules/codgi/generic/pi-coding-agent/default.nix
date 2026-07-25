@@ -45,13 +45,17 @@ let
       "max"
       "xhigh"
     ];
+    max = [
+      "max"
+      "xhigh"
+    ];
   };
 
   # First candidate effort the model defines, or null when none (hidden in pi).
   resolveEffort =
-    variantKeys: candidates:
+    effortKeys: candidates:
     let
-      matches = builtins.filter (k: builtins.elem k variantKeys) candidates;
+      matches = builtins.filter (k: builtins.elem k effortKeys) candidates;
     in
     if matches == [ ] then null else builtins.head matches;
 
@@ -59,28 +63,35 @@ let
   mkThinkingLevelMap =
     m:
     let
-      variantKeys = builtins.attrNames m.variants;
+      effortKeys = m.reasoningEfforts;
     in
-    builtins.mapAttrs (_level: resolveEffort variantKeys) piLevelToEffortKeys;
+    builtins.mapAttrs (_level: resolveEffort effortKeys) piLevelToEffortKeys;
 
   # Registry model -> pi model entry. `id` matches the LiteLLM model name.
   mkPiModel =
     m:
     let
-      hasReasoning = m.variants != { };
+      hasReasoning = m.reasoningEfforts != [ ] || builtins.elem "reasoning" (m.supports or [ ]);
+      contextWindow = m.contextWindow or null;
+      maxTokens = m.maxOutputTokens or null;
+      cost = m.cost or null;
     in
     {
       id = m.model;
       api = modeToApi.${m.mode};
-      input = [
-        "text"
-        "image"
-      ];
+      input =
+        m.input or [
+          "text"
+          "image"
+        ];
       reasoning = hasReasoning;
     }
     // lib.optionalAttrs hasReasoning {
       thinkingLevelMap = mkThinkingLevelMap m;
-    };
+    }
+    // lib.optionalAttrs (contextWindow != null) { inherit contextWindow; }
+    // lib.optionalAttrs (maxTokens != null) { inherit maxTokens; }
+    // lib.optionalAttrs (cost != null) { inherit cost; };
 
   piModels = map mkPiModel filteredModels;
 

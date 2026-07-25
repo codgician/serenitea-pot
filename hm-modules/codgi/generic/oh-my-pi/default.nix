@@ -39,6 +39,7 @@ let
   # upstream via `compat.reasoningEffortMap`, so name mismatches resolve
   # precisely. omp's ceiling level is `max`, which outranks `xhigh`.
   ompLevelToEffortKeys = {
+    off = [ "none" ];
     minimal = [ "minimal" ];
     low = [ "low" ];
     medium = [ "medium" ];
@@ -47,13 +48,17 @@ let
       "max"
       "xhigh"
     ];
+    max = [
+      "max"
+      "xhigh"
+    ];
   };
 
   # First candidate effort the model defines, or null when none.
   resolveEffort =
-    variantKeys: candidates:
+    effortKeys: candidates:
     let
-      matches = builtins.filter (k: builtins.elem k variantKeys) candidates;
+      matches = builtins.filter (k: builtins.elem k effortKeys) candidates;
     in
     if matches == [ ] then null else builtins.head matches;
 
@@ -62,10 +67,10 @@ let
   mkReasoningEffortMap =
     m:
     let
-      variantKeys = builtins.attrNames m.variants;
+      effortKeys = m.reasoningEfforts;
     in
     lib.filterAttrs (_level: effort: effort != null) (
-      builtins.mapAttrs (_level: resolveEffort variantKeys) ompLevelToEffortKeys
+      builtins.mapAttrs (_level: resolveEffort effortKeys) ompLevelToEffortKeys
     );
 
   # Registry model -> omp model entry. `id` matches the LiteLLM model name.
@@ -81,6 +86,10 @@ let
     m:
     let
       reasoningEffortMap = mkReasoningEffortMap m;
+      contextWindow = m.contextWindow or null;
+      maxTokens = m.maxOutputTokens or null;
+      cost = m.cost or null;
+      hasReasoning = m.reasoningEfforts != [ ] || builtins.elem "reasoning" (m.supports or [ ]);
       compat =
         lib.optionalAttrs (reasoningEffortMap != { }) { inherit reasoningEffortMap; }
         // lib.optionalAttrs (m.provider == "github") { supportsImageDetailOriginal = false; };
@@ -88,13 +97,17 @@ let
     {
       id = m.model;
       api = modeToApi.${m.mode};
-      input = [
-        "text"
-        "image"
-      ];
-      reasoning = m.variants != { };
+      input =
+        m.input or [
+          "text"
+          "image"
+        ];
+      reasoning = hasReasoning;
     }
-    // lib.optionalAttrs (compat != { }) { inherit compat; };
+    // lib.optionalAttrs (compat != { }) { inherit compat; }
+    // lib.optionalAttrs (contextWindow != null) { inherit contextWindow; }
+    // lib.optionalAttrs (maxTokens != null) { inherit maxTokens; }
+    // lib.optionalAttrs (cost != null) { inherit cost; };
 
   ompModels = map mkOmpModel filteredModels;
 

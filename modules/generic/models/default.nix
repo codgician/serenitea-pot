@@ -1,4 +1,4 @@
-# Model registry module with typed provider specifications
+# Unified model registry assembled from provider descriptors.
 {
   config,
   lib,
@@ -7,262 +7,47 @@
   ...
 }:
 let
+  inherit (lib) mkOption types;
   cfg = config.codgician.models;
-  inherit (lib) types mkOption;
+  modelLib = import ./lib.nix { inherit lib; };
 
-  # Terraform config for Azure validation
-  terraformConf =
-    builtins.fromJSON
-      outputs.packages.${pkgs.stdenv.hostPlatform.system}.terraform-config.value;
-  azureSubdomain = terraformConf.resource.azurerm_cognitive_account.akasha.custom_subdomain_name;
-  deployedModelNames = lib.mapAttrsToList (_: v: v.name) (
-    terraformConf.resource.azurerm_cognitive_deployment or { }
+  providerNames = lib.codgician.getFolderNames ./providers;
+  providerDefinitions = builtins.listToAttrs (
+    map (
+      name:
+      lib.nameValuePair name (
+        import (./providers + "/${name}") {
+          inherit
+            config
+            lib
+            modelLib
+            outputs
+            pkgs
+            ;
+        }
+      )
+    ) providerNames
   );
 
-  # ===========================================================================
-  # Common option definitions (shared across provider types)
-  # ===========================================================================
-  variantsType = types.attrsOf (types.attrsOf types.anything);
-
-  commonOptions = {
-    aliases = mkOption {
-      type = types.listOf types.str;
-      default = [ ];
-      description = "Alternative names for this model";
-    };
-    mode = mkOption {
-      type = types.str;
-      default = "chat";
-      description = "Model mode (chat, image_generation, embedding, etc.)";
-    };
-    variants = mkOption {
-      type = variantsType;
-      default = { };
-      description = "Model variants (e.g., reasoning effort levels)";
-    };
-    path = mkOption {
-      type = types.nullOr types.str;
-      default = null;
-      description = "Provider-local model path override; defaults to the model name.";
-    };
-  };
-
-  # ===========================================================================
-  # Provider-specific model types (extending common options)
-  # ===========================================================================
-
-  # Basic type for simple providers
-  basicModelType = types.submodule {
-    options = commonOptions;
-  };
-
-  # Azure: adds provider backend selection and baseModel override
-  azureModelType = types.submodule {
-    options = commonOptions // {
-      provider = mkOption {
-        type = types.enum [
-          "azure"
-          "azure_ai"
-        ];
-        default = "azure";
-        description = "Azure provider type";
-      };
-      baseModel = mkOption {
-        type = types.nullOr types.str;
-        default = null;
-        description = "Override base_model (e.g., for versioned deployments)";
-      };
-      apiVersion = mkOption {
-        type = types.nullOr types.str;
-        default = null;
-        description = "Override Azure api_version (e.g., for image edits needing 2025-04-01-preview)";
-      };
-    };
-  };
-
-  # vLLM: adds api_base (required, per-model since deployments differ per host)
-  vllmModelType = types.submodule {
-    options = commonOptions // {
-      apiBase = mkOption {
-        type = types.str;
-        description = "Base URL of the vLLM-compatible OpenAI endpoint (e.g., http://paimon:8000/v1)";
-      };
-    };
-  };
-
-  # Provider submodule: pairs a transformer with its models
-  mkProviderType =
-    modelType:
-    types.submodule {
-      options = {
-        transformer = mkOption {
-          type = types.raw;
-          description = "Function (name: spec: { ... }) that transforms a model spec into a registry entry";
-        };
-        models = mkOption {
-          type = types.attrsOf modelType;
-          default = { };
-          description = "Model definitions for this provider";
-        };
-      };
-    };
-
-  # ===========================================================================
-  # Provider Transformers (typed spec → registry entry)
-  # ===========================================================================
-
-  mkModel =
-    {
-      modelPrefix,
-      apiKeyEnv ? null,
-      tags,
-      extraParams ? { },
-      extraModelInfo ? { },
-    }:
-    name: spec: {
-      inherit (spec) aliases mode variants;
-      litellmModelInfo = {
-        inherit (spec) mode;
-      }
-      // extraModelInfo;
-      litellmParams = {
-        model = "${modelPrefix}/${if spec.path != null then spec.path else name}";
-      }
-      // lib.optionalAttrs (apiKeyEnv != null) { api_key = "os.environ/${apiKeyEnv}"; }
-      // extraParams;
-      inherit tags;
-    };
-
-  # ===========================================================================
-  # Variant Definitions (shared across providers)
-  # ===========================================================================
-
-  # Claude Sonnet / Opus 4.6 reasoning efforts
-  # See: https://platform.claude.com/docs/en/build-with-claude/effort
-  claudeOpus46 = lib.genAttrs [ "max" "high" "medium" "low" ] (effort: {
-    thinking = {
-      type = "adaptive";
-      display = "summarized";
-    };
-    output_config = { inherit effort; };
-  });
-
-  # Claude Opus 4.7 extends Opus 4.6 with xhigh effort
-  claudeOpus47 = lib.genAttrs [ "max" "xhigh" "high" "medium" "low" ] (effort: {
-    thinking = {
-      type = "adaptive";
-      display = "summarized";
-    };
-    output_config = { inherit effort; };
-  });
-
-  # Deepseek reasoning effort variants
-  deepseek = {
-    none.thinking.type = "disabled";
-    high = {
-      thinking.type = "enabled";
-      reasoningEffort = "high";
-    };
-    max = {
-      thinking.type = "enabled";
-      reasoningEffort = "max";
-    };
-  };
-
-  # GPT-5.6+ reasoning effort variants
-  gpt56 = lib.genAttrs [ "max" "xhigh" "high" "medium" "low" "none" ] (reasoningEffort: {
-    inherit reasoningEffort;
-  });
-
-  # GPT-5.2+ reasoning effort variants
-  gpt52 = lib.genAttrs [ "xhigh" "high" "medium" "low" "none" ] (reasoningEffort: {
-    inherit reasoningEffort;
-  });
-
-  # Gemini reasoning variants
-  gemini = {
-    high.reasoningEffort = "high";
-    medium.reasoningEffort = "medium";
-    low.reasoningEffort = "low";
-  };
-
-  # MAI reasoning variants
-  mai = {
-    high.reasoningEffort = "high";
-    medium.reasoningEffort = "medium";
-    low.reasoningEffort = "low";
-  };
-
-  # Grok 4.5 reasoning effort variants (reasoning cannot be disabled)
-  grok45 = lib.genAttrs [ "high" "medium" "low" ] (reasoningEffort: {
-    inherit reasoningEffort;
-  });
-
-  # ===========================================================================
-  # Build Registry from typed config
-  # ===========================================================================
-
+  providerConfigs = lib.mapAttrs (_: definition: definition.provider) providerDefinitions;
   registry = lib.mapAttrs (
-    provider: providerCfg: lib.mapAttrs providerCfg.transformer providerCfg.models
+    _: providerCfg: lib.mapAttrs providerCfg.transformer providerCfg.models
   ) cfg.providers;
-
-  # Azure Terraform validation (validate directly from input config)
-  missingAzureModels = lib.filter (name: !(builtins.elem name deployedModelNames)) (
-    lib.attrNames cfg.providers.azure.models
+  flatModels = modelLib.flattenRegistry registry;
+  providerAssertions = lib.concatLists (
+    lib.mapAttrsToList (_: definition: definition.assertions or [ ]) providerDefinitions
   );
-
-  # Flatten registry to list with provider and model fields
-  flattenRegistry =
-    reg:
-    lib.concatLists (
-      lib.mapAttrsToList (
-        provider: models: lib.mapAttrsToList (model: attrs: attrs // { inherit provider model; }) models
-      ) reg
-    );
-
-  # Precompute flattened models once for all derived outputs
-  flatModels = flattenRegistry registry;
-
 in
 {
   options.codgician.models = {
-    # Provider specifications (typed inputs)
-    providers = {
-      azure = mkOption {
-        type = mkProviderType azureModelType;
-        description = "Azure AI models";
-      };
-      chatgpt = mkOption {
-        type = mkProviderType basicModelType;
-        description = "ChatGPT models";
-      };
-      deepseek = mkOption {
-        type = mkProviderType basicModelType;
-        description = "DeepSeek models";
-      };
-      google = mkOption {
-        type = mkProviderType basicModelType;
-        description = "Google Gemini models";
-      };
-      github = mkOption {
-        type = mkProviderType basicModelType;
-        description = "GitHub Copilot models";
-      };
-      nvidia = mkOption {
-        type = mkProviderType basicModelType;
-        description = "NVIDIA NIM models";
-      };
-      xai = mkOption {
-        type = mkProviderType basicModelType;
-        description = "xAI models";
-      };
-      vllm = mkOption {
-        type = mkProviderType vllmModelType;
-        description = "Self-hosted vLLM (OpenAI-compatible) models";
-      };
-    };
+    providers = lib.mapAttrs (
+      _: definition:
+      mkOption {
+        type = modelLib.mkProviderType definition.modelType;
+        inherit (definition) description;
+      }
+    ) providerDefinitions;
 
-    # Computed outputs (read-only)
     all = mkOption {
       type = types.listOf types.attrs;
       readOnly = true;
@@ -281,280 +66,14 @@ in
   };
 
   config = {
-    assertions = [
-      {
-        assertion = missingAzureModels == [ ];
-        message = "Azure models not in Terraform: ${builtins.concatStringsSep ", " missingAzureModels}";
-      }
-    ];
-
+    assertions = providerAssertions;
     codgician.models = {
-      # =========================================================================
-      # Provider definitions (transformer + models)
-      # =========================================================================
-      providers = {
-        # Azure models
-        azure = {
-          transformer = name: spec: {
-            inherit (spec) aliases mode variants;
-            litellmModelInfo = {
-              inherit (spec) mode;
-            }
-            // lib.optionalAttrs (spec.baseModel != null) {
-              base_model = spec.baseModel;
-            };
-            litellmParams = {
-              model = "${spec.provider}/${if spec.path != null then spec.path else name}";
-              api_base = "https://${azureSubdomain}.services.ai.azure.com";
-              api_key = "os.environ/AZURE_AKASHA_API_KEY";
-            }
-            // lib.optionalAttrs (spec.apiVersion != null) {
-              api_version = spec.apiVersion;
-            };
-            tags = [
-              "azure"
-              "remote"
-            ];
-          };
-          models = {
-            # Azure AI provider - chat models
-            "deepseek-v4-flash".provider = "azure_ai";
-            "deepseek-v4-pro".provider = "azure_ai";
-            "grok-4.3".provider = "azure_ai";
-            "kimi-k2.6".provider = "azure_ai";
-
-            # Azure AI provider - image generation
-            "flux-2-pro" = {
-              provider = "azure_ai";
-              mode = "image_generation";
-              baseModel = "azure_ai/FLUX.2-pro";
-            };
-
-            # Azure provider - OpenAI models
-            "gpt-image-2" = {
-              mode = "image_generation";
-              # gpt-image edits require api-version >= 2025-04-01-preview.
-              # LiteLLM's Azure image-edit transform has no v1 (/openai/v1/)
-              # routing and defaults to 2025-02-01-preview, which 404s on edits.
-              apiVersion = "2025-04-01-preview";
-            };
-          };
-        };
-
-        # ChatGPT models
-        chatgpt = {
-          transformer = mkModel {
-            modelPrefix = "chatgpt";
-            tags = [
-              "chatgpt"
-              "remote"
-            ];
-            extraParams.stream = "True";
-          };
-          models = {
-            # "gpt-5.5" = {
-            #   variants = gpt52;
-            #   mode = "responses";
-            # };
-            # "gpt-5.4" = {
-            #   variants = gpt52;
-            #   mode = "responses";
-            # };
-            # "gpt-5.3-codex" = {
-            #   variants = gpt52;
-            #   mode = "responses";
-            # };
-          };
-        };
-
-        # DeepSeek models
-        deepseek = {
-          transformer = mkModel {
-            modelPrefix = "deepseek";
-            apiKeyEnv = "DEEPSEEK_API_KEY";
-            tags = [
-              "deepseek"
-              "remote"
-            ];
-          };
-          models = {
-            "deepseek-v4-flash".variants = deepseek;
-            "deepseek-v4-pro".variants = deepseek;
-          };
-        };
-
-        # Google Gemini models (image generation)
-        google = {
-          transformer =
-            name: spec:
-            mkModel {
-              modelPrefix = "gemini";
-              apiKeyEnv = "GEMINI_API_KEY";
-              tags = [
-                "google"
-                "remote"
-              ];
-            } name (spec // { mode = "image_generation"; });
-          models = {
-            "gemini-3-pro-image-preview" = { };
-            "gemini-3.1-flash-image-preview" = { };
-            "gemini-2.5-flash-image" = { };
-          };
-        };
-
-        # GitHub Copilot models
-        github = {
-          transformer = mkModel {
-            modelPrefix = "github_copilot";
-            tags = [
-              "github"
-              "remote"
-            ];
-            extraParams.extra_headers = {
-              "Editor-Version" = "vscode/${pkgs.vscode.version}";
-              "Editor-Plugin-Version" =
-                "copilot-chat/${pkgs.vscode-marketplace-release.github.copilot-chat.version}";
-              "User-Agent" = "GitHubCopilotChat/${pkgs.vscode-marketplace-release.github.copilot-chat.version}";
-            };
-          };
-          models = {
-            # Claude models
-            "claude-opus-4-8" = {
-              variants = claudeOpus47;
-              path = "claude-opus-4.8";
-            };
-            "claude-opus-4-7" = {
-              variants = claudeOpus47;
-              path = "claude-opus-4.7";
-            };
-            "claude-opus-4-6" = {
-              variants = claudeOpus46;
-              path = "claude-opus-4.6";
-            };
-            "claude-sonnet-5".variants = claudeOpus47;
-            "claude-sonnet-4-6" = {
-              variants = claudeOpus46;
-              path = "claude-sonnet-4.6";
-            };
-            "claude-haiku-4-5".path = "claude-haiku-4.5";
-
-            # Embedding models
-            "text-embedding-3-small".mode = "embedding";
-            "text-embedding-3-small-inference".mode = "embedding";
-            "text-embedding-ada-002".mode = "embedding";
-
-            # Gemini models
-            "gemini-3.6-flash".variants = gemini;
-            "gemini-3.5-flash".variants = gemini;
-            "gemini-3.1-pro-preview".variants = gemini;
-
-            # GPT-5.x chat models
-            "gpt-5.2" = {
-              mode = "responses";
-              variants = gpt52;
-            };
-
-            # GPT-5.x models (responses mode)
-            "gpt-5.2-codex" = {
-              mode = "responses";
-              variants = gpt52;
-            };
-            "gpt-5.3-codex" = {
-              mode = "responses";
-              variants = gpt52;
-            };
-            "gpt-5.4" = {
-              mode = "responses";
-              variants = gpt52;
-            };
-            "gpt-5.4-mini" = {
-              mode = "responses";
-            };
-            "gpt-5.5" = {
-              mode = "responses";
-              variants = gpt52;
-            };
-            "gpt-5.6-luna" = {
-              mode = "responses";
-              variants = gpt56;
-            };
-            "gpt-5.6-sol" = {
-              mode = "responses";
-              variants = gpt56;
-            };
-            "gpt-5.6-terra" = {
-              mode = "responses";
-              variants = gpt56;
-            };
-
-            # MAI models
-            "mai-code-1-flash" = {
-              mode = "responses";
-              variants = mai;
-              path = "mai-code-1-flash-picker";
-            };
-          };
-        };
-
-        # NVIDIA NIM models
-        nvidia = {
-          transformer = mkModel {
-            modelPrefix = "nvidia_nim";
-            apiKeyEnv = "NVIDIA_NIM_API_KEY";
-            tags = [
-              "nvidia"
-              "remote"
-            ];
-          };
-          models = {
-            "kimi-k2.6".path = "moonshotai/kimi-k2.6";
-            "nemotron-3-ultra-550b-a55b".path = "nvidia/nemotron-3-ultra-550b-a55b";
-          };
-        };
-
-        # xAI models using locally stored OAuth credentials
-        xai = {
-          transformer = mkModel {
-            modelPrefix = "xai";
-            tags = [
-              "xai"
-              "remote"
-            ];
-            extraParams.use_xai_oauth = true;
-          };
-          models = {
-            # "grok-4.5".variants = grok45;
-          };
-        };
-
-        # Self-hosted vLLM (OpenAI-compatible) models
-        vllm = {
-          transformer =
-            name: spec:
-            mkModel {
-              modelPrefix = "hosted_vllm";
-              apiKeyEnv = "HOSTED_VLLM_API_KEY";
-              tags = [
-                "vllm"
-                "local"
-              ];
-              extraParams.api_base = spec.apiBase;
-            } name spec;
-          models = {
-            "qwen3.6-27b-int4" = {
-              apiBase = "http://192.168.0.22:8000/v1";
-              path = "Intel/Qwen3.6-27B-int4-AutoRound";
-            };
-          };
-        };
-      };
-
-      # Computed outputs
+      providers = providerConfigs;
       byProvider = registry;
       all = flatModels;
       textGenerationModels = builtins.filter (
-        m:
-        builtins.elem m.litellmModelInfo.mode [
+        model:
+        builtins.elem model.litellmModelInfo.mode [
           "chat"
           "responses"
         ]

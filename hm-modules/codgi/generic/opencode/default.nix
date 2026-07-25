@@ -26,19 +26,58 @@ let
   # Transform to OpenCode format
   mkOpenCodeModel =
     m:
-    {
-      name = m.model;
-      modalities = {
-        input = [
+    let
+      contextWindow = m.contextWindow or null;
+      maxInputTokens = m.maxInputTokens or null;
+      maxOutputTokens = m.maxOutputTokens or null;
+      cost = m.cost or null;
+      tiers = if cost == null then [ ] else cost.tiers or [ ];
+      tier = if tiers == [ ] then null else builtins.head tiers;
+      input =
+        m.input or [
           "text"
           "image"
         ];
+      variants =
+        if m.provider == "github" then
+          lib.genAttrs m.reasoningEfforts (reasoningEffort: {
+            inherit reasoningEffort;
+          })
+        else
+          m.variants;
+    in
+    {
+      attachment = builtins.elem "image" input;
+      name = m.model;
+      modalities = {
+        inherit input;
         output = [ "text" ];
       };
+      reasoning = m.reasoningEfforts != [ ] || builtins.elem "reasoning" (m.supports or [ ]);
+      tool_call = builtins.elem "toolCalls" (m.supports or [ ]);
     }
-    // lib.optionalAttrs (m.variants != { }) {
-      inherit (m) variants;
-    };
+    // lib.optionalAttrs (contextWindow != null && maxOutputTokens != null) {
+      limit = {
+        context = contextWindow;
+        output = maxOutputTokens;
+      }
+      // lib.optionalAttrs (maxInputTokens != null) { input = maxInputTokens; };
+    }
+    // lib.optionalAttrs (cost != null) {
+      cost = {
+        inherit (cost) input output;
+        cache_read = cost.cacheRead;
+        cache_write = cost.cacheWrite;
+      }
+      // lib.optionalAttrs (tier != null && tier.inputTokensAbove == 200000) {
+        context_over_200k = {
+          inherit (tier) input output;
+          cache_read = tier.cacheRead;
+          cache_write = tier.cacheWrite;
+        };
+      };
+    }
+    // lib.optionalAttrs (variants != { }) { inherit variants; };
 
   openCodeModels = builtins.listToAttrs (
     map (m: lib.nameValuePair m.model (mkOpenCodeModel m)) filteredModels
