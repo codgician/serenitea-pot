@@ -10,22 +10,31 @@ trap 'rm -rf "$tmp"' EXIT
 
 curl_args=(--fail-with-body --retry 3 --silent --show-error)
 
-if [[ -n "${COPILOT_MODELS_FILE:-}" ]]; then
-  cp "$COPILOT_MODELS_FILE" "$tmp/models.json"
-else
-  : "${COPILOT_GITHUB_TOKEN:?COPILOT_GITHUB_TOKEN must be a GitHub OAuth token or fine-grained PAT with Copilot Requests permission}"
-  copilot_token="$(curl "${curl_args[@]}" \
-    -H "Accept: application/json" \
-    -H "Copilot-Integration-Id: vscode-chat" \
-    -H "User-Agent: serenitea-pot-model-refresh" \
-    -H "Authorization: Bearer $COPILOT_GITHUB_TOKEN" \
-    "$token_url" | jq -er .token)"
+fetch_models() {
+  local token="$1"
   curl "${curl_args[@]}" \
     -H "Accept: application/json" \
     -H "Copilot-Integration-Id: vscode-chat" \
-    -H "Authorization: Bearer $copilot_token" \
+    -H "Authorization: Bearer $token" \
     -H "X-GitHub-Api-Version: 2026-06-01" \
     "$models_url" >"$tmp/models.json"
+}
+
+if [[ -n "${COPILOT_MODELS_FILE:-}" ]]; then
+  cp "$COPILOT_MODELS_FILE" "$tmp/models.json"
+else
+  : "${COPILOT_GITHUB_TOKEN:?COPILOT_GITHUB_TOKEN is required}"
+  if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
+    fetch_models "$COPILOT_GITHUB_TOKEN"
+  else
+    copilot_token="$(curl "${curl_args[@]}" \
+      -H "Accept: application/json" \
+      -H "Copilot-Integration-Id: vscode-chat" \
+      -H "User-Agent: serenitea-pot-model-refresh" \
+      -H "Authorization: Bearer $COPILOT_GITHUB_TOKEN" \
+      "$token_url" | jq -er .token)"
+    fetch_models "$copilot_token"
+  fi
 fi
 
 jq -Se '
