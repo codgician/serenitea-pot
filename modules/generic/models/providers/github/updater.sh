@@ -12,9 +12,10 @@ curl_args=(--fail-with-body --retry 3 --silent --show-error)
 
 fetch_models() {
   local token="$1"
+  local integration_id="$2"
   curl "${curl_args[@]}" \
     -H "Accept: application/json" \
-    -H "Copilot-Integration-Id: vscode-chat" \
+    -H "Copilot-Integration-Id: $integration_id" \
     -H "Authorization: Bearer $token" \
     -H "X-GitHub-Api-Version: 2026-06-01" \
     "$models_url" >"$tmp/models.json"
@@ -25,7 +26,7 @@ if [[ -n "${COPILOT_MODELS_FILE:-}" ]]; then
 else
   : "${COPILOT_GITHUB_TOKEN:?COPILOT_GITHUB_TOKEN is required}"
   if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-    fetch_models "$COPILOT_GITHUB_TOKEN"
+    fetch_models "$COPILOT_GITHUB_TOKEN" "agentic-workflows"
   else
     copilot_token="$(curl "${curl_args[@]}" \
       -H "Accept: application/json" \
@@ -33,7 +34,7 @@ else
       -H "User-Agent: serenitea-pot-model-refresh" \
       -H "Authorization: Bearer $COPILOT_GITHUB_TOKEN" \
       "$token_url" | jq -er .token)"
-    fetch_models "$copilot_token"
+    fetch_models "$copilot_token" "vscode-chat"
   fi
 fi
 
