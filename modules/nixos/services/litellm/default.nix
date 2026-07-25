@@ -63,8 +63,6 @@ let
 
   # Environment variables
   environment = {
-    "LITELLM_MODEL_COST_MAP_URL" =
-      "https://raw.githubusercontent.com/codgician/litellm/72d854d7b6ed287fe632d35f76b4a49426109e3f/model_prices_and_context_window.json";
     "LITELLM_USER_AGENT" = "claude-cli/${pkgs.claude-code.version} (external, cli)";
     "AUTO_REDIRECT_UI_LOGIN_TO_SSO" = "True";
     "DO_NOT_TRACK" = "True";
