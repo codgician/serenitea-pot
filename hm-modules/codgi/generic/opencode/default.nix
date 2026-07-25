@@ -190,10 +190,10 @@ in
         tmux.enabled = config.codgician.codgi.tmux.enable;
         agents = {
           sisyphus = {
-            model = "dendro/claude-opus-4-8";
+            model = "dendro/claude-opus-5";
             variant = "max";
             fallback_models = [
-              "github-copilot/claude-opus-4.8"
+              "github-copilot/claude-opus-5"
             ];
           };
           sisyphus-junior = {
@@ -242,10 +242,10 @@ in
             ];
           };
           prometheus = {
-            model = "dendro/claude-opus-4-8";
+            model = "dendro/claude-opus-5";
             variant = "max";
             fallback_models = [
-              "github-copilot/claude-opus-4.8"
+              "github-copilot/claude-opus-5"
             ];
           };
         };
@@ -275,9 +275,9 @@ in
             fallback_models = [ "github-copilot/gpt-5.6-luna" ];
           };
           unspecified-high = {
-            model = "dendro/claude-opus-4-8";
+            model = "dendro/claude-opus-5";
             fallback_models = [
-              "github-copilot/claude-opus-4.8"
+              "github-copilot/claude-opus-5"
             ];
           };
           writing = {

@@ -7,14 +7,15 @@
     "dendro/claude-opus-4-6"
     "dendro/claude-opus-4-7"
     "dendro/claude-opus-4-8"
+    "dendro/claude-opus-5"
   ];
   modelRoles = {
     default = "dendro/claude-sonnet-5";
     smol = "dendro/claude-haiku-4-5";
     task = "dendro/claude-sonnet-5";
-    slow = "dendro/claude-opus-4-8:xhigh";
-    plan = "dendro/claude-opus-4-8:xhigh";
-    advisor = "dendro/claude-opus-4-8:high";
+    slow = "dendro/claude-opus-5:xhigh";
+    plan = "dendro/claude-opus-5:xhigh";
+    advisor = "dendro/claude-opus-5:high";
     vision = "dendro/claude-sonnet-5:high";
     designer = "dendro/claude-sonnet-5:high";
     commit = "dendro/claude-haiku-4-5";

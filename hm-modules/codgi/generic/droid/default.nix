@@ -77,7 +77,7 @@ in
       ".factory/settings.json".text = builtins.toJSON {
         customModels = map mkDroidModel filteredModels;
         sessionDefaultSettings = {
-          model = "custom:claude-opus-4-8";
+          model = "custom:claude-opus-5";
           reasoningEffort = "xhigh";
           interactionMode = "auto";
           autonomyLevel = "high";

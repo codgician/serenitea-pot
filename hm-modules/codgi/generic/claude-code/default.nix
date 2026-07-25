@@ -67,9 +67,9 @@ in
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
           CLAUDE_CODE_EFFORT_LEVEL = "xhigh";
           ANTHROPIC_BASE_URL = "https://dendro.codgician.me";
-          ANTHROPIC_MODEL = "claude-opus-4-8";
+          ANTHROPIC_MODEL = "claude-opus-5";
           ANTHROPIC_DEFAULT_SONNET_MODEL = "claude-sonnet-5";
-          ANTHROPIC_DEFAULT_OPUS_MODEL = "claude-opus-4-8";
+          ANTHROPIC_DEFAULT_OPUS_MODEL = "claude-opus-5";
           ANTHROPIC_DEFAULT_HAIKU_MODEL = "claude-haiku-4-5";
           CLAUDE_CODE_API_KEY_HELPER_TTL_MS = "86400000";
         };

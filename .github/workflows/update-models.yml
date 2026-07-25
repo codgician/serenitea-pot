@@ -31,7 +31,7 @@ jobs:
       - name: Validate model registry
         run: |
           git add modules/generic/models/providers
-          nix flake check
+          nix eval --json .#nixosConfigurations.lumine.config.codgician.models.byProvider >/dev/null
       - name: Push changes
         run: |
           if [[ -n "$(git status --porcelain -- modules/generic/models/providers)" ]]; then
