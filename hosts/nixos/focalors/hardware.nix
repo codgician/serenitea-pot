@@ -57,6 +57,10 @@ in
       wants = [ "prl-kde-dynamic-resolution.service" ];
       after = [ "prl-kde-dynamic-resolution.service" ];
       environment.LD_LIBRARY_PATH = lib.makeLibraryPath [ pkgs.gtk3 ];
+      # prlcp crashes while cleaning up Wayland objects if systemd sends
+      # SIGTERM to all prlcc helpers concurrently. Let prlcc exit cleanly,
+      # then have systemd kill any remaining helpers without running cleanup.
+      serviceConfig.KillMode = "mixed";
     };
 
     prl-kde-dynamic-resolution = {
