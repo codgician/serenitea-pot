@@ -5,9 +5,9 @@
     allow-import-from-derivation = "true";
     extra-substituters = [
       "https://nix-community.cachix.org"
-      "https://codgician.cachix.org"
       "https://cache.nixos-cuda.org"
       "https://noctalia.cachix.org"
+      "https://codgician.cachix.org"
     ];
     extra-trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="

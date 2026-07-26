@@ -139,6 +139,28 @@ let
         source = profileConfigFiles.${name};
         force = true;
       };
+      "${agentDir}/AGENTS.md" = {
+        text = ''
+          # Environment
+
+          This system is managed by Nix on `${pkgs.stdenv.hostPlatform.system}`.
+          Prefer an existing project development environment. For a new persistent project environment, use a flake dev shell with direnv only when the user requests it.
+        '';
+        force = true;
+      };
+      "${agentDir}/RULES.md" = {
+        text = ''
+          # Git commits
+
+          Never add `Co-Authored-By`, `Generated-By`, or other AI or Oh My Pi attribution to commit messages.
+          Use the user's configured Git author and committer identity unchanged.
+
+          # Packages
+
+          On this Nix-managed system, use `nix run` or `nix shell` for one-off tools; never install packages imperatively.
+        '';
+        force = true;
+      };
     }
     // lib.optionalAttrs (name != "github-copilot") {
       "${agentDir}/models.yml" = {

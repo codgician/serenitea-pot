@@ -62,6 +62,11 @@ in
               text = "[ -r ${path} ] && cat ${path} || exit 1";
             }
           );
+        attribution = {
+          commit = "";
+          pr = "";
+          sessionUrl = false;
+        };
         env = {
           CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
