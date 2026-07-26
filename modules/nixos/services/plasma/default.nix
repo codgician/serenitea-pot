@@ -7,6 +7,9 @@
 let
   cfg = config.codgician.services.plasma;
   types = lib.types;
+  usersWithAvatars = lib.filterAttrs (
+    _: user: user.enable && user.avatar != null
+  ) config.codgician.users;
 in
 {
   options.codgician.services.plasma = {
@@ -56,6 +59,14 @@ in
 
     # Configure keymap in X11
     services.xserver.xkb.layout = "us";
+
+    # Plasma Login Manager reads user avatars from AccountsService's icon directory.
+    systemd.tmpfiles.rules = [
+      "d /var/lib/AccountsService/icons 0755 root root -"
+    ]
+    ++ lib.mapAttrsToList (
+      name: user: "L+ /var/lib/AccountsService/icons/${name} - - - - ${user.avatar}"
+    ) usersWithAvatars;
 
     xdg.portal = {
       enable = true;

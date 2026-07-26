@@ -23,6 +23,13 @@ in
     })
   ];
 
+  codgician.users.codgi.avatar =
+    lib.mkDefault
+      (pkgs.fetchurl {
+        url = "https://media.githubusercontent.com/media/codgician/assets/refs/heads/main/images/user-tiles/zeitlind.png";
+        sha256 = "sha256-r6hz3HA7xyDXpc855lUnB0UlJ1wwHona/nr1wgBtnFk=";
+      }).outPath;
+
   # Trust me
   nix.settings.trusted-users = [ name ];
 

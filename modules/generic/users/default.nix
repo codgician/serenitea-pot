@@ -31,6 +31,15 @@ let
         '';
       };
 
+      avatar = lib.mkOption {
+        type = with types; nullOr path;
+        default = null;
+        description = ''
+          Path to an avatar image for user "${name}". Desktop-specific modules
+          may consume this value to configure their user interface.
+        '';
+      };
+
       extraAgeFiles = lib.mkOption {
         type = types.listOf types.path;
         default = [ ];
