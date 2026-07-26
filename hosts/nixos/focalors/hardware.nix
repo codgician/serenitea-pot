@@ -76,8 +76,8 @@ in
     };
   };
 
-  # TPM
-  systemd.tpm2.enable = true;
+  # Disable until Parallels' Linux vTPM passes systemd's TPM2_TestParms AES-128-CFB capability check.
+  systemd.tpm2.enable = false;
   security.tpm2 = {
     enable = true;
     pkcs11.enable = true;

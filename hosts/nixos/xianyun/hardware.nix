@@ -7,9 +7,7 @@
 }:
 let
   inherit (config.networking) hostName;
-  terraformConf =
-    builtins.fromJSON
-      outputs.packages.${pkgs.stdenv.hostPlatform.system}.terraform-config.value;
+  terraformConf = outputs.packages.${pkgs.stdenv.hostPlatform.system}.terraform-config.config;
   publicIpv6 = terraformConf.resource.cloudflare_dns_record."${hostName}-aaaa".content;
 in
 {

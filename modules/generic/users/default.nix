@@ -4,12 +4,13 @@
   pkgs,
   inputs,
   outputs,
+  system ? pkgs.stdenv.hostPlatform.system,
   ...
 }:
 let
   cfg = config.codgician.users;
   types = lib.types;
-  inherit (pkgs.stdenvNoCC) isLinux;
+  isLinux = lib.hasSuffix "-linux" system;
   hmModules = import lib.codgician.hmModulesDir { inherit lib; };
   invalidHashedPasswordFile = pkgs.writeText "hashed-password" "!";
 

@@ -1,4 +1,4 @@
-{ outputs, lib, ... }:
+{ pkgs, lib, ... }:
 {
   boot.isContainer = true;
 
@@ -11,9 +11,9 @@
     useNetworkd = true;
   };
 
-  # Ensure to use the same driver version as paimon
+  # Keep this selection in sync with Paimon's hardware.nvidia.package.
   environment.systemPackages = [
-    outputs.nixosConfigurations.paimon.config.hardware.nvidia.package.bin
+    pkgs.linuxPackages_6_18.nvidiaPackages.production.bin
   ];
 
   services.resolved.enable = true;

@@ -215,7 +215,8 @@ rec {
     };
 
   # Generate attribution set for specified systems
-  forSystems = systems: func: lib.genAttrs systems (system: func (mkPkgs system));
+  pkgsFor = lib.genAttrs allSystems mkPkgs;
+  forSystems = systems: func: lib.genAttrs systems (system: func pkgsFor.${system});
   forAllSystems = forSystems allSystems;
   forDarwinSystems = forSystems darwinSystems;
   forLinuxSystems = forSystems linuxSystems;

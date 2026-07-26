@@ -1,22 +1,26 @@
-{ config, ... }:
+{ config, lib, ... }:
 let
-  location = "swedencentral";
+  metadata = import ./models.nix;
+  inherit (metadata) account deployments;
+  inherit (account) location;
   resource_group_name = config.resource.azurerm_resource_group.celestia.name;
   cognitive_account_id =
     "/subscriptions/"
     + config.provider.azurerm.subscription_id
-    + "/resourceGroups/celestia/providers/Microsoft.CognitiveServices/accounts/akasha";
+    + "/resourceGroups/celestia/providers/Microsoft.CognitiveServices/accounts/${account.name}";
+
+  deploymentResources = lib.mapAttrs' (
+    name: deployment:
+    lib.nameValuePair "${account.name}-${lib.replaceStrings [ "." ] [ "-" ] name}" {
+      inherit name;
+      cognitive_account_id = config.resource.azurerm_cognitive_account.akasha "id";
+      version_upgrade_option = "OnceNewDefaultVersionAvailable";
+      rai_policy_name = "Microsoft.DefaultV2";
+      inherit (deployment) model sku;
+    }
+  ) deployments;
 in
 {
-  imports = [
-    ./deepseek-v4-flash.nix
-    ./deepseek-v4-pro.nix
-    ./flux.2-pro.nix
-    ./gpt-image-2.nix
-    ./grok-4.3.nix
-    ./kimi-k2.6.nix
-  ];
-
   # Preserve the existing account while changing from the deprecated resource type.
   removed = [
     {
@@ -33,9 +37,9 @@ in
   ];
 
   resource = {
-    azurerm_cognitive_account.akasha = rec {
-      name = "akasha";
-      custom_subdomain_name = name;
+    azurerm_cognitive_account.akasha = {
+      inherit (account) name;
+      custom_subdomain_name = account.name;
       identity.type = "SystemAssigned";
       kind = "AIServices";
       inherit location resource_group_name;
@@ -45,10 +49,12 @@ in
     };
 
     azurerm_cognitive_account_project.akasha = {
-      name = "akasha";
+      inherit (account) name;
       cognitive_account_id = config.resource.azurerm_cognitive_account.akasha "id";
       inherit location;
       identity.type = "SystemAssigned";
     };
+
+    azurerm_cognitive_deployment = deploymentResources;
   };
 }

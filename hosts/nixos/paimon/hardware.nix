@@ -138,6 +138,7 @@
     nvidiaPersistenced = true;
     open = true;
     nvidiaSettings = true;
+    # Keep this selection in sync with hosts/nixos/nahida/hardware.nix.
     package = config.boot.kernelPackages.nvidiaPackages.production;
   };
 

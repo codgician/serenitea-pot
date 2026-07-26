@@ -1,21 +1,13 @@
 {
-  config,
   lib,
   modelLib,
-  outputs,
-  pkgs,
   ...
 }:
 let
   inherit (lib) mkOption types;
   inherit (modelLib) commonOptions;
-  terraformConf =
-    builtins.fromJSON
-      outputs.packages.${pkgs.stdenv.hostPlatform.system}.terraform-config.value;
-  azureSubdomain = terraformConf.resource.azurerm_cognitive_account.akasha.custom_subdomain_name;
-  deployedModelNames = lib.mapAttrsToList (_: value: value.name) (
-    terraformConf.resource.azurerm_cognitive_deployment or { }
-  );
+  metadata = import ../../../../../packages/terraform-config/celestia/cognitive/akasha/models.nix;
+  azureSubdomain = metadata.account.name;
   modelType = types.submodule {
     options = commonOptions // {
       provider = mkOption {
@@ -35,19 +27,10 @@ let
       };
     };
   };
-  missingModels = lib.filter (name: !(builtins.elem name deployedModelNames)) (
-    lib.attrNames config.codgician.models.providers.azure.models
-  );
 in
 {
   description = "Azure AI models";
   inherit modelType;
-  assertions = [
-    {
-      assertion = missingModels == [ ];
-      message = "Azure models not in Terraform: ${builtins.concatStringsSep ", " missingModels}";
-    }
-  ];
   provider = {
     transformer = name: spec: {
       inherit (spec) aliases mode variants;
@@ -67,20 +50,6 @@ in
         "remote"
       ];
     };
-    models = {
-      "deepseek-v4-flash".provider = "azure_ai";
-      "deepseek-v4-pro".provider = "azure_ai";
-      "grok-4.3".provider = "azure_ai";
-      "kimi-k2.6".provider = "azure_ai";
-      "flux-2-pro" = {
-        provider = "azure_ai";
-        mode = "image_generation";
-        baseModel = "azure_ai/FLUX.2-pro";
-      };
-      "gpt-image-2" = {
-        mode = "image_generation";
-        apiVersion = "2025-04-01-preview";
-      };
-    };
+    models = lib.mapAttrs (_: deployment: deployment.registry) metadata.deployments;
   };
 }
