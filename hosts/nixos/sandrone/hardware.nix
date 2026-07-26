@@ -15,7 +15,7 @@
     supportedFilesystems = [ "vfat" ];
     kernelModules = [
       "amvx" # CIX P1 VPU (Linlon v5276) — V4L2 M2M video accelerator.
-      "aipu" # CIX P1 Zhouyi v3 NPU.
+      #"aipu" # CIX P1 Zhouyi v3 NPU.
     ];
     kernelParams = [
       "iommu.passthrough=1"

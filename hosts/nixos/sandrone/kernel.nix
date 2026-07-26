@@ -18,6 +18,11 @@ let
     patch = ./fix-linlondp-include-paths.patch;
   };
 
+  pinctrlModuleSymbolFix = {
+    name = "fix-cix-pinctrl-module-symbol";
+    patch = ./fix-cix-pinctrl-module-symbol.patch;
+  };
+
   # Kconfig settings the CIX patches need but which aren't yet picked up
   # automatically by nixpkgs `common-config.nix` for our profile.
   cixExtraConfig = {
@@ -66,6 +71,7 @@ in
 cixPatches
 ++ [
   linlonIncludePathFix
+  pinctrlModuleSymbolFix
   cixExtraConfig
   preemptPin
 ]
