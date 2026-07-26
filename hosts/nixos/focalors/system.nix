@@ -98,9 +98,6 @@ in
 
   codgician.system.common.audio.enable = true;
 
-  # Disable systemd tpm2 due to incompatibility
-  systemd.tpm2.enable = false;
-
   # Security
   users.mutableUsers = false;
   users.users.root.hashedPassword = "!";
