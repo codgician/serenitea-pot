@@ -13,15 +13,19 @@ let
     patch = "${patchDir}/${name}";
   }) (builtins.filter (lib.hasSuffix ".patch") (lib.codgician.getRegularFileNames patchDir));
 
-  linlonIncludePathFix = {
-    name = "fix-linlondp-include-paths";
-    patch = ./fix-linlondp-include-paths.patch;
-  };
-
-  pinctrlModuleSymbolFix = {
-    name = "fix-cix-pinctrl-module-symbol";
-    patch = ./fix-cix-pinctrl-module-symbol.patch;
-  };
+  localPatches = [
+    # Build fixes for defects in the downstream CIX patchset.
+    {
+      name = "cix-build-fixes";
+      patch = ./build-fixes.patch;
+    }
+    # Preserve firmware-owned ACPI GPIO and regulator state. Without this,
+    # stage-2 powers off the mounted root NVMe before its command timeout.
+    {
+      name = "cix-acpi-power-state";
+      patch = ./acpi-power-state.patch;
+    }
+  ];
 
   # Kconfig settings the CIX patches need but which aren't yet picked up
   # automatically by nixpkgs `common-config.nix` for our profile.
@@ -69,9 +73,8 @@ let
   };
 in
 cixPatches
+++ localPatches
 ++ [
-  linlonIncludePathFix
-  pinctrlModuleSymbolFix
   cixExtraConfig
   preemptPin
 ]

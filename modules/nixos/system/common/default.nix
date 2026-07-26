@@ -131,11 +131,11 @@ in
         dnsutils
         net-tools
         sysstat
+        config.boot.kernelPackages.cpupower
       ])
       ++ (lib.optionals pkgs.stdenv.hostPlatform.isx86 (
         with config.boot.kernelPackages;
         [
-          cpupower
           turbostat
         ]
       ));

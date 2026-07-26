@@ -40,6 +40,7 @@
         claude-code.enable = true;
         git.enable = true;
         mcp.enable = true;
+        oh-my-pi.enable = true;
         opencode.enable = true;
         pwsh.enable = true;
         ssh.enable = true;
@@ -69,11 +70,7 @@
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
-  boot.plymouth = {
-    enable = true;
-    theme = "nixos-bgrt";
-    themePackages = [ pkgs.nixos-bgrt-plymouth ];
-  };
+  boot.plymouth.enable = true;
 
   # Select internationalisation properties.
   i18n = {

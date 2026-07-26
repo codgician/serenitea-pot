@@ -1,0 +1,37 @@
+From: serenitea-pot <noreply@localhost>
+Subject: [PATCH] cix: fix modular kernel build
+
+Fix two defects in the CIX patchset that prevent the configured kernel from
+building: Linlon constructs invalid duplicated include paths, and the modular
+Sky1 pinctrl base calls an unexported ACPI helper.
+
+---
+diff --git a/drivers/gpu/drm/cix/linlon-dp/Makefile b/drivers/gpu/drm/cix/linlon-dp/Makefile
+--- a/drivers/gpu/drm/cix/linlon-dp/Makefile
++++ b/drivers/gpu/drm/cix/linlon-dp/Makefile
+@@ -1,8 +1,8 @@
+ # SPDX-License-Identifier: GPL-2.0
+ 
+ ccflags-y := \
+-    -I $(srctree)/$(src)/include \
+-    -I $(srctree)/$(src)
++    -I $(src)/include \
++    -I $(src)
+ 
+ linlon-dp-y := \
+     linlondp_drv.o \
+diff --git a/drivers/pinctrl/pinctrl-acpi.c b/drivers/pinctrl/pinctrl-acpi.c
+--- a/drivers/pinctrl/pinctrl-acpi.c
++++ b/drivers/pinctrl/pinctrl-acpi.c
+@@ -8,5 +8,6 @@
+ #include "linux/property.h"
+ #include <linux/acpi.h>
++#include <linux/export.h>
+ #include <linux/errno.h>
+ #include <linux/gpio/consumer.h>
+ #include <linux/gpio/driver.h>
+@@ -771,3 +772,4 @@ int pinctrl_acpi_get_pin_groups(struct acpi_device *adev,
+ 
+ 	return 0;
+ }
++EXPORT_SYMBOL_GPL(pinctrl_acpi_get_pin_groups);

@@ -18,6 +18,16 @@
       #"aipu" # CIX P1 Zhouyi v3 NPU.
     ];
     kernelParams = [
+      "earlycon=pl011,mmio32,0x040d0000"
+      "console=tty0"
+      "console=ttyAMA0,115200n8"
+      #"ignore_loglevel"
+      "rd.systemd.log_target=console"
+      #"rd.systemd.log_level=debug"
+      "rd.systemd.show_status=1"
+      "systemd.log_target=console"
+      #"systemd.log_level=debug"
+      #"systemd.show_status=1"
       "iommu.passthrough=1"
       # CIX P1 firmware leaves clocks lacking explicit Linux owners; without
       # this the common clock framework gates them off during bring-up.
@@ -28,13 +38,21 @@
       "cma=512M"
     ];
     kernelPackages = pkgs.linuxPackages_6_18;
-    kernelPatches = import ./kernel.nix { inherit inputs lib; };
+    kernelPatches = import ./kernel { inherit inputs lib; };
     zfs.package = pkgs.zfs_2_4;
     extraModulePackages = with config.boot.kernelPackages; [
       cix-vpu-driver
-      cix-npu-driver
+      #cix-npu-driver
     ];
   };
+
+  # Mirror the stage-2 journal to UART2/AP. This captures service output that
+  # is not emitted through printk while retaining the persistent journal.
+  services.journald.extraConfig = lib.mkAfter ''
+    ForwardToConsole=yes
+    TTYPath=/dev/ttyAMA0
+    MaxLevelConsole=debug
+  '';
 
   hardware.firmware = [ pkgs.cix.firmware ];
 
@@ -106,7 +124,6 @@
   # tpm2# TPM
   security.tpm2 = {
     enable = true;
-    #abrmd.enable = true;
     pkcs11.enable = true;
   };
 

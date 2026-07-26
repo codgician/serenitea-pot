@@ -1,0 +1,77 @@
+From: serenitea-pot <noreply@localhost>
+Subject: [PATCH] cix: preserve firmware-owned ACPI power state
+
+Sky1 firmware enables boot-critical GPIO-controlled rails before Linux,
+including vcc_ssd_pwren for the root NVMe device. Preserve the ACPI GPIO
+controller state at probe, and tell fixed-regulator that ACPI rails are
+already enabled. Otherwise stage-2 drives the SSD rail low and the mounted
+root device faults when its next command times out.
+
+---
+diff --git a/drivers/gpio/gpio-cadence.c b/drivers/gpio/gpio-cadence.c
+--- a/drivers/gpio/gpio-cadence.c
++++ b/drivers/gpio/gpio-cadence.c
+@@ -313,6 +313,7 @@ static int cdns_gpio_probe(struct platform_device *pdev)
+ 	u32 dir_prev;
+ 	u32 num_gpios = 32;
+ 	u32 io_mask = 0;
++	bool preserve_firmware_config = has_acpi_companion(&pdev->dev);
+ 
+ 	cgpio = devm_kzalloc(&pdev->dev, sizeof(*cgpio), GFP_KERNEL);
+ 	if (!cgpio)
+@@ -346,8 +347,9 @@ static int cdns_gpio_probe(struct platform_device *pdev)
+ 	 * Apply io_mask to force certain pins as inputs (hardware safety).
+ 	 */
+ 	dir_prev = ioread32(cgpio->regs + CDNS_GPIO_DIRECTION_MODE);
+-	iowrite32(GENMASK(num_gpios - 1, 0) & ~io_mask,
+-		  cgpio->regs + CDNS_GPIO_DIRECTION_MODE);
++	if (!preserve_firmware_config)
++		iowrite32(GENMASK(num_gpios - 1, 0) & ~io_mask,
++			  cgpio->regs + CDNS_GPIO_DIRECTION_MODE);
+ 
+ 	config.dev = &pdev->dev;
+ 	config.sz = 4;
+@@ -438,10 +440,12 @@ static int cdns_gpio_probe(struct platform_device *pdev)
+ 
+ 	cgpio->bypass_orig = ioread32(cgpio->regs + CDNS_GPIO_BYPASS_MODE);
+ 
+-	/* Enable gpio outputs, ignored for input direction */
+-	iowrite32(GENMASK(num_gpios - 1, 0),
+-		  cgpio->regs + CDNS_GPIO_OUTPUT_EN);
+-	iowrite32(0, cgpio->regs + CDNS_GPIO_BYPASS_MODE);
++	if (!preserve_firmware_config) {
++		/* Enable GPIO outputs; ignored for input direction. */
++		iowrite32(GENMASK(num_gpios - 1, 0),
++			  cgpio->regs + CDNS_GPIO_OUTPUT_EN);
++		iowrite32(0, cgpio->regs + CDNS_GPIO_BYPASS_MODE);
++	}
+ 
+ 	platform_set_drvdata(pdev, cgpio);
+ 	return 0;
+@@ -450,7 +454,8 @@ static int cdns_gpio_probe(struct platform_device *pdev)
+ 	if (cgpio->pclk)
+ 		clk_disable_unprepare(cgpio->pclk);
+ err_revert_dir:
+-	iowrite32(dir_prev, cgpio->regs + CDNS_GPIO_DIRECTION_MODE);
++	if (!preserve_firmware_config)
++		iowrite32(dir_prev, cgpio->regs + CDNS_GPIO_DIRECTION_MODE);
+ 
+ 	return ret;
+ }
+diff --git a/drivers/regulator/fixed.c b/drivers/regulator/fixed.c
+--- a/drivers/regulator/fixed.c
++++ b/drivers/regulator/fixed.c
+@@ -232,8 +232,11 @@ fwnode_get_fixed_voltage_config(struct device *dev,
+ 		return ERR_PTR(-EINVAL);
+ 	}
+ 
+-	if (init_data->constraints.boot_on)
+-		config->enabled_at_boot = true;
++	/*
++	 * ACPI firmware may own boot-critical rails without marking them
++	 * regulator-boot-on. Never drive their enable GPIO low during probe.
++	 */
++	config->enabled_at_boot = true;
+ 
+ 	fwnode_property_read_u32(np, "startup-delay-us", &config->startup_delay);
+ 	fwnode_property_read_u32(np, "off-on-delay-us", &config->off_on_delay);
