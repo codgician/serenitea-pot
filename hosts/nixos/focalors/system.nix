@@ -42,6 +42,7 @@ in
 
         git.enable = true;
         mcp.enable = true;
+        oh-my-pi.enable = true;
         opencode.enable = true;
         plasma.wallpaper = wallpaper;
         pwsh.enable = true;
