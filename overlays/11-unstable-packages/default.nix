@@ -10,7 +10,6 @@ final: prev: {
     matrix-tuwunel
     open-webui
     azure-artifacts-credprovider
-    git-credential-manager
     looking-glass-client
     ;
 
