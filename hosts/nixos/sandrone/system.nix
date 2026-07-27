@@ -89,6 +89,7 @@
   # Global packages
   environment.systemPackages = with pkgs; [
     firefox-bin
+    google-chrome
     kitty
   ];
 
