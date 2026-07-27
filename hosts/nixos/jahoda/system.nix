@@ -1,8 +1,11 @@
-{
-  lib,
-  pkgs,
-  ...
-}:
+{ lib, pkgs, ... }:
+let
+  wallpaper =
+    (pkgs.fetchurl {
+      url = "https://media.githubusercontent.com/media/codgician/assets/refs/heads/main/images/wallpapers/genshin-luna-viii.jpg";
+      sha256 = "sha256-VjoCRP8AENaUlItKCn2751GY+WtF0ncwcBWYuJHmCWE=";
+    }).outPath;
+in
 {
 
   # My settings
@@ -146,13 +149,17 @@
           };
         };
 
-        plasma.launchers = [
-          "applications:org.kde.dolphin.desktop"
-          "applications:microsoft-edge.desktop"
-          "applications:org.kde.konsole.desktop"
-          "applications:code.desktop"
-          "applications:teams-for-linux.desktop"
-        ];
+        plasma = {
+          inherit wallpaper;
+          scale = 1.5;
+          launchers = [
+            "applications:org.kde.dolphin.desktop"
+            "applications:microsoft-edge.desktop"
+            "applications:org.kde.konsole.desktop"
+            "applications:code.desktop"
+            "applications:teams-for-linux.desktop"
+          ];
+        };
 
         pwsh.enable = true;
         ssh.enable = true;
@@ -200,6 +207,12 @@
     unmanaged = [ "thunderbolt0" ];
   };
   networking.hostId = "357a80da";
+
+  # Plasma Login Manager currently reads wallpaper configuration from the main file.
+  environment.etc."plasmalogin.conf".text = ''
+    [Greeter][Wallpaper][org.kde.image][General]
+    Image=file://${wallpaper}
+  '';
 
   # DNS for sing-box TUN (matchConfig supplied by the sing-box module)
   systemd.network = {

@@ -44,21 +44,15 @@ in
         mcp.enable = true;
         oh-my-pi.enable = true;
         opencode.enable = true;
-        plasma.wallpaper = wallpaper;
+        plasma = {
+          inherit wallpaper;
+          scale = 2;
+        };
         pwsh.enable = true;
         ssh.enable = true;
         tmux.enable = true;
         vscode.enable = true;
         zsh.enable = true;
-      };
-
-      programs.plasma.configFile = {
-        kdeglobals.KScreen.ScaleFactor = 2;
-        kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General" = {
-          Image = wallpaper;
-          PreviewImage = wallpaper;
-        };
-        kwinrc.Xwayland.Scale = 2;
       };
 
       home.stateVersion = "26.05";

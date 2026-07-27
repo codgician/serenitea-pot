@@ -155,9 +155,16 @@ in
     };
 
     wallpaper = lib.mkOption {
-      type = with types; nullOr (either path (listOf path));
+      type = with types; nullOr path;
       default = "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers/Flow";
-      description = "Desktop wallpaper package, or one image path per screen.";
+      description = "Wallpaper shared by the Plasma desktop and lock screen.";
+    };
+
+    scale = lib.mkOption {
+      type = types.nullOr (types.addCheck types.number (x: x > 0));
+      default = null;
+      example = 2;
+      description = "Global display scale for Plasma and XWayland applications.";
     };
 
     wallpaperFillMode = lib.mkOption {
@@ -181,6 +188,9 @@ in
 
     programs.plasma = {
       enable = true;
+      # Plasma stores desktop and lock-screen wallpapers separately.
+      kscreenlocker.appearance.wallpaper = lib.mkIf (cfg.wallpaper != null) cfg.wallpaper;
+
       fonts = {
         general = {
           family = "Noto Sans";
@@ -406,11 +416,17 @@ in
       configFile = {
         kiorc.Confirmations.ConfirmEmptyTrash = true;
         breezerc.Style.MenuOpacity = 60;
+        kdeglobals.KScreen.ScaleFactor = lib.mkIf (cfg.scale != null) cfg.scale;
+        # Keep System Settings' lock-screen preview in sync with the active image.
+        kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General".PreviewImage = lib.mkIf (
+          cfg.wallpaper != null
+        ) cfg.wallpaper;
 
         # Plasma 6.3+ reads window decoration from `org.kde.kdecoration3`,
         # while plasma-manager currently writes the legacy
         # `org.kde.kdecoration2` section. Mirror the selected Breeze decoration.
         kwinrc = {
+          Xwayland.Scale = lib.mkIf (cfg.scale != null) cfg.scale;
           ElectricBorders = {
             TopLeft = "ApplicationLauncher";
             TopRight = "ShowDesktop";

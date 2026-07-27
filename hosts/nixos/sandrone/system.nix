@@ -42,20 +42,12 @@
         mcp.enable = true;
         oh-my-pi.enable = true;
         opencode.enable = true;
+        plasma.scale = 1;
         pwsh.enable = true;
         ssh.enable = true;
         tmux.enable = true;
         vscode.enable = true;
         zsh.enable = true;
-      };
-
-      programs.plasma = {
-        configFile = {
-          kdeglobals.KScreen.ScaleFactor = 2;
-          kwinrc = {
-            Xwayland.Scale = 2;
-          };
-        };
       };
 
       home.stateVersion = "26.05";
