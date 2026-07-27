@@ -8,11 +8,6 @@
 let
   cfg = config.codgician.codgi.plasma;
   types = lib.types;
-  clockFont = {
-    family = "Noto Sans";
-    weight = 400;
-    size = 9;
-  };
   uniform = names: value: lib.genAttrs names (_: value);
   allSides = uniform [
     "top"
@@ -309,7 +304,11 @@ in
                   format.custom = "ddd MMM d";
                   position = "besideTime";
                 };
-                font = clockFont;
+                font = {
+                  family = "Noto Sans";
+                  weight = 400;
+                  size = if cfg.scale == 1 then 18 else 9;
+                };
               };
             }
             {
