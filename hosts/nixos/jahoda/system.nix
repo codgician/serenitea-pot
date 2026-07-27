@@ -255,7 +255,10 @@ in
   ];
 
   # Global packages
-  environment.systemPackages = with pkgs; [ google-chrome firefox-bin ];
+  environment.systemPackages = with pkgs; [
+    google-chrome
+    firefox-bin
+  ];
 
   # Enable zram swap
   zramSwap.enable = true;

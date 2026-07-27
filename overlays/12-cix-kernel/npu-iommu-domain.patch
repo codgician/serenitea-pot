@@ -1,16 +1,16 @@
 From: serenitea-pot <noreply@localhost>
-Subject: [PATCH] aipu: reject IOMMU domains without a DMA cookie
+Subject: [PATCH] aipu: reject unsupported IOMMU domains
 
-The Zhouyi v3 allocator dereferences the kernel DMA-IOMMU cookie to reserve
-forbidden IOVA ranges. Identity domains created by iommu.passthrough have no
-cookie, so module probe currently dereferences NULL in reserve_iova(). Reject
-that unsupported domain cleanly instead of oopsing the kernel.
+The Zhouyi v3 allocator programs explicit IOVAs, so identity domains created
+by iommu.passthrough cannot support it. Its fallback path also dereferences the
+DMA-IOMMU cookie while reserving forbidden IOVA ranges. Reject a missing or
+identity domain cleanly instead of failing mappings or dereferencing NULL.
 
 ---
 diff --git a/armchina-npu/aipu_mm.c b/armchina-npu/aipu_mm.c
 --- a/armchina-npu/aipu_mm.c
 +++ b/armchina-npu/aipu_mm.c
-@@ -1279,6 +1279,17 @@ int aipu_init_mm(struct aipu_memory_manager *mm, struct platform_device *p_dev,
+@@ -1735,6 +1735,17 @@ int aipu_init_mm(struct aipu_memory_manager *mm, struct platform_device *p_dev,
  	if (group) {
  		mm->has_iommu = true;
  		mm->iommu_domain = iommu_get_domain_for_dev(mm->dev);
@@ -25,6 +25,6 @@ diff --git a/armchina-npu/aipu_mm.c b/armchina-npu/aipu_mm.c
 +			goto finish;
 +		}
 +
- 		if (mm->version >= AIPU_ISA_VERSION_ZHOUYI_V3_2_0) {
+ 		if (mm->version >= AIPU_ISA_VERSION_ZHOUYI_V3_2) {
  			mm->valid_asid_cnt = 0;
  			mm->iova_base = 0x100000000ULL;   // start from 4GB

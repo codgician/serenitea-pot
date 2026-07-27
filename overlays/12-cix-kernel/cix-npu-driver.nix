@@ -12,21 +12,21 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "cix-npu-driver";
-  # Upstream `armchina-npu/Makefile` sets KMD_VERSION=5.11.0; the
-  # source rev below pins which snapshot of 5.11.0 we built.
-  # `cix_mainline_dev` matches the VPU driver branch and carries the
-  # equivalent kernel-API gates for ≥6.13.
-  version = "5.11.0";
+  # Upstream `version.mk` declares this as 6.2.0. The source rev pins
+  # the corresponding CIX P1 kernel 7.0 release tag.
+  version = "6.2.0";
 
   src = fetchFromGitHub {
     owner = "cixtech";
     repo = "cix_opensource__npu_driver";
-    rev = "193d3650645b1d3de9794aa024675c755d864d57";
-    hash = "sha256-eq95TOZwG7lisyq5koSaoRK4QB+QVQcgDJj+3Ekgf2s=";
+    rev = "p1_7.0_v6.2.0";
+    hash = "sha256-n+cpnv6ZrEqKfV4emFngwwRYFmFwjJsTmM+apfmSgIQ=";
   };
   sourceRoot = "${finalAttrs.src.name}/driver";
 
-  patches = [ ./npu-iommu-domain.patch ];
+  patches = [
+    ./npu-iommu-domain.patch
+  ];
 
   nativeBuildInputs = [ kmod ] ++ kernel.moduleBuildDependencies;
 
@@ -40,7 +40,7 @@ stdenv.mkDerivation (finalAttrs: {
   # consistent with the CIX P1 hardware on sandrone.
   makeFlags = kernelModuleMakeFlags ++ [
     "COMPASS_DRV_BTENVAR_KPATH=${kernelDir}"
-    "COMPASS_DRV_BTENVAR_KMD_VERSION=5.11.0"
+    "COMPASS_DRV_BTENVAR_KMD_VERSION=6.2.0"
     "BUILD_AIPU_VERSION_KMD=BUILD_ZHOUYI_V3"
     "BUILD_TARGET_PLATFORM_KMD=BUILD_PLATFORM_SKY1"
     "BUILD_NPU_DEVFREQ=y"

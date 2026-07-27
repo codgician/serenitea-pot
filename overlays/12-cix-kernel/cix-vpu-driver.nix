@@ -12,18 +12,14 @@ let
 in
 stdenv.mkDerivation (finalAttrs: {
   pname = "cix-vpu-driver";
-  # Upstream `Makefile`/`driver/Kbuild` declares this as 1.0.0. The
-  # source rev pinned below identifies precisely which snapshot of
-  # 1.0.0 we built; `cix_mainline_dev` carries the version-gated fixes
-  # for newer kernel APIs (MODULE_IMPORT_NS string form, dentry hlist
-  # transition, etc.) — non-mainline branches are pinned to 6.6.
-  version = "1.0.0";
+  # The source rev pins CIX's 1.0.2 release for P1 kernel 7.0.
+  version = "1.0.2";
 
   src = fetchFromGitHub {
     owner = "cixtech";
     repo = "cix_opensource__vpu_driver";
-    rev = "eb86680abdf42d45f4b70aa2f7e321bc3be4b8f4";
-    hash = "sha256-YyOsuomP+jpAOoRfYySeCmmK/EzL799WQukaaLMmDdA=";
+    rev = "p1_7.0_v1.0.2";
+    hash = "sha256-BRwQmDkakclWaKXHqIDrSd7hqkAituiDoDWfEFVU6YU=";
   };
 
   # Upstream ships `driver/Kbuild` that already defines the module wiring
