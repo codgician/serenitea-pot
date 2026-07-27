@@ -102,7 +102,7 @@ in
 
   # Global packages
   environment.systemPackages = with pkgs; [
-    firefox
+    firefox-bin
     virt-manager
     kitty
   ];

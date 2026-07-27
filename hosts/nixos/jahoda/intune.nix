@@ -124,8 +124,14 @@
     programs.plasma.configFile.kwalletrc."org.freedesktop.secrets.aliases".login = "kdewallet";
 
     xdg.configFile."teams-for-linux/config.json".text = builtins.toJSON {
-      auth.intune.enabled = true;
+      appIconType = "light";
+      auth = {
+        intune.enabled = true;
+        webauthn.enabled = true;
+      };
       disableGpu = false;
+      download.enabled = true;
+      enableIncomingCallToast = true;
       graphApi.enabled = true;
       quickChat = {
         enabled = true;
