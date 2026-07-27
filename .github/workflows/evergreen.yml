@@ -3,7 +3,7 @@ permissions:
   contents: write
 on:
   schedule:
-    - cron: '0 10 * * *'
+    - cron: '0 17 * * *'
   workflow_dispatch:
 # Limit one run for each branch to avoid hazards
 concurrency: ${{ github.workflow }}-${{ github.ref }}
