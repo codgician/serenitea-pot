@@ -26,6 +26,8 @@ stdenv.mkDerivation (finalAttrs: {
   };
   sourceRoot = "${finalAttrs.src.name}/driver";
 
+  patches = [ ./npu-iommu-domain.patch ];
+
   nativeBuildInputs = [ kmod ] ++ kernel.moduleBuildDependencies;
 
   hardeningDisable = [

@@ -15,12 +15,14 @@
     supportedFilesystems = [ "vfat" ];
     kernelModules = [
       "amvx" # CIX P1 VPU (Linlon v5276) — V4L2 M2M video accelerator.
-      #"aipu" # CIX P1 Zhouyi v3 NPU.
+      "aipu" # CIX P1 Zhouyi v3 NPU.
     ];
     kernelParams = [
       "earlycon=pl011,mmio32,0x040d0000"
-      "console=tty0"
       "console=ttyAMA0,115200n8"
+      # Keep the splash on DRM while early/kernel/systemd diagnostics remain
+      # available on UART2/AP.
+      "plymouth.ignore-serial-consoles"
       #"ignore_loglevel"
       "rd.systemd.log_target=console"
       #"rd.systemd.log_level=debug"
@@ -28,7 +30,6 @@
       "systemd.log_target=console"
       #"systemd.log_level=debug"
       #"systemd.show_status=1"
-      "iommu.passthrough=1"
       # CIX P1 firmware leaves clocks lacking explicit Linux owners; without
       # this the common clock framework gates them off during bring-up.
       "clk_ignore_unused"
@@ -42,7 +43,7 @@
     zfs.package = pkgs.zfs_2_4;
     extraModulePackages = with config.boot.kernelPackages; [
       cix-vpu-driver
-      #cix-npu-driver
+      cix-npu-driver
     ];
   };
 
@@ -90,11 +91,8 @@
     ACTION=="add|change", SUBSYSTEM=="platform", DRIVER=="linlondp", RUN+="${pkgs.runtimeShell} -c 'for f in /sys/kernel/debug/linlondp*/err_verbosity; do [ -w \"$$f\" ] && echo 0 > \"$$f\"; done'"
   '';
 
-  # Use `modesetting` as the primary X11 driver so Xorg/Xwayland picks up
-  # whichever DRM device has a connected monitor (here: `linlondp` on the
-  # CIX display engine, since the monitor is on the CIX-side DP outputs).
-  # Keep `nvidia` so the discrete GPU remains available for compute
-  # (CUDA, nvidia-uvm) without claiming the display.
+  # The CIX display engine owns the connected outputs; Panthor provides render
+  # acceleration through the DRM render node.
   services.xserver.videoDrivers = [
     "modesetting"
   ];

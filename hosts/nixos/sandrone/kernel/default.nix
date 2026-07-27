@@ -16,8 +16,8 @@ let
   localPatches = [
     # Build fixes for defects in the downstream CIX patchset.
     {
-      name = "cix-build-fixes";
-      patch = ./build-fixes.patch;
+      name = "cix-kernel-fixes";
+      patch = ./kernel-fixes.patch;
     }
     # Preserve firmware-owned ACPI GPIO and regulator state. Without this,
     # stage-2 powers off the mounted root NVMe before its command timeout.
