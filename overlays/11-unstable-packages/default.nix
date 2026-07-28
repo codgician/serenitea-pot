@@ -8,9 +8,6 @@ final: prev: {
     nexttrace
     zfs_unstable
     matrix-tuwunel
-    open-webui
-    azure-artifacts-credprovider
     looking-glass-client
     ;
-
 }
