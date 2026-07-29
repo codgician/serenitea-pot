@@ -577,6 +577,42 @@
       "reasoning"
     ]
   },
+  "grok-4.5": {
+    "contextWindow": 500000,
+    "cost": {
+      "cacheRead": 0.5,
+      "cacheWrite": 0,
+      "input": 2,
+      "output": 6,
+      "tiers": [
+        {
+          "cacheRead": 1,
+          "cacheWrite": 0,
+          "input": 4,
+          "inputTokensAbove": 200000,
+          "output": 12
+        }
+      ]
+    },
+    "maxInputTokens": 372000,
+    "maxOutputTokens": 128000,
+    "mode": "responses",
+    "reasoningEfforts": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "supportedEndpoints": [
+      "/v1/responses"
+    ],
+    "supports": [
+      "toolCalls",
+      "parallelToolCalls",
+      "structuredOutputs",
+      "vision",
+      "reasoning"
+    ]
+  },
   "mai-code-1-flash-picker": {
     "contextWindow": 256000,
     "cost": {
