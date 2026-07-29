@@ -26,7 +26,6 @@ in
         "editor-version" = "vscode/${pkgs.vscode.version}";
         "editor-plugin-version" = "";
         "openai-intent" = "";
-        "X-GitHub-Api-Version" = "2026-06-01";
       };
       tags = [
         "github"
