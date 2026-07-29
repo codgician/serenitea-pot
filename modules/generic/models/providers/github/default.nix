@@ -1,4 +1,4 @@
-{ lib, modelLib, ... }:
+{ lib, pkgs, modelLib, ... }:
 let
   data = builtins.fromJSON (builtins.readFile ./models.json);
   modelName =
@@ -20,6 +20,14 @@ in
   provider = {
     transformer = modelLib.mkGeneratedModel {
       modelPrefix = "github_copilot";
+      extraParams.extra_headers = {
+        "User-Agent" = "opencode/${pkgs.opencode.version}";
+        "copilot-integration-id" = "vscode-chat";
+        "editor-version" = "vscode/${pkgs.vscode.version}";
+        "editor-plugin-version" = "";
+        "openai-intent" = "";
+        "X-GitHub-Api-Version" = "2026-06-01";
+      };
       tags = [
         "github"
         "remote"

@@ -180,11 +180,17 @@ rec {
     {
       modelPrefix,
       apiKeyEnv ? null,
+      extraParams ? { },
       tags,
     }:
     name: spec:
     (mkModel {
-      inherit modelPrefix apiKeyEnv tags;
+      inherit
+        modelPrefix
+        apiKeyEnv
+        tags
+        extraParams
+        ;
       extraModelInfo = generatedModelInfo spec;
     } name spec)
     // {
