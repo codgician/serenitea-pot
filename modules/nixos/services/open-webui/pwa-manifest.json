@@ -1,0 +1,29 @@
+{
+  "name": "Akasha",
+  "short_name": "Akasha",
+  "description": "Akasha is an Open WebUI based solution for learning and sharing knowledge.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#343541",
+  "icons": [
+    {
+      "src": "/static/logo.png",
+      "type": "image/png",
+      "sizes": "500x500",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/logo.png",
+      "type": "image/png",
+      "sizes": "500x500",
+      "purpose": "maskable"
+    }
+  ],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "params": {
+      "text": "shared"
+    }
+  }
+}

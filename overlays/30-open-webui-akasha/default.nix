@@ -9,16 +9,10 @@ let
     ./cjk-sentence-splitting.patch
   ];
 
-  # Patch branding
+  # Remove the upstream branding suffix from the configured web UI name.
   postPatch = ''
-    # Remove suffix in webui name
     substituteInPlace backend/open_webui/env.py \
       --replace-fail "WEBUI_NAME += ' (Open WebUI)'" 'WEBUI_NAME += ""'
-    # Customize PWA description
-    substituteInPlace backend/open_webui/main.py \
-      --replace-fail \
-      'is an open, extensible, user-friendly interface for AI that adapts to your workflow.' \
-      'is an Open WebUI based solution for learning and sharing knowledge.'
   '';
 in
 {

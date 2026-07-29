@@ -9,6 +9,7 @@ let
   cfg = config.codgician.services.open-webui;
   types = lib.types;
   defaultStateDir = "/var/lib/${serviceName}";
+  pwaManifest = ./pwa-manifest.json;
 
   webuiUrl =
     if cfg.reverseProxy.enable then
@@ -136,6 +137,12 @@ let
     WEBUI_AUTH = "True";
     WEBUI_NAME = "Akasha";
     WEBUI_URL = webuiUrl;
+    # Security
+    SAFE_MODE = "True";
+    ENABLE_PLUGINS = "False";
+    ENABLE_PIP_INSTALL_FRONTMATTER_REQUIREMENTS = "False";
+    # Branding
+    EXTERNAL_PWA_MANIFEST_URL = lib.mkIf cfg.reverseProxy.enable "${webuiUrl}/static/pwa-manifest.json";
     # OAuth
     ENABLE_SIGNUP = "False";
     ENABLE_LOGIN_FORM = "False";
@@ -155,6 +162,7 @@ let
     OAUTH_ROLES_CLAIM = "groups";
     OAUTH_ALLOWED_ROLES = "akasha-users,akasha-admins";
     OAUTH_ADMIN_ROLES = "akasha-admins";
+    OAUTH_REFRESH_TOKEN_INCLUDE_SCOPE = "True";
     # Logging
     # GLOBAL_LOG_LEVEL = "DEBUG";
     ENABLE_CHANNELS = "True";
@@ -184,6 +192,9 @@ let
     WEB_SEARCH_RESULT_COUNT = "3";
     WEB_SEARCH_CONCURRENT_REQUESTS = "10";
     WEB_SEARCH_TRUST_ENV = "False";
+    # Subagents
+    ENABLE_SUBAGENTS = "True";
+    SUBAGENTS_BACKGROUND_ENABLED = "True";
     # RAG
     ENABLE_RAG_HYBRID_SEARCH = "False";
     ENABLE_RAG_HYBRID_SEARCH_ENRICHED_TEXTS = "True";
@@ -564,14 +575,19 @@ in
             favicon96 = resizeImage "96x96" "favicon-96x96.png" favicon;
             favicon512 = resizeImage "512x512" "favicon" appIcon;
           in
-          (lib.optionalAttrs (favicon != null) {
-            "= /favicon.png".passthru = mkNginxLocationForStaticFile favicon512;
-            "= /static/favicon.png".passthru = mkNginxLocationForStaticFile favicon512;
-            "= /static/favicon-dark.png".passthru = mkNginxLocationForStaticFile favicon512;
-            "= /static/favicon-96x96.png".passthru = mkNginxLocationForStaticFile favicon96;
-            "= /favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
-            "= /static/favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
-          })
+          {
+            "= /static/pwa-manifest.json".passthru = mkNginxLocationForStaticFile pwaManifest;
+          }
+          //
+
+            (lib.optionalAttrs (favicon != null) {
+              "= /favicon.png".passthru = mkNginxLocationForStaticFile favicon512;
+              "= /static/favicon.png".passthru = mkNginxLocationForStaticFile favicon512;
+              "= /static/favicon-dark.png".passthru = mkNginxLocationForStaticFile favicon512;
+              "= /static/favicon-96x96.png".passthru = mkNginxLocationForStaticFile favicon96;
+              "= /favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
+              "= /static/favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
+            })
           // (lib.optionalAttrs (appIcon != null) {
             "= /static/logo.png".passthru = mkNginxLocationForStaticFile appIcon;
             "= /static/apple-touch-icon.png".passthru = mkNginxLocationForStaticFile (
