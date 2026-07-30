@@ -80,6 +80,7 @@
             mtk-uartboot
             mas
             sshpass
+            firefox-bin
           ]
           ++ (with pkgs.nur.repos.codgician; [
             nanokvm-usb
