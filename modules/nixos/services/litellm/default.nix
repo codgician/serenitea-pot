@@ -63,6 +63,14 @@ let
 
   # Environment variables
   environment = {
+    # Require pending PR: https://github.com/BerriAI/litellm/pull/34889
+    "GITHUB_COPILOT_CLIENT_ID" = "Ov23li8tweQw6odWQebz";
+    "GITHUB_COPILOT_USER_AGENT" = "opencode/${pkgs.opencode.version}";
+    "GITHUB_COPILOT_INTEGRATION_ID" = "";
+    "GITHUB_COPILOT_EDITOR_VERSION" = "";
+    "GITHUB_COPILOT_EDITOR_PLUGIN_VERSION" = "";
+    "GITHUB_COPILOT_API_VERSION" = "2026-06-01";
+    "GITHUB_COPILOT_OPENAI_INTENT" = "conversation-edits";
     "AUTO_REDIRECT_UI_LOGIN_TO_SSO" = "True";
     "DO_NOT_TRACK" = "True";
     "GITHUB_COPILOT_TOKEN_DIR" =
@@ -106,11 +114,11 @@ in
       '';
     };
 
-    imageTag = lib.mkOption {
+    image = lib.mkOption {
       type = lib.types.str;
-      default = "main-latest";
+      default = "ghcr.io/codgician/litellm:my";
       description = ''
-        Container image tag for ${serviceName}.
+        Container image for ${serviceName}.
       '';
     };
 
@@ -231,7 +239,7 @@ in
     (lib.mkIf (cfg.enable && cfg.backend == "container") {
       virtualisation.oci-containers.containers.${serviceName} = {
         autoStart = true;
-        image = "ghcr.io/berriai/litellm:${cfg.imageTag}";
+        image = cfg.image;
         volumes = [
           "${(pkgs.formats.yaml { }).generate "config.yaml" settings}:/config.yaml:ro"
           "${cfg.stateDir}:/config:U"
