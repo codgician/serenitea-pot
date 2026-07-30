@@ -1,11 +1,13 @@
 # Monitoring configuration for paimon
-# - Prometheus scrape configs for nginx and nginxlog exporters
-# - Grafana provisioned datasources and dashboards
-# - Nginxlog exporter configuration
-{ config, ... }:
+# - Prometheus metrics from NGINX stub_status and access logs
+# - Loki access-log storage with local GeoIP enrichment
+# - Grafana provisioned data sources and dashboards
+{ config, pkgs, ... }:
 let
   # Nginx log path
   nginxAccessLogPath = "/var/log/nginx/access.log";
+  nginxGeoAccessLogPath = "/var/log/nginx/access-geo.json";
+  geoIpDatabase = "${pkgs.unstable.dbip-city-lite}/share/dbip/dbip-city-lite.mmdb";
 
   # Nginxlog exporter log format matching our nginx config
   # IMPORTANT: We use mapped variables that convert "-" to "0" for numeric fields
@@ -27,6 +29,113 @@ in
     dashboards = [
       ../../../modules/nixos/services/grafana/dashboards/nginx.json
     ];
+  };
+
+  services.grafana.provision.datasources.settings.datasources = [
+    {
+      name = "Loki";
+      uid = "Loki";
+      type = "loki";
+      access = "proxy";
+      url = "http://127.0.0.1:3100";
+      editable = false;
+      jsonData.maxLines = 1000;
+    }
+  ];
+
+  # Keep raw client addresses out of Prometheus labels. Loki stores the
+  # structured access records and extracts per-client fields at query time.
+  services.loki = {
+    enable = true;
+    configuration = {
+      auth_enabled = false;
+      analytics.reporting_enabled = false;
+      server = {
+        http_listen_address = "127.0.0.1";
+        http_listen_port = 3100;
+      };
+      common = {
+        instance_addr = "127.0.0.1";
+        path_prefix = "/var/lib/loki";
+        replication_factor = 1;
+        ring.kvstore.store = "inmemory";
+        storage.filesystem = {
+          chunks_directory = "/var/lib/loki/chunks";
+          rules_directory = "/var/lib/loki/rules";
+        };
+      };
+      schema_config.configs = [
+        {
+          from = "2024-04-01";
+          store = "tsdb";
+          object_store = "filesystem";
+          schema = "v13";
+          index = {
+            prefix = "index_";
+            period = "24h";
+          };
+        }
+      ];
+      limits_config = {
+        allow_structured_metadata = true;
+        retention_period = "168h";
+        volume_enabled = true;
+      };
+      compactor = {
+        working_directory = "/var/lib/loki/compactor";
+        compaction_interval = "10m";
+        retention_enabled = true;
+        retention_delete_delay = "2h";
+        delete_request_store = "filesystem";
+      };
+    };
+  };
+
+  services.alloy = {
+    enable = true;
+    extraFlags = [ "--disable-reporting" ];
+  };
+
+  environment.etc."alloy/nginx-logs.alloy".text = ''
+    local.file_match "nginx_access" {
+      path_targets = [{
+        __path__ = "${nginxGeoAccessLogPath}",
+        instance = constants.hostname,
+        job      = "nginx-access",
+      }]
+    }
+
+    loki.source.file "nginx_access" {
+      targets    = local.file_match.nginx_access.targets
+      forward_to = [loki.process.nginx_access.receiver]
+    }
+
+    loki.process "nginx_access" {
+      stage.json {
+        expressions = {
+          timestamp = "timestamp",
+        }
+      }
+
+      stage.timestamp {
+        source = "timestamp"
+        format = "RFC3339"
+      }
+
+      forward_to = [loki.write.local.receiver]
+    }
+
+    loki.write "local" {
+      endpoint {
+        url = "http://127.0.0.1:3100/loki/api/v1/push"
+      }
+    }
+  '';
+
+  systemd.services.alloy = {
+    after = [ "loki.service" ];
+    wants = [ "loki.service" ];
+    serviceConfig.SupplementaryGroups = [ "nginx" ];
   };
 
   # Enable and configure nginxlog exporter
@@ -67,6 +176,8 @@ in
   # Note: commonHttpConfig is evaluated BEFORE appendHttpConfig in nginx config generation
   # So map directives and log_format must be in commonHttpConfig, and access_log in appendHttpConfig
   services.nginx = {
+    additionalModules = [ pkgs.nginxModules.geoip2 ];
+
     # Define map directive to convert "-" to "0" for upstream_response_time
     # This is needed because nginx outputs "-" when there's no upstream (static files, errors, etc.)
     # The nginxlog exporter parser expects numeric values and fails on "-"
@@ -78,15 +189,41 @@ in
         default $upstream_response_time;
       }
 
+      # Resolve both IPv4 and IPv6 addresses from the immutable unstable
+      # DB-IP City Lite MMDB. Unknown/private addresses remain explicit.
+      geoip2 ${geoIpDatabase} {
+        $geoip_country_code default=ZZ country iso_code;
+        $geoip_country_name default=Unknown country names en;
+        $geoip_city_name default=Unknown city names en;
+        $geoip_latitude default=0 location latitude;
+        $geoip_longitude default=0 location longitude;
+      }
+
       log_format metrics '$remote_addr - $remote_user [$time_local] '
                         '"$request" $status $body_bytes_sent '
                         '"$http_referer" "$http_user_agent" '
                         '$request_time $upstream_time_or_zero $request_length';
+
+      log_format geography escape=json '{'
+        '"timestamp":"$time_iso8601",'
+        '"remote_addr":"$remote_addr",'
+        '"country_code":"$geoip_country_code",'
+        '"country":"$geoip_country_name",'
+        '"city":"$geoip_city_name",'
+        '"latitude":"$geoip_latitude",'
+        '"longitude":"$geoip_longitude",'
+        '"method":"$request_method",'
+        '"host":"$host",'
+        '"uri":"$uri",'
+        '"status":$status,'
+        '"request_time":$request_time'
+      '}';
     '';
 
     # Then use the log format (appendHttpConfig comes after commonHttpConfig)
     appendHttpConfig = ''
       access_log ${nginxAccessLogPath} metrics;
+      access_log ${nginxGeoAccessLogPath} geography;
     '';
   };
 
@@ -97,6 +234,12 @@ in
       path = "/var/log/nginx";
       user = "nginx";
       group = "nginx";
+    }
+    {
+      type = "directory";
+      path = "/var/lib/loki";
+      user = "loki";
+      group = "loki";
     }
   ];
 

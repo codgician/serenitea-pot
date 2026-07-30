@@ -181,7 +181,7 @@ in
               isDefault = cfg.provision.prometheus.isDefault;
               editable = false;
               jsonData = {
-                timeInterval = "15s";
+                timeInterval = "1m";
                 httpMethod = "POST";
               };
             }

@@ -1,4 +1,9 @@
-{ lib, pkgs, modelLib, ... }:
+{
+  lib,
+  pkgs,
+  modelLib,
+  ...
+}:
 let
   data = builtins.fromJSON (builtins.readFile ./models.json);
   modelName =
