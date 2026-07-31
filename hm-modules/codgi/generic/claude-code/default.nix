@@ -7,23 +7,6 @@
 }:
 let
   cfg = config.codgician.codgi.claude-code;
-
-  # Transform MCP servers to Claude Code format (stdio / http).
-  mkMcpServer =
-    server:
-    if server.command != null then
-      {
-        type = "stdio";
-        inherit (server) command args env;
-      }
-    else
-      {
-        type = "http";
-        inherit (server) url headers;
-      };
-
-  mcpServers = lib.mapAttrs (_: mkMcpServer) config.programs.mcp.servers;
-
 in
 {
   options.codgician.codgi.claude-code = {
@@ -49,7 +32,7 @@ in
       enable = true;
       inherit (cfg) package;
 
-      mcpServers = lib.mkIf config.codgician.codgi.mcp.enable mcpServers;
+      enableMcpIntegration = config.codgician.codgi.mcp.enable;
 
       settings = {
         apiKeyHelper =

@@ -7,32 +7,6 @@
 let
   cfg = config.codgician.codgi.github-copilot-cli;
 
-  # Copilot CLI uses "local" for command-based and "http" for URL-based servers,
-  # plus a per-server `tools` allowlist.
-  mkMcpServer =
-    server:
-    (
-      if server.command != null then
-        {
-          type = "local";
-          inherit (server) command args env;
-        }
-      else
-        {
-          type = "http";
-          inherit (server) url headers;
-        }
-    )
-    // {
-      tools = server.tools or [ "*" ];
-    };
-
-  mcpServers = lib.mapAttrs (_: mkMcpServer) (
-    lib.filterAttrs (_: server: !(server.disabled or false)) config.programs.mcp.servers
-  );
-
-  # MCP config JSON
-  mcpConfigJson = builtins.toJSON { inherit mcpServers; };
 in
 {
   options.codgician.codgi.github-copilot-cli = {
@@ -49,23 +23,15 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [
-      cfg.package
-      pkgs.nur.repos.codgician.agent-browser
-    ];
-
-    home.file = {
-      # Link skills directory to ~/.copilot/skills
-      ".copilot/skills".source = pkgs.symlinkJoin {
-        name = "copilot-cli-skills";
-        paths = [
-          "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
-        ];
-      };
-    }
-    // lib.optionalAttrs config.codgician.codgi.mcp.enable {
-      # Link MCP config to ~/.copilot/mcp-config.json
-      ".copilot/mcp-config.json".text = mcpConfigJson;
+    home.packages = [ pkgs.nur.repos.codgician.agent-browser ];
+    # Bypass programs.github-copilot-cli.skills: Home Manager inspects those paths
+    # during evaluation, which would realize this target-platform source derivation.
+    home.file."${config.programs.github-copilot-cli.configDir}/skills/agent-browser".source =
+      "${pkgs.nur.repos.codgician.agent-browser.src}/skills/agent-browser";
+    programs.github-copilot-cli = {
+      enable = true;
+      inherit (cfg) package;
+      enableMcpIntegration = config.codgician.codgi.mcp.enable;
     };
   };
 }

@@ -13,8 +13,9 @@ in
     programs.mcp = {
       enable = true;
       servers = {
-        context7.url = "https://mcp.context7.com/mcp/";
+        context7.url = "https://mcp.context7.com/mcp/oauth";
         grep_app.url = "https://mcp.grep.app";
+        websearch.url = "https://mcp.exa.ai/mcp";
       };
     };
   };

@@ -22,24 +22,6 @@ let
     (pkgs.formats.toml { }).generate "codex-static-settings"
       config.programs.codex.settings;
 
-  # Transform MCP servers to Codex format: `http_headers` instead of `headers`,
-  # a native `enabled` flag instead of `disabled`, and no `type` field.
-  mkMcpServer =
-    server:
-    (
-      if server.command != null then
-        { inherit (server) command args env; }
-      else
-        {
-          inherit (server) url;
-        }
-        // lib.optionalAttrs (server.headers != { }) { http_headers = server.headers; }
-    )
-    // {
-      enabled = !(server.disabled or false);
-    };
-
-  mcpServers = lib.mapAttrs (_: mkMcpServer) config.programs.mcp.servers;
 in
 {
   options.codgician.codgi.codex = {
@@ -70,6 +52,7 @@ in
     programs.codex = {
       enable = true;
       package = cfg.package;
+      enableMcpIntegration = config.codgician.codgi.mcp.enable;
       settings = {
         model_provider = "litellm";
         model_providers.litellm = {
@@ -78,7 +61,6 @@ in
           env_key = "OPENAI_API_KEY";
           wire_api = "responses";
         };
-        mcp_servers = lib.mkIf config.codgician.codgi.mcp.enable mcpServers;
         model = "gpt-5.6-sol";
       };
     };
