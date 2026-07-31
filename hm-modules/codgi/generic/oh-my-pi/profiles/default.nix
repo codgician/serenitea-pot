@@ -2,6 +2,7 @@
 let
   commonProfile = {
     setupVersion = 1;
+    personality = "pragmatic";
 
     providers.webSearch = "exa";
 

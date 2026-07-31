@@ -26,7 +26,7 @@ if [[ -n "${COPILOT_MODELS_FILE:-}" ]]; then
 else
   : "${COPILOT_GITHUB_TOKEN:?COPILOT_GITHUB_TOKEN is required}"
   if [[ "${GITHUB_ACTIONS:-}" == "true" ]]; then
-    fetch_models "$COPILOT_GITHUB_TOKEN" "agentic-workflows"
+    fetch_models "$COPILOT_GITHUB_TOKEN" "copilot-developer-cli"
   else
     copilot_token="$(curl "${curl_args[@]}" \
       -H "Accept: application/json" \
