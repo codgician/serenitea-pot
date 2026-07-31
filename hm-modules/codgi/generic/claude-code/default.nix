@@ -50,6 +50,9 @@ in
           pr = "";
           sessionUrl = false;
         };
+        disallowed_tools = [ 
+          "WebSearch"   # Not working for custom endpoint
+        ]; 
         env = {
           CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
