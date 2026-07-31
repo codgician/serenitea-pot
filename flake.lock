@@ -704,12 +704,12 @@
         "narHash": "sha256-npF5ngkdh6o0P+KpcO/r5f0adhLKpEOcIyo/4OoOmeE=",
         "owner": "codgician",
         "repo": "proxmox-nixos",
-        "rev": "1552d50589ebe3f4c193c23c457bd3e195722ee5",
+        "rev": "901a0cb734c464f4b0fef597d38b60d0cda16d78",
         "type": "github"
       },
       "original": {
         "owner": "codgician",
-        "ref": "nixos-26.05",
+        "ref": "my",
         "repo": "proxmox-nixos",
         "type": "github"
       }

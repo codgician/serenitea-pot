@@ -46,7 +46,7 @@
     };
 
     proxmox-nixos = {
-      url = "github:codgician/proxmox-nixos/nixos-26.05";
+      url = "github:codgician/proxmox-nixos/my";
       inputs = {
         nixpkgs-stable.follows = "nixpkgs";
         flake-compat.follows = "flake-compat";
