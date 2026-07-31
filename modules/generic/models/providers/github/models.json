@@ -254,26 +254,6 @@
       "reasoning"
     ]
   },
-  "gemini-2.5-pro": {
-    "contextWindow": 128000,
-    "cost": {
-      "cacheRead": 0.12,
-      "cacheWrite": 0,
-      "input": 1.25,
-      "output": 10
-    },
-    "maxInputTokens": 128000,
-    "maxOutputTokens": 64000,
-    "mode": "chat",
-    "reasoningEfforts": [],
-    "supportedEndpoints": [],
-    "supports": [
-      "toolCalls",
-      "parallelToolCalls",
-      "vision",
-      "reasoning"
-    ]
-  },
   "gemini-3.1-pro-preview": {
     "contextWindow": 1000000,
     "cost": {
