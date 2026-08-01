@@ -21,7 +21,7 @@
       }
     ]
   },
-  "description": "NGINX service health organized around traffic, errors, latency, connection saturation, client geography, and telemetry health. Uses live stub_status, access-log exporter metrics, and locally enriched access logs.",
+  "description": "NGINX service health organized around traffic, errors, latency, connection saturation, endpoint attribution, client geography, and telemetry health. Uses live stub_status, access-log exporter metrics, and locally enriched access logs.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -257,7 +257,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\"}[$__rate_interval]))",
+          "expr": "sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval]))",
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
@@ -332,7 +332,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "100 * (sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",status=~\"5..\"}[$__rate_interval])) or vector(0)) / clamp_min(sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\"}[$__rate_interval])), 1e-9)",
+          "expr": "100 * (sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\",status=~\"5..\"}[$__rate_interval])) or vector(0)) / clamp_min(sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval])), 1e-9)",
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
@@ -407,7 +407,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(nginxlog_http_response_time_seconds_hist_bucket{instance=~\"$instance\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(nginxlog_http_response_time_seconds_hist_bucket{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval])))",
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
@@ -586,7 +586,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",status=~\"2..\"}[$__rate_interval]))",
+          "expr": "sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\",status=~\"2..\"}[$__rate_interval]))",
           "instant": false,
           "legendFormat": "2xx",
           "range": true,
@@ -598,7 +598,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",status=~\"3..\"}[$__rate_interval]))",
+          "expr": "sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\",status=~\"3..\"}[$__rate_interval]))",
           "instant": false,
           "legendFormat": "3xx",
           "range": true,
@@ -610,7 +610,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",status=~\"4..\"}[$__rate_interval]))",
+          "expr": "sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\",status=~\"4..\"}[$__rate_interval]))",
           "instant": false,
           "legendFormat": "4xx",
           "range": true,
@@ -622,7 +622,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",status=~\"5..\"}[$__rate_interval]))",
+          "expr": "sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\",status=~\"5..\"}[$__rate_interval]))",
           "instant": false,
           "legendFormat": "5xx",
           "range": true,
@@ -721,7 +721,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum by (method) (rate(nginxlog_http_response_count_total{instance=~\"$instance\"}[$__rate_interval]))",
+          "expr": "sum by (method) (rate(nginxlog_http_response_count_total{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval]))",
           "instant": false,
           "legendFormat": "{{method}}",
           "range": true,
@@ -820,7 +820,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(nginxlog_http_request_size_bytes{instance=~\"$instance\"}[$__rate_interval]))",
+          "expr": "sum(rate(nginxlog_http_request_size_bytes{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval]))",
           "instant": false,
           "legendFormat": "Received",
           "range": true,
@@ -832,7 +832,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "sum(rate(nginxlog_http_response_size_bytes{instance=~\"$instance\"}[$__rate_interval]))",
+          "expr": "sum(rate(nginxlog_http_response_size_bytes{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval]))",
           "instant": false,
           "legendFormat": "Sent",
           "range": true,
@@ -959,7 +959,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 21
+        "y": 31
       },
       "id": 20,
       "panels": [],
@@ -1027,7 +1027,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 22
+        "y": 32
       },
       "id": 21,
       "options": {
@@ -1055,7 +1055,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.5, sum by (le) (rate(nginxlog_http_response_time_seconds_hist_bucket{instance=~\"$instance\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(0.5, sum by (le) (rate(nginxlog_http_response_time_seconds_hist_bucket{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval])))",
           "instant": false,
           "legendFormat": "P50",
           "range": true,
@@ -1067,7 +1067,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.9, sum by (le) (rate(nginxlog_http_response_time_seconds_hist_bucket{instance=~\"$instance\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(0.9, sum by (le) (rate(nginxlog_http_response_time_seconds_hist_bucket{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval])))",
           "instant": false,
           "legendFormat": "P90",
           "range": true,
@@ -1079,7 +1079,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(nginxlog_http_response_time_seconds_hist_bucket{instance=~\"$instance\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(nginxlog_http_response_time_seconds_hist_bucket{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval])))",
           "instant": false,
           "legendFormat": "P95",
           "range": true,
@@ -1091,7 +1091,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(nginxlog_http_response_time_seconds_hist_bucket{instance=~\"$instance\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(nginxlog_http_response_time_seconds_hist_bucket{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval])))",
           "instant": false,
           "legendFormat": "P99",
           "range": true,
@@ -1162,7 +1162,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 22
+        "y": 32
       },
       "id": 22,
       "options": {
@@ -1190,7 +1190,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.5, sum by (le) (rate(nginxlog_http_upstream_time_seconds_hist_bucket{instance=~\"$instance\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(0.5, sum by (le) (rate(nginxlog_http_upstream_time_seconds_hist_bucket{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval])))",
           "instant": false,
           "legendFormat": "P50",
           "range": true,
@@ -1202,7 +1202,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.9, sum by (le) (rate(nginxlog_http_upstream_time_seconds_hist_bucket{instance=~\"$instance\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(0.9, sum by (le) (rate(nginxlog_http_upstream_time_seconds_hist_bucket{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval])))",
           "instant": false,
           "legendFormat": "P90",
           "range": true,
@@ -1214,7 +1214,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(nginxlog_http_upstream_time_seconds_hist_bucket{instance=~\"$instance\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(nginxlog_http_upstream_time_seconds_hist_bucket{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval])))",
           "instant": false,
           "legendFormat": "P95",
           "range": true,
@@ -1226,7 +1226,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(nginxlog_http_upstream_time_seconds_hist_bucket{instance=~\"$instance\"}[$__rate_interval])))",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(nginxlog_http_upstream_time_seconds_hist_bucket{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval])))",
           "instant": false,
           "legendFormat": "P99",
           "range": true,
@@ -1242,7 +1242,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 30
+        "y": 50
       },
       "id": 30,
       "panels": [],
@@ -1318,7 +1318,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 31
+        "y": 51
       },
       "id": 31,
       "options": {
@@ -1346,7 +1346,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "100 * (sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",status=~\"4..\"}[$__rate_interval])) or vector(0)) / clamp_min(sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\"}[$__rate_interval])), 1e-9)",
+          "expr": "100 * (sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\",status=~\"4..\"}[$__rate_interval])) or vector(0)) / clamp_min(sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval])), 1e-9)",
           "instant": false,
           "legendFormat": "4xx",
           "range": true,
@@ -1358,7 +1358,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "100 * (sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",status=~\"5..\"}[$__rate_interval])) or vector(0)) / clamp_min(sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\"}[$__rate_interval])), 1e-9)",
+          "expr": "100 * (sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\",status=~\"5..\"}[$__rate_interval])) or vector(0)) / clamp_min(sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval])), 1e-9)",
           "instant": false,
           "legendFormat": "5xx",
           "range": true,
@@ -1370,7 +1370,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "100 * (sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",status=~\"499\"}[$__rate_interval])) or vector(0)) / clamp_min(sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\"}[$__rate_interval])), 1e-9)",
+          "expr": "100 * (sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\",status=~\"499\"}[$__rate_interval])) or vector(0)) / clamp_min(sum(rate(nginxlog_http_response_count_total{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval])), 1e-9)",
           "instant": false,
           "legendFormat": "499",
           "range": true,
@@ -1441,7 +1441,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 31
+        "y": 51
       },
       "id": 32,
       "options": {
@@ -1469,7 +1469,7 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "topk(10, sum by (status) (rate(nginxlog_http_response_count_total{instance=~\"$instance\"}[$__rate_interval])))",
+          "expr": "topk(10, sum by (status) (rate(nginxlog_http_response_count_total{instance=~\"$instance\",host=~\"$host\",method=~\"$method\",status=~\"$response_class\"}[$__rate_interval])))",
           "instant": false,
           "legendFormat": "{{status}}",
           "range": true,
@@ -1485,7 +1485,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 39
+        "y": 69
       },
       "id": 40,
       "panels": [],
@@ -1554,7 +1554,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 40
+        "y": 70
       },
       "id": 41,
       "options": {
@@ -1689,7 +1689,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 40
+        "y": 70
       },
       "id": 42,
       "options": {
@@ -1745,7 +1745,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 48
+        "y": 78
       },
       "id": 50,
       "panels": [],
@@ -1814,7 +1814,7 @@
         "h": 7,
         "w": 8,
         "x": 0,
-        "y": 49
+        "y": 79
       },
       "id": 51,
       "options": {
@@ -1925,7 +1925,7 @@
         "h": 7,
         "w": 8,
         "x": 8,
-        "y": 49
+        "y": 79
       },
       "id": 52,
       "options": {
@@ -2028,7 +2028,7 @@
         "h": 7,
         "w": 8,
         "x": 16,
-        "y": 49
+        "y": 79
       },
       "id": 53,
       "options": {
@@ -2072,7 +2072,162 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 56
+        "y": 86
+      },
+      "id": 70,
+      "panels": [],
+      "title": "Server metric details",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Underlying Prometheus series for the server-wide stub_status, connection, and telemetry graphs. NGINX stub_status has no virtual-host dimension, so these infrastructure metrics intentionally do not use the NGINX hostname filter.",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 87
+      },
+      "id": 71,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true
+      },
+      "pluginVersion": "13.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "nginx_connections_active{instance=~\"$instance\"}",
+          "instant": true,
+          "legendFormat": "{{instance}} active connections",
+          "range": false,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "nginx_connections_reading{instance=~\"$instance\"}",
+          "instant": true,
+          "legendFormat": "{{instance}} reading connections",
+          "range": false,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "nginx_connections_writing{instance=~\"$instance\"}",
+          "instant": true,
+          "legendFormat": "{{instance}} writing connections",
+          "range": false,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "nginx_connections_waiting{instance=~\"$instance\"}",
+          "instant": true,
+          "legendFormat": "{{instance}} waiting connections",
+          "range": false,
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (instance) (rate(nginx_http_requests_total{instance=~\"$instance\"}[$__rate_interval]))",
+          "instant": true,
+          "legendFormat": "{{instance}} stub-status requests/s",
+          "range": false,
+          "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "up{job=~\"nginx|nginxlog\",instance=~\"$instance\"}",
+          "instant": true,
+          "legendFormat": "{{instance}} {{job}} target",
+          "range": false,
+          "refId": "F"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "scrape_duration_seconds{job=~\"nginx|nginxlog\",instance=~\"$instance\"}",
+          "instant": true,
+          "legendFormat": "{{instance}} {{job}} scrape duration",
+          "range": false,
+          "refId": "G"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum by (instance) (rate(nginxlog_parse_errors_total{instance=~\"$instance\"}[$__rate_interval]))",
+          "instant": true,
+          "legendFormat": "{{instance}} access-log parse errors/s",
+          "range": false,
+          "refId": "H"
+        }
+      ],
+      "title": "Server metric detail list",
+      "type": "table"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 97
       },
       "id": 60,
       "panels": [],
@@ -2180,7 +2335,7 @@
         "h": 10,
         "w": 16,
         "x": 0,
-        "y": 57
+        "y": 110
       },
       "id": 61,
       "options": {
@@ -2210,7 +2365,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "topk(100, sum by (remote_addr, country_code, country, city) (count_over_time({job=\"nginx-access\",instance=~\"$instance\"} | json | __error__=\"\" [$__range])))",
+          "expr": "topk(100, sum by (remote_addr, country_code, country, city) (count_over_time({job=\"nginx-access\",instance=~\"$instance\"} | json | host=~\"${host:pipe}\" | method=~\"${method:pipe}\" | status=~\"${response_class:pipe}\" | __error__=\"\" [$__range])))",
           "legendFormat": "",
           "queryType": "instant",
           "refId": "A"
@@ -2275,7 +2430,7 @@
         "h": 10,
         "w": 8,
         "x": 16,
-        "y": 57
+        "y": 110
       },
       "id": 62,
       "options": {
@@ -2305,7 +2460,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "topk(20, sum by (country_code, country) (count_over_time({job=\"nginx-access\",instance=~\"$instance\"} | json | __error__=\"\" [$__range])))",
+          "expr": "topk(20, sum by (country_code, country) (count_over_time({job=\"nginx-access\",instance=~\"$instance\"} | json | host=~\"${host:pipe}\" | method=~\"${method:pipe}\" | status=~\"${response_class:pipe}\" | __error__=\"\" [$__range])))",
           "legendFormat": "{{country}} ({{country_code}})",
           "queryType": "instant",
           "refId": "A"
@@ -2339,7 +2494,144 @@
         "type": "loki",
         "uid": "Loki"
       },
-      "description": "Recent access records with client and locally resolved geographic fields. Expand a row for request details.",
+      "description": "Request volume by the locally resolved approximate client location. Unknown and private addresses are excluded from the map.",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 24,
+        "x": 0,
+        "y": 98
+      },
+      "id": 72,
+      "options": {
+        "basemap": {
+          "config": {},
+          "name": "Basemap",
+          "type": "default"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showDebug": false,
+          "showMeasure": false,
+          "showScale": true,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": {
+                  "fixed": "dark-green",
+                  "mode": "fixed"
+                },
+                "opacity": 0.75,
+                "size": {
+                  "field": "Value #A",
+                  "fixed": 5,
+                  "max": 20,
+                  "min": 3,
+                  "mode": "field"
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "symbolAlign": {
+                  "horizontal": "center",
+                  "vertical": "center"
+                },
+                "textConfig": {
+                  "field": "city",
+                  "fixed": "",
+                  "fontSize": 12,
+                  "offsetX": 0,
+                  "offsetY": 0,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                }
+              }
+            },
+            "location": {
+              "latitude": "latitude",
+              "longitude": "longitude",
+              "mode": "coords"
+            },
+            "name": "Client request volume",
+            "tooltip": true,
+            "type": "markers"
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        },
+        "view": {
+          "allLayers": true,
+          "id": "fit",
+          "lastOnly": false,
+          "layer": "Client request volume",
+          "lat": 0,
+          "lon": 0,
+          "zoom": 1
+        }
+      },
+      "pluginVersion": "13.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "topk(100, sum by (country_code, country, city, latitude, longitude) (count_over_time({job=\"nginx-access\",instance=~\"$instance\"} | json | host=~\"${host:pipe}\" | method=~\"${method:pipe}\" | status=~\"${response_class:pipe}\" | country_code!=\"ZZ\" | __error__=\"\" [$__range])))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Client request world map",
+      "transformations": [
+        {
+          "id": "convertFieldType",
+          "options": {
+            "conversions": [
+              {
+                "destinationType": "number",
+                "targetField": "latitude"
+              },
+              {
+                "destinationType": "number",
+                "targetField": "longitude"
+              }
+            ],
+            "fields": {}
+          }
+        }
+      ],
+      "type": "geomap"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "Loki"
+      },
+      "description": "Recent access records for the selected NGINX hostname. Each line includes the real client IP, request path, timings, status, and transferred bytes.",
       "fieldConfig": {
         "defaults": {},
         "overrides": []
@@ -2348,7 +2640,7 @@
         "h": 9,
         "w": 24,
         "x": 0,
-        "y": 67
+        "y": 120
       },
       "id": 63,
       "options": {
@@ -2370,7 +2662,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{job=\"nginx-access\",instance=~\"$instance\"} | json | __error__=\"\" | line_format \"{{.remote_addr}}  {{.country}} / {{.city}}  {{.method}} {{.host}}{{.uri}}  {{.status}}\"",
+          "expr": "{job=\"nginx-access\",instance=~\"$instance\"} | json | host=~\"${host:pipe}\" | method=~\"${method:pipe}\" | status=~\"${response_class:pipe}\" | __error__=\"\" | line_format \"{{.remote_addr}}  {{.host}}  {{.method}} {{.uri}}  {{.status}}  rt={{.request_time}}s urt={{.upstream_time}}s sent={{.bytes_sent}} received={{.bytes_received}}\"",
           "queryType": "range",
           "refId": "A"
         }
@@ -2388,7 +2680,7 @@
         "h": 2,
         "w": 24,
         "x": 0,
-        "y": 76
+        "y": 129
       },
       "id": 64,
       "options": {
@@ -2404,6 +2696,289 @@
       "title": "",
       "transparent": true,
       "type": "text"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "Loki"
+      },
+      "description": "Up to 20 P95 request and 20 P95 upstream latencies by endpoint over the selected range. The endpoint combines the NGINX hostname and path; paths remain query-time data in Loki.",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s",
+          "decimals": 3
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "id": 66,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "P95 request latency"
+          }
+        ]
+      },
+      "pluginVersion": "13.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "topk(20, quantile_over_time(0.95, {job=\"nginx-access\",instance=~\"$instance\"} | json | host=~\"${host:pipe}\" | method=~\"${method:pipe}\" | status=~\"${response_class:pipe}\" | label_format endpoint=\"{{.host}} {{.uri}}\" | __error__=\"\" | unwrap request_time [$__range]) by (endpoint))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "topk(20, quantile_over_time(0.95, {job=\"nginx-access\",instance=~\"$instance\"} | json | host=~\"${host:pipe}\" | method=~\"${method:pipe}\" | status=~\"${response_class:pipe}\" | label_format endpoint=\"{{.host}} {{.uri}}\" | __error__=\"\" | unwrap upstream_time [$__range]) by (endpoint))",
+          "legendFormat": "",
+          "queryType": "instant",
+          "refId": "B"
+        }
+      ],
+      "title": "P95 latency by endpoint",
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "endpoint",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "endpoint": 0,
+              "Value #A": 1,
+              "Value #B": 2
+            },
+            "renameByName": {
+              "endpoint": "NGINX hostname / path",
+              "Value #A": "P95 request latency",
+              "Value #B": "P95 upstream latency"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "Loki"
+      },
+      "description": "The 20 NGINX hostname and path pairs with the highest current request rate, filtered by the selected method and response class. Calculated at query time from structured access logs.",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "reqps",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "id": 68,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "Request rate"
+          }
+        ]
+      },
+      "pluginVersion": "13.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "topk(20, sum by (host, uri) (rate({job=\"nginx-access\",instance=~\"$instance\"} | json | host=~\"${host:pipe}\" | method=~\"${method:pipe}\" | status=~\"${response_class:pipe}\" | __error__=\"\" [$__interval])))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "Request rate by endpoint",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "host": 0,
+              "uri": 1,
+              "Value #A": 2
+            },
+            "renameByName": {
+              "host": "NGINX hostname",
+              "uri": "Path",
+              "Value #A": "Request rate"
+            }
+          }
+        }
+      ],
+      "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "loki",
+        "uid": "Loki"
+      },
+      "description": "The 20 NGINX hostname and path pairs with the highest 5xx response ratio in the current rate window.",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          },
+          "unit": "percent",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 59
+      },
+      "id": 69,
+      "options": {
+        "cellHeight": "sm",
+        "footer": {
+          "countRows": false,
+          "fields": "",
+          "reducer": [
+            "sum"
+          ],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "5xx ratio"
+          }
+        ]
+      },
+      "pluginVersion": "13.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "Loki"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "topk(20, 100 * sum by (host, uri) (rate({job=\"nginx-access\",instance=~\"$instance\"} | json | host=~\"${host:pipe}\" | method=~\"${method:pipe}\" | status=~\"${response_class:pipe}\" | status=~\"5..\" | __error__=\"\" [$__interval])) / sum by (host, uri) (rate({job=\"nginx-access\",instance=~\"$instance\"} | json | host=~\"${host:pipe}\" | method=~\"${method:pipe}\" | status=~\"${response_class:pipe}\" | __error__=\"\" [$__interval])))",
+          "queryType": "instant",
+          "refId": "A"
+        }
+      ],
+      "title": "5xx ratio by endpoint",
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {
+              "host": 0,
+              "uri": 1,
+              "Value #A": 2
+            },
+            "renameByName": {
+              "host": "NGINX hostname",
+              "uri": "Path",
+              "Value #A": "5xx ratio"
+            }
+          }
+        }
+      ],
+      "type": "table"
     }
   ],
   "preload": false,
@@ -2464,6 +3039,79 @@
         "skipUrlSync": false,
         "sort": 1,
         "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(nginxlog_http_response_count_total{instance=~\"$instance\"}, host)",
+        "hide": 0,
+        "includeAll": true,
+        "allValue": ".*",
+        "label": "NGINX hostname / service",
+        "multi": true,
+        "name": "host",
+        "options": [],
+        "query": {
+          "query": "label_values(nginxlog_http_response_count_total{instance=~\"$instance\"}, host)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "type": "prometheus",
+          "uid": "${datasource}"
+        },
+        "definition": "label_values(nginxlog_http_response_count_total{instance=~\"$instance\",host=~\"$host\"}, method)",
+        "hide": 0,
+        "includeAll": true,
+        "allValue": ".*",
+        "label": "HTTP method",
+        "multi": true,
+        "name": "method",
+        "options": [],
+        "query": {
+          "query": "label_values(nginxlog_http_response_count_total{instance=~\"$instance\",host=~\"$host\"}, method)",
+          "refId": "PrometheusVariableQueryEditor-VariableQuery"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "hide": 0,
+        "includeAll": true,
+        "allValue": ".*",
+        "label": "Response class",
+        "multi": true,
+        "name": "response_class",
+        "options": [],
+        "query": "2xx : 2..,3xx : 3..,4xx : 4..,5xx : 5..",
+        "skipUrlSync": false,
+        "type": "custom"
       }
     ]
   },

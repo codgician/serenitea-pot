@@ -12,8 +12,8 @@ let
   # Nginxlog exporter log format matching our nginx config
   # IMPORTANT: We use mapped variables that convert "-" to "0" for numeric fields
   # because nginx outputs "-" when there's no upstream (e.g., static files, errors)
-  # Format: $remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_time $upstream_time_or_zero $request_length
-  nginxlogFormat = "$remote_addr - $remote_user [$time_local] \"$request\" $status $body_bytes_sent \"$http_referer\" \"$http_user_agent\" $request_time $upstream_response_time $request_length";
+  # Format: $remote_addr - $remote_user [$time_local] "$request" $status $body_bytes_sent "$http_referer" "$http_user_agent" $request_time $upstream_time_or_zero $request_length $server_name
+  nginxlogFormat = "$remote_addr - $remote_user [$time_local] \"$request\" $status $body_bytes_sent \"$http_referer\" \"$http_user_agent\" $request_time $upstream_response_time $request_length $server_name";
 in
 {
   # Prometheus scrape configuration
@@ -151,6 +151,13 @@ in
           source = {
             files = [ nginxAccessLogPath ];
           };
+          relabel_configs = [
+            # server_name is the NGINX virtual-host identifier for the proxied service.
+            {
+              target_label = "host";
+              from = "server_name";
+            }
+          ];
           histogram_buckets = [
             0.005
             0.01
@@ -175,6 +182,9 @@ in
   # Configure nginx to write access logs with the appropriate format
   # Note: commonHttpConfig is evaluated BEFORE appendHttpConfig in nginx config generation
   # So map directives and log_format must be in commonHttpConfig, and access_log in appendHttpConfig
+  # Lumine appends the client address to X-Forwarded-For over the WireGuard network.
+  # Trust this explicitly selected WireGuard range to restore $remote_addr for access logs and GeoIP.
+  codgician.services.nginx.trustedProxies = [ "192.168.254.0/23" ];
   services.nginx = {
     additionalModules = [ pkgs.nginxModules.geoip2 ];
 
@@ -202,7 +212,7 @@ in
       log_format metrics '$remote_addr - $remote_user [$time_local] '
                         '"$request" $status $body_bytes_sent '
                         '"$http_referer" "$http_user_agent" '
-                        '$request_time $upstream_time_or_zero $request_length';
+                        '$request_time $upstream_time_or_zero $request_length $server_name';
 
       log_format geography escape=json '{'
         '"timestamp":"$time_iso8601",'
@@ -213,10 +223,13 @@ in
         '"latitude":"$geoip_latitude",'
         '"longitude":"$geoip_longitude",'
         '"method":"$request_method",'
-        '"host":"$host",'
+        '"host":"$server_name",'
         '"uri":"$uri",'
         '"status":$status,'
-        '"request_time":$request_time'
+        '"request_time":$request_time,'
+        '"upstream_time":$upstream_time_or_zero,'
+        '"bytes_sent":$body_bytes_sent,'
+        '"bytes_received":$request_length'
       '}';
     '';
 

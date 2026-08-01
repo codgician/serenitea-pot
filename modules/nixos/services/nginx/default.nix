@@ -164,6 +164,12 @@ in
 
     openFirewall = lib.mkEnableOption "Open port 80 and 443 in firewall configuration.";
 
+    trustedProxies = lib.mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = "Addresses or CIDRs from which NGINX accepts X-Forwarded-For client addresses.";
+    };
+
     reverseProxies = lib.mkOption {
       type = types.attrsOf (types.submodule (import ./reverse-proxy-options.nix { inherit lib; }));
       default = { };
@@ -188,6 +194,14 @@ in
       package = pkgs.nginxMainlineEch;
       recommendedProxySettings = true;
       statusPage = true;
+
+      commonHttpConfig = lib.mkAfter (
+        lib.optionalString (cfg.trustedProxies != [ ]) ''
+          ${lib.concatMapStringsSep "\n" (proxy: "set_real_ip_from ${proxy};") cfg.trustedProxies}
+          real_ip_header X-Forwarded-For;
+          real_ip_recursive on;
+        ''
+      );
 
       resolver = {
         valid = "30s";
