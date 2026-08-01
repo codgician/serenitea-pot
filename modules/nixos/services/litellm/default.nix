@@ -38,6 +38,9 @@ let
       # enable_jwt_auth = true;
       store_model_in_db = true;
       store_prompts_in_spend_logs = true;
+      maximum_spend_logs_retention_period = "30d";
+      maximum_spend_logs_retention_interval = "1d";
+      maximum_spend_logs_cleanup_cron = "0 16 * * *";
     };
     litellm_settings = {
       num_retries = 3;
