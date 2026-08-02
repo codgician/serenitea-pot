@@ -14,8 +14,8 @@ Home to all my Nix-managed device profiles.
 
 ## Binary cache
 
-- **Cache URL**: `https://codgician.cachix.org`
-- **Public Key**: `codgician.cachix.org-1:v4RtwkbJZJwfDxH5hac1lHehIX6JoSL726vk1ZctN8Y=`
+- **Cache URL**: `https://cache.codgician.me/serenitea-pot`
+- **Public Key**: `serenitea-pot:VUehu1qpjbbS36ZAl38evHwG58jLFoRN+UZ5o4AwaUw=`
 
 ## Quick start
 
