@@ -7,6 +7,7 @@ pkgs.mkShell {
     direnv
     git
     nixd
+    attic-client
   ];
   shellHook = ''
     echo "Welcome to serenitea pot!"

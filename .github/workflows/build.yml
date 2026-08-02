@@ -45,6 +45,14 @@ jobs:
             experimental-features = nix-command flakes
             builders-use-substitutes = true
             system-features = nixos-test benchmark big-parallel kvm
+      - name: Setup Attic cache
+        if: github.ref == 'refs/heads/main'
+        uses: ryanccn/attic-action@v0
+        with:
+          endpoint: https://cache.codgician.me
+          cache: serenitea-pot
+          token: ${{ secrets.CACHE_PUSH_TOKEN }}
+          inputs-from: .
       - name: Check flake
         run: nix flake check
       - name: Calculate strategy matrix
@@ -54,8 +62,8 @@ jobs:
             --apply "x: builtins.toJSON (map (y: { name = y; system = x.\${y}.pkgs.stdenv.hostPlatform.system; }) (builtins.attrNames x))")
           darwin=$(nix eval .\#darwinConfigurations --raw \
             --apply "x: builtins.toJSON (map (y: { name = y; system = x.\${y}.pkgs.stdenv.hostPlatform.system; }) (builtins.attrNames x))")
-          echo "linux=$linux" >> $GITHUB_OUTPUT
-          echo "darwin=$darwin" >> $GITHUB_OUTPUT
+          echo "linux=$linux" >> "$GITHUB_OUTPUT"
+          echo "darwin=$darwin" >> "$GITHUB_OUTPUT"
   build-linux:
     needs: validate
     strategy:
@@ -85,12 +93,14 @@ jobs:
             auto-optimise-store = true
             experimental-features = nix-command flakes
             builders-use-substitutes = true
-      - uses: cachix/cachix-action@v17
+      - name: Setup Attic cache
+        if: github.ref == 'refs/heads/main'
+        uses: ryanccn/attic-action@v0
         with:
-          name: codgician
-          extraPullNames: nix-community
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-          signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+          endpoint: https://cache.codgician.me
+          cache: serenitea-pot
+          token: ${{ secrets.CACHE_PUSH_TOKEN }}
+          inputs-from: .
       - name: Build
         run: |
           nix build .#nixosConfigurations.${{ matrix.host.name }}.config.system.build.toplevel
@@ -113,12 +123,14 @@ jobs:
             experimental-features = nix-command flakes
             builders-use-substitutes = true
             extra-platforms = x86_64-darwin
-      - uses: cachix/cachix-action@v17
+      - name: Setup Attic cache
+        if: github.ref == 'refs/heads/main'
+        uses: ryanccn/attic-action@v0
         with:
-          name: codgician
-          extraPullNames: nix-community
-          authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
-          signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
+          endpoint: https://cache.codgician.me
+          cache: serenitea-pot
+          token: ${{ secrets.CACHE_PUSH_TOKEN }}
+          inputs-from: .
       - name: Build
         run: |
           nix build .#darwinConfigurations.${{ matrix.host.name }}.config.system.build.toplevel
