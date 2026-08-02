@@ -10,7 +10,7 @@ let
   # operator-only; deployed hosts retain sops-nix's stock SOPS package.
   sopsWithSshToAgeFix = pkgs.sops.overrideAttrs (old: {
     patches = (old.patches or [ ]) ++ [ ./sops-ssh-to-age.patch ];
-    vendorHash = "sha256-zNIU2Cz6e8cxLu5mcizw5/1rJCWO6qAEARQQ2VOxmkM=";
+    vendorHash = "sha256-wqfXkBaLuMjYwG5CG2rrDexQbODjwEo/m8mvaNFE6bQ=";
   });
 
   helpText = ''

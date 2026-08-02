@@ -141,12 +141,13 @@ in
 
     # --- Template-derived components (recipients from referencing templates) ---
 
-    # terraform.env (app-scoped, operator only). GCP auth is NOT here: the GCP
+    # terraform-env (app-scoped, operator only). GCP auth is NOT here: the GCP
     # service-account key lives solely in the gcp-credentials raw secret.
     # `secrets run` decrypts it to a temporary file and exports its path through
     # GOOGLE_APPLICATION_CREDENTIALS, avoiding a duplicate template value.
     arm-client-secret.expiryDate = "2027-02-04"; # caribert service principal
     arm-access-key = { };
+    binary-cache-cname = { };
     cloudflare-api-token = { };
     cloudflare-email = { };
 

@@ -12,5 +12,6 @@
     ARM_ACCESS_KEY=${ref "arm-access-key"}
     CLOUDFLARE_API_TOKEN=${ref "cloudflare-api-token"}
     CLOUDFLARE_EMAIL=${ref "cloudflare-email"}
+    TF_VAR_binary_cache_cname=${ref "binary-cache-cname"}
   '';
 }

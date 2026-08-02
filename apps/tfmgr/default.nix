@@ -61,7 +61,7 @@ in
         # Materialize all credentials once, initialize Terraform, run the requested
         # command with its original argv, then let `secrets run` clean up.
         tf_with_secrets() {
-          ${secretsApp} run terraform.env \
+          ${secretsApp} run terraform-env \
             GOOGLE_APPLICATION_CREDENTIALS=gcp-credentials \
             -- ${lib.getExe pkgs.bash} -c '${lib.getExe pkgs.terraform} init && exec "$@"' tfmgr "$@"
         }

@@ -391,7 +391,7 @@ turns that blob into something its consumer can read*:
 
 | Consumption | Built by app via | Example |
 | --- | --- | --- |
-| **Composed text** (env files, configs) | `secrets render <name>` decrypts each `ref`ed value and raw-substitutes it into a temporary file | `terraform.env` (4 `ARM_*`/`CLOUDFLARE_*` vars) |
+| **Composed text** (env files, configs) | `secrets render <name>` decrypts each `ref`ed value and raw-substitutes it into a temporary file | `terraform-env` (4 `ARM_*`/`CLOUDFLARE_*` vars) |
 | **Whole file** (structured credential) | `secrets run` decrypts the raw value byte-for-byte to a temporary file and exports its path | `gcp-credentials` (GCP service-account JSON) |
 
 Both live in `secrets/values/`, both use the same generated `.sops.yaml` policy,
@@ -422,7 +422,7 @@ file's *contents*, so the filename is irrelevant.
 ### Terraform, concretely
 
 ```text
-secrets/templates/terraform.env.nix   # text template: ARM_*/CLOUDFLARE_* via ${ref}
+secrets/templates/terraform-env.nix   # text template: ARM_*/CLOUDFLARE_* via ${ref}
 secrets/values/arm-client-secret      # raw secrets, one sops file each
 secrets/values/arm-access-key
 secrets/values/cloudflare-api-token
@@ -430,7 +430,7 @@ secrets/values/cloudflare-email
 secrets/values/gcp-credentials        # raw value: fully-encrypted GCP JSON
 ```
 
-`tfmgr` renders `terraform.env` (env vars) and decrypts `gcp-credentials` to a
+`tfmgr` renders `terraform-env` (env vars) and decrypts `gcp-credentials` to a
 tmpfs file (`GOOGLE_APPLICATION_CREDENTIALS`), then runs terraform. All recipients
 are the operator key; no host is involved.
 

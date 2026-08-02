@@ -114,7 +114,7 @@ let
   ) lib.codgician.registry.secrets;
 
   # Host templates this host can decrypt. Excludes:
-  #   - app-scoped templates (terraform.env) -- those render on the operator
+  #   - app-scoped templates (terraform-env) -- those render on the operator
   #     workstation via `secrets render`, encrypted to the operator key alone.
   #   - templates whose recipients do not include THIS host -- e.g. anubis-env is
   #     lumine-only, so paimon must not try to render it (it cannot decrypt the
