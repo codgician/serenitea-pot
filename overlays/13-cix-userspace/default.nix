@@ -10,14 +10,16 @@ _:
 
 final: _prev:
 let
+  libva = final.callPackage ./libva.nix { };
   media-engine = final.callPackage ./media-engine.nix { };
 in
 {
   cix = {
-    inherit media-engine;
+    inherit libva media-engine;
     vaapi = final.callPackage ./vaapi.nix {
       inherit (final.linuxPackages) cix-vpu-driver;
       cix-media-engine = media-engine;
+      cix-libva = libva;
     };
 
     ffmpeg = final.callPackage ./ffmpeg.nix {

@@ -195,7 +195,7 @@ in
           element-desktop
           discord
           voxtype-onnx
-          bilibili
+          pkgs.unstable.bilibili
         ]
         ++ (with pkgs.nur.repos.codgician; [
           nanokvm-usb

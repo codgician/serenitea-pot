@@ -4,7 +4,7 @@
   fetchFromGitHub,
   cmake,
   pkg-config,
-  libva,
+  cix-libva,
   libdrm,
   cix-vpu-driver,
   cix-media-engine,
@@ -12,8 +12,9 @@
 
 # CIX P1 VA-API back-end. Builds a libVA driver (`libcix_va_drv_video.so`)
 # that drives the VPU through V4L2 M2M ioctls and uses the CIX Media Engine
-# for video processing. Upstream assumes Debian BSP paths for both the VPU
-# control header and CME; point those references at their Nix store inputs.
+# for video processing. The 2026Q2 driver requires CIX's matching libva headers
+# for its AV1 picture-parameter extension; BSP paths are replaced with Nix store
+# inputs for the VPU control header and CME.
 stdenv.mkDerivation {
   pname = "cix-vaapi";
   # Upstream has no version stamp or tags; fall back to the
@@ -34,7 +35,7 @@ stdenv.mkDerivation {
   ];
 
   buildInputs = [
-    libva
+    cix-libva
     libdrm
     cix-media-engine
   ];
