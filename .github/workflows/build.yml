@@ -53,6 +53,7 @@ jobs:
           cache: serenitea-pot
           token: ${{ secrets.CACHE_PUSH_TOKEN }}
           inputs-from: .
+          push-args: "-j 1 --no-closure"
       - name: Check flake
         run: nix flake check
       - name: Calculate strategy matrix
@@ -101,6 +102,7 @@ jobs:
           cache: serenitea-pot
           token: ${{ secrets.CACHE_PUSH_TOKEN }}
           inputs-from: .
+          push-args: "-j 1 --no-closure"
       - name: Build
         run: |
           nix build .#nixosConfigurations.${{ matrix.host.name }}.config.system.build.toplevel
@@ -131,6 +133,7 @@ jobs:
           cache: serenitea-pot
           token: ${{ secrets.CACHE_PUSH_TOKEN }}
           inputs-from: .
+          push-args: "-j 1 --no-closure"
       - name: Build
         run: |
           nix build .#darwinConfigurations.${{ matrix.host.name }}.config.system.build.toplevel
