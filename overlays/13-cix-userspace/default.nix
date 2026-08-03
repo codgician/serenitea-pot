@@ -5,18 +5,19 @@ _:
 # without shadowing any upstream package (in particular, `pkgs.ffmpeg`
 # stays unchanged — opt-in via `pkgs.cix.ffmpeg`).
 #
-# Each package file is self-contained: it owns its own `fetch*` call
-# (with the rev + hash pinned inline), so this overlay is purely a
-# registration site for the `pkgs.cix.*` namespace.
+# Each package file owns its source pin; this overlay only registers the
+# `pkgs.cix.*` namespace and wires dependencies shared between packages.
 
-final: _prev: {
+final: _prev:
+let
+  media-engine = final.callPackage ./media-engine.nix { };
+in
+{
   cix = {
+    inherit media-engine;
     vaapi = final.callPackage ./vaapi.nix {
-      # The VA-API back-end needs `mvx-v4l2-controls.h`, which only
-      # lives in the VPU driver source tree. Pull the (kernel-coupled)
-      # driver for the *currently-selected* kernel so the header always
-      # matches the running module.
       inherit (final.linuxPackages) cix-vpu-driver;
+      cix-media-engine = media-engine;
     };
 
     ffmpeg = final.callPackage ./ffmpeg.nix {

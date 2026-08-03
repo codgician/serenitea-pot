@@ -85,6 +85,9 @@ internal
 *.tfstate
 *.tfstate.*
 
+# terraform lock file - not needed because version pinned by nix
+.terraform.lock.hcl
+
 # Crash log files
 crash.log
 crash.*.log

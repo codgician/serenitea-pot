@@ -1,27 +1,22 @@
 {
   lib,
   stdenv,
-  fetchgit,
+  fetchFromGitHub,
 }:
 
 # CIX P1 board firmware blobs (Wi-Fi, Bluetooth, Mali GPU, AMD GPU,
-# SFH/sensor microcode). Sourced from the CIX proprietary repo on
-# GitLab — these are redistributable but not built from source, so we
-# tag the meta accordingly to keep `nixpkgs.config.allowUnfree` honest.
-#
-# Note: `fetchFromGitLab` is unsuitable here because the upstream
-# branch name contains slashes (`874c4/bbdf2/cix_beta2_radxa_dev`)
-# which it interpolates into the tarball URL. `fetchgit` against the
-# full ref handles slashed branch names correctly.
+# SFH/sensor microcode). Sourced from CIX's proprietary GitHub repo;
+# these are redistributable but not built from source, so we tag the
+# meta accordingly to keep `nixpkgs.config.allowUnfree` honest.
 stdenv.mkDerivation {
   pname = "cix-firmware";
-  version = "2025-06-18";
+  version = "2026-06-29";
 
-  src = fetchgit {
-    url = "https://gitlab.com/cix-linux/cix_proprietary/cix_proprietary.git";
-    rev = "e7cf222fb1643779c830d72cdf6b6c02a29d58e7";
-    branchName = "874c4/bbdf2/cix_beta2_radxa_dev";
-    hash = "sha256-LXLmCahe8XAfV+BVVlDp1zNaeCLcx6eMnZmSYQemj4U=";
+  src = fetchFromGitHub {
+    owner = "cixtech";
+    repo = "cix_proprietary__cix_proprietary";
+    rev = "6b1952c90f1469436713f184756e404a43b6e2ad";
+    hash = "sha256-Xey6x36zgkV5RSeBeFjcq40Pu4aVCPP1wyxjWyQkvGQ=";
   };
 
   dontConfigure = true;
@@ -41,7 +36,7 @@ stdenv.mkDerivation {
 
   meta = with lib; {
     description = "Proprietary firmware blobs for the CIX P1 (Sky1) SoC";
-    homepage = "https://gitlab.com/cix-linux/cix_proprietary/cix_proprietary";
+    homepage = "https://github.com/cixtech/cix_proprietary__cix_proprietary";
     license = licenses.unfreeRedistributableFirmware;
     platforms = [ "aarch64-linux" ];
   };
