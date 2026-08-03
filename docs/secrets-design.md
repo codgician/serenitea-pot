@@ -54,9 +54,9 @@ shape (env files, headers), or to a **raw secret** when it is a single value use
 verbatim. The module hides which.
 
 Host consumers (NixOS/darwin services) use this seam. A few secrets are consumed by
-flake **apps** on the operator's workstation instead, where there is no activation
+operator-side workflows on the workstation instead, where there is no activation
 phase; those follow the *same* registry and `ref` convention but are produced on
-demand (see *App-consumed secrets*).
+demand (see *Workstation-consumed secrets*).
 
 ## Three declaration blocks
 
@@ -356,13 +356,13 @@ The operator key (`codgi`) is added to **every** rule. This is what lets a host
 be added and all files re-keyed from the operator's laptop, without any target
 host's private key (see *Adding a host*).
 
-## App-consumed secrets
+## Workstation-consumed secrets
 
 Most secrets are consumed by NixOS/darwin **hosts**: sops-nix renders templates and
 materializes secrets into `/run` at *activation*. Some secrets are instead consumed
-by **flake apps** run on the operator's workstation (`nix run .#tfmgr`), where there
-is no activation phase. These follow the **same registry and the same `ref` template
-convention** — the only difference is *when and how* a file is produced.
+by operator-side workflows (`nix develop .#terraform`), where there is no activation
+phase. These follow the **same registry and the same `ref` template convention** —
+the only difference is *when and how* a file is produced.
 
 ### One rule: `ref` substitution is always raw
 
@@ -389,23 +389,26 @@ nothing is partially encrypted, so no metadata (a credential's `client_email`,
 `project_id`, …) ever lands in git in cleartext. What differs is only *how an app
 turns that blob into something its consumer can read*:
 
-| Consumption | Built by app via | Example |
+| Consumption | Built by operator workflow via | Example |
 | --- | --- | --- |
 | **Composed text** (env files, configs) | `secrets render <name>` decrypts each `ref`ed value and raw-substitutes it into a temporary file | `terraform-env` (4 `ARM_*`/`CLOUDFLARE_*` vars) |
-| **Whole file** (structured credential) | `secrets run` decrypts the raw value byte-for-byte to a temporary file and exports its path | `gcp-credentials` (GCP service-account JSON) |
+| **Whole file** (structured credential) | `secrets run` or `secrets materialize` decrypts the raw value byte-for-byte and exports its path | `gcp-credentials` (GCP service-account JSON) |
 
 Both live in `secrets/values/`, both use the same generated `.sops.yaml` policy,
-and both are mockable. `secrets run` owns the complete process lifecycle: it
-unlocks once, materializes every requested input, executes the consumer, then
-removes the identity and plaintext files.
+and both are mockable. `secrets run` owns a child process and removes every
+plaintext file when it exits. `secrets materialize` instead hands a private
+temporary directory to its caller, which must own cleanup for the consumer's
+complete lifetime.
 
-### `render` and `run`: app-side activation
+### `render`, `run`, and `materialize`: workstation-side activation
 
 `secrets render <template>` is the workstation equivalent of host activation
-for callers that need a rendered file. `secrets run <template> [ENV=secret ...] -- <command>` is preferred for applications: it renders and
-sources the text template, exposes each structured secret through a temporary
-file environment variable, executes the command, and cleans up on exit. Both
-use `$XDG_RUNTIME_DIR`, `$TMPDIR`, or `/tmp` with `0600` permissions.
+for callers that need a rendered file. `secrets run <template> [ENV=secret ...] -- <command>` renders and sources the text template, exposes each structured
+secret through a temporary-file environment variable, executes the command, and
+cleans up on exit. `secrets materialize <template> [ENV=secret ...]` produces the
+same inputs in a private directory for a caller that must prepare an environment
+before Nix executes its final command. All modes use `$XDG_RUNTIME_DIR`, `$TMPDIR`,
+or `/tmp` with private permissions.
 
 ### Structured credentials: decrypted whole, never templated
 
@@ -430,9 +433,11 @@ secrets/values/cloudflare-email
 secrets/values/gcp-credentials        # raw value: fully-encrypted GCP JSON
 ```
 
-`tfmgr` renders `terraform-env` (env vars) and decrypts `gcp-credentials` to a
-tmpfs file (`GOOGLE_APPLICATION_CREDENTIALS`), then runs terraform. All recipients
-are the operator key; no host is involved.
+The Terraform development shell materializes `terraform-env` and `gcp-credentials`,
+sources their environment, copies the generated configuration, and initializes
+Terraform before returning control to Nix. An inherited pipe descriptor keeps a
+cleanup process blocked until the final Bash, zsh, or `-c` command exits. All
+recipients are the operator key; no host is involved.
 
 ## Operator apps
 

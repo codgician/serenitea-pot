@@ -15,7 +15,7 @@ nix run .#mkimg -- -priv /path/to/host/ssh/privkey --ssh-dir /persist/etc/ssh -f
 Start development environment:
 
 ```bash
-nix develop .#cloud -c $SHELL
+nix develop .#terraform
 ```
 
 Login to Azure:

@@ -9,7 +9,7 @@ nix develop -c $SHELL    # Dev shell
 nix fmt                  # Format code
 nix flake check          # Validate
 nix develop .#repl       # Debug REPL
-nix run .#tfmgr -- plan  # Terraform preview
+nix develop .#terraform # Terraform management
 ```
 
 ## Rules
@@ -29,7 +29,7 @@ nix run .#tfmgr -- plan  # Terraform preview
 - Run `git add` before `nix eval/build` (flakes only see tracked files)
 - Show command output when claiming completion
 - Check the need of adding impermanence and systemd.tmpfiles.rules lines when adding new NixOS service modules
-- Request approval for: deploy, `tfmgr apply`, `nix run .#secrets -- rekey`
+- Request approval for: deploy, `terraform apply`, `nix run .#secrets -- rekey`
 
 ## Key Patterns
 

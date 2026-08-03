@@ -26,6 +26,9 @@ let
       edit <name>      Create or rotate a raw secret secrets/values/<name>
       render <tpl>     Render a text template to a 0600 temporary file, print its path
                        (app-side activation; decrypts refs, raw-substitutes)
+      materialize <tpl> [ENV=secret ...]
+                       Render a template and raw-secret files into a private
+                       temporary directory, then print its path
       run <tpl> [ENV=secret ...] -- <command> [args...]
                        Run a command with one rendered env template and optional
                        raw secrets exposed as temporary-file environment variables
@@ -61,12 +64,14 @@ in
         log() { echo "$*" >&2; }
 
         temporary_files=()
+        temporary_directories=()
 
-        cleanup_temporary_files() {
+        cleanup_temporary_paths() {
           [ "''${#temporary_files[@]}" -eq 0 ] || rm -f -- "''${temporary_files[@]}"
+          [ "''${#temporary_directories[@]}" -eq 0 ] || rm -rf -- "''${temporary_directories[@]}"
         }
 
-        trap cleanup_temporary_files EXIT
+        trap cleanup_temporary_paths EXIT
         trap 'exit 130' INT
         trap 'exit 143' TERM
 
@@ -311,23 +316,77 @@ in
           printf '%s' "$content" > "$out"
         }
 
+        runtime_root() {
+          if [ -n "''${XDG_RUNTIME_DIR:-}" ]; then
+            printf '%s\n' "$XDG_RUNTIME_DIR"
+          else
+            printf '%s\n' "''${TMPDIR:-/tmp}"
+          fi
+        }
+
         do_render() {
           local tpl="$1" runtime_dir out
           [ -n "$tpl" ] || err "usage: ${name} render <template>"
           prepare_operator_identity
 
-          runtime_dir="''${XDG_RUNTIME_DIR:-}"
-          if [ -z "$runtime_dir" ]; then
-            runtime_dir="''${TMPDIR:-/tmp}"
-          fi
+          runtime_dir="$(runtime_root)"
           umask 077
           out="$(mktemp "$runtime_dir/secrets-render.XXXXXX")"
           render_template "$tpl" "$out"
           printf '%s\n' "$out"
         }
 
+        parse_raw_secret_binding() {
+          local binding="$1"
+          case "$binding" in
+            *=*) ;;
+            *) err "invalid raw-secret binding '$binding'; expected ENV=secret" ;;
+          esac
+
+          RAW_ENV_NAME="''${binding%%=*}"
+          RAW_SECRET_NAME="''${binding#*=}"
+          [[ "$RAW_ENV_NAME" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] \
+            || err "invalid environment variable name '$RAW_ENV_NAME'"
+          [[ "$RAW_SECRET_NAME" =~ ^[A-Za-z0-9._-]+$ ]] \
+            || err "invalid secret name '$RAW_SECRET_NAME'"
+        }
+
+        decrypt_raw_secret() {
+          local secret_name="$1" out="$2" secret_file
+          secret_file="$(repo_root)/secrets/values/$secret_name"
+          [ -f "$secret_file" ] || err "secret '$secret_name' does not exist"
+          sops decrypt --input-type binary --output-type binary "$secret_file" > "$out"
+        }
+
+        do_materialize() {
+          local tpl="''${1:-}" runtime_dir materialized_dir env_file binding raw_file
+          [ -n "$tpl" ] || err "usage: ${name} materialize <template> [ENV=secret ...]"
+          shift
+
+          prepare_operator_identity
+          runtime_dir="$(runtime_root)"
+          umask 077
+          materialized_dir="$(mktemp -d "$runtime_dir/secrets-materialized.XXXXXX")"
+          temporary_directories+=("$materialized_dir")
+          env_file="$materialized_dir/environment"
+          render_template "$tpl" "$env_file"
+
+          if [ $# -gt 0 ]; then
+            printf '\n' >> "$env_file"
+          fi
+          for binding in "$@"; do
+            parse_raw_secret_binding "$binding"
+            raw_file="$materialized_dir/$RAW_ENV_NAME"
+            decrypt_raw_secret "$RAW_SECRET_NAME" "$raw_file"
+            printf '%s=%q\n' "$RAW_ENV_NAME" "$raw_file" >> "$env_file"
+          done
+
+          printf '%s\n' "$materialized_dir"
+          temporary_directories=()
+        }
+
         do_run() {
-          local tpl="''${1:-}" runtime_dir env_file binding env_name secret_name secret_file raw_file
+          local tpl="''${1:-}" runtime_dir env_file binding raw_file
           [ -n "$tpl" ] || err "usage: ${name} run <template> [ENV=secret ...] -- <command> [args...]"
           shift
 
@@ -341,10 +400,7 @@ in
           [ $# -gt 0 ] || err "missing command"
 
           prepare_operator_identity
-          runtime_dir="''${XDG_RUNTIME_DIR:-}"
-          if [ -z "$runtime_dir" ]; then
-            runtime_dir="''${TMPDIR:-/tmp}"
-          fi
+          runtime_dir="$(runtime_root)"
           umask 077
 
           env_file="$(mktemp "$runtime_dir/secrets-env.XXXXXX")"
@@ -356,22 +412,12 @@ in
           set +a
 
           for binding in "''${bindings[@]}"; do
-            case "$binding" in
-              *=*) ;;
-              *) err "invalid raw-secret binding '$binding'; expected ENV=secret" ;;
-            esac
-            env_name="''${binding%%=*}"
-            secret_name="''${binding#*=}"
-            [[ "$env_name" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] || err "invalid environment variable name '$env_name'"
-            [[ "$secret_name" =~ ^[A-Za-z0-9._-]+$ ]] || err "invalid secret name '$secret_name'"
-            secret_file="$(repo_root)/secrets/values/$secret_name"
-            [ -f "$secret_file" ] || err "secret '$secret_name' does not exist"
-
+            parse_raw_secret_binding "$binding"
             raw_file="$(mktemp "$runtime_dir/secrets-raw.XXXXXX")"
             temporary_files+=("$raw_file")
-            sops decrypt --input-type binary --output-type binary "$secret_file" > "$raw_file"
-            printf -v "$env_name" '%s' "$raw_file"
-            export "''${env_name?}"
+            decrypt_raw_secret "$RAW_SECRET_NAME" "$raw_file"
+            printf -v "$RAW_ENV_NAME" '%s' "$raw_file"
+            export "''${RAW_ENV_NAME?}"
           done
 
           "$@"
@@ -397,6 +443,7 @@ in
           check) do_check ;;
           edit) do_edit "''${1:-}" ;;
           render) do_render "''${1:-}" ;;
+          materialize) do_materialize "$@" ;;
           run) do_run "$@" ;;
           for) do_for ;;
           *) err "Unknown command: $cmd (try --help)" ;;
