@@ -173,7 +173,6 @@ in
     };
 
     security = {
-      polkit.enable = true;
       pam.services = {
         hyprlock = { };
         greetd.enableGnomeKeyring = true;

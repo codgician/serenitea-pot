@@ -200,14 +200,17 @@ in
       # which has no logind session. polkit therefore treats it as inactive and
       # denies `refresh-remote` (allow_inactive=no), causing the metadata refresh
       # to fail with "Failed to obtain auth". Grant this user the action explicitly.
-      polkit.extraConfig = lib.mkIf config.services.fwupd.enable ''
-        polkit.addRule(function(action, subject) {
-          if (action.id == "org.freedesktop.fwupd.refresh-remote" &&
-              subject.user == "fwupd-refresh") {
-            return polkit.Result.YES;
-          }
-        });
-      '';
+      polkit= {
+        enable = true;
+        extraConfig = lib.mkIf config.services.fwupd.enable ''
+          polkit.addRule(function(action, subject) {
+            if (action.id == "org.freedesktop.fwupd.refresh-remote" &&
+                subject.user == "fwupd-refresh") {
+              return polkit.Result.YES;
+            }
+          });
+        '';
+      };
     };
 
     # systemd-boot common configurations
