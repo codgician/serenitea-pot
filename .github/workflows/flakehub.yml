@@ -13,7 +13,7 @@ jobs:
       contents: "read"
     steps:
       - uses: "actions/checkout@v7"
-      - uses: "DeterminateSystems/determinate-nix-action@v3.21.8"
+      - uses: "DeterminateSystems/determinate-nix-action@v3.21.9"
       - uses: "DeterminateSystems/flakehub-push@main"
         with:
           name: "codgician/serenitea-pot"
