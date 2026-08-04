@@ -200,7 +200,7 @@ in
       # which has no logind session. polkit therefore treats it as inactive and
       # denies `refresh-remote` (allow_inactive=no), causing the metadata refresh
       # to fail with "Failed to obtain auth". Grant this user the action explicitly.
-      polkit= {
+      polkit = {
         enable = true;
         extraConfig = lib.mkIf config.services.fwupd.enable ''
           polkit.addRule(function(action, subject) {

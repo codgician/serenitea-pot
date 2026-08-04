@@ -125,6 +125,10 @@ in
     in
     {
       codgician.codgi = {
+        bilibili = {
+          enable = true;
+          gpuAcceleration = "nvidia";
+        };
         codex = {
           enable = true;
           package = pkgs.codex-wrapped;
@@ -195,7 +199,6 @@ in
           element-desktop
           discord
           voxtype-onnx
-          pkgs.unstable.bilibili
         ]
         ++ (with pkgs.nur.repos.codgician; [
           nanokvm-usb
