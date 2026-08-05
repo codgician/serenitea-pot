@@ -3,14 +3,14 @@
   modelRoles = {
     default = "dendro/gpt-5.6-sol";
     smol = "dendro/gpt-5.6-luna";
-    task = "dendro/claude-sonnet-5";
-    slow = "dendro/claude-opus-5:xhigh";
-    plan = "dendro/claude-opus-5:xhigh";
-    advisor = "dendro/claude-sonnet-5:medium";
-    vision = "dendro/gemini-3.1-pro-preview:high";
-    designer = "dendro/gemini-3.1-pro-preview:high";
-    commit = "dendro/kimi-k2.6";
-    tiny = "dendro/gpt-5.4-mini";
+    task = "dendro/grok-4.5";
+    slow = "dendro/gpt-5.6-sol:xhigh";
+    plan = "dendro/gpt-5.6-sol:xhigh";
+    advisor = "dendro/grok-4.5:high";
+    vision = "dendro/gemini-3.6-flash:high";
+    designer = "dendro/gemini-3.6-flash:high";
+    commit = "dendro/gpt-5.6-luna";
+    tiny = "dendro/gpt-5.6-luna";
   };
   modelProviderOrder = [ "dendro" ];
 }
