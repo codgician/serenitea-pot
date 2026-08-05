@@ -66,6 +66,8 @@ let
 
   # Environment variables
   environment = {
+    "LITELLM_MODEL_COST_MAP_URL" =
+      "https://github.com/codgician/litellm/raw/refs/heads/my/model_prices_and_context_window.json";
     # Require pending PR: https://github.com/BerriAI/litellm/pull/34889
     "GITHUB_COPILOT_CLIENT_ID" = "Ov23li8tweQw6odWQebz";
     "GITHUB_COPILOT_USER_AGENT" = "opencode/${pkgs.opencode.version}";

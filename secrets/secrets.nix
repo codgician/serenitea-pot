@@ -159,9 +159,9 @@ in
     # through GOOGLE_APPLICATION_CREDENTIALS. Operator-only: no host/template refs.
     gcp-credentials.publicKeys = pubkeys.users.codgi;
 
-    # Shared env-bundle components 
-    vllm-api-key = { }; 
-    gemini-api-key = { }; 
+    # Shared env-bundle components
+    vllm-api-key = { };
+    gemini-api-key = { };
     claude-code-oauth-token.expiryDate = "2027-08-05";
 
     # litellm-env components

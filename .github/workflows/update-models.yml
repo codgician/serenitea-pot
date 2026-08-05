@@ -27,6 +27,7 @@ jobs:
         env:
           COPILOT_GITHUB_TOKEN: ${{ github.token }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_NIM_API_KEY }}
+          CLAUDE_OAUTH_API_KEY: ${{ secrets.CLAUDE_OAUTH_API_KEY }}
         run: nix shell nixpkgs#curl nixpkgs#jq -c bash modules/generic/models/update.sh
       - name: Validate model registry
         run: |
