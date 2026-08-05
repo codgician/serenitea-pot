@@ -22,61 +22,6 @@
       "reasoning"
     ]
   },
-  "claude-haiku-4-5-20251001": {
-    "contextWindow": 200000,
-    "maxInputTokens": 200000,
-    "maxOutputTokens": 64000,
-    "mode": "chat",
-    "reasoningEfforts": [],
-    "supportedEndpoints": [
-      "/v1/messages"
-    ],
-    "supports": [
-      "toolCalls",
-      "parallelToolCalls",
-      "structuredOutputs",
-      "vision",
-      "reasoning"
-    ]
-  },
-  "claude-opus-4-1-20250805": {
-    "contextWindow": 200000,
-    "maxInputTokens": 200000,
-    "maxOutputTokens": 32000,
-    "mode": "chat",
-    "reasoningEfforts": [],
-    "supportedEndpoints": [
-      "/v1/messages"
-    ],
-    "supports": [
-      "toolCalls",
-      "parallelToolCalls",
-      "structuredOutputs",
-      "vision",
-      "reasoning"
-    ]
-  },
-  "claude-opus-4-5-20251101": {
-    "contextWindow": 200000,
-    "maxInputTokens": 200000,
-    "maxOutputTokens": 64000,
-    "mode": "chat",
-    "reasoningEfforts": [
-      "low",
-      "medium",
-      "high"
-    ],
-    "supportedEndpoints": [
-      "/v1/messages"
-    ],
-    "supports": [
-      "toolCalls",
-      "parallelToolCalls",
-      "structuredOutputs",
-      "vision",
-      "reasoning"
-    ]
-  },
   "claude-opus-4-6": {
     "contextWindow": 1000000,
     "maxInputTokens": 1000000,
@@ -157,23 +102,6 @@
       "xhigh",
       "max"
     ],
-    "supportedEndpoints": [
-      "/v1/messages"
-    ],
-    "supports": [
-      "toolCalls",
-      "parallelToolCalls",
-      "structuredOutputs",
-      "vision",
-      "reasoning"
-    ]
-  },
-  "claude-sonnet-4-5-20250929": {
-    "contextWindow": 1000000,
-    "maxInputTokens": 1000000,
-    "maxOutputTokens": 64000,
-    "mode": "chat",
-    "reasoningEfforts": [],
     "supportedEndpoints": [
       "/v1/messages"
     ],

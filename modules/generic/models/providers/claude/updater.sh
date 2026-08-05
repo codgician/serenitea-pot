@@ -30,7 +30,7 @@ jq -Se '
     or (.max_tokens | type) != "number") then
     error("Anthropic /models response contains an invalid model")
   else
-    [.data[] | select(.type == "model")] | sort_by(.id)
+    [.data[] | select(.type == "model" and (.id | test("-[0-9]{8}$") | not))] | sort_by(.id)
     | reduce .[] as $model ({};
         .[$model.id] = {
           contextWindow: $model.max_input_tokens,
