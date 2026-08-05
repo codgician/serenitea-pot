@@ -23,6 +23,13 @@ jq -Se '
   def reasoning_efforts($model):
     ["low", "medium", "high", "xhigh", "max"]
     | map(select(supported($model.capabilities.effort[.])));
+  def undated_id: sub("-[0-9]{8}$"; "");
+  def normalized_id:
+    undated_id
+    | if test("^claude-[^-]+-[0-9]+-[0-9]+$") then
+        capture("^(?<prefix>claude-[^-]+-[0-9]+)-(?<minor>[0-9]+)$")
+        | "\(.prefix).\(.minor)"
+      else . end;
   if (.data | type) != "array" then
     error("Anthropic /models response has no data array")
   elif any(.data[]; (.id | type) != "string"
@@ -30,24 +37,30 @@ jq -Se '
     or (.max_tokens | type) != "number") then
     error("Anthropic /models response contains an invalid model")
   else
-    [.data[] | select(.type == "model" and (.id | test("-[0-9]{8}$") | not))] | sort_by(.id)
-    | reduce .[] as $model ({};
-        .[$model.id] = {
-          contextWindow: $model.max_input_tokens,
-          maxInputTokens: $model.max_input_tokens,
-          maxOutputTokens: $model.max_tokens,
-          mode: "chat",
-          reasoningEfforts: reasoning_efforts($model),
-          supportedEndpoints: ["/v1/messages"],
-          supports: [
-            "toolCalls",
-            "parallelToolCalls",
-            (if supported($model.capabilities.structured_outputs) then "structuredOutputs" else empty end),
-            (if supported($model.capabilities.image_input) or supported($model.capabilities.pdf_input) then "vision" else empty end),
-            (if supported($model.capabilities.thinking) then "reasoning" else empty end)
-          ]
-        }
-      )
+    [.data[] | select(.type == "model") | { model: ., name: (.id | normalized_id) }] as $models
+    | if ($models | length) != ($models | map(.name) | unique | length) then
+        error("Anthropic model names collide after normalization")
+      else
+        reduce $models[] as $entry ({};
+          .[$entry.name] = {
+            aliases: ([$entry.model.id, ($entry.model.id | undated_id)] | unique | map(select(. != $entry.name))),
+            contextWindow: $entry.model.max_input_tokens,
+            maxInputTokens: $entry.model.max_input_tokens,
+            maxOutputTokens: $entry.model.max_tokens,
+            mode: "chat",
+            path: $entry.model.id,
+            reasoningEfforts: reasoning_efforts($entry.model),
+            supportedEndpoints: ["/v1/messages"],
+            supports: [
+              "toolCalls",
+              "parallelToolCalls",
+              (if supported($entry.model.capabilities.structured_outputs) then "structuredOutputs" else empty end),
+              (if supported($entry.model.capabilities.image_input) or supported($entry.model.capabilities.pdf_input) then "vision" else empty end),
+              (if supported($entry.model.capabilities.thinking) then "reasoning" else empty end)
+            ]
+          }
+        )
+      end
   end
 ' "$tmp/models.json" >"$tmp/output.json"
 

@@ -1,9 +1,11 @@
 {
   "claude-fable-5": {
+    "aliases": [],
     "contextWindow": 1000000,
     "maxInputTokens": 1000000,
     "maxOutputTokens": 128000,
     "mode": "chat",
+    "path": "claude-fable-5",
     "reasoningEfforts": [
       "low",
       "medium",
@@ -22,11 +24,85 @@
       "reasoning"
     ]
   },
-  "claude-opus-4-6": {
+  "claude-haiku-4.5": {
+    "aliases": [
+      "claude-haiku-4-5",
+      "claude-haiku-4-5-20251001"
+    ],
+    "contextWindow": 200000,
+    "maxInputTokens": 200000,
+    "maxOutputTokens": 64000,
+    "mode": "chat",
+    "path": "claude-haiku-4-5-20251001",
+    "reasoningEfforts": [],
+    "supportedEndpoints": [
+      "/v1/messages"
+    ],
+    "supports": [
+      "toolCalls",
+      "parallelToolCalls",
+      "structuredOutputs",
+      "vision",
+      "reasoning"
+    ]
+  },
+  "claude-opus-4.1": {
+    "aliases": [
+      "claude-opus-4-1",
+      "claude-opus-4-1-20250805"
+    ],
+    "contextWindow": 200000,
+    "maxInputTokens": 200000,
+    "maxOutputTokens": 32000,
+    "mode": "chat",
+    "path": "claude-opus-4-1-20250805",
+    "reasoningEfforts": [],
+    "supportedEndpoints": [
+      "/v1/messages"
+    ],
+    "supports": [
+      "toolCalls",
+      "parallelToolCalls",
+      "structuredOutputs",
+      "vision",
+      "reasoning"
+    ]
+  },
+  "claude-opus-4.5": {
+    "aliases": [
+      "claude-opus-4-5",
+      "claude-opus-4-5-20251101"
+    ],
+    "contextWindow": 200000,
+    "maxInputTokens": 200000,
+    "maxOutputTokens": 64000,
+    "mode": "chat",
+    "path": "claude-opus-4-5-20251101",
+    "reasoningEfforts": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "supportedEndpoints": [
+      "/v1/messages"
+    ],
+    "supports": [
+      "toolCalls",
+      "parallelToolCalls",
+      "structuredOutputs",
+      "vision",
+      "reasoning"
+    ]
+  },
+  "claude-opus-4.6": {
+    "aliases": [
+      "claude-opus-4-6"
+    ],
     "contextWindow": 1000000,
     "maxInputTokens": 1000000,
     "maxOutputTokens": 128000,
     "mode": "chat",
+    "path": "claude-opus-4-6",
     "reasoningEfforts": [
       "low",
       "medium",
@@ -44,11 +120,15 @@
       "reasoning"
     ]
   },
-  "claude-opus-4-7": {
+  "claude-opus-4.7": {
+    "aliases": [
+      "claude-opus-4-7"
+    ],
     "contextWindow": 1000000,
     "maxInputTokens": 1000000,
     "maxOutputTokens": 128000,
     "mode": "chat",
+    "path": "claude-opus-4-7",
     "reasoningEfforts": [
       "low",
       "medium",
@@ -67,11 +147,15 @@
       "reasoning"
     ]
   },
-  "claude-opus-4-8": {
+  "claude-opus-4.8": {
+    "aliases": [
+      "claude-opus-4-8"
+    ],
     "contextWindow": 1000000,
     "maxInputTokens": 1000000,
     "maxOutputTokens": 128000,
     "mode": "chat",
+    "path": "claude-opus-4-8",
     "reasoningEfforts": [
       "low",
       "medium",
@@ -91,10 +175,12 @@
     ]
   },
   "claude-opus-5": {
+    "aliases": [],
     "contextWindow": 1000000,
     "maxInputTokens": 1000000,
     "maxOutputTokens": 128000,
     "mode": "chat",
+    "path": "claude-opus-5",
     "reasoningEfforts": [
       "low",
       "medium",
@@ -113,11 +199,37 @@
       "reasoning"
     ]
   },
-  "claude-sonnet-4-6": {
+  "claude-sonnet-4.5": {
+    "aliases": [
+      "claude-sonnet-4-5",
+      "claude-sonnet-4-5-20250929"
+    ],
+    "contextWindow": 1000000,
+    "maxInputTokens": 1000000,
+    "maxOutputTokens": 64000,
+    "mode": "chat",
+    "path": "claude-sonnet-4-5-20250929",
+    "reasoningEfforts": [],
+    "supportedEndpoints": [
+      "/v1/messages"
+    ],
+    "supports": [
+      "toolCalls",
+      "parallelToolCalls",
+      "structuredOutputs",
+      "vision",
+      "reasoning"
+    ]
+  },
+  "claude-sonnet-4.6": {
+    "aliases": [
+      "claude-sonnet-4-6"
+    ],
     "contextWindow": 1000000,
     "maxInputTokens": 1000000,
     "maxOutputTokens": 128000,
     "mode": "chat",
+    "path": "claude-sonnet-4-6",
     "reasoningEfforts": [
       "low",
       "medium",
@@ -136,10 +248,12 @@
     ]
   },
   "claude-sonnet-5": {
+    "aliases": [],
     "contextWindow": 1000000,
     "maxInputTokens": 1000000,
     "maxOutputTokens": 128000,
     "mode": "chat",
+    "path": "claude-sonnet-5",
     "reasoningEfforts": [
       "low",
       "medium",
