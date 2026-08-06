@@ -12,6 +12,7 @@ let
   cfg = config.codgician.services.litellm;
   types = lib.types;
   defaultStateDir = "/var/lib/${serviceName}";
+  claudeOAuthHook = ./hooks;
 
   # Transform registry models to LiteLLM model_list format
   mkLiteLLMModel = m: {
@@ -47,6 +48,7 @@ let
       cache = false; # Disabled
       enable_caching_on_provider_specific_optional_params = true;
       cache_params.type = "redis";
+      callbacks = [ "claude_oauth_hook.proxy_handler_instance" ];
       drop_params = true;
       modify_params = true;
       model_alias_map = aliasMap;
@@ -54,16 +56,6 @@ let
       stream = true;
     };
     model_list = allModels;
-    prompts = [
-      {
-        prompt_id = "claude";
-        litellm_params = {
-          prompt_id = "claude";
-          prompt_integration = "dotprompt";
-          dotprompt_content = builtins.readFile ./claude.prompt;
-        };
-      }
-    ];
   };
 
   # Redis socket path (different for container vs nixpkgs)
@@ -77,6 +69,7 @@ let
   environment = {
     "LITELLM_MODEL_COST_MAP_URL" =
       "https://github.com/codgician/litellm/raw/refs/heads/my/model_prices_and_context_window.json";
+    "PYTHONPATH" = if cfg.backend == "nixpkgs" then "${claudeOAuthHook}" else "/";
     # Require pending PR: https://github.com/BerriAI/litellm/pull/34889
     "GITHUB_COPILOT_CLIENT_ID" = "Ov23li8tweQw6odWQebz";
     "GITHUB_COPILOT_USER_AGENT" = "opencode/${pkgs.opencode.version}";
@@ -256,6 +249,7 @@ in
         image = cfg.image;
         volumes = [
           "${(pkgs.formats.yaml { }).generate "config.yaml" settings}:/config.yaml:ro"
+          "${claudeOAuthHook}/claude_oauth_hook.py:/claude_oauth_hook.py:ro"
           "${cfg.stateDir}:/config:U"
           "/run/postgresql:/run/postgresql"
           "/run/redis-${serviceName}:/run/redis-${serviceName}"

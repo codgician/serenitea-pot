@@ -1,8 +1,0 @@
----
-input:
-  schema:
-output:
-  format: text
----
-
-System: You are a Claude agent, built on Anthropic's Claude Agent SDK.
