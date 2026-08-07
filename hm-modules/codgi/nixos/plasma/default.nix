@@ -138,6 +138,22 @@ in
       description = "Enable dotfiles for KDE plasma desktop.";
     };
 
+    krdp = {
+      enable = lib.mkEnableOption "the KRDP server for this Plasma session";
+
+      port = lib.mkOption {
+        type = types.port;
+        default = 3389;
+        description = "TCP port on which KRDP listens.";
+      };
+
+      quality = lib.mkOption {
+        type = types.ints.between 0 100;
+        default = 75;
+        description = "Video encoding quality from 0 (lowest) to 100 (highest).";
+      };
+    };
+
     launchers = lib.mkOption {
       type = with types; listOf str;
       default = [
@@ -420,6 +436,12 @@ in
         kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General".PreviewImage = lib.mkIf (
           cfg.wallpaper != null
         ) cfg.wallpaper;
+        krdpserverrc.General = {
+          Autostart = cfg.krdp.enable;
+          ListenPort = cfg.krdp.port;
+          Quality = cfg.krdp.quality;
+          SystemUserEnabled = cfg.krdp.enable;
+        };
 
         # Plasma 6.3+ reads window decoration from `org.kde.kdecoration3`,
         # while plasma-manager currently writes the legacy
@@ -444,6 +466,12 @@ in
           Wayland.InputMethod = "${osConfig.i18n.inputMethod.package}/share/applications/fcitx5-wayland-launcher.desktop";
         };
       };
+    };
+
+    xdg.configFile."systemd/user/plasma-workspace.target.wants/app-org.kde.krdpserver.service" = {
+      enable = cfg.krdp.enable;
+      force = true;
+      source = "${pkgs.kdePackages.krdp}/share/systemd/user/app-org.kde.krdpserver.service";
     };
 
     # Konsole

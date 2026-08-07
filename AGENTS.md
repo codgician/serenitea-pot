@@ -1,4 +1,4 @@
-# PROJECT KNOWLEDGE BASE
+# AGENTS.MD
 
 Nix Flake monorepo managing NixOS + macOS (nix-darwin) device profiles.
 
@@ -25,7 +25,6 @@ nix develop .#terraform # Terraform management
 
 ### ALWAYS
 - Run `nix fmt` before presenting changes
-- Run `nix flake check` to validate changes. If the user ask you to switch to new config, you can run nixos-rebuild directly instead.
 - Run `git add` before `nix eval/build` (flakes only see tracked files)
 - Show command output when claiming completion
 - Check the need of adding impermanence and systemd.tmpfiles.rules lines when adding new NixOS service modules
@@ -35,7 +34,7 @@ nix develop .#terraform # Terraform management
 
 - **Hosts**: `hosts/{darwin,nixos}/<name>/default.nix` using `lib.codgician.mk{Nixos,Darwin}System`
 - **Services**: `modules/nixos/services/<name>/` with `codgician.services.<name>` namespace
-- **Secrets**: `secrets/*.age` registered in `secrets/secrets.nix`
+- **Secrets**: Registered in `secrets/secrets.nix`
 - **Terraform**: `packages/terraform-config/` with Terranix syntax
 
 ## Commit Format

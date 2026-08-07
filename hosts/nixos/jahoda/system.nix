@@ -154,6 +154,11 @@ in
         plasma = {
           inherit wallpaper;
           scale = 1.5;
+          krdp = {
+            enable = true;
+            port = 3389;
+            quality = 75;
+          };
           launchers = [
             "applications:org.kde.dolphin.desktop"
             "applications:microsoft-edge.desktop"
@@ -250,10 +255,10 @@ in
     wait-online.enable = false;
     networks."50-sing-box-tun" = {
       dns = [ "192.168.0.1" ];
-      domains = [ 
+      domains = [
         "~cdu"
-        "~lan" 
-        "~codgician.me" 
+        "~lan"
+        "~codgician.me"
       ];
     };
   };
@@ -328,7 +333,10 @@ in
   programs.nix-ld.enable = true;
 
   # Firewall
-  networking.firewall.enable = false;
+  networking.firewall = {
+    enable = false;
+    allowedTCPPorts = [ 3389 ];
+  };
 
   # This value determines the NixOS release from which the default
   # settings for stateful data, like file locations and database versions
