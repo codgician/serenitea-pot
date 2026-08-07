@@ -110,6 +110,7 @@ in
     sing-codgi-proxy-password.publicKeys = publicServers ++ hosts.jahoda;
     sing-lxm75-proxy-password.publicKeys = publicServers;
     sing-itscd-proxy-password.publicKeys = publicServers;
+    sing-ss-lumidouce-password.publicKeys = someHosts [ hosts.jahoda ];
 
     # PiKVM basic auth (rendered behind nginx on lumine)
     saw-basic-auth.publicKeys = someHosts [ hosts.lumine ];

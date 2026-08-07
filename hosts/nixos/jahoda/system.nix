@@ -34,15 +34,13 @@ in
 
       sing-box = {
         enable = true;
-        users = [ "codgi" ];
-        clients.hysteria2 = {
+        clients.ss-lumidouce = {
           enable = true;
-          server = "lumine.codgician.me";
-          user = "codgi";
+          bindInterface = "eno1-guest";
         };
         tun = {
           enable = true;
-          outbound = "outbound-hysteria2";
+          outbound = "outbound-ss-lumidouce";
           stack = "mixed";
           routedRanges = [
             "192.168.0.0/16"
@@ -209,6 +207,34 @@ in
   networking.networkmanager = {
     enable = true;
     unmanaged = [ "thunderbolt0" ];
+
+    ensureProfiles.profiles."eno1-guest" = {
+      connection = {
+        id = "eno1-guest";
+        type = "macvlan";
+        interface-name = "eno1-guest";
+        autoconnect = true;
+      };
+
+      ethernet.cloned-mac-address = "b0:7b:25:23:66:63";
+
+      macvlan = {
+        parent = "eno1";
+        mode = 2; # Bridge mode
+      };
+
+      ipv4 = {
+        method = "auto";
+        route-metric = 600;
+        ignore-auto-dns = true;
+      };
+
+      ipv6 = {
+        method = "auto";
+        route-metric = 600;
+        ignore-auto-dns = true;
+      };
+    };
   };
   networking.hostId = "357a80da";
 
@@ -223,7 +249,11 @@ in
     wait-online.enable = false;
     networks."50-sing-box-tun" = {
       dns = [ "192.168.0.1" ];
-      domains = [ "~lan" ];
+      domains = [ 
+        "~cdu"
+        "~lan" 
+        "~codgician.me" 
+      ];
     };
   };
 

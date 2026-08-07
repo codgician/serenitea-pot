@@ -129,6 +129,7 @@ in
         iftop
         iperf3
         dnsutils
+        inetutils
         net-tools
         sysstat
         config.boot.kernelPackages.cpupower
