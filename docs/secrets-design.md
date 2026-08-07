@@ -435,9 +435,9 @@ secrets/values/gcp-credentials        # raw value: fully-encrypted GCP JSON
 
 The Terraform development shell materializes `terraform-env` and `gcp-credentials`,
 sources their environment, copies the generated configuration, and initializes
-Terraform before returning control to Nix. An inherited pipe descriptor keeps a
-cleanup process blocked until the final Bash, zsh, or `-c` command exits. All
-recipients are the operator key; no host is involved.
+Terraform before returning control to Nix. A cleanup watcher follows the final
+Bash, zsh, or `-c` command's process lifetime so nested shells cannot invalidate
+the temporary credentials by closing inherited file descriptors.
 
 ## Operator apps
 

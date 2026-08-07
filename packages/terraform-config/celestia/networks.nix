@@ -24,7 +24,7 @@ in
         "192.168.64.0/24"
         "fd00:c0d9:1c64::/64"
       ];
-      service_endpoints = [ "Microsoft.Storage.Global" ];
+      service_endpoint = [ { service = "Microsoft.Storage.Global"; } ];
     };
   };
 }

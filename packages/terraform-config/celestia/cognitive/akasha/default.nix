@@ -4,10 +4,6 @@ let
   inherit (metadata) account deployments;
   inherit (account) location;
   resource_group_name = config.resource.azurerm_resource_group.celestia.name;
-  cognitive_account_id =
-    "/subscriptions/"
-    + config.provider.azurerm.subscription_id
-    + "/resourceGroups/celestia/providers/Microsoft.CognitiveServices/accounts/${account.name}";
 
   deploymentResources = lib.mapAttrs' (
     name: deployment:
@@ -21,21 +17,6 @@ let
   ) deployments;
 in
 {
-  # Preserve the existing account while changing from the deprecated resource type.
-  removed = [
-    {
-      from = "azurerm_ai_services.akasha";
-      lifecycle.destroy = false;
-    }
-  ];
-
-  import = [
-    {
-      to = "azurerm_cognitive_account.akasha";
-      id = cognitive_account_id;
-    }
-  ];
-
   resource = {
     azurerm_cognitive_account.akasha = {
       inherit (account) name;

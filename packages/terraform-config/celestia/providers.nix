@@ -9,7 +9,7 @@ in
     required_providers = {
       azurerm = {
         source = "hashicorp/azurerm";
-        version = "~> 4.81";
+        version = "~> 5.0";
       };
 
     };
@@ -27,8 +27,15 @@ in
   provider = {
     azurerm = {
       features = { };
+      resource_providers_to_register = [
+        "Microsoft.CognitiveServices"
+        "Microsoft.Compute"
+        "Microsoft.CostManagement"
+        "Microsoft.Network"
+        "Microsoft.Resources"
+        "Microsoft.Storage"
+      ];
       inherit subscription_id tenant_id client_id;
     };
-
   };
 }

@@ -35,14 +35,17 @@ pkgs.mkShell {
     terraform_secrets_dir="$(${secretsApp} materialize terraform-env \
       GOOGLE_APPLICATION_CREDENTIALS=gcp-credentials)" || exit
 
-    exec {terraform_secrets_lifetime_fd}> >(
-      trap "" HUP INT TERM
-      ${pkgs.coreutils}/bin/cat >/dev/null
-      ${pkgs.coreutils}/bin/rm -rf -- "$terraform_secrets_dir"
-    ) || {
-      ${pkgs.coreutils}/bin/rm -rf -- "$terraform_secrets_dir"
-      exit 1
-    }
+    terraform_secrets_owner_pid=$$
+    (
+      cleanup_terraform_secrets() {
+        ${pkgs.coreutils}/bin/rm -rf -- "$terraform_secrets_dir"
+      }
+      trap 'cleanup_terraform_secrets; exit' HUP INT TERM
+      while kill -0 "$terraform_secrets_owner_pid" 2>/dev/null; do
+        ${pkgs.coreutils}/bin/sleep 1
+      done
+      cleanup_terraform_secrets
+    ) &
 
     terraform_allexport_was_set=
     [[ $- == *a* ]] && terraform_allexport_was_set=1

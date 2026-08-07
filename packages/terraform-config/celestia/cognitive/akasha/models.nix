@@ -63,31 +63,5 @@
         capacity = 9;
       };
     };
-
-    "grok-4.3" = {
-      registry.provider = "azure_ai";
-      model = {
-        format = "xAI";
-        name = "grok-4.3";
-        version = "1";
-      };
-      sku = {
-        name = "GlobalStandard";
-        capacity = 50;
-      };
-    };
-
-    "kimi-k2.6" = {
-      registry.provider = "azure_ai";
-      model = {
-        format = "MoonshotAI";
-        name = "Kimi-K2.6";
-        version = "2026-04-20";
-      };
-      sku = {
-        name = "GlobalStandard";
-        capacity = 20;
-      };
-    };
   };
 }
