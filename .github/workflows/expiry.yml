@@ -15,7 +15,7 @@ jobs:
         with:
           fetch-depth: 1
           persist-credentials: 'true'
-      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: NixOS/nix-installer-action@main
         with:
           extra-conf: |
             accept-flake-config = true
