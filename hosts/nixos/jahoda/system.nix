@@ -197,6 +197,7 @@ in
           element-desktop
           discord
           voxtype-onnx
+          moonlight-qt
         ]
         ++ (with pkgs.nur.repos.codgician; [
           nanokvm-usb
