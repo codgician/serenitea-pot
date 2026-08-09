@@ -19,6 +19,8 @@ let
 
   # DBX EFI variable GUID
   dbxGuid = "d719b2cb-3d3a-4596-a3bc-dad00e67656f";
+  securebootObjects = pkgs.nur.repos.codgician.secureboot-objects;
+  securebootObjectsDir = "${securebootObjects}/share/secureboot-objects";
   helpText = ''
     ${name} - Manage UEFI Secure Boot DBX (revocation database)
 
@@ -26,20 +28,17 @@ let
 
     COMMANDS:
       status      Show current DBX status and available updates
-      fetch       Download latest DBX update (does not apply)
-      apply       Apply a previously fetched DBX update
-      update      Fetch and apply in one step (with confirmation)
+      apply       Apply a DBX update from a specified file
+      update      Apply the packaged DBX update (with confirmation)
 
     OPTIONS:
       -h, --help      Show this help
       -y, --yes       Skip confirmation prompts
-      --arch ARCH     Override architecture (default: ${msftArch})
 
     EXAMPLES:
       ${name} status              # Check if DBX needs updating
-      ${name} fetch               # Download latest DBX to /tmp
       ${name} apply /tmp/dbx.bin  # Apply a specific DBX file
-      ${name} update              # Fetch and apply with confirmation
+      ${name} update              # Apply the packaged DBX update
 
     NOTES:
       - Requires root privileges for 'apply' and 'update' commands
@@ -65,22 +64,18 @@ in
       inherit name;
       runtimeInputs = with pkgs; [
         coreutils
-        curl
         e2fsprogs # for chattr
         efitools
-        findutils
-        gawk
         gnugrep
-        jq
-        unzip
       ];
 
       text = ''
         set -euo pipefail
 
         ARCH="${msftArch}"
-        GITHUB_REPO="microsoft/secureboot_objects"
         DBX_GUID="${dbxGuid}"
+        DBX_SOURCE="${securebootObjectsDir}/$ARCH/DBXUpdate.bin"
+        DBX_VERSION="${securebootObjects.version}"
         DBX_VAR_PATH="/sys/firmware/efi/efivars/dbx-$DBX_GUID"
 
         # Colors
@@ -131,68 +126,6 @@ in
           # Each SHA256 hash entry is ~48 bytes (16 GUID + 32 hash)
           local entries=$(( (size - 4) / 48 ))
           echo "enrolled:$size:$entries"
-        }
-
-        # Fetch latest release info from GitHub
-        get_latest_release() {
-          local release_info
-          release_info=$(curl -sL "https://api.github.com/repos/$GITHUB_REPO/releases/latest") || err "Failed to fetch release info"
-          echo "$release_info"
-        }
-
-        # Extract version tag from release
-        get_release_version() {
-          local release_info="$1"
-          echo "$release_info" | jq -r '.tag_name // empty' || err "Failed to parse release version"
-        }
-
-        # Get download URL for the release zip
-        get_release_url() {
-          local release_info="$1"
-          echo "$release_info" | jq -r '.zipball_url // empty' || err "Failed to parse release URL"
-        }
-
-        # Download and extract DBX binary for specified arch
-        fetch_dbx() {
-          local arch="$1"
-          local output_dir="$2"
-
-          info "Fetching latest release info..."
-          local release_info
-          release_info=$(get_latest_release)
-
-          local version
-          version=$(get_release_version "$release_info")
-          [[ -n "$version" ]] || err "Could not determine latest version"
-          info "Latest version: $version"
-
-          local zip_url
-          zip_url=$(get_release_url "$release_info")
-          [[ -n "$zip_url" ]] || err "Could not get download URL"
-
-          local tmp_dir
-          tmp_dir=$(mktemp -d)
-          # shellcheck disable=SC2064
-          trap "rm -rf '$tmp_dir'" EXIT
-
-          info "Downloading release archive..."
-          curl -sL "$zip_url" -o "$tmp_dir/release.zip" || err "Failed to download release"
-
-          info "Extracting..."
-          unzip -q "$tmp_dir/release.zip" -d "$tmp_dir" || err "Failed to extract release"
-
-          # Find the DBX binary for our arch
-          local dbx_file
-          dbx_file=$(find "$tmp_dir" -path "*/$arch/DBXUpdate.bin" -type f | head -1)
-          [[ -n "$dbx_file" ]] || err "DBXUpdate.bin not found for architecture: $arch"
-
-          local output_file="$output_dir/DBXUpdate-$version-$arch.bin"
-          cp "$dbx_file" "$output_file"
-
-          # Version info is in the filename
-
-          info "Downloaded: $output_file"
-          echo "$output_file"
         }
 
         # Apply DBX update
@@ -314,51 +247,28 @@ in
           esac
 
           log ""
-          log "Architecture:   $arch"
+          log "Architecture:   $ARCH"
           log ""
 
-          # Fetch and compare with latest
-          info "Fetching latest release for comparison..."
-          
-          local release_info version
-          release_info=$(get_latest_release 2>/dev/null) || {
-            warn "Could not fetch latest release info"
-            return 1
-          }
-          version=$(get_release_version "$release_info")
-          
-          local zip_url tmp_dir
-          zip_url=$(get_release_url "$release_info")
-          tmp_dir=$(mktemp -d)
-          # shellcheck disable=SC2064
-          trap "rm -rf '$tmp_dir'" EXIT
+          # Compare with the update supplied by the pinned NUR package
+          info "Reading packaged DBX update..."
 
-          curl -sL "$zip_url" -o "$tmp_dir/release.zip" 2>/dev/null || {
-            warn "Could not download release"
-            return 1
-          }
-          unzip -q "$tmp_dir/release.zip" -d "$tmp_dir" 2>/dev/null || {
-            warn "Could not extract release"
+          local latest_file="$DBX_SOURCE"
+          [[ -f "$latest_file" ]] || {
+            warn "Packaged DBX update not found for architecture: $ARCH"
             return 1
           }
 
-          local latest_file latest_hash latest_entries latest_size
-          latest_file=$(find "$tmp_dir" -path "*/$arch/DBXUpdate.bin" -type f | head -1)
-          
-          if [[ -z "$latest_file" ]]; then
-            warn "Could not find DBX for architecture: $arch"
-            return 1
-          fi
-
+          local latest_hash latest_entries latest_size
           latest_size=$(stat -c%s "$latest_file")
           latest_entries=$(count_dbx_entries "$latest_file")
           latest_hash=$(get_dbx_hash "$latest_file")
 
-          log "Latest ($version):"
+          log "Packaged ($DBX_VERSION):"
           log "  Size:       $latest_size bytes"
           log "  Entries:    ~$latest_entries revoked signatures"
           log "  Hash:       ''${latest_hash:0:16}..."
-          log "  Source:     https://github.com/$GITHUB_REPO/releases/tag/$version"
+          log "  Source:     ${securebootObjects.meta.changelog}"
           log ""
 
           # Compare
@@ -377,7 +287,6 @@ in
         }
 
         # Main
-        arch="$ARCH"
         auto_yes=0
         command=""
         args=()
@@ -386,7 +295,6 @@ in
           case $1 in
             -h|--help) show_help; exit 0 ;;
             -y|--yes) auto_yes=1; shift ;;
-            --arch) arch="$2"; shift 2 ;;
             -*) err "Unknown option: $1" ;;
             *)
               if [[ -z "$command" ]]; then
@@ -403,11 +311,6 @@ in
         case "$command" in
           status)
             show_status
-            ;;
-
-          fetch)
-            output_dir="''${args[0]:-/tmp}"
-            fetch_dbx "$arch" "$output_dir"
             ;;
 
           apply)
@@ -439,19 +342,15 @@ in
               exit 0
             fi
 
-            log ""
-            info "Fetching latest DBX..."
-            dbx_file=$(fetch_dbx "$arch" "/tmp")
-
             if [[ "$auto_yes" -eq 0 ]]; then
               log ""
               warn "This will modify your system's Secure Boot DBX database."
               warn "Ensure your bootloader is up to date before proceeding."
               read -r -p "Apply update now? [y/N] " confirm
-              [[ "$confirm" =~ ^[Yy]$ ]] || { log "Aborted. File saved at: $dbx_file"; exit 0; }
+              [[ "$confirm" =~ ^[Yy]$ ]] || { log "Aborted."; exit 0; }
             fi
 
-            apply_dbx "$dbx_file"
+            apply_dbx "$DBX_SOURCE"
             ;;
 
           *)
