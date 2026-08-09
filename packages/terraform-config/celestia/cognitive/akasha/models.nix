@@ -63,5 +63,31 @@
         capacity = 9;
       };
     };
+
+    "gpt-realtime-2.1" = {
+      registry.mode = "realtime";
+      model = {
+        format = "OpenAI";
+        name = "gpt-realtime-2.1";
+        version = "2026-07-07";
+      };
+      sku = {
+        name = "GlobalStandard";
+        capacity = 10;
+      };
+    };
+
+    "gpt-realtime-2.1-mini" = {
+      registry.mode = "realtime";
+      model = {
+        format = "OpenAI";
+        name = "gpt-realtime-2.1-mini";
+        version = "2026-07-07";
+      };
+      sku = {
+        name = "GlobalStandard";
+        capacity = 10;
+      };
+    };
   };
 }
