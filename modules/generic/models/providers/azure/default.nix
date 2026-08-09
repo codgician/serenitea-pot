@@ -25,6 +25,15 @@ let
         type = types.nullOr types.str;
         default = null;
       };
+      realtimeProtocol = mkOption {
+        type = types.nullOr (
+          types.enum [
+            "GA"
+            "beta"
+          ]
+        );
+        default = null;
+      };
     };
   };
 in
@@ -44,6 +53,7 @@ in
         api_base = "https://${azureSubdomain}.services.ai.azure.com";
         api_key = "os.environ/AZURE_AKASHA_API_KEY";
       }
+      // lib.optionalAttrs (spec.realtimeProtocol != null) { realtime_protocol = spec.realtimeProtocol; }
       // lib.optionalAttrs (spec.apiVersion != null) { api_version = spec.apiVersion; };
       tags = [
         "azure"

@@ -65,7 +65,10 @@
     };
 
     "gpt-realtime-2.1" = {
-      registry.mode = "realtime";
+      registry = {
+        mode = "realtime";
+        realtimeProtocol = "GA";
+      };
       model = {
         format = "OpenAI";
         name = "gpt-realtime-2.1";
@@ -78,7 +81,10 @@
     };
 
     "gpt-realtime-2.1-mini" = {
-      registry.mode = "realtime";
+      registry = {
+        mode = "realtime";
+        realtimeProtocol = "GA";
+      };
       model = {
         format = "OpenAI";
         name = "gpt-realtime-2.1-mini";
