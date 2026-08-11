@@ -447,6 +447,33 @@
       "reasoning"
     ]
   },
+  "mai-code-1.1-flash": {
+    "contextWindow": 256000,
+    "cost": {
+      "cacheRead": 0.02,
+      "cacheWrite": 0.25,
+      "input": 0.2,
+      "output": 1.2
+    },
+    "maxInputTokens": 128000,
+    "maxOutputTokens": 128000,
+    "mode": "responses",
+    "reasoningEfforts": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "supportedEndpoints": [
+      "/v1/responses"
+    ],
+    "supports": [
+      "toolCalls",
+      "parallelToolCalls",
+      "structuredOutputs",
+      "vision",
+      "reasoning"
+    ]
+  },
   "text-embedding-3-small": {
     "mode": "embedding",
     "reasoningEfforts": [],
