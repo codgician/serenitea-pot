@@ -214,6 +214,26 @@ in
     enable = true;
     unmanaged = [ "thunderbolt0" ];
 
+    ensureProfiles.profiles.eno1 = {
+      connection = {
+        id = "eno1";
+        type = "ethernet";
+        interface-name = "eno1";
+        autoconnect = true;
+      };
+
+      ipv4 = {
+        method = "auto";
+        route-metric = 100;
+      };
+
+      ipv6 = {
+        method = "auto";
+        route-metric = 100;
+        addr-gen-mode = "stable-privacy";
+      };
+    };
+
     ensureProfiles.profiles."eno1-guest" = {
       connection = {
         id = "eno1-guest";
