@@ -71,25 +71,6 @@
         };
       };
 
-      docling-serve = {
-        enable = true;
-        backend = "container";
-        hfCacheDir = "/xpool/llm/docling-serve/hf-cache";
-        reverseProxy = {
-          enable = true;
-          authelia = {
-            enable = true;
-            rules = [
-              {
-                groups = [ "vision" ];
-                policy = "two_factor";
-              }
-            ];
-          };
-          domains = [ "vision.codgician.me" ];
-        };
-      };
-
       vllm = {
         enable = true;
         cuda = true;
@@ -98,10 +79,10 @@
 
         instances = {
           qwen-chat = {
-            model = "Intel/Qwen3.6-27B-int4-AutoRound";
+            model = "unsloth/Qwen3.8-27B-FP8";
             host = "0.0.0.0";
             port = 8000;
-            gpuMemoryUtilization = 0.7525;
+            gpuMemoryUtilization = 0.88;
             extraArgs = [
               "--max-model-len"
               "262144"

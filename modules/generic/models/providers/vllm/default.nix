@@ -24,9 +24,9 @@ in
         ];
         extraParams.api_base = spec.apiBase;
       } name spec;
-    models."qwen3.6-27b-int4" = {
+    models."qwen3.8-27b-fp8" = {
       apiBase = "http://192.168.0.22:8000/v1";
-      path = "Intel/Qwen3.6-27B-int4-AutoRound";
+      path = "unsloth/Qwen3.8-27B-FP8";
     };
   };
 }

@@ -200,6 +200,8 @@ let
     ENABLE_RAG_HYBRID_SEARCH_ENRICHED_TEXTS = "True";
     RAG_TEXT_SPLITTER = "token";
     CHUNK_SIZE = "800";
+    # Use built-in loaders unless an extraction service overrides this.
+    CONTENT_EXTRACTION_ENGINE = "";
     PDF_EXTRACT_IMAGES = "True";
     ENABLE_SEARCH_QUERY = "True";
     ENABLE_RAG_WEB_SEARCH = "True";
