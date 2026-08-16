@@ -127,8 +127,8 @@ let
   };
 
   environment = {
-    # Enable CUDA
-    USE_CUDA_DOCKER = "True";
+    # The NixOS service has no GPU passthrough; keep local inference on CPU.
+    USE_CUDA_DOCKER = "False";
     ENV = "prod";
     # Always honour environment variables over the database so configuration
     # stays consistent with this module. Values below mirror the state that was
@@ -206,22 +206,16 @@ let
     ENABLE_SEARCH_QUERY = "True";
     ENABLE_RAG_WEB_SEARCH = "True";
     RAG_WEB_SEARCH_ENGINE = "exa";
-    RAG_EMBEDDING_ENGINE = if cfg.embedding.engine == "vllm" then "openai" else cfg.embedding.engine;
-    RAG_EMBEDDING_MODEL = cfg.embedding.model;
-    RAG_OLLAMA_BASE_URL = lib.mkIf (
-      cfg.embedding.engine == "ollama"
-    ) "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
-    RAG_OPENAI_API_BASE_URL =
-      if cfg.embedding.engine == "openai" then
-        cfg.embedding.openai.baseUrl
-      else if cfg.embedding.engine == "vllm" && cfg.embedding.vllm.instance != null then
-        let
-          inst = vllmCfg.instances.${cfg.embedding.vllm.instance};
-        in
-        # The embedding backend is always co-located with open-webui.
-        "http://127.0.0.1:${builtins.toString inst.port}/v1"
+    RAG_EMBEDDING_ENGINE =
+      if cfg.embedding.engine == "local" then
+        ""
+      else if cfg.embedding.engine == "vllm" then
+        "openai"
       else
-        null;
+        cfg.embedding.engine;
+    RAG_EMBEDDING_MODEL = cfg.embedding.model;
+    SENTENCE_TRANSFORMERS_HOME = "${cfg.stateDir}/cache/embedding/models";
+    RAG_EMBEDDING_MODEL_AUTO_UPDATE = "False";
     # RAG_OPENAI_API_KEY provided in env
     RAG_TOP_K = "5";
     RAG_TOP_K_RERANKER = "5";
@@ -256,6 +250,20 @@ let
     ENABLE_REALTIME_CHAT_SAVE = "True";
     ENABLE_CHAT_RESPONSE_BASE64_IMAGE_URL_CONVERSION = "True";
   }
+  // (lib.optionalAttrs (cfg.embedding.engine == "ollama") {
+    RAG_OLLAMA_BASE_URL = "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
+  })
+  // (lib.optionalAttrs (cfg.embedding.engine == "openai") {
+    RAG_OPENAI_API_BASE_URL = cfg.embedding.openai.baseUrl;
+  })
+  // (lib.optionalAttrs (cfg.embedding.engine == "vllm" && cfg.embedding.vllm.instance != null) {
+    # The embedding backend is always co-located with open-webui.
+    RAG_OPENAI_API_BASE_URL =
+      let
+        inst = vllmCfg.instances.${cfg.embedding.vllm.instance};
+      in
+      "http://127.0.0.1:${builtins.toString inst.port}/v1";
+  })
   // (lib.optionalAttrs mcpoCfg.enable {
     # Tool servers (MCP endpoints exposed by mcpo)
     TOOL_SERVER_CONNECTIONS = builtins.toJSON toolServerConnections;
@@ -355,6 +363,7 @@ in
         options = {
           engine = lib.mkOption {
             type = types.enum [
+              "local"
               "ollama"
               "openai"
               "vllm"
@@ -362,6 +371,7 @@ in
             default = "ollama";
             description = ''
               Embedding backend engine for RAG.
+              - "local": Run a SentenceTransformers model inside Open WebUI
               - "ollama": Use Ollama embeddings (requires ollama service enabled)
               - "openai": Use OpenAI-compatible embeddings with manual URL configuration
               - "vllm": Use vLLM embeddings (auto-configures URL from vLLM instance)
@@ -373,7 +383,8 @@ in
             default = ollamaEmbeddingModel;
             description = ''
               Embedding model to use. Default preserves Ollama behavior.
-              For openai/vllm engine, use e.g. "Qwen/Qwen3-Embedding-4B".
+              For local inference, use a SentenceTransformers model ID or path.
+              For openai/vllm, use e.g. "Qwen/Qwen3-Embedding-4B".
             '';
           };
 

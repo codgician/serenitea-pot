@@ -9,6 +9,7 @@ let
   inherit (lib) types;
 
   defaultCacheDir = "/var/lib/vllm-cache";
+  hasNvidia = config.hardware.nvidia-container-toolkit.enable or false;
 
   mkServeArgs =
     c:
@@ -17,6 +18,8 @@ let
       "0.0.0.0"
       "--port"
       (toString c.port)
+    ]
+    ++ lib.optionals (c.device == "cuda") [
       "--gpu-memory-utilization"
       (toString c.gpuMemoryUtilization)
     ]
@@ -58,14 +61,28 @@ let
           '';
         };
 
+        device = lib.mkOption {
+          type = types.enum [
+            "cuda"
+            "cpu"
+          ];
+          default = if hasNvidia then "cuda" else "cpu";
+          defaultText = lib.literalExpression ''if config.hardware.nvidia-container-toolkit.enable then "cuda" else "cpu"'';
+          description = ''
+            Inference device for this instance.
+            `"cuda"` mounts the NVIDIA GPU and passes `--gpu-memory-utilization`.
+            `"cpu"` leaves the GPU unmounted so vLLM's platform auto-detect
+            selects CPU. Use a CPU image (e.g. `vllm/vllm-openai-cpu`).
+          '';
+        };
+
         gpuMemoryUtilization = lib.mkOption {
           type = types.float;
           default = 0.9;
           description = ''
             Fraction of GPU memory this instance may reserve (0.0-1.0).
-            Acts as the instance's GPU memory budget; when multiple
-            instances share a GPU, the sum across instances must stay
-            below 1.0.
+            Ignored when `device = "cpu"`. When multiple CUDA instances
+            share a GPU, the sum across those instances must stay below 1.0.
           '';
         };
 
@@ -128,7 +145,7 @@ let
           "--shm-size=8g"
           "--ulimit=memlock=-1"
         ]
-        ++ lib.optionals cfg.cuda [ "--device=nvidia.com/gpu=all" ];
+        ++ lib.optionals (c.device == "cuda") [ "--device=nvidia.com/gpu=all" ];
         cmd = [ c.model ] ++ mkServeArgs c;
         environmentFiles = [ config.codgician.secrets.templates."vllm-env".path ];
       };
@@ -148,12 +165,6 @@ in
       description = ''
         Default image ref for instances that don't set their own `image`.
       '';
-    };
-
-    cuda = lib.mkOption {
-      type = types.bool;
-      default = config.hardware.nvidia-container-toolkit.enable or false;
-      description = "Enable CUDA/GPU support.";
     };
 
     cacheDir = lib.mkOption {
@@ -178,6 +189,7 @@ in
         }) instances;
         grouped = lib.groupBy (e: e.key) endpointPairs;
         clashes = lib.filter (k: builtins.length grouped.${k} > 1) (builtins.attrNames grouped);
+        cudaWithoutHost = lib.filter (n: cfg.instances.${n}.device == "cuda" && !hasNvidia) instances;
       in
       map (k: {
         assertion = false;
@@ -185,7 +197,11 @@ in
           "codgician.services.vllm: multiple instances bind to ${k} "
           + "(${lib.concatMapStringsSep ", " (e: e.n) grouped.${k}}). "
           + "Containers use `--net=host`; every instance needs a unique (host, port) pair.";
-      }) clashes;
+      }) clashes
+      ++ map (n: {
+        assertion = false;
+        message = "codgician.services.vllm.instances.${n}.device is \"cuda\" but hardware.nvidia-container-toolkit is disabled.";
+      }) cudaWithoutHost;
 
     systemd.tmpfiles.rules = [
       "d ${cfg.cacheDir} 0755 root root -"

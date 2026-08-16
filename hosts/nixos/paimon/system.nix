@@ -73,19 +73,18 @@
 
       vllm = {
         enable = true;
-        cuda = true;
         cacheDir = "/xpool/llm/vllm-cache";
         instances = {
           qwen-chat = {
             model = "Qwen/Qwen3.8-27B-FP8";
             host = "0.0.0.0";
             port = 8000;
-            gpuMemoryUtilization = 0.89;
+            gpuMemoryUtilization = 0.95;
             extraArgs = [
               "--max-model-len"
-              "262144"
+              "auto"
               "--max-num-seqs"
-              "4"
+              "256"
               # Must be >= attention block_size (~1600-2080 for this hybrid
               # arch); vLLM asserts the floor at startup.
               "--max-num-batched-tokens"
@@ -105,18 +104,6 @@
             ];
           };
 
-          embeddings = {
-            model = "Qwen/Qwen3-Embedding-0.6B";
-            host = "0.0.0.0";
-            port = 8001;
-            gpuMemoryUtilization = 0.0675;
-            extraArgs = [
-              "--max-model-len"
-              "8192"
-              "--max-num-seqs"
-              "64"
-            ];
-          };
         };
       };
 
@@ -142,11 +129,10 @@
           splash = favicon;
         };
 
-        # Use vLLM for embeddings (accepts 2560-d vectors, replacing existing 1536-d)
+        # Run Qwen3 embeddings locally in Open WebUI on CPU.
         embedding = {
-          engine = "vllm";
+          engine = "local";
           model = "Qwen/Qwen3-Embedding-0.6B";
-          vllm.instance = "embeddings";
         };
       };
 
