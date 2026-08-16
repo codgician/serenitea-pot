@@ -75,14 +75,12 @@
         enable = true;
         cuda = true;
         cacheDir = "/xpool/llm/vllm-cache";
-        image = "vllm/vllm-openai:latest-cu129";
-
         instances = {
           qwen-chat = {
-            model = "unsloth/Qwen3.8-27B-FP8";
+            model = "Qwen/Qwen3.8-27B-FP8";
             host = "0.0.0.0";
             port = 8000;
-            gpuMemoryUtilization = 0.88;
+            gpuMemoryUtilization = 0.89;
             extraArgs = [
               "--max-model-len"
               "262144"
@@ -103,7 +101,7 @@
               "--enable-prefix-caching"
               "--enable-flashinfer-autotune"
               "--speculative-config"
-              ''{"method":"mtp","num_speculative_tokens":2}''
+              ''{"method":"mtp","num_speculative_tokens":3}''
             ];
           };
 

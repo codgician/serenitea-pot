@@ -35,7 +35,6 @@ let
         image = lib.mkOption {
           type = types.nullOr types.str;
           default = "vllm/vllm-openai:latest";
-          example = "vllm/vllm-openai:latest-cu130";
           description = ''
             Per-instance image override. Null uses `cfg.image`.
           '';
@@ -114,15 +113,12 @@ let
           HF_HUB_DOWNLOAD_TIMEOUT = "600";
         }
         // lib.optionalAttrs config.codgician.system.common.inChina {
-          # Download models from ModelScope instead of Hugging Face in
-          # mainland China. vLLM parses this as `.lower() == "true"`, so the
-          # value must be "True"/"true" (not "1"). The `modelscope` package
-          # is preinstalled in the official `vllm/vllm-openai` image.
+          # Download models from ModelScope instead of Hugging Face if host in China
           VLLM_USE_MODELSCOPE = "True";
         }
         // c.environmentVariables;
         volumes = [
-          "${cfg.cacheDir}:/root/.cache/huggingface:rw"
+          "${cfg.cacheDir}:/root/.cache:rw"
         ];
         ports = [
           "${c.host}:${toString c.port}:${toString c.port}"
@@ -191,7 +187,9 @@ in
           + "Containers use `--net=host`; every instance needs a unique (host, port) pair.";
       }) clashes;
 
-    systemd.tmpfiles.rules = [ "d ${cfg.cacheDir} 0755 root root -" ];
+    systemd.tmpfiles.rules = [
+      "d ${cfg.cacheDir} 0755 root root -"
+    ];
 
     codgician.system.impermanence.extraItems = lib.optional (cfg.cacheDir == defaultCacheDir) {
       type = "directory";
