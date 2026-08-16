@@ -267,6 +267,10 @@
     {
       codgician.codgi = {
         dev.nix.enable = true;
+        codex = {
+          enable = true;
+          package = pkgs.codex-wrapped;
+        };
         git.enable = true;
         opencode.enable = true;
         mcp.enable = true;

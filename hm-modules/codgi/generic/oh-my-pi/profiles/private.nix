@@ -1,5 +1,5 @@
 {
-  defaultThinkingLevel = "minimal";
+  defaultThinkingLevel = "medium";
   enabledModels = [ "dendro/qwen3.8-27b-fp8" ];
   cycleOrder = [ "default" ];
   modelRoles = {

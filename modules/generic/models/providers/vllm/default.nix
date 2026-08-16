@@ -27,6 +27,11 @@ in
     models."qwen3.8-27b-fp8" = {
       apiBase = "http://192.168.0.22:8000/v1";
       path = "Qwen/Qwen3.8-27B-FP8";
+      reasoningEfforts = [
+        "low"
+        "medium"
+        "xhigh"
+      ];
     };
   };
 }
