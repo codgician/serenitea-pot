@@ -1,0 +1,61 @@
+From: serenitea-pot <noreply@localhost>
+Subject: [PATCH] drm: complete 64-bit plane mask conversion
+
+The CIX Linlon cluster registers 40 planes in one DRM device. The downstream
+patch raises the plane limit to 64 and widens several local masks, but leaves
+drm_plane_mask() and drm_crtc_state::plane_mask at 32 bits. Planes 32 and 36
+therefore alias planes 0 and 4, triggering false duplicate-primary warnings
+and preventing atomic state from representing the fifth DPU's planes.
+
+Make the core mask and its persistent CRTC state 64-bit, and restore the
+matching debug output format that a later CIX warning fix reverted while the
+state was still 32-bit.
+
+---
+diff --git a/drivers/gpu/drm/drm_atomic.c b/drivers/gpu/drm/drm_atomic.c
+--- a/drivers/gpu/drm/drm_atomic.c
++++ b/drivers/gpu/drm/drm_atomic.c
+@@ -449,7 +449,7 @@ static void drm_atomic_crtc_print_state(struct drm_printer *p,
+ 	drm_printf(p, "\tactive_changed=%d\n", state->active_changed);
+ 	drm_printf(p, "\tconnectors_changed=%d\n", state->connectors_changed);
+ 	drm_printf(p, "\tcolor_mgmt_changed=%d\n", state->color_mgmt_changed);
+-	drm_printf(p, "\tplane_mask=%x\n", state->plane_mask);
++	drm_printf(p, "\tplane_mask=%llx\n", state->plane_mask);
+ 	drm_printf(p, "\tconnector_mask=%x\n", state->connector_mask);
+ 	drm_printf(p, "\tencoder_mask=%x\n", state->encoder_mask);
+ 	drm_printf(p, "\tmode: " DRM_MODE_FMT "\n", DRM_MODE_ARG(&state->mode));
+diff --git a/include/drm/drm_crtc.h b/include/drm/drm_crtc.h
+--- a/include/drm/drm_crtc.h
++++ b/include/drm/drm_crtc.h
+@@ -192,7 +192,7 @@ struct drm_crtc_state {
+ 	 * @plane_mask: Bitmask of drm_plane_mask(plane) of planes attached to
+ 	 * this CRTC.
+ 	 */
+-	u32 plane_mask;
++	u64 plane_mask;
+ 
+ 	/**
+ 	 * @connector_mask: Bitmask of drm_connector_mask(connector) of
+diff --git a/include/drm/drm_plane.h b/include/drm/drm_plane.h
+--- a/include/drm/drm_plane.h
++++ b/include/drm/drm_plane.h
+@@ -23,6 +23,7 @@
+ #ifndef __DRM_PLANE_H__
+ #define __DRM_PLANE_H__
+ 
++#include <linux/bits.h>
+ #include <linux/list.h>
+ #include <linux/ctype.h>
+ #include <linux/kmsg_dump.h>
+@@ -924,9 +925,9 @@ static inline unsigned int drm_plane_index(const struct drm_plane *plane)
+  * drm_plane_mask - find the mask of a registered plane
+  * @plane: plane to find mask for
+  */
+-static inline u32 drm_plane_mask(const struct drm_plane *plane)
++static inline u64 drm_plane_mask(const struct drm_plane *plane)
+ {
+-	return 1 << drm_plane_index(plane);
++	return BIT_ULL(drm_plane_index(plane));
+ }
+ 
+ struct drm_plane * drm_plane_from_index(struct drm_device *dev, int idx);

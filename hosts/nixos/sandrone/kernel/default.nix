@@ -19,6 +19,12 @@ let
       name = "cix-kernel-fixes";
       patch = ./kernel-fixes.patch;
     }
+    # Complete the CIX patchset's 64-bit DRM plane-mask conversion. Without
+    # this, the fifth DPU's planes alias the first DPU's planes above bit 31.
+    {
+      name = "drm-plane-mask-64";
+      patch = ./drm-plane-mask-64.patch;
+    }
     # Preserve firmware-owned ACPI GPIO and regulator state. Without this,
     # stage-2 powers off the mounted root NVMe before its command timeout.
     {
