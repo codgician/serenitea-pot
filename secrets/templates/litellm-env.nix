@@ -1,14 +1,5 @@
-{ ref, pubkeys, ... }:
+{ ref }:
 {
-  publicKeys = pubkeys.someHosts [
-    pubkeys.hosts.furina
-    pubkeys.hosts.lumine
-    pubkeys.hosts.paimon
-    pubkeys.hosts.wanderer
-  ];
-
-  # Consumed via systemd EnvironmentFile (read by systemd as root before the
-  # service drops privileges), so the rendered file stays root-owned like agenix.
   content = ''
     LITELLM_MASTER_KEY=${ref "litellm-master-key"}
     GENERIC_CLIENT_SECRET=${ref "litellm-oidc-client-secret"}

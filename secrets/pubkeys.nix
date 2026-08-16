@@ -30,35 +30,4 @@ rec {
     shijiazhang = users.shijiazhang;
   };
 
-  # Aliases
-  someHosts = xs: (builtins.concatLists xs) ++ users.codgi;
-
-  publicServers' =
-    with hosts;
-    builtins.concatLists [
-      lumine
-      xianyun
-    ];
-  privateServers' =
-    with hosts;
-    builtins.concatLists [
-      fischl
-      nahida
-      paimon
-      raiden-ei
-    ];
-  allServers' = publicServers' ++ privateServers';
-  allHosts' = builtins.concatLists (builtins.attrValues hosts);
-
-  publicServers = publicServers' ++ users.codgi;
-  privateServers = privateServers' ++ users.codgi;
-  allServers = allServers' ++ users.codgi;
-  allHosts = allHosts' ++ users.codgi;
-
-  everyone = builtins.concatLists (
-    builtins.concatMap builtins.attrValues [
-      hosts
-      users
-    ]
-  );
 }

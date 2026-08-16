@@ -37,7 +37,7 @@ in
       settings = {
         apiKeyHelper =
           let
-            inherit (osConfig.codgician.secrets.templates."litellm-user-api-key") path;
+            inherit (osConfig.codgician.secrets.files."litellm-user-api-key") path;
           in
           lib.getExe (
             pkgs.writeShellApplication {

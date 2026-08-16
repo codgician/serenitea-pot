@@ -101,7 +101,7 @@ let
     providers.dendro = {
       baseUrl = "https://dendro.codgician.me/v1";
       api = "openai-completions";
-      apiKey = "!cat ${osConfig.codgician.secrets.templates."litellm-user-api-key".path}";
+      apiKey = "!cat ${osConfig.codgician.secrets.files."litellm-user-api-key".path}";
       models = piModels;
     };
   };

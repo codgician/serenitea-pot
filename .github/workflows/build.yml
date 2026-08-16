@@ -50,6 +50,8 @@ jobs:
           inputs-from: .
       - name: Check flake
         run: nix flake check
+      - name: Check SOPS recipient policy
+        run: nix run .#secrets -- check
       - name: Calculate strategy matrix
         id: get_matrix
         run: |

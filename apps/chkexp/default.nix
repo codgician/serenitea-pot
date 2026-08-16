@@ -3,11 +3,10 @@
 let
   thresholdInDays = 30;
 
-  # Registry secrets carrying an expiryDate.
-  expiryDates = lib.pipe lib.codgician.registry.secrets [
+  expiryDates = lib.pipe (import (lib.codgician.secretsDir + "/secrets.nix")).secrets [
     builtins.attrValues
-    (builtins.filter (x: x ? expiryDate))
-    (builtins.map (x: x.expiryDate))
+    (builtins.map (secret: secret.expires))
+    (builtins.filter (expires: expires != null))
   ];
 
   nearestExpiryDate = builtins.foldl' lib.min "9999-12-31" expiryDates;

@@ -1,6 +1,5 @@
-{ ref, pubkeys, ... }:
+{ ref }:
 {
-  publicKeys = pubkeys.someHosts [ pubkeys.hosts.paimon ];
   content = ''
     WEBUI_SECRET_KEY=${ref "open-webui-secret-key"}
     EXA_API_KEY=${ref "exa-api-key"}

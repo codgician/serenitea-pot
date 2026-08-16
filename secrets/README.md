@@ -1,51 +1,81 @@
-# 🔑 Secrets
+# Secrets
 
-Secrets are managed with [sops-nix](https://github.com/Mic92/sops-nix) and
-[age](https://github.com/FiloSottile/age). The flake's `secrets` app wraps the
-dangerous sops steps so they stay atomic; never edit `.sops.yaml` or the
-encrypted files by hand.
+Secrets use native SOPS documents and sops-nix:
 
-- `secrets.nix` — the registry: every secret, its recipients, and metadata.
-- `pubkeys.nix` — SSH public keys and host/group aliases (the key registry).
-- `values/<name>` — the encrypted files (one opaque sops blob per secret).
-- `templates/<name>.nix` — env-bundle render recipes (never encrypted).
-- `.sops.yaml` — **generated**; recipients per file. Do not edit by hand.
+- `secrets.nix`: per-secret host/user access and expiry metadata.
+- `pubkeys.nix`: SSH public keys used to construct typed recipient records.
+- `data/*.json`: encrypted SOPS documents.
+- `.sops.yaml`: generated SOPS creation rules.
+- `templates/*.nix`: per-file native sops-nix templates.
 
-## Add or rotate a secret
+Hosts decrypt with their SSH host private key. User records grant operator
+decryption without deploying the secret to a system.
 
-1. Declare it in `secrets.nix` with its recipients (a host/group alias from
-   `pubkeys.nix`, or leave the recipients to a referencing template).
+## Add a secret
 
-1. Create or edit its encrypted value:
+Declare it first:
 
-   ```bash
-   nix run .#secrets -- edit <name>
-   ```
-
-   This opens `$EDITOR` via sops, regenerating `.sops.yaml` first if needed, and
-   `git add`s the result. Plaintext only ever lives in the editor buffer.
-
-## Re-key after changing recipients
-
-Whenever you change `pubkeys.nix` or a secret's recipients (e.g. adding a host),
-regenerate `.sops.yaml` and re-encrypt every managed file to match:
-
-```bash
-nix run .#secrets -- rekey
+```nix
+example = {
+  hosts = with hosts; [ paimon ];
+  users = with users; [ codgi ];
+  expires = "2027-01-01"; # optional
+};
 ```
 
-## Verify (CI-safe, no decryption)
+`hosts` and `users` both default to an empty list. Omit a field instead of
+declaring an explicit empty list. At least one recipient is required:
 
-Assert every encrypted file's recipients match the registry:
+```nix
+# Operator-only: not deployed to any host.
+operator-secret = {
+  users = with users; [ codgi ];
+};
+
+# Host-only: operators cannot decrypt it directly.
+host-secret = {
+  hosts = with hosts; [ paimon ];
+};
+```
+
+Then stage the declaration so the flake sees it and create the document:
 
 ```bash
+git add secrets/secrets.nix
+nix run .#secrets -- create example
+```
+
+New secrets use `data/<name>.json`. Templates use `ref "<name>"` directly in
+their content; dependencies are discovered automatically.
+
+## Change access
+
+Edit `hosts` or `users`, stage the declaration, then generate and review the
+SOPS rules:
+
+```bash
+git add secrets/secrets.nix
+nix run .#secrets -- sync
+git diff --cached -- secrets/.sops.yaml
+```
+
+Run `nix run .#secrets -- rekey` after approval. `sync` alone does not revoke an
+old recipient because the document still contains its wrapped data key.
+
+## Edit and verify
+
+```bash
+nix run .#secrets -- edit example
 nix run .#secrets -- check
 ```
 
-## Other commands
+## Terraform
 
-- `nix run .#secrets -- render <template>` — render an env-bundle template to a
-  `0600` tmpfs file and print its path (operator-side activation).
-- `nix run .#secrets -- for` — list the managed secrets.
+Terraform consumes the operator-only structured document directly:
 
-See [`docs/secrets-design.md`](../docs/secrets-design.md) for the full design.
+```bash
+nix run .#secrets -- exec-env terraform.json -- terraform plan
+```
+
+SOPS supplies the environment without writing or sourcing a plaintext dotenv
+file.

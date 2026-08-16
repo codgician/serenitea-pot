@@ -153,7 +153,7 @@ in
             name = "dendro";
             options = {
               baseURL = "https://dendro.codgician.me/v1";
-              apiKey = "{file:${osConfig.codgician.secrets.templates."litellm-user-api-key".path}}";
+              apiKey = "{file:${osConfig.codgician.secrets.files."litellm-user-api-key".path}}";
             };
             models = openCodeModels;
           };

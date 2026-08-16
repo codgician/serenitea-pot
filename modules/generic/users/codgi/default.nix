@@ -37,5 +37,6 @@ in
   codgician.secrets.files = {
     context7-api-key.owner = "codgi";
     github-auth-header.owner = "codgi";
+    litellm-user-api-key.owner = "codgi";
   };
 }

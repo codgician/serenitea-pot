@@ -20,7 +20,6 @@ let
         ./io.nix
         ./reverse-proxy.nix
         ./secrets.nix
-        ./sops.nix
         ./service.nix
         ./utils.nix
       ]

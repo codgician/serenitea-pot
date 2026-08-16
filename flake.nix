@@ -182,12 +182,6 @@
       # Export custom library
       inherit lib;
 
-      # SOPS creation-rule metadata (consumed by `nix run .#secrets -- rekey`)
-      sopsRules = lib.codgician.sopsRules;
-
-      # Text templates with placeholder tokens (consumed by `secrets -- render`)
-      renderedTemplates = lib.codgician.renderedTemplates;
-
       # Apps: `nix run .#appName`
       apps = (
         import ./apps {

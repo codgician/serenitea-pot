@@ -119,7 +119,7 @@ let
       baseUrl = "https://dendro.codgician.me/v1";
       api = "openai-completions";
       authHeader = true;
-      apiKey = "!cat ${osConfig.codgician.secrets.templates."litellm-user-api-key".path}";
+      apiKey = "!cat ${osConfig.codgician.secrets.files."litellm-user-api-key".path}";
       models = ompModels;
     };
   };

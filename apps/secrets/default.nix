@@ -5,42 +5,101 @@
 }:
 let
   name = "secrets";
-  # Backport getsops/sops#2009 at a2d65b16: derive the X25519 identity
-  # corresponding to an ssh-to-age recipient from an SSH private key. This is
-  # operator-only; deployed hosts retain sops-nix's stock SOPS package.
-  sopsWithSshToAgeFix = pkgs.sops.overrideAttrs (old: {
-    patches = (old.patches or [ ]) ++ [ ./sops-ssh-to-age.patch ];
-    vendorHash = "sha256-wqfXkBaLuMjYwG5CG2rrDexQbODjwEo/m8mvaNFE6bQ=";
-  });
-
-  helpText = ''
-    ${name} - manage sops-encrypted secrets for this flake
-
-    USAGE: ${name} <command> [args]
-
-    COMMANDS:
-      rekey            Regenerate .sops.yaml from pubkeys, then re-encrypt all
-                       managed files to match (sops updatekeys)
-      check            Assert every encrypted file's recipients match .sops.yaml
-                       (read-only; safe for CI; no decryption)
-      edit <name>      Create or rotate a raw secret secrets/values/<name>
-      render <tpl>     Render a text template to a 0600 temporary file, print its path
-                       (app-side activation; decrypts refs, raw-substitutes)
-      materialize <tpl> [ENV=secret ...]
-                       Render a template and raw-secret files into a private
-                       temporary directory, then print its path
-      run <tpl> [ENV=secret ...] -- <command> [args...]
-                       Run a command with one rendered env template and optional
-                       raw secrets exposed as temporary-file environment variables
-      for              List the raw secrets defined in this flake
-
-    OPTIONS:
-      -h, --help       Show this help'';
+  secretsDir = lib.codgician.secretsDir;
+  registry = import (secretsDir + "/secrets.nix");
+  dataDir = secretsDir + "/data";
+  dataFiles = lib.filterAttrs (fileName: type: type == "regular" && lib.hasSuffix ".json" fileName) (
+    builtins.readDir dataDir
+  );
+  dataDocuments = lib.mapAttrsToList (
+    fileName: _:
+    let
+      data = builtins.fromJSON (builtins.readFile (dataDir + "/${fileName}"));
+    in
+    {
+      path = "data/${fileName}";
+      keys = builtins.attrNames (builtins.removeAttrs data [ "sops" ]);
+    }
+  ) dataFiles;
+  declaredKeys = lib.mapAttrsToList (_: secret: secret.key) registry.secrets;
+  secretsByKey = builtins.listToAttrs (
+    lib.mapAttrsToList (secretName: secret: {
+      name = secret.key;
+      value = { inherit secretName secret; };
+    }) registry.secrets
+  );
+  dataKeys = lib.concatMap (document: document.keys) dataDocuments;
+  documentsFor =
+    secret: builtins.filter (document: builtins.elem secret.key document.keys) dataDocuments;
+  documentFor =
+    secretName: secret:
+    let
+      matches = documentsFor secret;
+      defaultPath = "data/${secretName}.json";
+    in
+    if matches == [ ] then
+      if lib.any (document: document.path == defaultPath) dataDocuments then
+        throw "Secret ${secretName} conflicts with existing ${defaultPath}"
+      else
+        defaultPath
+    else if builtins.length matches == 1 then
+      (builtins.head matches).path
+    else
+      throw "SOPS key ${secret.key} occurs in more than one document";
+  pendingDocuments = lib.mapAttrsToList (secretName: secret: {
+    path = documentFor secretName secret;
+    keys = [ secret.key ];
+  }) (lib.filterAttrs (_: secret: documentsFor secret == [ ]) registry.secrets);
+  documents = dataDocuments ++ pendingDocuments;
+  recipientNames = recipients: map (recipient: recipient.name) recipients;
+  documentPolicy =
+    document:
+    let
+      entries = map (
+        key: secretsByKey.${key} or (throw "SOPS key ${key} is not declared in secrets/secrets.nix")
+      ) document.keys;
+      first = (builtins.head entries).secret;
+      samePolicy =
+        secret:
+        {
+          hosts = recipientNames secret.hosts;
+          users = recipientNames secret.users;
+        } == {
+          hosts = recipientNames first.hosts;
+          users = recipientNames first.users;
+        };
+    in
+    assert entries != [ ];
+    assert lib.all (entry: samePolicy entry.secret) entries;
+    {
+      hosts = recipientNames first.hosts;
+      users = recipientNames first.users;
+    };
+  policy =
+    assert builtins.length declaredKeys == builtins.length (lib.unique declaredKeys);
+    assert lib.all (key: builtins.hasAttr key secretsByKey) dataKeys;
+    {
+      recipients = {
+        hosts = lib.mapAttrs (_: recipient: recipient.sshPublicKeys) registry.hosts;
+        users = lib.mapAttrs (_: recipient: recipient.sshPublicKeys) registry.users;
+      };
+      documents = builtins.listToAttrs (
+        map (document: {
+          name = document.path;
+          value = documentPolicy document;
+        }) documents
+      );
+      secrets = lib.mapAttrs (secretName: secret: {
+        key = secret.key;
+        document = documentFor secretName secret;
+      }) registry.secrets;
+    };
+  policyFile = pkgs.writeText "sops-policy.json" (builtins.toJSON policy);
 in
 {
   type = "app";
   meta = {
-    description = "Manage sops-encrypted secrets (rekey, check, edit)";
+    description = "Manage structured SOPS documents";
     license = lib.licenses.mit;
     maintainers = with lib.maintainers; [ codgician ];
   };
@@ -48,13 +107,12 @@ in
   program = lib.getExe (
     pkgs.writeShellApplication {
       inherit name;
-      runtimeInputs = [
-        pkgs.coreutils
-        pkgs.git
-        pkgs.nix
-        sopsWithSshToAgeFix
-        pkgs.ssh-to-age
-        pkgs.yq-go
+      runtimeInputs = with pkgs; [
+        coreutils
+        git
+        sops
+        ssh-to-age
+        yq-go
       ];
 
       text = ''
@@ -62,48 +120,30 @@ in
 
         err() { echo "Error: $*" >&2; exit 1; }
         log() { echo "$*" >&2; }
+        repo_root() { git rev-parse --show-toplevel; }
 
-        temporary_files=()
-        temporary_directories=()
-
-        cleanup_temporary_paths() {
-          [ "''${#temporary_files[@]}" -eq 0 ] || rm -f -- "''${temporary_files[@]}"
-          [ "''${#temporary_directories[@]}" -eq 0 ] || rm -rf -- "''${temporary_directories[@]}"
+        policy_file=${policyFile}
+        identity_file=
+        policy_tmp=
+        cleanup() {
+          [ -z "$identity_file" ] || rm -f -- "$identity_file"
+          [ -z "$policy_tmp" ] || rm -f -- "$policy_tmp"
         }
-
-        trap cleanup_temporary_paths EXIT
+        trap cleanup EXIT
         trap 'exit 130' INT
         trap 'exit 143' TERM
 
-        show_help() { cat >&2 <<'EOF'
-        ${helpText}
-        EOF
-        }
-
-        repo_root() { git rev-parse --show-toplevel; }
-
-        # Convert an ssh ed25519 public key to its age recipient.
-        ssh_pub_to_age() { ssh-to-age; }
-
-        # Derive the operator's age identity once per command. An SSH agent cannot
-        # export the Ed25519 private material required by ssh-to-age, so unlock the
-        # private key directly and cache only the derived identity in a 0600 file.
-        prepare_operator_identity() {
+        prepare_identity() {
           if [ -n "''${SOPS_AGE_KEY:-}''${SOPS_AGE_KEY_FILE:-}''${SOPS_AGE_KEY_CMD:-}" ]; then
             return
           fi
 
-          local ssh_key runtime_dir identity_file passphrase attempt
+          local ssh_key runtime_dir passphrase attempt
           ssh_key="''${SOPS_AGE_SSH_PRIVATE_KEY_FILE:-$HOME/.ssh/id_ed25519}"
           [ -f "$ssh_key" ] || err "SOPS operator SSH key not found: $ssh_key"
-
-          runtime_dir="''${XDG_RUNTIME_DIR:-}"
-          if [ -z "$runtime_dir" ]; then
-            runtime_dir="''${TMPDIR:-/tmp}"
-          fi
+          runtime_dir="''${XDG_RUNTIME_DIR:-''${TMPDIR:-/tmp}}"
           umask 077
           identity_file="$(mktemp "$runtime_dir/sops-age-identity.XXXXXX")"
-          temporary_files+=("$identity_file")
 
           if SSH_TO_AGE_PASSPHRASE="" ssh-to-age -private-key -i "$ssh_key" -o "$identity_file" 2>/dev/null; then
             export SOPS_AGE_KEY_FILE="$identity_file"
@@ -112,341 +152,201 @@ in
 
           for attempt in 1 2 3; do
             printf 'Enter passphrase for %s (attempt %d/3): ' "$ssh_key" "$attempt" >&2
-            if ! IFS= read -r -s passphrase </dev/tty; then
-              err "cannot read the SSH key passphrase without a controlling terminal"
-            fi
+            IFS= read -r -s passphrase </dev/tty \
+              || err "cannot read the SSH key passphrase without a terminal"
             printf '\n' >&2
-            if SSH_TO_AGE_PASSPHRASE="$passphrase" ssh-to-age -private-key -i "$ssh_key" -o "$identity_file" 2>/dev/null; then
+            if SSH_TO_AGE_PASSPHRASE="$passphrase" ssh-to-age -private-key \
+              -i "$ssh_key" -o "$identity_file" 2>/dev/null; then
               unset passphrase
               export SOPS_AGE_KEY_FILE="$identity_file"
               return
             fi
             unset passphrase
-            log "Incorrect SSH key passphrase."
           done
-
-          err "failed to unlock $ssh_key after 3 attempts"
+          err "failed to unlock $ssh_key"
         }
 
-        # Emit .sops.yaml from the flake's sopsRules metadata. Public keys only.
-        write_sops_config() {
-          local root rules
-          root="$(repo_root)"
-          cd "$root"
-          rules="$(nix eval --json '.#sopsRules')"
+        generate_policy() {
+          local output=$1 path kind principal public_key recipient regex
+          local -a recipients
+          declare -A seen
 
           {
-            echo "# Generated by \`nix run .#${name}\`. Do not edit."
-            echo "creation_rules:"
-            echo "$rules" | yq -r '.[] | @json' | while read -r rule; do
-              local path regex anchored
-              path="$(echo "$rule" | yq -r '.path')"
-              regex="$(echo "$rule" | yq -r '.encryptedRegex // ""')"
-              # Anchor and escape so one path matches exactly one rule. Without
-              # this, a literal '.' in a path is a regex wildcard and a shorter
-              # path could prefix-match a longer rule.
-              # shellcheck disable=SC2016  # the sed program is intentionally literal
-              anchored="^$(printf '%s' "$path" | sed 's/[.[\*^$()+?{|]/\\&/g')\$"
-              echo "  - path_regex: ${"\${anchored}"}"
-              [ -z "$regex" ] || echo "    encrypted_regex: '${"\${regex}"}'"
-              echo "    key_groups:"
-              echo "      - age:"
-              echo "$rule" | yq -r '.sshKeys[]' | while read -r sshkey; do
-                local age
-                age="$(echo "$sshkey" | ssh_pub_to_age)"
-                echo "          - ${"\${age}"}"
+            printf 'creation_rules:\n'
+            while IFS= read -r path; do
+              recipients=()
+              seen=()
+              for kind in hosts users; do
+                while IFS= read -r principal; do
+                  while IFS= read -r public_key; do
+                    recipient="$(printf '%s\n' "$public_key" | ssh-to-age)"
+                    if [ -z "''${seen[$recipient]+set}" ]; then
+                      recipients+=("$recipient")
+                      seen[$recipient]=1
+                    fi
+                  done < <(
+                    KIND="$kind" PRINCIPAL="$principal" yq -r \
+                      '.recipients[strenv(KIND)][strenv(PRINCIPAL)][]' "$policy_file"
+                  )
+                done < <(
+                  PATH_KEY="$path" KIND="$kind" yq -r \
+                    '.documents[strenv(PATH_KEY)][strenv(KIND)][]' "$policy_file"
+                )
               done
-            done
-          } > secrets/.sops.yaml
-
-          git add secrets/.sops.yaml
-          log "Wrote secrets/.sops.yaml"
+              [ ''${#recipients[@]} -gt 0 ] || err "$path has no recipients"
+              regex="''${path//./\\.}"
+              printf '  - path_regex: ^%s$\n' "$regex"
+              printf '    key_groups:\n      - age:\n'
+              printf '          - %s\n' "''${recipients[@]}"
+            done < <(yq -r '.documents | keys | .[]' "$policy_file")
+          } >"$output"
         }
 
-        # Regenerate creation rules and then re-encrypt every managed file.
-        do_rekey() {
+        sync_policy() {
           local root
           root="$(repo_root)"
-          write_sops_config
+          policy_tmp="$(mktemp "$root/secrets/.sops.yaml.XXXXXX")"
+          generate_policy "$policy_tmp"
+          mv -- "$policy_tmp" "$root/secrets/.sops.yaml"
+          policy_tmp=
+          git -C "$root" add secrets/.sops.yaml
+          log "Generated secrets/.sops.yaml from secrets/secrets.nix"
+        }
+
+        check_policy() {
+          local root file relpath matches expected actual drift=0
+          root="$(repo_root)/secrets"
           cd "$root"
+          [ -f .sops.yaml ] || err "secrets/.sops.yaml is missing"
 
-          # Re-encrypt every existing managed file to current recipients.
-          shopt -s nullglob
-          local files=(secrets/values/*)
-          if [ ''${#files[@]} -gt 0 ]; then
-            ( cd secrets && sops updatekeys --yes "''${files[@]#secrets/}" )
-            git add secrets/values
-            log "Re-encrypted ''${#files[@]} managed file(s) to current recipients"
-          else
-            log "No managed files to re-encrypt yet"
+          policy_tmp="$(mktemp "''${TMPDIR:-/tmp}/sops-policy.XXXXXX")"
+          generate_policy "$policy_tmp"
+          if ! cmp -s .sops.yaml "$policy_tmp"; then
+            log "DRIFT: .sops.yaml was not generated from secrets/secrets.nix"
+            drift=1
           fi
-        }
 
-        # Read a sops file's actual age recipients without decrypting. Every
-        # managed file is a binary values/* sops file storing its metadata as
-        # JSON, exposing recipients at .sops.age[].recipient.
-        file_recipients() {
-          yq -p json -r '.sops.age[].recipient' "$1" 2>/dev/null | sort -u
-        }
+          shopt -s nullglob
+          local files=(data/*.json)
+          local rule_count
+          rule_count="$(yq -r '.creation_rules | length' .sops.yaml)"
+          [ "$rule_count" -eq "''${#files[@]}" ] || {
+            log "DRIFT: $rule_count creation rules for ''${#files[@]} documents"
+            drift=1
+          }
 
-        # The age recipients of the creation_rule whose path_regex matches $1.
-        # Emits nothing if no rule matches; the caller distinguishes 0/1/many.
-        # NOTE: `.path_regex as $re | strenv(P) | test($re)` binds the rule's
-        # regex BEFORE piping the path into test(); evaluating test(.path_regex)
-        # in the string context instead matches every rule (silent over-match).
-        rule_recipients_for() {
-          # shellcheck disable=SC2016  # yq DSL; P is read via strenv(), not shell
-          P="$1" yq -r '
-            .creation_rules[]
-            | select(.path_regex as $re | strenv(P) | test($re))
-            | .key_groups[].age[]
-          ' .sops.yaml | sort -u
-        }
-
-        # Count how many creation_rules match a given path (ambiguity guard).
-        rules_matching() {
-          # shellcheck disable=SC2016  # yq DSL; P is read via strenv(), not shell
-          P="$1" yq -r '
-            [ .creation_rules[] | select(.path_regex as $re | strenv(P) | test($re)) ] | length
-          ' .sops.yaml
-        }
-
-        # Validate the REGISTRY-DERIVED set of managed paths (.#sopsRules), not a
-        # filesystem glob, so the registry is the single source of truth. For each
-        # declared path we require exactly one matching creation_rule and that the
-        # on-disk file's recipients equal that rule's recipients. We additionally
-        # cross-check the filesystem so an orphan file (on disk, not in the
-        # registry) is caught too. Fails on:
-        #   - a declared path with no on-disk file (declared but never encrypted)
-        #   - a declared path matching 0 or >1 creation_rules (ambiguous registry)
-        #   - file recipients differing from the rule's expected set (stale hosts)
-        #   - an on-disk managed file absent from the registry (orphan)
-        do_check() {
-          local root
-          root="$(repo_root)"
-          cd "$root/secrets"
-          [ -f .sops.yaml ] || err ".sops.yaml missing; run '${name} rekey'"
-
-          # Registry-declared managed paths (relative to secrets/).
-          local declared
-          declared="$(cd "$root" && nix eval --json '.#sopsRules' | yq -p json -r '.[].path' | sort -u)"
-          [ -n "$declared" ] || { log "No managed paths declared"; return 0; }
-
-          local drift=0 relpath nmatch expected actual
-          while IFS= read -r relpath; do
-            [ -n "$relpath" ] || continue
-            if [ ! -f "$relpath" ]; then
-              log "DRIFT: $relpath is declared in the registry but no encrypted file exists (run '${name} edit')"
+          for file in "''${files[@]}"; do
+            relpath="$file"
+            # shellcheck disable=SC2016
+            matches="$(P="$relpath" yq -r '
+              [.creation_rules[] | select(.path_regex as $re | strenv(P) | test($re))] | length
+            ' .sops.yaml)"
+            if [ "$matches" -ne 1 ]; then
+              log "DRIFT: $relpath matches $matches creation rules"
               drift=1
               continue
             fi
 
-            nmatch="$(rules_matching "$relpath")"
-            if [ "$nmatch" -eq 0 ]; then
-              log "DRIFT: $relpath matches no creation_rule in .sops.yaml"
-              drift=1
-              continue
-            fi
-            if [ "$nmatch" -gt 1 ]; then
-              log "DRIFT: $relpath matches $nmatch creation_rules (ambiguous path_regex)"
-              drift=1
-              continue
-            fi
-
-            expected="$(rule_recipients_for "$relpath")"
-            actual="$(file_recipients "$relpath")"
-            if [ -z "$expected" ]; then
-              log "DRIFT: $relpath matching rule has no age recipients"
-              drift=1
-            elif [ "$actual" != "$expected" ]; then
-              log "DRIFT: $relpath recipients do not match its rule (stale host set?)"
+            # shellcheck disable=SC2016
+            expected="$(P="$relpath" yq -r '
+              .creation_rules[]
+              | select(.path_regex as $re | strenv(P) | test($re))
+              | .key_groups[].age[]
+            ' .sops.yaml | sort -u)"
+            actual="$(yq -r '.sops.age[].recipient' "$file" | sort -u)"
+            if [ "$actual" != "$expected" ]; then
+              log "DRIFT: $relpath recipients differ from secrets/secrets.nix"
               drift=1
             else
               log "OK: $relpath"
             fi
-          done <<< "$declared"
+          done
 
-          # Orphan guard: any managed file on disk not declared in the registry.
+          [ "$drift" -eq 0 ] || err "recipient policy drift detected"
+        }
+
+        secret_document() {
+          local secret=$1
+          SECRET="$secret" yq -e -r '.secrets[strenv(SECRET)].document' "$policy_file" 2>/dev/null \
+            || err "unknown secret: $secret"
+        }
+
+        create_secret() {
+          local secret="''${1:-}" root document
+          [[ "$secret" =~ ^[a-z0-9-]+$ ]] || err "usage: ${name} create <secret>"
+          root="$(repo_root)"
+          document="$(secret_document "$secret")"
+          [ ! -e "$root/secrets/$document" ] || err "$secret already exists; use edit"
+          sync_policy
+          prepare_identity
+          (cd "$root/secrets" && sops "$document")
+          git -C "$root" add "secrets/$document"
+        }
+
+        edit_secret() {
+          local secret="''${1:-}" root document
+          [[ "$secret" =~ ^[a-z0-9-]+$ ]] || err "usage: ${name} edit <secret>"
+          root="$(repo_root)"
+          document="$(secret_document "$secret")"
+          [ -f "$root/secrets/$document" ] || err "$secret has not been created"
+          prepare_identity
+          (cd "$root/secrets" && sops "$document")
+          git -C "$root" add "secrets/$document"
+        }
+
+        rekey_documents() {
+          local root files
+          root="$(repo_root)"
+          sync_policy
+          prepare_identity
           shopt -s nullglob
-          local f relpath
-          for f in values/*; do
-            relpath="$f"
-            if ! grep -qxF "$relpath" <<< "$declared"; then
-              log "DRIFT: $relpath exists on disk but is not declared in the registry (orphan)"
-              drift=1
-            fi
-          done
-
-          [ "$drift" -eq 0 ] || err "recipient drift detected; run '${name} rekey'"
+          files=("$root"/secrets/data/*.json)
+          [ ''${#files[@]} -gt 0 ] || err "no structured SOPS documents"
+          (cd "$root/secrets" && sops updatekeys --yes data/*.json)
+          git -C "$root" add secrets/data
+          check_policy
         }
 
-        # Create or rotate a raw secret. Plaintext only via \$EDITOR/sops; never printed.
-        do_edit() {
-          local n="$1" root matches
-          [ -n "$n" ] || err "usage: ${name} edit <name>"
-          root="$(repo_root)"
-          cd "$root"
-          write_sops_config
-          matches="$(cd secrets && rules_matching "values/$n")"
-          [ "$matches" -eq 1 ] || err "secret '$n' must have exactly one creation rule; declare it in secrets/secrets.nix"
-          mkdir -p secrets/values
-          ( cd secrets && sops "values/$n" )
-          git add "secrets/values/$n"
-          log "Edited secrets/values/$n"
-        }
-
-        # Render a text template to a caller-selected file. This is intentionally
-        # text-only: command substitution strips trailing newlines and Bash cannot
-        # carry NUL bytes. Structured credentials stay as raw temporary files.
-        render_template() {
-          local tpl="$1" out="$2" root content ref val placeholder
-          root="$(repo_root)"
-          content="$(nix eval --raw ".#renderedTemplates.\"$tpl\".placeholderContent" 2>/dev/null)" \
-            || err "no template '$tpl'"
-
-          for ref in $(nix eval --json ".#renderedTemplates.\"$tpl\".refs" | yq -p json -r '.[]'); do
-            placeholder="<SOPS:$ref:PLACEHOLDER>"
-            val="$(sops decrypt --input-type binary --output-type binary "$root/secrets/values/$ref")"
-            case "$val" in
-              *"<SOPS:"*":PLACEHOLDER>"*)
-                err "decrypted value of '$ref' contains a placeholder token; refusing to render (would corrupt substitution)" ;;
-            esac
-            content="''${content//"$placeholder"/$val}"
-          done
-          printf '%s' "$content" > "$out"
-        }
-
-        runtime_root() {
-          if [ -n "''${XDG_RUNTIME_DIR:-}" ]; then
-            printf '%s\n' "$XDG_RUNTIME_DIR"
-          else
-            printf '%s\n' "''${TMPDIR:-/tmp}"
-          fi
-        }
-
-        do_render() {
-          local tpl="$1" runtime_dir out
-          [ -n "$tpl" ] || err "usage: ${name} render <template>"
-          prepare_operator_identity
-
-          runtime_dir="$(runtime_root)"
-          umask 077
-          out="$(mktemp "$runtime_dir/secrets-render.XXXXXX")"
-          render_template "$tpl" "$out"
-          printf '%s\n' "$out"
-        }
-
-        parse_raw_secret_binding() {
-          local binding="$1"
-          case "$binding" in
-            *=*) ;;
-            *) err "invalid raw-secret binding '$binding'; expected ENV=secret" ;;
-          esac
-
-          RAW_ENV_NAME="''${binding%%=*}"
-          RAW_SECRET_NAME="''${binding#*=}"
-          [[ "$RAW_ENV_NAME" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]] \
-            || err "invalid environment variable name '$RAW_ENV_NAME'"
-          [[ "$RAW_SECRET_NAME" =~ ^[A-Za-z0-9._-]+$ ]] \
-            || err "invalid secret name '$RAW_SECRET_NAME'"
-        }
-
-        decrypt_raw_secret() {
-          local secret_name="$1" out="$2" secret_file
-          secret_file="$(repo_root)/secrets/values/$secret_name"
-          [ -f "$secret_file" ] || err "secret '$secret_name' does not exist"
-          sops decrypt --input-type binary --output-type binary "$secret_file" > "$out"
-        }
-
-        do_materialize() {
-          local tpl="''${1:-}" runtime_dir materialized_dir env_file binding raw_file
-          [ -n "$tpl" ] || err "usage: ${name} materialize <template> [ENV=secret ...]"
+        exec_environment() {
+          local document="''${1:-}" root command
+          [ -n "$document" ] || err "usage: ${name} exec-env <document.json> -- <command>"
           shift
-
-          prepare_operator_identity
-          runtime_dir="$(runtime_root)"
-          umask 077
-          materialized_dir="$(mktemp -d "$runtime_dir/secrets-materialized.XXXXXX")"
-          temporary_directories+=("$materialized_dir")
-          env_file="$materialized_dir/environment"
-          render_template "$tpl" "$env_file"
-
-          if [ $# -gt 0 ]; then
-            printf '\n' >> "$env_file"
-          fi
-          for binding in "$@"; do
-            parse_raw_secret_binding "$binding"
-            raw_file="$materialized_dir/$RAW_ENV_NAME"
-            decrypt_raw_secret "$RAW_SECRET_NAME" "$raw_file"
-            printf '%s=%q\n' "$RAW_ENV_NAME" "$raw_file" >> "$env_file"
-          done
-
-          printf '%s\n' "$materialized_dir"
-          temporary_directories=()
-        }
-
-        do_run() {
-          local tpl="''${1:-}" runtime_dir env_file binding raw_file
-          [ -n "$tpl" ] || err "usage: ${name} run <template> [ENV=secret ...] -- <command> [args...]"
-          shift
-
-          local -a bindings=()
-          while [ $# -gt 0 ] && [ "$1" != "--" ]; do
-            bindings+=("$1")
-            shift
-          done
-          [ $# -gt 0 ] || err "missing -- before command"
+          [ "''${1:-}" = -- ] || err "missing -- before command"
           shift
           [ $# -gt 0 ] || err "missing command"
-
-          prepare_operator_identity
-          runtime_dir="$(runtime_root)"
-          umask 077
-
-          env_file="$(mktemp "$runtime_dir/secrets-env.XXXXXX")"
-          temporary_files+=("$env_file")
-          render_template "$tpl" "$env_file"
-          set -a
-          # shellcheck disable=SC1090
-          source "$env_file"
-          set +a
-
-          for binding in "''${bindings[@]}"; do
-            parse_raw_secret_binding "$binding"
-            raw_file="$(mktemp "$runtime_dir/secrets-raw.XXXXXX")"
-            temporary_files+=("$raw_file")
-            decrypt_raw_secret "$RAW_SECRET_NAME" "$raw_file"
-            printf -v "$RAW_ENV_NAME" '%s' "$raw_file"
-            export "''${RAW_ENV_NAME?}"
-          done
-
-          "$@"
-        }
-
-        do_for() {
-          local root
           root="$(repo_root)"
-          shopt -s nullglob
-          local f found=0
-          for f in "$root"/secrets/values/*; do
-            basename "$f"
-            found=1
-          done
-          [ "$found" -eq 1 ] || log "No secrets defined"
+          [ -f "$root/secrets/data/$document" ] || err "unknown document: $document"
+          prepare_identity
+          printf -v command '%q ' "$@"
+          sops exec-env "$root/secrets/data/$document" "$command"
         }
 
-        [ $# -ge 1 ] || { show_help; exit 1; }
-        cmd="$1"; shift || true
-        case "$cmd" in
-          -h|--help) show_help; exit 0 ;;
-          rekey) do_rekey ;;
-          check) do_check ;;
-          edit) do_edit "''${1:-}" ;;
-          render) do_render "''${1:-}" ;;
-          materialize) do_materialize "$@" ;;
-          run) do_run "$@" ;;
-          for) do_for ;;
-          *) err "Unknown command: $cmd (try --help)" ;;
+        show_help() {
+          cat >&2 <<'EOF'
+        secrets - manage structured SOPS documents
+
+        Usage:
+          secrets sync
+          secrets check
+          secrets create <secret>
+          secrets edit <secret>
+          secrets rekey
+          secrets exec-env <document.json> -- <command> [args...]
+        EOF
+        }
+
+        [ $# -gt 0 ] || { show_help; exit 1; }
+        command_name=$1
+        shift
+        case "$command_name" in
+          sync) sync_policy ;;
+          check) check_policy ;;
+          create) create_secret "$@" ;;
+          edit) edit_secret "$@" ;;
+          rekey) rekey_documents ;;
+          exec-env) exec_environment "$@" ;;
+          -h|--help) show_help ;;
+          *) err "unknown command: $command_name" ;;
         esac
       '';
     }

@@ -105,13 +105,6 @@ let
           codgician.secrets.files =
             let
               nameOf = lib.codgician.getAgeSecretNameFromPath;
-              # Only declare secrets THIS host can decrypt; a host that is not a
-              # recipient must not try to materialize the file (activation fails).
-              thisHostKeys = lib.codgician.registry.pubkeys.hosts.${config.networking.hostName} or [ ];
-              canDecrypt =
-                n:
-                lib.any (k: builtins.elem k thisHostKeys) (lib.codgician.registry.secrets.${n}.publicKeys or [ ]);
-
               # passwordAgeFile (plaintext, read at runtime e.g. by smbpasswd) and
               # extraAgeFiles stay user-owned in /run/secrets.
               runtimeNames = builtins.map nameOf (
@@ -125,10 +118,10 @@ let
                 nameOf cfg.${name}.hashedPasswordAgeFile
               );
 
-              runtimeDecls = lib.genAttrs (builtins.filter canDecrypt runtimeNames) (_: {
+              runtimeDecls = lib.genAttrs runtimeNames (_: {
                 owner = name;
               });
-              hashedDecls = lib.genAttrs (builtins.filter canDecrypt hashedNames) (_: {
+              hashedDecls = lib.genAttrs hashedNames (_: {
                 neededForUsers = true;
               });
             in

@@ -58,8 +58,15 @@ in
       };
 
       script = ''
-        set -ea
-        source ${config.codgician.secrets.templates."litellm-env".path}
+        set -e
+        while IFS= read -r line; do
+          key="''${line%%=*}"
+          value="''${line#*=}"
+          case "$key" in
+            ""|*[!A-Za-z0-9_]*) exit 1 ;;
+          esac
+          export "$key=$value"
+        done < ${config.codgician.secrets.templates."litellm-env".path}
         exec ${lib.getExe cfg.package} --host "${cfg.host}" --port ${builtins.toString cfg.port} --config "${configFile}"
       '';
 
