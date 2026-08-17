@@ -80,6 +80,7 @@
             host = "0.0.0.0";
             port = 8000;
             gpuMemoryUtilization = 0.95;
+            kernelConfigDir = ./vllm-fp8-kernel-configs;
             extraArgs = [
               "--max-model-len"
               "auto"

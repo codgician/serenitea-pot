@@ -9,6 +9,17 @@ let
   inherit (lib) types;
 
   defaultCacheDir = "/var/lib/vllm-cache";
+  containerKernelConfigDir = "/etc/vllm/fp8-kernel-configs";
+  containerKernelConfigEntrypoint = "/etc/vllm/load-fp8-kernel-configs.sh";
+  kernelConfigEntrypoint = builtins.toFile "load-vllm-fp8-kernel-configs.sh" ''
+    set -eu
+
+    config_dir="$(
+      python3 -c 'from importlib.util import find_spec; from pathlib import Path; spec = find_spec("vllm"); print(Path(next(iter(spec.submodule_search_locations))) / "model_executor/layers/quantization/utils/configs")'
+    )"
+    cp ${containerKernelConfigDir}/*.json "$config_dir"/
+    exec vllm serve "$@"
+  '';
   hasNvidia = config.hardware.nvidia-container-toolkit.enable or false;
 
   mkServeArgs =
@@ -109,6 +120,16 @@ let
           ];
         };
 
+        kernelConfigDir = lib.mkOption {
+          type = types.nullOr types.path;
+          default = null;
+          description = ''
+            Directory of per-shape vLLM kernel tuning configurations to mount
+            read-only into the container. Configurations must match the image's
+            vLLM, Triton, CUDA, GPU, quantization, and tensor-parallel setup.
+          '';
+        };
+
         reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
           serviceName = "${serviceName}@${name}";
           defaultProxyPass = "http://${config.host}:${toString config.port}";
@@ -136,6 +157,10 @@ let
         // c.environmentVariables;
         volumes = [
           "${cfg.cacheDir}:/root/.cache:rw"
+        ]
+        ++ lib.optionals (c.kernelConfigDir != null) [
+          "${c.kernelConfigDir}:${containerKernelConfigDir}:ro"
+          "${kernelConfigEntrypoint}:${containerKernelConfigEntrypoint}:ro"
         ];
         ports = [
           "${c.host}:${toString c.port}:${toString c.port}"
@@ -145,8 +170,12 @@ let
           "--shm-size=8g"
           "--ulimit=memlock=-1"
         ]
-        ++ lib.optionals (c.device == "cuda") [ "--device=nvidia.com/gpu=all" ];
-        cmd = [ c.model ] ++ mkServeArgs c;
+        ++ lib.optionals (c.device == "cuda") [ "--device=nvidia.com/gpu=all" ]
+        ++ lib.optional (c.kernelConfigDir != null) "--entrypoint=/bin/sh";
+        cmd =
+          lib.optional (c.kernelConfigDir != null) containerKernelConfigEntrypoint
+          ++ [ c.model ]
+          ++ mkServeArgs c;
         environmentFiles = [ config.codgician.secrets.templates."vllm-env".path ];
       };
   };
