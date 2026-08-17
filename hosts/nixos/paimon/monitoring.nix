@@ -36,7 +36,30 @@ in
           }
         ];
       }
+      {
+        job_name = "nvidia-gpu";
+        scrape_interval = "5s";
+        static_configs = [
+          {
+            targets = [
+              "127.0.0.1:${toString config.services.prometheus.exporters.nvidia-gpu.port}"
+            ];
+            labels.instance = config.networking.hostName;
+          }
+        ];
+      }
     ];
+  };
+
+  # nvidia-smi-based exporter supports consumer GeForce GPUs without DCGM.
+  services.prometheus.exporters.nvidia-gpu = {
+    enable = true;
+    listenAddress = "127.0.0.1";
+  };
+
+  systemd.services.prometheus-nvidia-gpu-exporter = {
+    after = [ "nvidia-gpu-config.service" ];
+    wants = [ "nvidia-gpu-config.service" ];
   };
 
   # Grafana provisioning

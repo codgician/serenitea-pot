@@ -21,7 +21,7 @@
       }
     ]
   },
-  "description": "vLLM observability organized by API reliability, user-visible latency, workload throughput, scheduler capacity, and prefix-cache efficiency. HTTP failures remain separate from inference completion outcomes, and cache occupancy remains separate from prefix reuse.",
+  "description": "vLLM observability organized by API reliability, user-visible latency, workload throughput, scheduler capacity, NVIDIA GPU hardware, prefix-cache efficiency, and MTP speculative decoding. HTTP failures remain separate from inference completion outcomes, and metrics with incompatible scales use independent panels or logarithmic axes.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -954,7 +954,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "End-to-end latency includes the complete generated output and therefore varies with response length.",
+      "description": "End-to-end latency includes the complete generated output and varies strongly with response length. A logarithmic axis keeps median and tail percentiles visible when they differ by orders of magnitude.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -979,7 +979,8 @@
             "lineWidth": 2,
             "pointSize": 5,
             "scaleDistribution": {
-              "type": "linear"
+              "log": 2,
+              "type": "log"
             },
             "showPoints": "never",
             "spanNulls": true,
@@ -992,7 +993,6 @@
             }
           },
           "mappings": [],
-          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
@@ -1008,9 +1008,9 @@
       },
       "gridPos": {
         "h": 10,
-        "w": 12,
+        "w": 24,
         "x": 0,
-        "y": 26
+        "y": 36
       },
       "id": 11,
       "options": {
@@ -1075,7 +1075,128 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Queue latency isolates scheduler pressure from tokenization and model execution time.",
+      "description": "Distribution of gaps between streamed output tokens. Unlike per-request TPOT, ITL exposes token-level stalls and uneven streaming that averages can hide.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 26
+      },
+      "id": 34,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "13.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(vllm:inter_token_latency_seconds_bucket{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])))",
+          "instant": false,
+          "legendFormat": "P50",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(vllm:inter_token_latency_seconds_bucket{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])))",
+          "instant": false,
+          "legendFormat": "P95",
+          "range": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(vllm:inter_token_latency_seconds_bucket{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])))",
+          "instant": false,
+          "legendFormat": "P99",
+          "range": true,
+          "refId": "C"
+        }
+      ],
+      "title": "Inter-token latency",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Mean time spent waiting for scheduler admission, calculated from the exact histogram sum and count. vLLM's first queue-time bucket ends at 300 ms, so bucket-derived percentiles can materially overstate healthy low queue times.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1157,38 +1278,14 @@
             "uid": "${datasource}"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.50, sum by (le) (rate(vllm:request_queue_time_seconds_bucket{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])))",
+          "expr": "sum(rate(vllm:request_queue_time_seconds_sum{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])) / clamp_min(sum(rate(vllm:request_queue_time_seconds_count{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])), 1e-9)",
           "instant": false,
-          "legendFormat": "P50",
+          "legendFormat": "Mean",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(vllm:request_queue_time_seconds_bucket{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])))",
-          "instant": false,
-          "legendFormat": "P95",
-          "range": true,
-          "refId": "B"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "histogram_quantile(0.99, sum by (le) (rate(vllm:request_queue_time_seconds_bucket{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])))",
-          "instant": false,
-          "legendFormat": "P99",
-          "range": true,
-          "refId": "C"
         }
       ],
-      "title": "Request queue latency",
+      "title": "Average request queue time",
       "type": "timeseries"
     },
     {
@@ -1197,7 +1294,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 36
+        "y": 46
       },
       "id": 19,
       "panels": [],
@@ -1209,7 +1306,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "Prompt and generation token throughput. Prompt throughput represents prefill work; generation throughput represents decode work.",
+      "description": "Prompt tokens processed per second during prefill. This uses an independent axis because prompt throughput can be orders of magnitude higher than generation throughput.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1263,9 +1360,9 @@
       },
       "gridPos": {
         "h": 10,
-        "w": 24,
+        "w": 12,
         "x": 0,
-        "y": 37
+        "y": 47
       },
       "id": 13,
       "options": {
@@ -1293,10 +1390,95 @@
           "editorMode": "code",
           "expr": "sum(rate(vllm:prompt_tokens_total{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval]))",
           "instant": false,
-          "legendFormat": "Prompt",
+          "legendFormat": "Prompt tokens/s",
           "range": true,
           "refId": "A"
+        }
+      ],
+      "title": "Prompt token throughput",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Output tokens generated per second during decode, shown on its own axis so prompt volume cannot flatten generation behavior.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 12,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "tps"
         },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 47
+      },
+      "id": 24,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "13.0.3",
+      "targets": [
         {
           "datasource": {
             "type": "prometheus",
@@ -1305,12 +1487,12 @@
           "editorMode": "code",
           "expr": "sum(rate(vllm:generation_tokens_total{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval]))",
           "instant": false,
-          "legendFormat": "Generation",
+          "legendFormat": "Generation tokens/s",
           "range": true,
-          "refId": "B"
+          "refId": "A"
         }
       ],
-      "title": "Token throughput",
+      "title": "Generation token throughput",
       "type": "timeseries"
     },
     {
@@ -1319,7 +1501,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 47
+        "y": 57
       },
       "id": 20,
       "panels": [],
@@ -1388,7 +1570,7 @@
         "h": 10,
         "w": 8,
         "x": 0,
-        "y": 48
+        "y": 58
       },
       "id": 14,
       "options": {
@@ -1506,7 +1688,7 @@
         "h": 10,
         "w": 8,
         "x": 8,
-        "y": 48
+        "y": 58
       },
       "id": 15,
       "options": {
@@ -1603,7 +1785,7 @@
         "h": 10,
         "w": 8,
         "x": 16,
-        "y": 48
+        "y": 58
       },
       "id": 16,
       "options": {
@@ -1645,7 +1827,400 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 58
+        "y": 68
+      },
+      "id": 29,
+      "panels": [],
+      "title": "GPU Hardware",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "NVIDIA GPU model reported by prometheus-nvidia-gpu-exporter.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [
+            {
+              "options": {
+                "0": {
+                  "color": "red",
+                  "index": 0,
+                  "text": "Down"
+                },
+                "1": {
+                  "color": "green",
+                  "index": 1,
+                  "text": "Healthy"
+                }
+              },
+              "type": "value"
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 0,
+        "y": 69
+      },
+      "id": 30,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "name",
+        "wideLayout": true
+      },
+      "pluginVersion": "13.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "nvidia_smi_gpu_info{job=\"nvidia-gpu\",instance=~\"$instance\"}",
+          "instant": true,
+          "legendFormat": "{{name}}",
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "title": "GPU model",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Framebuffer memory in use as a percentage of total GPU VRAM.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 12,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 6,
+        "y": 69
+      },
+      "id": 31,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "13.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "(100 * nvidia_smi_memory_used_bytes{job=\"nvidia-gpu\",instance=~\"$instance\"} / nvidia_smi_memory_total_bytes{job=\"nvidia-gpu\",instance=~\"$instance\"}) * on(uuid) group_left(name) nvidia_smi_gpu_info{job=\"nvidia-gpu\",instance=~\"$instance\"}",
+          "instant": false,
+          "legendFormat": "{{name}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "VRAM utilization",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Percentage of the collection interval during which one or more GPU kernels were executing.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 12,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 12,
+        "y": 69
+      },
+      "id": 32,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "13.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "(100 * nvidia_smi_utilization_gpu_ratio{job=\"nvidia-gpu\",instance=~\"$instance\"}) * on(uuid) group_left(name) nvidia_smi_gpu_info{job=\"nvidia-gpu\",instance=~\"$instance\"}",
+          "instant": false,
+          "legendFormat": "{{name}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "GPU compute utilization",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Board power draw as a percentage of the enforced power limit, falling back to the software or default limit when necessary. Paimon currently caps the GPU at 350 W.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 12,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 6,
+        "x": 18,
+        "y": 69
+      },
+      "id": 33,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "13.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "(100 * nvidia_smi_power_draw_watts{job=\"nvidia-gpu\",instance=~\"$instance\"} / (nvidia_smi_enforced_power_limit_watts{job=\"nvidia-gpu\",instance=~\"$instance\"} or nvidia_smi_power_limit_watts{job=\"nvidia-gpu\",instance=~\"$instance\"} or nvidia_smi_power_default_limit_watts{job=\"nvidia-gpu\",instance=~\"$instance\"})) * on(uuid) group_left(name) nvidia_smi_gpu_info{job=\"nvidia-gpu\",instance=~\"$instance\"}",
+          "instant": false,
+          "legendFormat": "{{name}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Power / enforced limit",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 79
       },
       "id": 21,
       "panels": [],
@@ -1714,7 +2289,7 @@
         "h": 10,
         "w": 12,
         "x": 0,
-        "y": 59
+        "y": 80
       },
       "id": 22,
       "options": {
@@ -1811,7 +2386,7 @@
         "h": 10,
         "w": 12,
         "x": 12,
-        "y": 59
+        "y": 80
       },
       "id": 23,
       "options": {
@@ -1857,6 +2432,313 @@
         }
       ],
       "title": "Prefix cache activity",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 90
+      },
+      "id": 25,
+      "panels": [],
+      "title": "MTP Speculative Decoding",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Share of MTP draft tokens accepted by the target model over the selected rate interval. Higher is better, but latency and generation throughput remain the outcome metrics.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 12,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 91
+      },
+      "id": 26,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "13.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "100 * sum(rate(vllm:spec_decode_num_accepted_tokens_total{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])) / clamp_min(sum(rate(vllm:spec_decode_num_draft_tokens_total{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])), 1e-9)",
+          "instant": false,
+          "legendFormat": "Accepted draft tokens",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "MTP acceptance rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Mean accepted sequence length per speculative draft, including the bonus target token. With three MTP draft tokens, the theoretical range is 1–4 tokens.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 12,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short",
+          "decimals": 2
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 91
+      },
+      "id": 27,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "13.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "1 + sum(rate(vllm:spec_decode_num_accepted_tokens_total{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])) / clamp_min(sum(rate(vllm:spec_decode_num_drafts_total{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])), 1e-9)",
+          "instant": false,
+          "legendFormat": "Mean accepted length",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Mean MTP acceptance length",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Unconditional acceptance probability for each MTP draft position. Later positions are accepted only when every earlier position was accepted, so the curves should decrease monotonically.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 12,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 91
+      },
+      "id": 28,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "13.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "100 * sum by (position) (rate(vllm:spec_decode_num_accepted_tokens_per_pos_total{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])) / ignoring(position) group_left clamp_min(sum(rate(vllm:spec_decode_num_drafts_total{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])), 1e-9)",
+          "instant": false,
+          "legendFormat": "Position {{position}}",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Acceptance by MTP position",
       "type": "timeseries"
     }
   ],
