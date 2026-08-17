@@ -203,6 +203,8 @@ in
           discord
           voxtype-onnx
           moonlight-qt
+          thunderbird-bin
+          firefox-bin
         ]
         ++ (with pkgs.nur.repos.codgician; [
           nanokvm-usb
@@ -317,7 +319,6 @@ in
   # Global packages
   environment.systemPackages = with pkgs; [
     google-chrome
-    firefox-bin
   ];
 
   # Enable zram swap

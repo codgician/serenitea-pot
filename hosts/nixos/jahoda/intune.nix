@@ -74,6 +74,20 @@
         Slice = "background.slice";
       };
     };
+
+    user.timers.intune-agent = {
+      description = "Intune Agent scheduler";
+      wantedBy = [ "graphical-session.target" ];
+      partOf = [ "graphical-session.target" ];
+      after = [ "graphical-session.target" ];
+      unitConfig.DefaultDependencies = false;
+      timerConfig = {
+        AccuracySec = "2m";
+        OnStartupSec = "5m";
+        OnUnitActiveSec = "1h";
+        RandomizedDelaySec = "10m";
+      };
+    };
   };
 
   systemd.tmpfiles.rules = [ "d /run/intune 0755 root root -" ];
