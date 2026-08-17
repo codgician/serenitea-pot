@@ -216,52 +216,55 @@ in
     enable = true;
     unmanaged = [ "thunderbolt0" ];
 
-    ensureProfiles.profiles.eno1 = {
-      connection = {
-        id = "eno1";
-        type = "ethernet";
-        interface-name = "eno1";
-        autoconnect = true;
+    ensureProfiles.profiles = {
+      eno1 = {
+        connection = {
+          id = "eno1";
+          type = "ethernet";
+          interface-name = "eno1";
+          autoconnect = true;
+        };
+
+        ipv4 = {
+          method = "auto";
+          route-metric = 100;
+        };
+
+        ipv6 = {
+          method = "auto";
+          route-metric = 100;
+          addr-gen-mode = "stable-privacy";
+        };
       };
 
-      ipv4 = {
-        method = "auto";
-        route-metric = 100;
+      eno1-guest = {
+        connection = {
+          id = "eno1-guest";
+          type = "macvlan";
+          interface-name = "eno1-guest";
+          autoconnect = true;
+        };
+
+        ethernet.cloned-mac-address = "b0:7b:25:23:66:63";
+
+        macvlan = {
+          parent = "eno1";
+          mode = 2; # Bridge mode
+        };
+
+        ipv4 = {
+          method = "auto";
+          route-metric = 600;
+          ignore-auto-dns = true;
+        };
+
+        ipv6 = {
+          method = "auto";
+          route-metric = 600;
+          ignore-auto-dns = true;
+        };
       };
 
-      ipv6 = {
-        method = "auto";
-        route-metric = 100;
-        addr-gen-mode = "stable-privacy";
-      };
-    };
-
-    ensureProfiles.profiles."eno1-guest" = {
-      connection = {
-        id = "eno1-guest";
-        type = "macvlan";
-        interface-name = "eno1-guest";
-        autoconnect = true;
-      };
-
-      ethernet.cloned-mac-address = "b0:7b:25:23:66:63";
-
-      macvlan = {
-        parent = "eno1";
-        mode = 2; # Bridge mode
-      };
-
-      ipv4 = {
-        method = "auto";
-        route-metric = 600;
-        ignore-auto-dns = true;
-      };
-
-      ipv6 = {
-        method = "auto";
-        route-metric = 600;
-        ignore-auto-dns = true;
-      };
     };
   };
   networking.hostId = "357a80da";

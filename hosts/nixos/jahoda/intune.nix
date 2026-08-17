@@ -1,5 +1,40 @@
 # Microsoft Intune with sandboxed Ubuntu identity (spoofs os-release for compliance)
-{ pkgs, ... }:
+{ config, pkgs, ... }:
+let
+  msftvpn = pkgs.writeShellApplication {
+    name = "msftvpn";
+    text = ''
+      portal="msftvpn-alt.ras.microsoft.com"
+
+      case "''${1:-connect}" in
+        connect)
+          ${pkgs.gpauth}/bin/gpauth \
+            --fix-openssl \
+            --browser ${pkgs.microsoft-edge}/bin/microsoft-edge-stable \
+            "$portal" \
+          | ${config.security.wrapperDir}/sudo \
+              ${pkgs.gpclient}/bin/gpclient \
+              --fix-openssl \
+              connect \
+              --disable-ipv6 \
+              --cookie-on-stdin \
+              "$portal"
+          ;;
+        disconnect)
+          exec ${config.security.wrapperDir}/sudo \
+            ${pkgs.gpclient}/bin/gpclient disconnect --wait 3
+          ;;
+        help|-h|--help)
+          echo "Usage: msftvpn [connect|disconnect]"
+          ;;
+        *)
+          echo "Usage: msftvpn [connect|disconnect]" >&2
+          exit 2
+          ;;
+      esac
+    '';
+  };
+in
 {
   # Required for TLS support in WebKitGTK (used by Intune Portal authentication)
   services.gnome.glib-networking.enable = true;
@@ -11,7 +46,10 @@
   users.groups.microsoft-identity-broker = { };
 
   environment.systemPackages = with pkgs; [
+    gpauth
+    gpclient
     libpwquality
+    msftvpn
   ];
 
   services.dbus.packages = [ pkgs.microsoft-identity-broker ];
