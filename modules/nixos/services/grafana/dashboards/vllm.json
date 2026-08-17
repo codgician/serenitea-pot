@@ -21,7 +21,7 @@
       }
     ]
   },
-  "description": "vLLM API reliability, user-visible latency, token throughput, scheduler pressure, and cache efficiency. HTTP failures are separated from inference completion outcomes so client errors, server errors, cancellations, and normal length limits remain distinguishable.",
+  "description": "vLLM observability organized by API reliability, user-visible latency, workload throughput, scheduler capacity, and prefix-cache efficiency. HTTP failures remain separate from inference completion outcomes, and cache occupancy remains separate from prefix reuse.",
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
@@ -488,6 +488,19 @@
       "type": "stat"
     },
     {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 4
+      },
+      "id": 17,
+      "panels": [],
+      "title": "API Reliability",
+      "type": "row"
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -545,10 +558,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 12,
         "x": 0,
-        "y": 4
+        "y": 5
       },
       "id": 7,
       "options": {
@@ -642,10 +655,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 12,
         "x": 12,
-        "y": 4
+        "y": 5
       },
       "id": 8,
       "options": {
@@ -680,6 +693,19 @@
       ],
       "title": "Inference completion outcomes",
       "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 15
+      },
+      "id": 18,
+      "panels": [],
+      "title": "User-Visible Latency",
+      "type": "row"
     },
     {
       "datasource": {
@@ -739,10 +765,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 12,
         "x": 0,
-        "y": 12
+        "y": 16
       },
       "id": 9,
       "options": {
@@ -860,10 +886,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 12,
         "x": 12,
-        "y": 12
+        "y": 16
       },
       "id": 10,
       "options": {
@@ -981,10 +1007,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 12,
         "x": 0,
-        "y": 20
+        "y": 26
       },
       "id": 11,
       "options": {
@@ -1102,10 +1128,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 10,
         "w": 12,
         "x": 12,
-        "y": 20
+        "y": 26
       },
       "id": 12,
       "options": {
@@ -1166,6 +1192,19 @@
       "type": "timeseries"
     },
     {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 36
+      },
+      "id": 19,
+      "panels": [],
+      "title": "Workload & Throughput",
+      "type": "row"
+    },
+    {
       "datasource": {
         "type": "prometheus",
         "uid": "${datasource}"
@@ -1223,10 +1262,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 10,
+        "w": 24,
         "x": 0,
-        "y": 28
+        "y": 37
       },
       "id": 13,
       "options": {
@@ -1273,6 +1312,19 @@
       ],
       "title": "Token throughput",
       "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 47
+      },
+      "id": 20,
+      "panels": [],
+      "title": "Scheduler & Capacity",
+      "type": "row"
     },
     {
       "datasource": {
@@ -1333,10 +1385,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 28
+        "h": 10,
+        "w": 8,
+        "x": 0,
+        "y": 48
       },
       "id": 14,
       "options": {
@@ -1389,7 +1441,7 @@
         "type": "prometheus",
         "uid": "${datasource}"
       },
-      "description": "KV-cache pressure and prefix-cache effectiveness. Prefix hit rate is computed from token counters over the selected rate interval.",
+      "description": "Current KV-cache occupancy. Sustained high utilization, especially alongside waiting requests or preemptions, indicates capacity pressure.",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -1451,10 +1503,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 36
+        "h": 10,
+        "w": 8,
+        "x": 8,
+        "y": 48
       },
       "id": 15,
       "options": {
@@ -1485,21 +1537,9 @@
           "legendFormat": "KV cache usage",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${datasource}"
-          },
-          "editorMode": "code",
-          "expr": "100 * sum(rate(vllm:prefix_cache_hits_total{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])) / clamp_min(sum(rate(vllm:prefix_cache_queries_total{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])), 1e-9)",
-          "instant": false,
-          "legendFormat": "Prefix cache hit rate",
-          "range": true,
-          "refId": "B"
         }
       ],
-      "title": "Cache pressure and efficiency",
+      "title": "KV cache utilization",
       "type": "timeseries"
     },
     {
@@ -1560,10 +1600,10 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 36
+        "h": 10,
+        "w": 8,
+        "x": 16,
+        "y": 48
       },
       "id": 16,
       "options": {
@@ -1597,6 +1637,226 @@
         }
       ],
       "title": "Scheduler preemptions",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 58
+      },
+      "id": 21,
+      "panels": [],
+      "title": "Prefix Cache Efficiency",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Share of queried prefix tokens served from the prefix cache over the selected rate interval. Interpret this against workload prefix reuse rather than as a capacity signal.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 12,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 0,
+        "y": 59
+      },
+      "id": 22,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "13.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "100 * sum(rate(vllm:prefix_cache_hits_total{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])) / clamp_min(sum(rate(vllm:prefix_cache_queries_total{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval])), 1e-9)",
+          "instant": false,
+          "legendFormat": "Prefix cache hit rate",
+          "range": true,
+          "refId": "A"
+        }
+      ],
+      "title": "Prefix cache hit rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "${datasource}"
+      },
+      "description": "Prefix tokens queried and reused per second. The gap between queried and hit tokens shows how much prompt work still requires computation.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "drawStyle": "line",
+            "fillOpacity": 12,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": true,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "tps"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 12,
+        "x": 12,
+        "y": 59
+      },
+      "id": 23,
+      "options": {
+        "legend": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "pluginVersion": "13.0.3",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(vllm:prefix_cache_queries_total{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval]))",
+          "instant": false,
+          "legendFormat": "Queried prefix tokens",
+          "range": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "${datasource}"
+          },
+          "editorMode": "code",
+          "expr": "sum(rate(vllm:prefix_cache_hits_total{job=\"vllm\",instance=~\"$instance\",model_name=~\"$model\"}[$__rate_interval]))",
+          "instant": false,
+          "legendFormat": "Cache-hit prefix tokens",
+          "range": true,
+          "refId": "B"
+        }
+      ],
+      "title": "Prefix cache activity",
       "type": "timeseries"
     }
   ],
