@@ -102,6 +102,10 @@ in
       };
     };
 
+    # sing-box owns the policy rules for routing table 2022. By default,
+    # networkd deletes foreign rules whenever any managed link is reconfigured.
+    systemd.network.config.networkConfig.ManageForeignRoutingPolicyRules = false;
+
     # The TUN is brought up by sing-box at runtime and held in "configuring"
     # by KeepConfiguration=yes, so it never reaches `configured`. Exclude it
     # from wait-online to avoid a 2-minute boot-time timeout failure.
