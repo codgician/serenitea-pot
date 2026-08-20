@@ -15,6 +15,7 @@ let
   # this shared registry without changing the transport path.
   allowedProviders = [
     "azure"
+    "claude"
     "chatgpt"
     "deepseek"
     "github"
