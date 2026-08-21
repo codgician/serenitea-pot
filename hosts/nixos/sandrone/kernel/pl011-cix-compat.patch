@@ -1,0 +1,131 @@
+From: serenitea-pot <noreply@localhost>
+Subject: [PATCH] tty: restore PL011 context expected by CIX patch
+
+Linux 6.18.42 backported an RS485 shutdown fix that conflicts with CIX's
+larger PL011 replacement. Restore only the superseded RS485 implementation
+before applying the CIX patch; keep the independent DMA shutdown fixes.
+
+---
+diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
+--- a/drivers/tty/serial/amba-pl011.c
++++ b/drivers/tty/serial/amba-pl011.c
+@@ -253,7 +253,6 @@ enum pl011_rs485_tx_state {
+ 	WAIT_AFTER_RTS,
+ 	SEND,
+ 	WAIT_AFTER_SEND,
+-	WAIT_AFTER_SEND_DELAY,
+ };
+ 
+ /*
+@@ -1269,30 +1268,11 @@ static inline bool pl011_dma_rx_running(struct uart_amba_port *uap)
+ #define pl011_dma_flush_buffer	NULL
+ #endif
+ 
+-static void pl011_rs485_tx_stop_now(struct uart_amba_port *uap)
++static void pl011_rs485_tx_stop(struct uart_amba_port *uap)
+ {
+ 	struct uart_port *port = &uap->port;
+ 	u32 cr;
+ 
+-	cr = pl011_read(uap, REG_CR);
+-
+-	if (port->rs485.flags & SER_RS485_RTS_AFTER_SEND)
+-		cr &= ~UART011_CR_RTS;
+-	else
+-		cr |= UART011_CR_RTS;
+-
+-	/* Disable the transmitter and reenable the transceiver */
+-	cr &= ~UART011_CR_TXE;
+-	cr |= UART011_CR_RXE;
+-	pl011_write(cr, uap, REG_CR);
+-
+-	uap->rs485_tx_state = OFF;
+-}
+-
+-static void pl011_rs485_tx_stop(struct uart_amba_port *uap)
+-{
+-	struct uart_port *port = &uap->port;
+-
+ 	if (uap->rs485_tx_state == SEND)
+ 		uap->rs485_tx_state = WAIT_AFTER_SEND;
+ 
+@@ -1305,7 +1285,6 @@ static void pl011_rs485_tx_stop(struct uart_amba_port *uap)
+ 			return;
+ 		}
+ 		if (port->rs485.delay_rts_after_send > 0) {
+-			uap->rs485_tx_state = WAIT_AFTER_SEND_DELAY;
+ 			hrtimer_start(&uap->trigger_stop_tx,
+ 				      ms_to_ktime(port->rs485.delay_rts_after_send),
+ 				      HRTIMER_MODE_REL);
+@@ -1316,7 +1295,19 @@ static void pl011_rs485_tx_stop(struct uart_amba_port *uap)
+ 		hrtimer_try_to_cancel(&uap->trigger_start_tx);
+ 	}
+ 
+-	pl011_rs485_tx_stop_now(uap);
++	cr = pl011_read(uap, REG_CR);
++
++	if (port->rs485.flags & SER_RS485_RTS_AFTER_SEND)
++		cr &= ~UART011_CR_RTS;
++	else
++		cr |= UART011_CR_RTS;
++
++	/* Disable the transmitter and reenable the transceiver */
++	cr &= ~UART011_CR_TXE;
++	cr |= UART011_CR_RXE;
++	pl011_write(cr, uap, REG_CR);
++
++	uap->rs485_tx_state = OFF;
+ }
+ 
+ static void pl011_stop_tx(struct uart_port *port)
+@@ -1359,8 +1350,7 @@ static void pl011_rs485_tx_start(struct uart_amba_port *uap)
+ 		uap->rs485_tx_state = SEND;
+ 		return;
+ 	}
+-	if (uap->rs485_tx_state == WAIT_AFTER_SEND ||
+-	    uap->rs485_tx_state == WAIT_AFTER_SEND_DELAY) {
++	if (uap->rs485_tx_state == WAIT_AFTER_SEND) {
+ 		hrtimer_try_to_cancel(&uap->trigger_stop_tx);
+ 		uap->rs485_tx_state = SEND;
+ 		return;
+@@ -1427,8 +1417,7 @@ static enum hrtimer_restart pl011_trigger_stop_tx(struct hrtimer *t)
+ 	unsigned long flags;
+ 
+ 	uart_port_lock_irqsave(&uap->port, &flags);
+-	if (uap->rs485_tx_state == WAIT_AFTER_SEND ||
+-	    uap->rs485_tx_state == WAIT_AFTER_SEND_DELAY)
++	if (uap->rs485_tx_state == WAIT_AFTER_SEND)
+ 		pl011_rs485_tx_stop(uap);
+ 	uart_port_unlock_irqrestore(&uap->port, flags);
+ 
+@@ -2026,19 +2015,10 @@ static void pl011_shutdown(struct uart_port *port)
+ 
+ 	pl011_dma_shutdown(uap);
+ 
+-	free_irq(uap->port.irq, uap);
+-
+-	/*
+-	 * free_irq() drains the UART interrupt handler, which can arm either
+-	 * timer.  Cancel the timers afterwards to drain their callbacks too.
+-	 */
+-	hrtimer_cancel(&uap->trigger_start_tx);
+-	hrtimer_cancel(&uap->trigger_stop_tx);
++	if ((port->rs485.flags & SER_RS485_ENABLED && uap->rs485_tx_state != OFF))
++		pl011_rs485_tx_stop(uap);
+ 
+-	uart_port_lock_irq(port);
+-	if (uap->rs485_tx_state != OFF)
+-		pl011_rs485_tx_stop_now(uap);
+-	uart_port_unlock_irq(port);
++	free_irq(uap->port.irq, uap);
+ 
+ 	pl011_disable_uart(uap);
+ 
+@@ -2957,8 +2937,6 @@ static void pl011_remove(struct amba_device *dev)
+ 	struct uart_amba_port *uap = amba_get_drvdata(dev);
+ 
+ 	uart_remove_one_port(&amba_reg, &uap->port);
+-	hrtimer_cancel(&uap->trigger_start_tx);
+-	hrtimer_cancel(&uap->trigger_stop_tx);
+ 	pl011_unregister_port(uap);
+ }

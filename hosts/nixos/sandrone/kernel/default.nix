@@ -4,6 +4,14 @@ let
 
   patchDir = "${inputs.cix-linux-main}/patches-6.18";
 
+  # Linux 6.18.42 changed PL011 RS485 shutdown code that CIX replaces.
+  cixCompatPatches = [
+    {
+      name = "pl011-cix-compat";
+      patch = ./pl011-cix-compat.patch;
+    }
+  ];
+
   # The cix-linux-main repo ships its patches as one-per-file under
   # `patches-6.18/`. `builtins.attrNames` (used inside
   # `getRegularFileNames`) already returns names alphabetically sorted,
@@ -78,7 +86,8 @@ let
     };
   };
 in
-cixPatches
+cixCompatPatches
+++ cixPatches
 ++ localPatches
 ++ [
   cixExtraConfig
