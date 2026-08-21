@@ -345,17 +345,17 @@
   "gpt-5.6-sol": {
     "contextWindow": 1050000,
     "cost": {
-      "cacheRead": 0.5,
-      "cacheWrite": 6.25,
-      "input": 5,
-      "output": 30,
+      "cacheRead": 0.25,
+      "cacheWrite": 3.12,
+      "input": 2.5,
+      "output": 15,
       "tiers": [
         {
-          "cacheRead": 1,
-          "cacheWrite": 12.5,
-          "input": 10,
+          "cacheRead": 0.5,
+          "cacheWrite": 6.25,
+          "input": 5,
           "inputTokensAbove": 272000,
-          "output": 45
+          "output": 22.5
         }
       ]
     },
