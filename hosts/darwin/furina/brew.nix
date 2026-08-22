@@ -75,5 +75,6 @@
     "obs-backgroundremoval"
     "ibkr"
     "trader-workstation"
+    "gimp"
   ];
 }
