@@ -28,8 +28,13 @@
     { ... }:
     {
       codgician.codgi = {
+        claude-code.enable = true;
+        codex = {
+          enable = true;
+          package = pkgs.codex-wrapped;
+        };
         dev.nix.enable = true;
-        opencode.enable = true;
+        oh-my-pi.enable = true;
         mcp.enable = true;
         git.enable = true;
         pwsh.enable = true;
