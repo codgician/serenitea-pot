@@ -24,11 +24,16 @@ in
       type = types.str;
       description = "Default user when launching NixOS WSL.";
     };
+
+    docker-desktop.enable = lib.mkEnableOption "Docker Desktop";
   };
 
   config = lib.mkIf cfg.enable {
     wsl = {
-      inherit (cfg) enable defaultUser;
+      inherit (cfg) enable defaultUser docker-desktop;
+      ssh-agent.enable = true;
+      interop.register = true;
+      usbip.enable = true;
       useWindowsDriver = true;
       wslConf.network.generateResolvConf = !config.services.resolved.enable;
     };
