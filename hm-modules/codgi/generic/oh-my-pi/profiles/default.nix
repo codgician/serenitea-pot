@@ -1,7 +1,8 @@
 { pkgs }:
 let
   commonProfile = {
-    setupVersion = 1;
+    setupVersion = 2;
+    composer.shape = "box";
     personality = "pragmatic";
 
     providers.webSearch = "exa";
