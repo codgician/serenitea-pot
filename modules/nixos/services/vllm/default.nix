@@ -8,7 +8,7 @@ let
   cfg = config.codgician.services.vllm;
   inherit (lib) types;
 
-  defaultCacheDir = "/var/lib/vllm-cache";
+  defaultCacheDir = "/var/lib/llm-cache";
   containerKernelConfigDir = "/etc/vllm/fp8-kernel-configs";
   containerKernelConfigEntrypoint = "/etc/vllm/load-fp8-kernel-configs.sh";
   kernelConfigEntrypoint = builtins.toFile "load-vllm-fp8-kernel-configs.sh" ''
@@ -21,6 +21,17 @@ let
     exec vllm serve "$@"
   '';
   hasNvidia = config.hardware.nvidia-container-toolkit.enable or false;
+  scrapeHost =
+    host:
+    if
+      builtins.elem host [
+        "0.0.0.0"
+        "::"
+      ]
+    then
+      "127.0.0.1"
+    else
+      host;
 
   mkServeArgs =
     c:
@@ -202,6 +213,8 @@ in
       description = "Model cache directory (mounted into container).";
     };
 
+    monitoring.enable = lib.mkEnableOption "Prometheus scraping and the bundled Grafana dashboard";
+
     instances = lib.mkOption {
       type = types.attrsOf (types.submodule instanceModule);
       default = { };
@@ -230,7 +243,17 @@ in
       ++ map (n: {
         assertion = false;
         message = "codgician.services.vllm.instances.${n}.device is \"cuda\" but hardware.nvidia-container-toolkit is disabled.";
-      }) cudaWithoutHost;
+      }) cudaWithoutHost
+      ++ [
+        {
+          assertion = !cfg.monitoring.enable || config.codgician.services.prometheus.enable;
+          message = "codgician.services.vllm.monitoring requires codgician.services.prometheus.enable.";
+        }
+        {
+          assertion = !cfg.monitoring.enable || config.codgician.services.grafana.enable;
+          message = "codgician.services.vllm.monitoring requires codgician.services.grafana.enable.";
+        }
+      ];
 
     systemd.tmpfiles.rules = [
       "d ${cfg.cacheDir} 0755 root root -"
@@ -240,6 +263,22 @@ in
       type = "directory";
       path = cfg.cacheDir;
     };
+
+    codgician.services.prometheus.scrapeConfigs.extraConfigs = lib.optional cfg.monitoring.enable {
+      job_name = serviceName;
+      scrape_interval = "5s";
+      metrics_path = "/metrics";
+      static_configs = map (name: {
+        targets = [ "${scrapeHost cfg.instances.${name}.host}:${toString cfg.instances.${name}.port}" ];
+        labels = {
+          instance = config.networking.hostName;
+          service = name;
+        };
+      }) instances;
+    };
+
+    codgician.services.grafana.provision.dashboards =
+      lib.optional cfg.monitoring.enable ../grafana/dashboards/vllm.json;
 
     virtualisation.oci-containers.containers = lib.mkMerge (map mkContainer instances);
 

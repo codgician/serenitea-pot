@@ -72,39 +72,57 @@
       };
 
       vllm = {
-        enable = true;
-        cacheDir = "/xpool/llm/vllm-cache";
-        instances = {
-          qwen-chat = {
-            model = "Qwen/Qwen3.8-27B-FP8";
-            host = "0.0.0.0";
-            port = 8000;
-            gpuMemoryUtilization = 0.95;
-            kernelConfigDir = ./vllm-fp8-kernel-configs;
-            extraArgs = [
-              "--max-model-len"
-              "auto"
-              "--max-num-seqs"
-              "256"
-              # Must be >= attention block_size (~1600-2080 for this hybrid
-              # arch); vLLM asserts the floor at startup.
-              "--max-num-batched-tokens"
-              "8192"
-              "--kv-cache-dtype"
-              "fp8"
-              "--reasoning-parser"
-              "qwen3"
-              "--enable-auto-tool-choice"
-              "--tool-call-parser"
-              "qwen3_coder"
-              "--trust-remote-code"
-              "--enable-prefix-caching"
-              "--enable-flashinfer-autotune"
-              "--speculative-config"
-              ''{"method":"mtp","num_speculative_tokens":3}''
-            ];
-          };
+        enable = false;
+        cacheDir = "/xpool/llm/llm-cache";
+      };
 
+      sglang = {
+        enable = true;
+        monitoring.enable = true;
+        # Share the engine-neutral ModelScope cache with vLLM.
+        cacheDir = "/xpool/llm/llm-cache";
+        instances.qwen-chat = {
+          model = "Qwen/Qwen3.8-27B-FP8";
+          host = "0.0.0.0";
+          port = 8000;
+          memFractionStatic = 0.95;
+          useModelScope = true;
+          kernelConfigDir = ./vllm-fp8-kernel-configs;
+          extraArgs = [
+            "--trust-remote-code"
+            "--kv-cache-dtype"
+            "fp8_e4m3"
+            "--attention-backend"
+            "flashinfer"
+            "--chunked-prefill-size"
+            "2048"
+            "--mamba-radix-cache-strategy"
+            "extra_buffer_lazy"
+            "--mamba-ssm-dtype"
+            "bfloat16"
+            "--context-length"
+            "262144"
+            "--max-total-tokens"
+            "262656"
+            "--max-running-requests"
+            "4"
+            "--max-mamba-cache-size"
+            "16"
+            "--reasoning-parser"
+            "qwen3"
+            "--tool-call-parser"
+            "qwen3_coder"
+            "--speculative-algorithm"
+            "EAGLE"
+            "--speculative-num-steps"
+            "3"
+            "--speculative-eagle-topk"
+            "1"
+            "--speculative-num-draft-tokens"
+            "4"
+            "--enable-linear-replayssm-spec"
+            "--speculative-adaptive"
+          ];
         };
       };
 

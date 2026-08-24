@@ -23,20 +23,6 @@ in
     nginxlog = true;
     extraConfigs = [
       {
-        job_name = "vllm";
-        scrape_interval = "5s";
-        metrics_path = "/metrics";
-        static_configs = [
-          {
-            targets = [ "127.0.0.1:${toString config.codgician.services.vllm.instances.qwen-chat.port}" ];
-            labels = {
-              instance = config.networking.hostName;
-              service = "qwen-chat";
-            };
-          }
-        ];
-      }
-      {
         job_name = "nvidia-gpu";
         scrape_interval = "5s";
         static_configs = [
@@ -67,7 +53,6 @@ in
     prometheus.enable = true;
     dashboards = [
       ../../../modules/nixos/services/grafana/dashboards/nginx.json
-      ../../../modules/nixos/services/grafana/dashboards/vllm.json
     ];
   };
 
