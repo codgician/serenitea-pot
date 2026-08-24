@@ -88,6 +88,28 @@
           memFractionStatic = 0.95;
           useModelScope = true;
           kernelConfigDir = ./vllm-fp8-kernel-configs;
+          adaptiveSpeculativeConfig = builtins.toFile "qwen3.8-mtp-adaptive.json" (
+            builtins.toJSON {
+              ema_alpha = 0.2;
+              warmup_batches = 10;
+              update_interval = 5;
+              "1" = {
+                candidate_steps = [
+                  1
+                  3
+                ];
+                up_hysteresis = 0.0;
+                down_hysteresis = -0.25;
+                ceiling_coeff = 0;
+              };
+              "8" = {
+                candidate_steps = [ 1 ];
+                up_hysteresis = 0.0;
+                down_hysteresis = 0.0;
+                ceiling_coeff = 0;
+              };
+            }
+          );
           extraArgs = [
             "--trust-remote-code"
             "--kv-cache-dtype"

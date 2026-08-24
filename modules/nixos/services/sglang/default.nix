@@ -10,6 +10,7 @@ let
 
   defaultCacheDir = "/var/lib/llm-cache";
   containerKernelConfigDir = "/sgl-workspace/sglang/python/sglang/kernels/ops/quantization/configs";
+  containerAdaptiveSpeculativeConfigPath = "/tmp/sglang-adaptive-speculative.json";
   hasNvidia = config.hardware.nvidia-container-toolkit.enable or false;
   scrapeHost =
     host:
@@ -42,6 +43,10 @@ let
       (toString c.memFractionStatic)
     ]
     ++ lib.optional cfg.monitoring.enable "--enable-metrics"
+    ++ lib.optionals (c.adaptiveSpeculativeConfig != null) [
+      "--speculative-adaptive-config"
+      containerAdaptiveSpeculativeConfigPath
+    ]
     ++ c.extraArgs;
 
   instanceModule =
@@ -111,6 +116,15 @@ let
           ];
         };
 
+        adaptiveSpeculativeConfig = lib.mkOption {
+          type = types.nullOr types.path;
+          default = null;
+          description = ''
+            JSON configuration for `--speculative-adaptive-config`. The file is
+            mounted read-only inside the container when set.
+          '';
+        };
+
         kernelConfigDir = lib.mkOption {
           type = types.nullOr types.path;
           default = null;
@@ -156,7 +170,10 @@ let
             in
             "${c.kernelConfigDir}/${file}:${containerKernelConfigDir}/${targetName}:ro"
           ) (builtins.attrNames (builtins.readDir c.kernelConfigDir))
-        );
+        )
+        ++ lib.optionals (c.adaptiveSpeculativeConfig != null) [
+          "${c.adaptiveSpeculativeConfig}:${containerAdaptiveSpeculativeConfigPath}:ro"
+        ];
         ports = [ "${c.host}:${toString c.port}:${toString c.port}" ];
         extraOptions = [
           "--pull=newer"
