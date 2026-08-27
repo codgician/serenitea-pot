@@ -140,5 +140,9 @@ in
       gitCredentialHelper.enable = true;
       settings.editor = lib.getExe pkgs.vim;
     };
+
+    # Force overwrite any pre-existing config.yml (e.g. from manual `gh auth
+    # login`) instead of failing activation.
+    xdg.configFile."gh/config.yml".force = true;
   };
 }
