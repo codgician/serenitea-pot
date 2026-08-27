@@ -175,35 +175,35 @@ in
     })
     (stat {
       id = 2;
-      title = "Request rate";
-      description = "Completed inference requests per second.";
+      title = "Active requests";
+      description = "Requests currently executing on the scheduler; sampled every two seconds.";
       x = 4;
-      unit = "reqps";
-      expr = "sum(rate(sglang:num_requests_total{${selector}}[$__rate_interval]))";
+      unit = "short";
+      expr = "sum(sglang:num_running_reqs{${selector}})";
     })
     (stat {
       id = 3;
-      title = "Abort rate";
-      description = "Client-disconnected or otherwise aborted requests per second.";
+      title = "KV pool utilization";
+      description = "Current bottleneck utilization across full-attention KV and hybrid state pools.";
       x = 8;
-      unit = "reqps";
-      expr = "sum(rate(sglang:num_aborted_requests_total{${selector}}[$__rate_interval]))";
+      unit = "percentunit";
+      expr = "max(sglang:token_usage{${selector}})";
     })
     (stat {
       id = 4;
-      title = "P95 time to first token";
-      description = "95th-percentile time from request arrival to the first generated token.";
+      title = "P95 TTFT (completed, 5m)";
+      description = "95th-percentile TTFT among requests observed in the last five minutes. No value means no recent completed sample.";
       x = 12;
       unit = "s";
-      expr = "histogram_quantile(0.95, sum by (le) (rate(sglang:time_to_first_token_seconds_bucket{${selector}}[$__rate_interval])))";
+      expr = "histogram_quantile(0.95, sum by (le) (rate(sglang:time_to_first_token_seconds_bucket{${selector}}[5m])))";
     })
     (stat {
       id = 5;
-      title = "Generation throughput";
-      description = "Most recently reported scheduler generation throughput.";
+      title = "Live decode throughput";
+      description = "Measured decode tokens per second over the last 10 seconds; returns to zero shortly after generation stops.";
       x = 16;
       unit = "tps";
-      expr = "sum(sglang:gen_throughput{${selector}})";
+      expr = "sum(rate(sglang:realtime_tokens_total{${selector},mode=\"decode\"}[10s])) or vector(0)";
     })
     (stat {
       id = 6;
@@ -217,98 +217,96 @@ in
     (row 100 "API Reliability" 4)
     (timeseries {
       id = 7;
-      title = "Completed requests";
-      description = "Completed request rate split by streaming mode.";
+      title = "Completed request rate (1m)";
+      description = "Requests completed per second over one minute, split by streaming mode. This is completion throughput, not arrivals.";
       x = 0;
       y = 5;
       unit = "reqps";
       targets = [
-        (target "A" "sum by (is_streaming) (rate(sglang:num_requests_total{${selector}}[$__rate_interval]))"
+        (target "A" "sum by (is_streaming) (rate(sglang:num_requests_total{${selector}}[1m]))"
           "streaming={{is_streaming}}"
         )
       ];
     })
     (timeseries {
       id = 8;
-      title = "Abort and retraction rate";
-      description = "Request aborts and scheduler retractions. Retractions indicate memory or scheduling pressure rather than HTTP failures.";
+      title = "Abort and retraction rate (1m)";
+      description = "Completed aborts and scheduler retractions per second over one minute. Retractions indicate memory pressure, not HTTP failures.";
       x = 12;
       y = 5;
       unit = "reqps";
       targets = [
-        (target "A" "sum(rate(sglang:num_aborted_requests_total{${selector}}[$__rate_interval]))" "aborted")
-        (target "B" "sum(rate(sglang:num_retracted_requests_total{${selector}}[$__rate_interval]))"
-          "retracted"
-        )
+        (target "A" "sum(rate(sglang:num_aborted_requests_total{${selector}}[1m]))" "aborted")
+        (target "B" "sum(rate(sglang:num_retracted_requests_total{${selector}}[1m]))" "retracted")
       ];
     })
 
     (row 101 "User-Visible Latency" 13)
     (timeseries {
       id = 9;
-      title = "Time to first token";
-      description = "Time-to-first-token percentiles, including tokenization and queueing.";
+      title = "TTFT of completed requests (5m)";
+      description = "TTFT percentiles from requests observed in the last five minutes. Histograms update on request observations, not continuously.";
       x = 0;
       y = 14;
       w = 8;
       unit = "s";
       targets = [
         (target "A"
-          "histogram_quantile(0.50, sum by (le) (rate(sglang:time_to_first_token_seconds_bucket{${selector}}[$__rate_interval])))"
+          "histogram_quantile(0.50, sum by (le) (rate(sglang:time_to_first_token_seconds_bucket{${selector}}[5m])))"
           "P50"
         )
         (target "B"
-          "histogram_quantile(0.95, sum by (le) (rate(sglang:time_to_first_token_seconds_bucket{${selector}}[$__rate_interval])))"
+          "histogram_quantile(0.95, sum by (le) (rate(sglang:time_to_first_token_seconds_bucket{${selector}}[5m])))"
           "P95"
         )
         (target "C"
-          "histogram_quantile(0.99, sum by (le) (rate(sglang:time_to_first_token_seconds_bucket{${selector}}[$__rate_interval])))"
+          "histogram_quantile(0.99, sum by (le) (rate(sglang:time_to_first_token_seconds_bucket{${selector}}[5m])))"
           "P99"
         )
       ];
     })
     (timeseries {
       id = 10;
-      title = "Inter-token latency";
-      description = "Distribution of gaps between streamed output tokens.";
+      title = "Inter-token latency (5m)";
+      description = "Token-gap percentiles observed over the last five minutes. These are event histograms, not an instantaneous gauge.";
       x = 8;
       y = 14;
       w = 8;
       unit = "s";
       targets = [
         (target "A"
-          "histogram_quantile(0.50, sum by (le) (rate(sglang:inter_token_latency_seconds_bucket{${selector}}[$__rate_interval])))"
+          "histogram_quantile(0.50, sum by (le) (rate(sglang:inter_token_latency_seconds_bucket{${selector}}[5m])))"
           "P50"
         )
         (target "B"
-          "histogram_quantile(0.95, sum by (le) (rate(sglang:inter_token_latency_seconds_bucket{${selector}}[$__rate_interval])))"
+          "histogram_quantile(0.95, sum by (le) (rate(sglang:inter_token_latency_seconds_bucket{${selector}}[5m])))"
           "P95"
         )
         (target "C"
-          "histogram_quantile(0.99, sum by (le) (rate(sglang:inter_token_latency_seconds_bucket{${selector}}[$__rate_interval])))"
+          "histogram_quantile(0.99, sum by (le) (rate(sglang:inter_token_latency_seconds_bucket{${selector}}[5m])))"
           "P99"
         )
       ];
     })
     (timeseries {
       id = 11;
-      title = "End-to-end request latency";
-      description = "Complete request latency, including the generated output.";
+      title = "End-to-end latency of completed requests (5m)";
+      description = "Complete-request latency percentiles observed over five minutes; values appear only after requests finish.";
       x = 16;
       y = 14;
       w = 8;
       unit = "s";
       targets = [
         (target "A"
-          "histogram_quantile(0.50, sum by (le) (rate(sglang:e2e_request_latency_seconds_bucket{${selector}}[$__rate_interval])))"
+          "histogram_quantile(0.50, sum by (le) (rate(sglang:e2e_request_latency_seconds_bucket{${selector}}[5m])))"
           "P50"
         )
         (target "B"
-          "histogram_quantile(0.95, sum by (le) (rate(sglang:e2e_request_latency_seconds_bucket{${selector}}[$__rate_interval])))"
+          "histogram_quantile(0.95, sum by (le) (rate(sglang:e2e_request_latency_seconds_bucket{${selector}}[5m])))"
           "P95"
         )
         (target "C"
-          "histogram_quantile(0.99, sum by (le) (rate(sglang:e2e_request_latency_seconds_bucket{${selector}}[$__rate_interval])))"
+          "histogram_quantile(0.99, sum by (le) (rate(sglang:e2e_request_latency_seconds_bucket{${selector}}[5m])))"
           "P99"
         )
       ];
@@ -317,67 +315,73 @@ in
     (row 102 "Workload & Throughput" 22)
     (timeseries {
       id = 12;
-      title = "Prompt throughput";
-      description = "Logical prompt tokens completed per second.";
+      title = "Live prefill throughput";
+      description = "Prompt tokens actually computed and served from cache per second over the last 10 seconds.";
       x = 0;
       y = 23;
       w = 8;
       unit = "tps";
       targets = [
-        (target "A" "sum(rate(sglang:prompt_tokens_total{${selector}}[$__rate_interval]))" "prompt")
+        (target "A"
+          "sum(rate(sglang:realtime_tokens_total{${selector},mode=\"prefill_compute\"}[10s])) or vector(0)"
+          "computed"
+        )
+        (target "B"
+          "sum(rate(sglang:realtime_tokens_total{${selector},mode=\"prefill_cache\"}[10s])) or vector(0)"
+          "cache hit"
+        )
       ];
     })
     (timeseries {
       id = 13;
-      title = "Cached prompt throughput";
-      description = "Prompt tokens served from device, host, or storage cache.";
+      title = "Live prefix-cache throughput by tier";
+      description = "Effective prompt tokens served from device, host, or storage cache over the last 10 seconds.";
       x = 8;
       y = 23;
       w = 8;
       unit = "tps";
       targets = [
         (target "A"
-          "sum by (cache_source) (rate(sglang:cached_tokens_total{${selector}}[$__rate_interval]))"
-          "{{cache_source}}"
+          "sum by (mode) (rate(sglang:prefill_effective_tokens_total{${selector},mode=~\"device_hit|host_hit|storage_hit\"}[10s]))"
+          "{{mode}}"
         )
       ];
     })
     (timeseries {
       id = 14;
-      title = "Decode throughput";
-      description = "Live decode-token throughput sampled by the scheduler, alongside its latest reported gauge.";
+      title = "Live decode throughput";
+      description = "Measured decode tokens per second over the last 10 seconds. This counter tracks actual work and returns to zero after generation stops.";
       x = 16;
       y = 23;
       w = 8;
       unit = "tps";
       targets = [
-        (target "A" "sum(rate(sglang:realtime_tokens_total{${selector},mode=\"decode\"}[$__rate_interval]))"
-          "live decode rate"
+        (target "A" "sum(rate(sglang:realtime_tokens_total{${selector},mode=\"decode\"}[10s])) or vector(0)"
+          "measured decode rate"
         )
-        (target "B" "sum(sglang:gen_throughput{${selector}})" "scheduler-reported")
       ];
     })
 
     (row 103 "Scheduler & Capacity" 31)
     (timeseries {
       id = 15;
-      title = "Scheduler queue time";
-      description = "Queue-time percentiles before scheduler admission.";
+      title = "Scheduler queue time of admitted requests (5m)";
+      description = "Queue-time percentiles observed during admissions over five minutes; this is historical. Current queue depth is shown beside it.";
       x = 0;
       y = 32;
       w = 8;
       unit = "s";
       targets = [
         (target "A"
-          "histogram_quantile(0.50, sum by (le) (rate(sglang:queue_time_seconds_bucket{${selector}}[$__rate_interval])))"
+          "histogram_quantile(0.50, sum by (le) (rate(sglang:queue_time_seconds_bucket{${selector}}[5m])))"
           "P50"
         )
         (target "B"
-          "histogram_quantile(0.95, sum by (le) (rate(sglang:queue_time_seconds_bucket{${selector}}[$__rate_interval])))"
+          "histogram_quantile(0.95, sum by (le) (rate(sglang:queue_time_seconds_bucket{${selector}}[5m])))"
           "P95"
         )
         (target "C"
-          "histogram_quantile(0.99, sum by (le) (rate(sglang:queue_time_seconds_bucket{${selector}}[$__rate_interval])))"
+          "histogram_quantile(0.99, sum by (le) (rate(sglang:queue_time_seconds_bucket{${selector}}[5m])))"
           "P99"
         )
       ];
@@ -505,25 +509,28 @@ in
     (row 105 "Prefix Cache Efficiency" 57)
     (timeseries {
       id = 24;
-      title = "Prefix cache hit rate";
-      description = "Share of queried prefix tokens served from the radix cache.";
+      title = "Prefix cache hit rate (1m)";
+      description = "Counter-derived share of effective prefill tokens served from any cache tier over one minute.";
       x = 0;
       y = 58;
       unit = "percentunit";
-      targets = [ (target "A" "max(sglang:cache_hit_rate{${selector}})" "hit rate") ];
+      targets = [
+        (target "A"
+          "sum(rate(sglang:prefill_effective_tokens_total{${selector},mode=~\"device_hit|host_hit|storage_hit\"}[1m])) / clamp_min(sum(rate(sglang:prefill_effective_tokens_total{${selector}}[1m])), 1e-9)"
+          "hit rate"
+        )
+      ];
     })
     (timeseries {
       id = 25;
-      title = "Prompt token disposition";
-      description = "Total prompt throughput compared with cached prompt tokens by cache tier.";
+      title = "Live prefill token disposition";
+      description = "Effective prefill token rates by compute and cache tier over the last 10 seconds.";
       x = 12;
       y = 58;
       unit = "tps";
       targets = [
-        (target "A" "sum(rate(sglang:prompt_tokens_total{${selector}}[$__rate_interval]))" "total prompt")
-        (target "B"
-          "sum by (cache_source) (rate(sglang:cached_tokens_total{${selector}}[$__rate_interval]))"
-          "cached: {{cache_source}}"
+        (target "A" "sum by (mode) (rate(sglang:prefill_effective_tokens_total{${selector}}[10s]))"
+          "{{mode}}"
         )
       ];
     })
@@ -531,8 +538,8 @@ in
     (row 106 "Speculative Decoding" 66)
     (timeseries {
       id = 26;
-      title = "Draft acceptance rate";
-      description = "Share of proposed speculative draft tokens accepted by the target model.";
+      title = "Last-window draft acceptance rate";
+      description = "Acceptance rate from SGLang's most recently published decode reporting window; it is not recalculated while idle.";
       x = 0;
       y = 67;
       w = 8;
@@ -541,8 +548,8 @@ in
     })
     (timeseries {
       id = 27;
-      title = "Mean acceptance length";
-      description = "Mean accepted draft length including the target-model bonus token.";
+      title = "Last-window mean acceptance length";
+      description = "Mean accepted length from SGLang's most recently published decode window, including the bonus token.";
       x = 8;
       y = 67;
       w = 8;
@@ -563,7 +570,7 @@ in
       ];
     })
   ];
-  refresh = "5s";
+  refresh = "2s";
   schemaVersion = 41;
   tags = [
     "sglang"
@@ -650,13 +657,13 @@ in
     }
   ];
   time = {
-    from = "now-6h";
+    from = "now-30m";
     to = "now";
   };
   timepicker = { };
   timezone = "browser";
   title = "SGLang Inference Overview";
   uid = "sglang-inference-overview";
-  version = 1;
+  version = 2;
   weekStart = "";
 }

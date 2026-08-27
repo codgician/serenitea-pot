@@ -227,6 +227,12 @@ in
       systemd.services.${serviceName}.serviceConfig = {
         RuntimeDirectory = serviceName;
         RuntimeDirectoryMode = "0755";
+
+        # Exponential restart backoff: avoids hammering upstream dependencies
+        # (e.g. the WebAuthn MDS3 metadata service) with a request every
+        # RestartSec while crash-looping.
+        RestartSteps = 5;
+        RestartMaxDelaySec = "5min";
       };
 
       # Add nginx to authelia group for socket access (only when nginx is enabled)

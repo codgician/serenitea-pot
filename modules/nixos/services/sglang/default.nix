@@ -254,7 +254,7 @@ in
 
     codgician.services.prometheus.scrapeConfigs.extraConfigs = lib.optional cfg.monitoring.enable {
       job_name = serviceName;
-      scrape_interval = "5s";
+      scrape_interval = "2s";
       metrics_path = "/metrics";
       static_configs = map (name: {
         targets = [ "${scrapeHost cfg.instances.${name}.host}:${toString cfg.instances.${name}.port}" ];
@@ -264,6 +264,8 @@ in
         };
       }) instances;
     };
+
+    codgician.services.grafana.provision.prometheus.timeInterval = lib.mkIf cfg.monitoring.enable "2s";
 
     codgician.services.grafana.provision.dashboards = lib.optional cfg.monitoring.enable {
       path = dashboard;

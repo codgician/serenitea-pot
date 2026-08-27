@@ -16,6 +16,16 @@ let
   nginxlogFormat = "$remote_addr - $remote_user [$time_local] \"$request\" $status $body_bytes_sent \"$http_referer\" \"$http_user_agent\" $request_time $upstream_response_time $request_length $server_name";
 in
 {
+  # RAS (Reliability, Availability, Serviceability) hardware error monitoring:
+  # EDAC (DIMM ECC), PCIe AER (SERR), and CPU MCE events via rasdaemon.
+  codgician.services.rasdaemon = {
+    enable = true;
+    prometheus = {
+      enable = true;
+      scrapeConfig = true;
+    };
+  };
+
   # Prometheus scrape configuration
   codgician.services.prometheus.scrapeConfigs = {
     prometheus = true;
@@ -53,6 +63,7 @@ in
     prometheus.enable = true;
     dashboards = [
       ../../../modules/nixos/services/grafana/dashboards/nginx.json
+      ../../../modules/nixos/services/grafana/dashboards/rasdaemon.json
     ];
   };
 

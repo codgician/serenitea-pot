@@ -58,6 +58,12 @@ in
           default = true;
           description = "Whether Prometheus should be the default datasource.";
         };
+
+        timeInterval = lib.mkOption {
+          type = types.str;
+          default = "1m";
+          description = "Minimum Prometheus query and scrape interval used by Grafana.";
+        };
       };
 
       dashboards = lib.mkOption {
@@ -181,7 +187,7 @@ in
               isDefault = cfg.provision.prometheus.isDefault;
               editable = false;
               jsonData = {
-                timeInterval = "1m";
+                timeInterval = cfg.provision.prometheus.timeInterval;
                 httpMethod = "POST";
               };
             }
