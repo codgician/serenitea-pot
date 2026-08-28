@@ -381,6 +381,45 @@
       "reasoning"
     ]
   },
+  "gpt-5.6-sol-fast": {
+    "contextWindow": 1050000,
+    "cost": {
+      "cacheRead": 0.4,
+      "cacheWrite": 5,
+      "input": 4,
+      "output": 20,
+      "tiers": [
+        {
+          "cacheRead": 0.8,
+          "cacheWrite": 10,
+          "input": 8,
+          "inputTokensAbove": 272000,
+          "output": 30
+        }
+      ]
+    },
+    "maxInputTokens": 922000,
+    "maxOutputTokens": 128000,
+    "mode": "responses",
+    "reasoningEfforts": [
+      "none",
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max"
+    ],
+    "supportedEndpoints": [
+      "/v1/responses"
+    ],
+    "supports": [
+      "toolCalls",
+      "parallelToolCalls",
+      "structuredOutputs",
+      "vision",
+      "reasoning"
+    ]
+  },
   "gpt-5.6-terra": {
     "contextWindow": 1050000,
     "cost": {
