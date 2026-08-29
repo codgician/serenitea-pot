@@ -42,12 +42,18 @@ let
       maximum_spend_logs_retention_period = "30d";
       maximum_spend_logs_retention_interval = "1d";
       maximum_spend_logs_cleanup_cron = "0 16 * * *";
+      user_api_key_cache_ttl = "300"; 
     };
     litellm_settings = {
       num_retries = 3;
-      cache = false; # Disabled
+      cache = true; 
+      enable_redis_auth_cache = true;
       enable_caching_on_provider_specific_optional_params = true;
-      cache_params.type = "redis";
+      cache_params = {
+        type = "redis";
+        namespace = "litellm.caching.caching";
+        ttl = "60";
+      };
       callbacks = [ "claude_oauth_hook.proxy_handler_instance" ];
       drop_params = true;
       modify_params = true;
