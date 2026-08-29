@@ -12,6 +12,7 @@ let
   containerKernelConfigDir = "/sgl-workspace/sglang/python/sglang/kernels/ops/quantization/configs";
   containerAdaptiveSpeculativeConfigPath = "/tmp/sglang-adaptive-speculative.json";
   hasNvidia = config.hardware.nvidia-container-toolkit.enable or false;
+  inChina = config.codgician.system.common.inChina;
   scrapeHost =
     host:
     if
@@ -95,7 +96,7 @@ let
 
         useModelScope = lib.mkOption {
           type = types.bool;
-          default = config.codgician.system.common.inChina;
+          default = inChina;
           defaultText = lib.literalExpression "config.codgician.system.common.inChina";
           description = "Download models from ModelScope instead of Hugging Face.";
         };

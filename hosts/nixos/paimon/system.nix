@@ -82,40 +82,24 @@
         # Share the engine-neutral ModelScope cache with vLLM.
         cacheDir = "/xpool/llm/llm-cache";
         instances.qwen-chat = {
-          model = "Qwen/Qwen3.8-27B-FP8";
+          model = "RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead";
           host = "0.0.0.0";
           port = 8000;
           memFractionStatic = 0.95;
-          useModelScope = true;
-          kernelConfigDir = ./vllm-fp8-kernel-configs;
-          adaptiveSpeculativeConfig = builtins.toFile "qwen3.8-mtp-adaptive.json" (
-            builtins.toJSON {
-              ema_alpha = 0.2;
-              warmup_batches = 10;
-              update_interval = 5;
-              "1" = {
-                candidate_steps = [
-                  1
-                  3
-                ];
-                up_hysteresis = 0.0;
-                down_hysteresis = -0.25;
-                ceiling_coeff = 0;
-              };
-              "8" = {
-                candidate_steps = [ 1 ];
-                up_hysteresis = 0.0;
-                down_hysteresis = 0.0;
-                ceiling_coeff = 0;
-              };
-            }
-          );
+          image = "lmsysorg/sglang:dev-qwen38-27b-dflash2";
+          environmentVariables = {
+            SGLANG_DISABLE_SILU_FP4_QUANT_FUSION = "1";
+          };
           extraArgs = [
             "--trust-remote-code"
+            "--served-model-name"
+            "Qwen3.8-27B"
             "--kv-cache-dtype"
             "fp8_e4m3"
             "--attention-backend"
             "flashinfer"
+            "--fp4-gemm-backend"
+            "marlin"
             "--chunked-prefill-size"
             "2048"
             "--mamba-radix-cache-strategy"
@@ -135,15 +119,11 @@
             "--tool-call-parser"
             "qwen3_coder"
             "--speculative-algorithm"
-            "EAGLE"
-            "--speculative-num-steps"
-            "3"
-            "--speculative-eagle-topk"
-            "1"
+            "DFLASH"
+            "--speculative-draft-model-path"
+            "z-lab/Qwen3.8-27B-DFlash2"
             "--speculative-num-draft-tokens"
-            "4"
-            "--enable-linear-replayssm-spec"
-            "--speculative-adaptive"
+            "8"
           ];
         };
       };
