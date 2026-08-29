@@ -30,7 +30,7 @@ in
         extraParams.api_base = spec.apiBase;
       } name spec)
       // lib.optionalAttrs (spec.contextWindow != null) { inherit (spec) contextWindow; };
-    models."qwen3.8-27b-fp8" = {
+    models."qwen3.8-27b" = {
       apiBase = "http://192.168.0.22:8000/v1";
       contextWindow = 262144;
       path = "Qwen3.8-27B";
