@@ -201,6 +201,7 @@
       ];
       scopes = [
         "openid"
+        "offline_access"
         "profile"
         "email"
         "groups"

@@ -161,7 +161,13 @@ in
               in
               nginxRules
               ++ [
-                # Manual rules can be added here if needed
+                # Explicit catch-all matching default_policy: functionally
+                # identical to relying on default_policy, but silences
+                # Authelia's "no rules specified" startup warning.
+                {
+                  domain_regex = "^.*$";
+                  policy = "two_factor";
+                }
               ];
           };
 
@@ -173,10 +179,11 @@ in
               identifier = cfg.sessionDomain;
               timeout = "15s";
               startup_check_address = "bot@codgician.me";
-
-              # Disable TLS for local smtp relay
+              # Local smtp relay (postfix on localhost:25) doesn't offer
+              # STARTTLS; disable_require_tls alone (opportunistic TLS) is
+              # sufficient and avoids the disable_starttls insecure-plaintext
+              # warning.
               disable_require_tls = true;
-              disable_starttls = true;
             };
           };
 
@@ -213,7 +220,7 @@ in
               user_verification = "required";
             };
             metadata = {
-              enabled = true;
+              enabled = false;
               validate_entry = false;
             };
           };

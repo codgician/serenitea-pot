@@ -105,6 +105,7 @@ in
               name = "Authelia";
               scope = [
                 "openid"
+                "offline_access"
                 "profile"
                 "email"
                 "groups"
