@@ -89,8 +89,8 @@ in
 
     package = lib.mkOption {
       type = types.package;
-      default = pkgs.opencode;
-      defaultText = lib.literalExpression "pkgs.opencode";
+      default = pkgs.llm-agents.opencode;
+      defaultText = lib.literalExpression "pkgs.llm-agents.opencode";
       description = ''
         The OpenCode package to install.
       '';

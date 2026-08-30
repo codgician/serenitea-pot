@@ -1,3 +1,5 @@
 { inputs, system, ... }:
 
-_final: _prev: inputs.llm-agents.packages.${system} or { }
+_final: _prev: {
+  llm-agents = inputs.llm-agents.packages.${system} or { };
+}

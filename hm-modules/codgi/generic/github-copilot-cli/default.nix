@@ -14,8 +14,8 @@ in
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.copilot-cli;
-      defaultText = lib.literalExpression "pkgs.copilot-cli";
+      default = pkgs.llm-agents.copilot-cli;
+      defaultText = lib.literalExpression "pkgs.llm-agents.copilot-cli";
       description = ''
         The GitHub Copilot CLI package to install.
       '';

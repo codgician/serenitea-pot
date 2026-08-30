@@ -78,7 +78,7 @@ let
     "PYTHONPATH" = if cfg.backend == "nixpkgs" then "${claudeOAuthHook}" else "/";
     # Require pending PR: https://github.com/BerriAI/litellm/pull/34889
     "GITHUB_COPILOT_CLIENT_ID" = "Ov23li8tweQw6odWQebz";
-    "GITHUB_COPILOT_USER_AGENT" = "opencode/${pkgs.opencode.version}";
+    "GITHUB_COPILOT_USER_AGENT" = "opencode/${pkgs.llm-agents.opencode.version}";
     "GITHUB_COPILOT_INTEGRATION_ID" = "";
     "GITHUB_COPILOT_EDITOR_VERSION" = "";
     "GITHUB_COPILOT_EDITOR_PLUGIN_VERSION" = "";

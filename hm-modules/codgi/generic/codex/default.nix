@@ -29,8 +29,8 @@ in
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.codex;
-      defaultText = lib.literalExpression "pkgs.codex";
+      default = pkgs.llm-agents.codex;
+      defaultText = lib.literalExpression "pkgs.llm-agents.codex";
       description = ''
         The Codex package to install.
       '';

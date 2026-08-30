@@ -14,8 +14,8 @@ in
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.claude-code;
-      defaultText = lib.literalExpression "pkgs.claude-code";
+      default = pkgs.llm-agents.claude-code;
+      defaultText = lib.literalExpression "pkgs.llm-agents.claude-code";
       description = ''
         The Claude Code package to install.
       '';

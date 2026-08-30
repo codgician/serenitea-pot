@@ -38,8 +38,8 @@ in
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.herdr;
-      defaultText = lib.literalExpression "pkgs.herdr";
+      default = pkgs.llm-agents.herdr;
+      defaultText = lib.literalExpression "pkgs.llm-agents.herdr";
       description = "The Herdr package to install.";
     };
   };

@@ -147,6 +147,7 @@ in
             "~/GitHub/" = "personal";
           };
         };
+        herdr.enable = true;
 
         plasma = {
           inherit wallpaper;

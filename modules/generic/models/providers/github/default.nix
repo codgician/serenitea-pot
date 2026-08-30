@@ -26,7 +26,7 @@ in
     transformer = modelLib.mkGeneratedModel {
       modelPrefix = "github_copilot";
       extraParams.extra_headers = {
-        "User-Agent" = "opencode/${pkgs.opencode.version}";
+        "User-Agent" = "opencode/${pkgs.llm-agents.opencode.version}";
         "copilot-integration-id" = "vscode-chat";
         "editor-version" = "vscode/${pkgs.vscode.version}";
         "editor-plugin-version" = "";

@@ -59,8 +59,8 @@ in
 
     package = lib.mkOption {
       type = lib.types.package;
-      default = pkgs.droid;
-      defaultText = lib.literalExpression "pkgs.droid";
+      default = pkgs.llm-agents.droid;
+      defaultText = lib.literalExpression "pkgs.llm-agents.droid";
       description = ''
         The Droid package to install.
       '';

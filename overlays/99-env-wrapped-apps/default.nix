@@ -22,6 +22,6 @@ in
 {
   # Env bundles are sops-nix host templates, rendered at activation to
   # /run/secrets/rendered/<name> (see modules/generic/system/secrets).
-  codex-wrapped = mkEnvWrappedApplication final.codex "codex-env";
-  droid-wrapped = mkEnvWrappedApplication final.droid "droid-env";
+  codex-wrapped = mkEnvWrappedApplication final.llm-agents.codex "codex-env";
+  droid-wrapped = mkEnvWrappedApplication final.llm-agents.droid "droid-env";
 }
