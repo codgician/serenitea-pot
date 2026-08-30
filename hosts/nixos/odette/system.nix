@@ -84,6 +84,7 @@
         discord
         voxtype-onnx
         moonlight-qt
+        gimp
       ];
     };
 

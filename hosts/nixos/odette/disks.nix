@@ -14,6 +14,7 @@
             size = "1M";
             type = "EF02";
           };
+
           esp = {
             size = "1G";
             type = "EF00";
@@ -24,6 +25,31 @@
               mountOptions = [ "umask=0077" ];
             };
           };
+
+          swap = {
+            size = "40G";
+            content = {
+              type = "luks";
+              name = "cryptswap";
+              extraFormatArgs = [
+                "--cipher"
+                "aes-xts-plain64"
+              ];
+              settings = {
+                allowDiscards = true;
+                crypttabExtraOpts = [
+                  "tpm2-device=auto"
+                  "tpm2-measure-pcr=yes"
+                ];
+              };
+              content = {
+                type = "swap";
+                discardPolicy = "both";
+                resumeDevice = true;
+              };
+            };
+          };
+          
           root = {
             size = "100%";
             content = {
