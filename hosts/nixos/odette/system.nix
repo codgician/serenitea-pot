@@ -67,6 +67,19 @@
         zsh.enable = true;
       };
 
+      # Set Microsoft Edge as default browser
+      xdg.mimeApps = {
+        enable = true;
+        defaultApplications = {
+          "text/html" = "microsoft-edge.desktop";
+          "x-scheme-handler/http" = "microsoft-edge.desktop";
+          "x-scheme-handler/https" = "microsoft-edge.desktop";
+          "x-scheme-handler/about" = "microsoft-edge.desktop";
+          "x-scheme-handler/unknown" = "microsoft-edge.desktop";
+        };
+      };
+      xdg.configFile."mimeapps.list".force = true;
+
       # HP Elite Dragonfly Chromebook's ELAN touchpad. Plasma on Wayland
       # reads input settings from kcminputrc (via KWin/libinput), not from
       # `services.libinput.*`, which only applies under Xorg.

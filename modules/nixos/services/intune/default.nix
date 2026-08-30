@@ -8,26 +8,18 @@ let
   cfg = config.codgician.services.intune;
 
   # GlobalProtect VPN helper for off-site Intune compliance: authenticates
-  # via Microsoft SSO (gpauth, driven in Microsoft Edge) and feeds the
-  # resulting cookie to gpclient.
+  # via Microsoft SSO in Microsoft Edge, driven directly by gpclient.
   msftvpn = pkgs.writeShellApplication {
     name = "msftvpn";
     text = ''
-      portal="${cfg.vpn.portal}"
-
       case "''${1:-connect}" in
         connect)
-          ${pkgs.gpauth}/bin/gpauth \
+          exec ${config.security.wrapperDir}/sudo -E \
+            ${pkgs.gpclient}/bin/gpclient \
             --fix-openssl \
+            connect \
             --browser ${pkgs.microsoft-edge}/bin/microsoft-edge-stable \
-            "$portal" \
-          | ${config.security.wrapperDir}/sudo \
-              ${pkgs.gpclient}/bin/gpclient \
-              --fix-openssl \
-              connect \
-              --disable-ipv6 \
-              --cookie-on-stdin \
-              "$portal"
+            https://msftvpn-alt.ras.microsoft.com
           ;;
         disconnect)
           exec ${config.security.wrapperDir}/sudo \
@@ -77,13 +69,6 @@ in
     };
     vpn = {
       enable = lib.mkEnableOption "GlobalProtect VPN helper (msftvpn) for off-site Intune compliance";
-
-      portal = lib.mkOption {
-        type = lib.types.str;
-        default = "msftvpn-alt.ras.microsoft.com";
-        defaultText = "''msftvpn-alt.ras.microsoft.com''";
-        description = "GlobalProtect VPN portal hostname.";
-      };
     };
   };
 
@@ -105,7 +90,6 @@ in
             intuneRegisterDevice
           ]
           ++ lib.optionals cfg.vpn.enable [
-            pkgs.gpauth
             pkgs.gpclient
             msftvpn
           ];

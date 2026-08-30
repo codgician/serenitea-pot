@@ -37,13 +37,6 @@ in
     supportedFilesystems = [ "vfat" ];
   };
 
-  hardware.graphics = {
-    enable = true;
-    extraPackages = with pkgs; [ intel-media-driver ];
-  };
-
-  hardware.bluetooth.enable = true;
-
   # Thunderbolt management daemon
   services.hardware.bolt.enable = true;
 
@@ -74,6 +67,7 @@ in
     usbutils
     powertop
     nvtopPackages.intel
+    fw-ectool
   ];
 
   security.tpm2 = {
@@ -82,8 +76,14 @@ in
   };
 
   hardware = {
+    bluetooth.enable = true;
     enableRedistributableFirmware = true;
     cpu.intel.updateMicrocode = true;
+    sensor.iio.enable = true;
+    graphics = {
+      enable = true;
+      extraPackages = with pkgs; [ intel-media-driver ];
+    };
   };
 
   powerManagement.cpuFreqGovernor = "powersave";
