@@ -5,6 +5,7 @@ let
       alsa-ucm-conf = pkgs.alsa-ucm-conf-chromebook;
     };
   };
+  rustFp = pkgs.nur.repos.codgician.rust-fp;
 in
 
 {
@@ -38,6 +39,7 @@ in
   };
 
   services = {
+    dbus.packages = [ rustFp ];
     hardware.bolt.enable = true;
     thermald.enable = true;
     pipewire = {
@@ -89,11 +91,19 @@ in
     powertop
     nvtopPackages.intel
     fw-ectool
+    rustFp
   ];
 
-  security.tpm2 = {
-    enable = true;
-    pkcs11.enable = true;
+  security = {
+    pam.services.kde-fingerprint.text = ''
+      auth    sufficient    ${rustFp}/lib/librust_fp_pam_module.so
+      account sufficient    ${rustFp}/lib/librust_fp_pam_module.so
+    '';
+
+    tpm2 = {
+      enable = true;
+      pkcs11.enable = true;
+    };
   };
 
   hardware = {
@@ -109,6 +119,17 @@ in
   };
 
   powerManagement.cpuFreqGovernor = "powersave";
+
+  systemd.services.rust-fp-dbus-interface = {
+    description = "Provide fingerprint enrollment and matching over D-Bus";
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "exec";
+      ExecStart = "${rustFp}/bin/rust-fp-dbus-interface";
+      Restart = "on-failure";
+      RestartSec = 3;
+    };
+  };
 
   # The Redrix EC otherwise aborts S0ix entry after its firmware timeout.
   systemd.services.cros-ec-timeout = {
