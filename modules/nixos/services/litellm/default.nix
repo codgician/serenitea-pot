@@ -42,11 +42,11 @@ let
       maximum_spend_logs_retention_period = "30d";
       maximum_spend_logs_retention_interval = "1d";
       maximum_spend_logs_cleanup_cron = "0 16 * * *";
-      user_api_key_cache_ttl = "300"; 
+      user_api_key_cache_ttl = "300";
     };
     litellm_settings = {
       num_retries = 3;
-      cache = true; 
+      cache = true;
       enable_redis_auth_cache = true;
       enable_caching_on_provider_specific_optional_params = true;
       cache_params = {

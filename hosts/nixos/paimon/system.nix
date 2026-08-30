@@ -82,7 +82,7 @@
         # Share the engine-neutral ModelScope cache with vLLM.
         cacheDir = "/xpool/llm/llm-cache";
         instances.qwen-chat = {
-          model = "RadixArk/Qwen3.8-27B-NVFP4-BF16-LMHead";
+          model = "RadixArk/Qwen3.8-27B-NVFP4";
           host = "0.0.0.0";
           port = 8000;
           memFractionStatic = 0.95;
