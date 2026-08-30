@@ -46,6 +46,7 @@
 
         claude-code.enable = true;
         git.enable = true;
+        herdr.enable = true;
         mcp.enable = true;
         oh-my-pi.enable = true;
         opencode.enable = true;

@@ -56,6 +56,15 @@ in
           }
         ];
       };
+
+      # Publish the libcamera camera on demand and hide the 32 raw IPU6 capture
+      # nodes from applications.
+      extraConfig."camera" = {
+        "wireplumber.profiles".main = {
+          "monitor.v4l2" = "disabled";
+          "monitor.libcamera" = "optional";
+        };
+      };
     };
   };
 
@@ -76,6 +85,7 @@ in
   };
 
   hardware = {
+    firmware = [ pkgs.redrix.max98390-firmware ];
     bluetooth.enable = true;
     enableRedistributableFirmware = true;
     cpu.intel.updateMicrocode = true;
@@ -87,6 +97,22 @@ in
   };
 
   powerManagement.cpuFreqGovernor = "powersave";
+
+  # The Redrix EC otherwise aborts S0ix entry after its firmware timeout.
+  systemd.services.cros-ec-timeout = {
+    description = "Disable ChromeOS EC suspend timeout";
+    wantedBy = [ "multi-user.target" ];
+    after = [ "systemd-modules-load.service" ];
+    requires = [ "systemd-modules-load.service" ];
+    unitConfig.ConditionPathExists = "/sys/kernel/debug/cros_ec/suspend_timeout_ms";
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    script = ''
+      echo 65535 > /sys/kernel/debug/cros_ec/suspend_timeout_ms
+    '';
+  };
 
   fileSystems."/persist".neededForBoot = true;
 
