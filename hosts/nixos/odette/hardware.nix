@@ -22,10 +22,16 @@ in
       kernelModules = [
         "intel_lpss_pci"
         "tpm_tis_i2c_cr50"
+        "xe"
       ];
     };
 
     kernelModules = [ "kvm-intel" ];
+    # Force enable xe
+    kernelParams = [
+      "i915.force_probe=!46a8"
+      "xe.force_probe=46a8"
+    ];
     kernelPackages = pkgs.linuxPackages_6_18;
     zfs.package = pkgs.zfs_2_4;
     supportedFilesystems = [ "vfat" ];
