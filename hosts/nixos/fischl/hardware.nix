@@ -97,6 +97,8 @@
     cpu.intel.updateMicrocode = true;
   };
 
+  services.thermald.enable = true;
+
   powerManagement.cpuFreqGovernor = "powersave";
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
