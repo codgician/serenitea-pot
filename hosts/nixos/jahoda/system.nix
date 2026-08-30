@@ -98,6 +98,8 @@ in
       passwordAgeFile = getAgeSecretPathFromName "codgi-password";
       extraGroups = [
         "wheel"
+        "video"
+        "render"
         "podman"
       ];
     };

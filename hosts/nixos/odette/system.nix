@@ -18,6 +18,8 @@
       secure-boot.enable = true;
     };
 
+    virtualization.podman.enable = true;
+
     users.codgi = with lib.codgician; {
       enable = true;
       hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
@@ -25,6 +27,7 @@
         "wheel"
         "video"
         "render"
+        "podman"
       ];
     };
   };
