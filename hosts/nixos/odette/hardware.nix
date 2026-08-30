@@ -19,7 +19,10 @@ in
         "usbhid"
         "sd_mod"
       ];
-      kernelModules = [ "intel_lpss_pci" ];
+      kernelModules = [
+        "intel_lpss_pci"
+        "tpm_tis_i2c_cr50"
+      ];
     };
 
     kernelModules = [ "kvm-intel" ];

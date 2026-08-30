@@ -44,7 +44,16 @@
         mcp.enable = true;
         oh-my-pi.enable = true;
         opencode.enable = true;
-        plasma.scale = 1.5;
+        plasma = {
+          scale = 1.5;
+          launchers = [
+            "applications:org.kde.dolphin.desktop"
+            "applications:microsoft-edge.desktop"
+            "applications:org.kde.konsole.desktop"
+            "applications:code.desktop"
+            "applications:teams-for-linux.desktop"
+          ];
+        };
         pwsh.enable = true;
         ssh.enable = true;
         tmux.enable = true;
@@ -88,6 +97,12 @@
     enable = true;
     theme = "nixos-bgrt";
     themePackages = [ pkgs.nixos-bgrt-plymouth ];
+    # Auto-detected DeviceScale defaults to 2 on this 201 DPI panel, but
+    # Plymouth only supports integer scaling (no 1.5 like the Plasma
+    # session), so pin it to 1 to keep boot splash/prompt text a sane size.
+    extraConfig = ''
+      DeviceScale=1
+    '';
   };
 
   # Select internationalisation properties.
