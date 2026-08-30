@@ -7,6 +7,7 @@
 }:
 let
   cfg = config.codgician.codgi.droid;
+  herdrHook = "${config.home.homeDirectory}/.factory/hooks/herdr-agent-state.sh";
   allowedProviders = [
     "github"
     "nvidia"
@@ -74,16 +75,31 @@ in
 
     home.file = {
       # Write to ~/.factory/settings.json (per docs, merged with settings.json)
-      ".factory/settings.json".text = builtins.toJSON {
-        customModels = map mkDroidModel filteredModels;
-        sessionDefaultSettings = {
-          model = "custom:claude-opus-5";
-          reasoningEffort = "xhigh";
-          interactionMode = "auto";
-          autonomyLevel = "high";
-          autonomyMode = "auto-high";
-        };
-      };
+      ".factory/settings.json".text = builtins.toJSON (
+        {
+          customModels = map mkDroidModel filteredModels;
+          sessionDefaultSettings = {
+            model = "custom:claude-opus-5";
+            reasoningEffort = "xhigh";
+            interactionMode = "auto";
+            autonomyLevel = "high";
+            autonomyMode = "auto-high";
+          };
+        }
+        // lib.optionalAttrs (config.codgician.codgi.herdr.enable or false) {
+          hooks.SessionStart = [
+            {
+              hooks = [
+                {
+                  type = "command";
+                  command = "bash '${herdrHook}' session";
+                  timeout = 10;
+                }
+              ];
+            }
+          ];
+        }
+      );
 
       # Link skills directory to ~/.factory/skills
       ".factory/skills".source = skillsDir;

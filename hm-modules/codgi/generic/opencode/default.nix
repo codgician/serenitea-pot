@@ -105,7 +105,12 @@ in
       enableMcpIntegration = config.codgician.codgi.mcp.enable;
       tui = {
         theme = "github";
-        plugin = [ "oh-my-openagent" ];
+        plugin = [
+          "oh-my-openagent"
+        ]
+        ++ lib.optionals (config.codgician.codgi.herdr.enable or false) [
+          "./herdr-tui-session.js"
+        ];
       };
       settings = {
         instructions = [
