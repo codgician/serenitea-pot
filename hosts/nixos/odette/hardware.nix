@@ -57,6 +57,18 @@ in
         ];
       };
 
+      # The generated Pro Audio profile probes every SOF PCM, including the
+      # ChromeOS-only Bluetooth offload and 16 kHz DMIC endpoints. Use the UCM
+      # HiFi profile exclusively and avoid repeated -EINVAL kernel messages.
+      extraConfig."51-disable-pro-audio" = {
+        "monitor.alsa.rules" = [
+          {
+            matches = [ { "device.name" = "~alsa_card.*"; } ];
+            actions.update-props."api.acp.disable-pro-audio" = true;
+          }
+        ];
+      };
+
       # Publish the libcamera camera on demand and hide the 32 raw IPU6 capture
       # nodes from applications.
       extraConfig."camera" = {
