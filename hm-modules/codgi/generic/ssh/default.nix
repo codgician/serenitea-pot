@@ -48,6 +48,10 @@ in
           hostname = "lumidouce.lan";
           user = "root";
         };
+        "odette" = {
+          hostname = "odette.lan";
+          user = "codgi";
+        };
         "qiaoying" = {
           hostname = "qiaoying.cdu";
           user = "root";

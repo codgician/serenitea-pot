@@ -215,7 +215,7 @@ in
             display_name = "Authelia";
             timeout = "60s";
             selection_criteria = {
-              attachment = "platform";
+              attachment = "";
               discoverability = "required";
               user_verification = "required";
             };
