@@ -113,11 +113,12 @@ in
         credential = {
           helper = lib.getExe pkgs.git-credential-manager;
           inherit credentialStore;
+          # Prefer OAuth over PATs for Azure Repos (GCM).
+          azreposCredentialType = "oauth";
         };
 
         # Azure DevOps requires useHttpPath to determine organization from URL
         "credential \"https://dev.azure.com\"".useHttpPath = true;
-
         commit.gpgsign = true;
         tag.gpgsign = true;
         gpg = {

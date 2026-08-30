@@ -45,7 +45,13 @@
         };
 
         claude-code.enable = true;
-        git.enable = true;
+        git = {
+          enable = true;
+          directoryIdentities = {
+            "~/Work/" = "work";
+            "~/GitHub/" = "personal";
+          };
+        };
         herdr.enable = true;
         mcp.enable = true;
         oh-my-pi.enable = true;
