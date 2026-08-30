@@ -10,7 +10,7 @@
     system = {
       auto-upgrade.enable = true;
       impermanence.enable = true;
-      secure-boot.enable = false;
+      secure-boot.enable = true;
     };
 
     users.codgi = with lib.codgician; {
@@ -29,6 +29,10 @@
     { ... }:
     {
       codgician.codgi = {
+        bilibili = {
+          enable = true;
+          gpuAcceleration = "intel";
+        };
         dev = {
           haskell.enable = true;
           nix.enable = true;
@@ -48,7 +52,30 @@
         zsh.enable = true;
       };
 
+      # HP Elite Dragonfly Chromebook's ELAN touchpad. Plasma on Wayland
+      # reads input settings from kcminputrc (via KWin/libinput), not from
+      # `services.libinput.*`, which only applies under Xorg.
+      programs.plasma.input.touchpads = [
+        {
+          name = "ELAN2703:00 04F3:323B Touchpad";
+          vendorId = "04F3";
+          productId = "323B";
+          naturalScroll = true;
+        }
+      ];
+
       home.stateVersion = "26.05";
+      home.packages = with pkgs; [
+        unstable.cider-2
+        splayer
+        easyeffects
+        telegram-desktop
+        nextcloud-talk-desktop
+        element-desktop
+        discord
+        voxtype-onnx
+        moonlight-qt
+      ];
     };
 
   # Enable Network Manager
@@ -84,9 +111,8 @@
 
   # Global packages
   environment.systemPackages = with pkgs; [
-    firefox-bin
     google-chrome
-    kitty
+    microsoft-edge
   ];
 
   # Enable zram swap

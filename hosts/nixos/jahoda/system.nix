@@ -200,7 +200,7 @@ in
       home.packages =
         with pkgs;
         [
-          cider-2
+          unstable.cider-2
           splayer
           easyeffects
           virt-manager

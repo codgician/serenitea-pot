@@ -1,4 +1,12 @@
 { lib, pkgs, ... }:
+let
+  pipewireWithChromebookUcm = pkgs.pipewire.override {
+    alsa-lib = pkgs.alsa-lib.override {
+      alsa-ucm-conf = pkgs.alsa-ucm-conf-chromebook;
+    };
+  };
+in
+
 {
   # HP Elite Dragonfly Chromebook with an Alder Lake-U i7-1265U.
   boot = {
@@ -11,7 +19,7 @@
         "usbhid"
         "sd_mod"
       ];
-      kernelModules = [ ];
+      kernelModules = [ "intel_lpss_pci" ];
     };
 
     kernelModules = [ "kvm-intel" ];
@@ -26,6 +34,25 @@
   };
 
   hardware.bluetooth.enable = true;
+
+  services.pipewire = {
+    package = pipewireWithChromebookUcm;
+
+    wireplumber = {
+      package = pkgs.wireplumber.override {
+        pipewire = pipewireWithChromebookUcm;
+      };
+
+      extraConfig."51-increase-headroom" = {
+        "monitor.alsa.rules" = [
+          {
+            matches = [ { "node.name" = "~alsa_output.*"; } ];
+            actions.update-props."api.alsa.headroom" = 2048;
+          }
+        ];
+      };
+    };
+  };
 
   environment.systemPackages = with pkgs; [
     lm_sensors
