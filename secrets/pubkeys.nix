@@ -7,6 +7,7 @@ rec {
     jahoda = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBEOGfpFFrlBGu9ui/XWMhB4NxLcS1MNuL/ozxDYAhTZ" ];
     lumine = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICLgMH2GQZCfmXV2I4jlVHsM6PYiitT9hPRNhX40amKE" ];
     nahida = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAID+oF/2GvNR5Adz0y6RiNTg8UrcneQSEWualML5wAwer" ];
+    odette = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH2tLJh/Rdy/c/a5ZIblX90ZHHmrOBTOumzEonvs8gGa" ];
     paimon = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFljYcA+U1awv/K4xHx9pr8+WVH/YDAN73nPlEhE3zJr" ];
     raiden-ei = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIB0g+aVDhTxpSHq7XnLLZvK2Lm9nxLdBNggzyqrD2Hf" ];
     sandrone = [ "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIviqrRjXSzpnF6Q6gRfLGWwYEq5FsDiTLlMwnlUDQmS" ];

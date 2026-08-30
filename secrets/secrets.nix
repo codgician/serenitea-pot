@@ -92,6 +92,7 @@ let
         jahoda
         lumine
         nahida
+        odette
         paimon
         raiden-ei
         sandrone
@@ -109,6 +110,7 @@ let
         jahoda
         lumine
         nahida
+        odette
         paimon
         raiden-ei
         sandrone
@@ -133,6 +135,7 @@ let
         jahoda
         lumine
         nahida
+        odette
         paimon
         raiden-ei
         sandrone
@@ -170,6 +173,7 @@ let
         jahoda
         lumine
         nahida
+        odette
         paimon
         raiden-ei
         sandrone
@@ -200,6 +204,7 @@ let
         jahoda
         lumine
         nahida
+        odette
         paimon
         raiden-ei
         sandrone
@@ -218,6 +223,7 @@ let
         jahoda
         lumine
         nahida
+        odette
         paimon
         raiden-ei
         sandrone
@@ -334,6 +340,7 @@ let
         jahoda
         lumine
         nahida
+        odette
         paimon
         raiden-ei
         sandrone
