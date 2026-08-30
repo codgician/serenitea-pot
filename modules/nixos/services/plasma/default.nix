@@ -105,6 +105,7 @@ in
         kdePackages.krecorder
         kdePackages.kwallet-pam
         kdePackages.plasma-camera
+        kdePackages.plasma-browser-integration
         qt6.qtvirtualkeyboard
         wayland-utils
       ];

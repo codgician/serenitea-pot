@@ -44,6 +44,9 @@ in
 
   hardware.bluetooth.enable = true;
 
+  # Thunderbolt management daemon
+  services.hardware.bolt.enable = true;
+
   services.pipewire = {
     package = pipewireWithChromebookUcm;
 

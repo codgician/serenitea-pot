@@ -57,6 +57,9 @@
     supportedFilesystems = [ "vfat" ];
   };
 
+  # Thunderbolt management daemon
+  services.hardware.bolt.enable = true;
+
   # KVMFR device permissions for Looking Glass client
   # Note: OWNER="codgi" doesn't work - systemd-udevd rejects non-system users (UID >= 1000)
   # Use TAG+="uaccess" to grant logged-in user access via ACL instead

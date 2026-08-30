@@ -14,23 +14,6 @@ in
       fcitx5.enable = true;
       nixos-vscode-server.enable = true;
       plasma.enable = true;
-      hyprland = {
-        enable = false;
-        monitors = [
-          {
-            output = "DP-3";
-            mode = "3840x2160@60";
-            position = "0x0";
-            scale = 1.5;
-          }
-          {
-            output = "HDMI-A-1";
-            mode = "3840x2160@60";
-            position = "2560x0";
-            scale = 1.5;
-          }
-        ];
-      };
 
       sing-box = {
         enable = true;
@@ -93,6 +76,12 @@ in
 
       # RAS hardware error monitoring (EDAC/DIMM ECC, PCIe AER, CPU MCE)
       rasdaemon.enable = true;
+
+      # Microsoft Intune enrollment (device compliance, identity broker, VPN)
+      intune = {
+        enable = true;
+        vpn.enable = true;
+      };
     };
 
     system = {
@@ -176,6 +165,7 @@ in
           ];
         };
 
+        teams-for-linux.enable = true;
         pwsh.enable = true;
         ssh.enable = true;
         tmux.enable = true;
@@ -197,9 +187,15 @@ in
       xdg.configFile."mimeapps.list".force = true;
 
       home.stateVersion = "26.05";
+
       home.packages =
         with pkgs;
         [
+          # Microsoft Intune (compliance) tooling
+          microsoft-edge
+          azure-cli
+          yubikey-manager
+          yubico-piv-tool
           unstable.cider-2
           splayer
           easyeffects

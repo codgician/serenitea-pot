@@ -196,7 +196,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-
     programs.plasma = {
       enable = true;
       # Plasma stores desktop and lock-screen wallpapers separately.
@@ -448,6 +447,10 @@ in
           Quality = cfg.krdp.quality;
           SystemUserEnabled = cfg.krdp.enable;
         };
+
+        # For compatibility (e.g. OneAuth) who resolves the conventional "login" alias
+        # which KWallet does not create by default.
+        kwalletrc."org.freedesktop.secrets.aliases".login = "kdewallet";
 
         # Plasma 6.3+ reads window decoration from `org.kde.kdecoration3`,
         # while plasma-manager currently writes the legacy

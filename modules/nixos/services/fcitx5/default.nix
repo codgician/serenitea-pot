@@ -22,7 +22,7 @@ in
           pkgs.fcitx5-mellow-themes
         ];
         waylandFrontend = true;
-        settings.globalOptions."Hotkey/TriggerKeys"."0" = "Ctrl+space";
+        settings.globalOptions."Hotkey/TriggerKeys"."0" = "Control+space";
         settings.addons = {
           classicui.globalSection.Theme = "kwinblur-mellow-youlan-dark";
           pinyin.globalSection.CloudPinyinEnabled = true;

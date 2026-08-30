@@ -5,6 +5,11 @@
       fcitx5.enable = true;
       nixos-vscode-server.enable = true;
       plasma.enable = true;
+      rasdaemon.enable = true;
+      intune = {
+        enable = true;
+        vpn.enable = true;
+      };
     };
 
     system = {
@@ -56,6 +61,7 @@
         };
         pwsh.enable = true;
         ssh.enable = true;
+        teams-for-linux.enable = true;
         tmux.enable = true;
         vscode.enable = true;
         zsh.enable = true;
@@ -75,6 +81,8 @@
 
       home.stateVersion = "26.05";
       home.packages = with pkgs; [
+        yubikey-manager
+        yubico-piv-tool
         unstable.cider-2
         splayer
         easyeffects
@@ -124,6 +132,8 @@
     "root"
     "@wheel"
   ];
+
+  networking.hostId = "000de77e";
 
   # Global packages
   environment.systemPackages = with pkgs; [

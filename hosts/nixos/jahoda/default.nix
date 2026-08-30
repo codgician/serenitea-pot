@@ -7,7 +7,6 @@ lib.codgician.mkNixosSystem {
     (import ./disks.nix { })
     ./system.nix
     ./hardware.nix
-    ./intune.nix
     ./vms
   ];
 }
