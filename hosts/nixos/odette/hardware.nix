@@ -33,8 +33,8 @@ in
       "i915.force_probe=!46a8"
       "xe.force_probe=46a8"
     ];
-    kernelPackages = pkgs.linuxPackages_6_18;
-    zfs.package = pkgs.zfs_2_4;
+    kernelPackages = pkgs.linuxPackages_testing;
+    zfs.package = pkgs.zfs_unstable;
     supportedFilesystems = [ "vfat" ];
   };
 
