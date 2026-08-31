@@ -30,8 +30,11 @@ in
     kernelModules = [ "kvm-intel" ];
     # Force enable xe
     kernelParams = [
+      "iommu.passthrough=0"
+      "intel_iommu=on"
       "i915.force_probe=!46a8"
       "xe.force_probe=46a8"
+      "xe.max_vfs=2"
     ];
     kernelPackages = pkgs.linuxPackages_testing;
     zfs.package = pkgs.zfs_unstable;
