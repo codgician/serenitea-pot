@@ -37,6 +37,12 @@ in
       "xe.max_vfs=2"
     ];
     kernelPackages = pkgs.linuxPackages_testing;
+    kernelPatches = [
+      {
+        name = "cros-ec-typec-mode-selection";
+        patch = ./kernel/cros-ec-typec-mode-selection.patch;
+      }
+    ];
     zfs.package = pkgs.zfs_unstable;
     supportedFilesystems = [ "vfat" ];
   };
