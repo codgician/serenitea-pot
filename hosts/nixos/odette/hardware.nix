@@ -39,8 +39,18 @@ in
     kernelPackages = pkgs.linuxPackages_testing;
     kernelPatches = [
       {
-        name = "cros-ec-typec-mode-selection";
-        patch = ./kernel/cros-ec-typec-mode-selection.patch;
+        name = "cros-ec-typec-priority-mode-selection";
+        patch = pkgs.fetchpatch {
+          url = "https://lore-kernel.gnuweeb.org/lkml/20260129131928.794768-1-akuchynski@chromium.org/raw";
+          hash = "sha256-ZyojRLONF4KaNiQZg+FWk6SiIuWxRA2fmMi7k6APjbo=";
+        };
+      }
+      {
+        name = "cros-ec-typec-altmode-priority";
+        patch = pkgs.fetchpatch {
+          url = "https://lore-kernel.gnuweeb.org/lkml/20260129131928.794768-2-akuchynski@chromium.org/raw";
+          hash = "sha256-sPHUoVIx9l3XRgr3KNhfwHruCNxg5EAHLNhkH7P/nns=";
+        };
       }
     ];
     zfs.package = pkgs.zfs_unstable;
@@ -50,7 +60,10 @@ in
   services = {
     dbus.packages = [ rustFp ];
     hardware.bolt.enable = true;
-    thermald.enable = true;
+    thermald = {
+      enable = true;
+      configFile = ./thermald.xml;
+    };
     pipewire = {
       package = pipewireWithChromebookUcm;
       wireplumber = {
