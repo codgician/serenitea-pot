@@ -1,39 +1,4 @@
 {
-  "gemini-3.1-pro-preview": {
-    "contextWindow": 1000000,
-    "cost": {
-      "cacheRead": 0.2,
-      "cacheWrite": 0,
-      "input": 2,
-      "output": 12,
-      "tiers": [
-        {
-          "cacheRead": 0.4,
-          "cacheWrite": 0,
-          "input": 4,
-          "inputTokensAbove": 200000,
-          "output": 18
-        }
-      ]
-    },
-    "maxInputTokens": 936000,
-    "maxOutputTokens": 64000,
-    "mode": "chat",
-    "reasoningEfforts": [
-      "low",
-      "medium",
-      "high"
-    ],
-    "supportedEndpoints": [
-      "/v1/chat/completions"
-    ],
-    "supports": [
-      "toolCalls",
-      "parallelToolCalls",
-      "vision",
-      "reasoning"
-    ]
-  },
   "gemini-3.5-flash": {
     "contextWindow": 1000000,
     "cost": {
