@@ -25,9 +25,15 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.nur.repos.codgician.agent-browser ];
     # Bypass programs.claude-code.skills: Home Manager inspects those paths
-    # during evaluation, which would realize this target-platform source derivation.
-    home.file."${config.programs.claude-code.configDir}/skills/agent-browser".source =
-      "${pkgs.nur.repos.codgician.agent-browser.src}/skills/agent-browser";
+    # during evaluation, which would realize these target-platform sources.
+    home.file = {
+      "${config.programs.claude-code.configDir}/skills/agent-browser".source =
+        "${pkgs.nur.repos.codgician.agent-browser.src}/skills/agent-browser";
+    }
+    // lib.optionalAttrs (config.codgician.codgi.herdr.enable or false) {
+      "${config.programs.claude-code.configDir}/skills/herdr".source =
+        "${config.codgician.codgi.herdr.package.src}/skills/herdr";
+    };
     programs.claude-code = {
       enable = true;
       inherit (cfg) package;

@@ -1,4 +1,7 @@
-{ pkgs }:
+{
+  pkgs,
+  extraSkillDirectories ? [ ],
+}:
 let
   commonProfile = {
     setupVersion = 2;
@@ -33,7 +36,10 @@ let
       enablePiProject = true;
       enableAgentsUser = false;
       enableAgentsProject = true;
-      customDirectories = [ "${pkgs.nur.repos.codgician.agent-browser.src}/skills" ];
+      customDirectories = [
+        "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
+      ]
+      ++ extraSkillDirectories;
     };
     advisor = {
       enabled = false;

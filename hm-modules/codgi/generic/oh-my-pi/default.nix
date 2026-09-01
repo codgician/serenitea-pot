@@ -125,7 +125,12 @@ let
     };
   };
 
-  profiles = import ./profiles { inherit pkgs; };
+  profiles = import ./profiles {
+    inherit pkgs;
+    extraSkillDirectories = lib.optionals (config.codgician.codgi.herdr.enable or false) [
+      "${config.codgician.codgi.herdr.package.src}/skills"
+    ];
+  };
 
   profileConfigFiles = builtins.mapAttrs (
     name: settings: yamlFormat.generate "omp-${name}-config.yml" settings

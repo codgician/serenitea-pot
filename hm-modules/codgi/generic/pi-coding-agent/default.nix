@@ -123,6 +123,11 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = [ cfg.package ];
 
-    home.file.".pi/agent/models.json".source = jsonFormat.generate "pi-models.json" modelsJson;
+    home.file = {
+      ".pi/agent/models.json".source = jsonFormat.generate "pi-models.json" modelsJson;
+    }
+    // lib.optionalAttrs (config.codgician.codgi.herdr.enable or false) {
+      ".pi/agent/skills/herdr".source = "${config.codgician.codgi.herdr.package.src}/skills/herdr";
+    };
   };
 }

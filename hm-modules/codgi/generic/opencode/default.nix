@@ -173,6 +173,9 @@ in
           name = "opencode-skills";
           paths = [
             "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
+          ]
+          ++ lib.optionals (config.codgician.codgi.herdr.enable or false) [
+            "${config.codgician.codgi.herdr.package.src}/skills"
           ];
         };
         recursive = true;
