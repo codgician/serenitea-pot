@@ -75,6 +75,26 @@
         tmux.enable = true;
         vscode.enable = true;
         zsh.enable = true;
+
+        easyeffects = {
+          enable = true;
+          presets = {
+            "ChromeOS Redrix".content = ./easyeffects/chromeos-redrix.json;
+            Nothing.content = {
+              blocklist = [ ];
+              plugins_order = [ ];
+            };
+          };
+          autoload = [
+            {
+              device = "alsa_output.pci-0000_00_1f.3-platform-adl_rt5682_def.HiFi__Speaker__sink";
+              deviceDescription = "Alder Lake PCH-P High Definition Audio Controller Speaker";
+              deviceProfile = "HiFi: Speaker: sink";
+              preset = "ChromeOS Redrix";
+            }
+          ];
+          fallback.output = "Nothing";
+        };
       };
 
       # Set Microsoft Edge as default browser
@@ -89,39 +109,6 @@
         };
       };
       xdg.configFile."mimeapps.list".force = true;
-
-      # Reproduce the Redrix ChromeOS speaker tuning with EasyEffects. The
-      # compressor is the closest LSP approximation; the split-channel EQ is
-      # transcribed from ChromeOS 16733.54.0 /etc/cras/redrix/dsp.ini.
-      xdg.dataFile =
-        let
-          speakerNode = "alsa_output.pci-0000_00_1f.3-platform-adl_rt5682_def.HiFi__Speaker__sink";
-          speakerProfile = "HiFi: Speaker: sink";
-        in
-        {
-          "easyeffects/output/ChromeOS Redrix.json".source = ./easyeffects/chromeos-redrix.json;
-          "easyeffects/output/Nothing.json".text = builtins.toJSON {
-            output = {
-              blocklist = [ ];
-              plugins_order = [ ];
-            };
-          };
-          "easyeffects/autoload/output/${speakerNode}:${speakerProfile}.json".text = builtins.toJSON {
-            device = speakerNode;
-            device-description = "Alder Lake PCH-P High Definition Audio Controller Speaker";
-            device-profile = speakerProfile;
-            preset-name = "ChromeOS Redrix";
-          };
-        };
-
-      # Keep the ChromeOS tuning on the internal speakers only. EasyEffects
-      # falls back to the empty preset for headphones, HDMI, and other sinks.
-      programs.plasma.configFile."easyeffects/db/easyeffectsrc".Window = {
-        autostartOnLogin = true;
-        enableServiceMode = true;
-        outputAutoloadingFallbackPreset = "Nothing";
-        outputAutoloadingUsesFallback = true;
-      };
 
       # HP Elite Dragonfly Chromebook's ELAN touchpad. Plasma on Wayland
       # reads input settings from kcminputrc (via KWin/libinput), not from
@@ -141,7 +128,6 @@
         yubico-piv-tool
         unstable.cider-2
         splayer
-        easyeffects
         telegram-desktop
         nextcloud-talk-desktop
         element-desktop

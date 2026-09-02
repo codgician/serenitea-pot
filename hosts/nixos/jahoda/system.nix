@@ -168,6 +168,7 @@ in
           ];
         };
 
+        easyeffects.enable = true;
         teams-for-linux.enable = true;
         pwsh.enable = true;
         ssh.enable = true;
@@ -201,7 +202,6 @@ in
           yubico-piv-tool
           unstable.cider-2
           splayer
-          easyeffects
           virt-manager
           looking-glass-client-nvhack
           telegram-desktop
