@@ -325,9 +325,7 @@ in
                   size =
                     if cfg.scale == 1 then
                       18
-                    else if cfg.scale == 1.5 then
-                      8
-                    else
+                    else 
                       9;
                 };
               };

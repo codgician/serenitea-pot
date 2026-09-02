@@ -1,4 +1,11 @@
 { lib, pkgs, ... }:
+let
+  wallpaper =
+    (pkgs.fetchurl {
+      url = "https://media.githubusercontent.com/media/codgician/assets/refs/heads/main/images/wallpapers/genshin-luna-viii.jpg";
+      sha256 = "sha256-VjoCRP8AENaUlItKCn2751GY+WtF0ncwcBWYuJHmCWE=";
+    }).outPath;
+in
 {
   codgician = {
     services = {
@@ -60,6 +67,7 @@
         oh-my-pi.enable = true;
         opencode.enable = true;
         plasma = {
+          inherit wallpaper;
           scale = 1.5;
           launchers = [
             "applications:org.kde.dolphin.desktop"
