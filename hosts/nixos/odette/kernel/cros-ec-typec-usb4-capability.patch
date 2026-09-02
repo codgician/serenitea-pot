@@ -1,26 +1,59 @@
+platform/chrome: cros_ec_typec: Infer USB4 from USB3 mapping
+
+Intel TCSS firmware describes USB4 tunneling on the USB3 port
+referenced by a Type-C connector. The USB3 node carries
+usb4-host-interface and usb4-port-number; existing firmware does not
+provide a separate connector-level usb4-port reference.
+
+Recognize that established mapping when populating the host USB
+capability. Keep supporting usb4-port for firmware that provides a
+dedicated USB4 port object.
+
+---
 diff --git a/drivers/platform/chrome/cros_ec_typec.c b/drivers/platform/chrome/cros_ec_typec.c
+index 05d802c..16fc3f4 100644
 --- a/drivers/platform/chrome/cros_ec_typec.c
 +++ b/drivers/platform/chrome/cros_ec_typec.c
-@@ -177,9 +177,19 @@ static int cros_typec_parse_port_props(struct typec_capability *cap,
- 	if (fwnode_property_present(fwnode, "usb2-port"))
+@@ -150,6 +150,29 @@ static const struct typec_operations cros_typec_usb_mode_ops = {
+ 	.pr_set = cros_typec_pr_swap,
+ };
+ 
++static bool cros_typec_usb3_port_supports_usb4(struct fwnode_handle *fwnode)
++{
++	struct fwnode_handle *usb3_fwnode;
++	struct fwnode_handle *nhi_fwnode;
++	u8 port_num;
++	bool ret = false;
++
++	usb3_fwnode = fwnode_find_reference(fwnode, "usb3-port", 0);
++	if (IS_ERR_OR_NULL(usb3_fwnode))
++		return false;
++
++	nhi_fwnode = fwnode_find_reference(usb3_fwnode,
++					   "usb4-host-interface", 0);
++	if (!IS_ERR_OR_NULL(nhi_fwnode)) {
++		ret = !fwnode_property_read_u8(usb3_fwnode,
++					       "usb4-port-number", &port_num);
++		fwnode_handle_put(nhi_fwnode);
++	}
++
++	fwnode_handle_put(usb3_fwnode);
++	return ret;
++}
++
+ static int cros_typec_parse_port_props(struct typec_capability *cap,
+ 				       struct fwnode_handle *fwnode,
+ 				       struct device *dev)
+@@ -196,7 +219,8 @@ static int cros_typec_parse_port_props(struct typec_capability *cap,
  		cap->usb_capability |= USB_CAPABILITY_USB2;
  	if (fwnode_property_present(fwnode, "usb3-port"))
  		cap->usb_capability |= USB_CAPABILITY_USB3;
 -	if (fwnode_property_present(fwnode, "usb4-port"))
-+	if (fwnode_property_present(fwnode, "usb4-port")) {
++	if (fwnode_property_present(fwnode, "usb4-port") ||
++	    cros_typec_usb3_port_supports_usb4(fwnode))
  		cap->usb_capability |= USB_CAPABILITY_USB4;
-+	} else {
-+		struct fwnode_handle *usb3_fwnode;
-+
-+		usb3_fwnode = fwnode_find_reference(fwnode, "usb3-port", 0);
-+		if (!IS_ERR_OR_NULL(usb3_fwnode)) {
-+			if (fwnode_property_present(usb3_fwnode, "usb4-host-interface"))
-+				cap->usb_capability |= USB_CAPABILITY_USB4;
-+			fwnode_handle_put(usb3_fwnode);
-+		}
-+	}
  
  	cros_typec_role_switch_quirk(fwnode);
- 
 -- 
-2.51.0
+2.54.0
+
