@@ -56,6 +56,10 @@ in
         name = "cros-ec-typec-usb4-capability";
         patch = ./kernel/cros-ec-typec-usb4-capability.patch;
       }
+      {
+        name = "cros-ec-typec-usb4-mode-entry";
+        patch = ./kernel/cros-ec-typec-usb4-mode-entry.patch;
+      }
     ];
     zfs.package = pkgs.zfs_unstable;
     supportedFilesystems = [ "vfat" ];
