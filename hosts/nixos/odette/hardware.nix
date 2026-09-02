@@ -52,6 +52,10 @@ in
           hash = "sha256-rPJSuit8gm8LU1FTCf7NXYCKYaID8XfFRm7QH/XHEts=";
         };
       }
+      {
+        name = "cros-ec-typec-usb4-capability";
+        patch = ./kernel/cros-ec-typec-usb4-capability.patch;
+      }
     ];
     zfs.package = pkgs.zfs_unstable;
     supportedFilesystems = [ "vfat" ];

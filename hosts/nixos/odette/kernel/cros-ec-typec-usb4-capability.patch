@@ -1,0 +1,26 @@
+diff --git a/drivers/platform/chrome/cros_ec_typec.c b/drivers/platform/chrome/cros_ec_typec.c
+--- a/drivers/platform/chrome/cros_ec_typec.c
++++ b/drivers/platform/chrome/cros_ec_typec.c
+@@ -177,9 +177,19 @@ static int cros_typec_parse_port_props(struct typec_capability *cap,
+ 	if (fwnode_property_present(fwnode, "usb2-port"))
+ 		cap->usb_capability |= USB_CAPABILITY_USB2;
+ 	if (fwnode_property_present(fwnode, "usb3-port"))
+ 		cap->usb_capability |= USB_CAPABILITY_USB3;
+-	if (fwnode_property_present(fwnode, "usb4-port"))
++	if (fwnode_property_present(fwnode, "usb4-port")) {
+ 		cap->usb_capability |= USB_CAPABILITY_USB4;
++	} else {
++		struct fwnode_handle *usb3_fwnode;
++
++		usb3_fwnode = fwnode_find_reference(fwnode, "usb3-port", 0);
++		if (!IS_ERR_OR_NULL(usb3_fwnode)) {
++			if (fwnode_property_present(usb3_fwnode, "usb4-host-interface"))
++				cap->usb_capability |= USB_CAPABILITY_USB4;
++			fwnode_handle_put(usb3_fwnode);
++		}
++	}
+ 
+ 	cros_typec_role_switch_quirk(fwnode);
+ 
+-- 
+2.51.0
