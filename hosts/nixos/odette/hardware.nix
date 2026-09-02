@@ -42,14 +42,14 @@ in
         name = "cros-ec-typec-priority-mode-selection";
         patch = pkgs.fetchpatch {
           url = "https://lore-kernel.gnuweeb.org/lkml/20260129131928.794768-1-akuchynski@chromium.org/raw";
-          hash = "sha256-ZyojRLONF4KaNiQZg+FWk6SiIuWxRA2fmMi7k6APjbo=";
+          hash = "sha256-LO2jdGHfeDN+9ys7IE7DTV8DBHdizqxLhDXXMd0Nv0k=";
         };
       }
       {
         name = "cros-ec-typec-altmode-priority";
         patch = pkgs.fetchpatch {
           url = "https://lore-kernel.gnuweeb.org/lkml/20260129131928.794768-2-akuchynski@chromium.org/raw";
-          hash = "sha256-sPHUoVIx9l3XRgr3KNhfwHruCNxg5EAHLNhkH7P/nns=";
+          hash = "sha256-rPJSuit8gm8LU1FTCf7NXYCKYaID8XfFRm7QH/XHEts=";
         };
       }
     ];
