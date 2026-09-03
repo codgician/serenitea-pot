@@ -1,0 +1,51 @@
+thunderbolt: Retry a port that is not yet available
+
+A plug event can arrive while a newly enabled USB4 downstream port still
+returns TB_CFG_ERROR_NO_SUCH_PORT. tb_wait_for_port() currently treats
+that transient response as a fatal I/O error and drops the event.
+
+Map the response to -EAGAIN and let tb_wait_for_port() reuse its existing
+bounded state polling. Report the transient condition at debug level
+instead of emitting a WARN_ON stack trace.
+
+---
+diff --git a/drivers/thunderbolt/ctl.c b/drivers/thunderbolt/ctl.c
+index cd47b62..97cf799 100644
+--- a/drivers/thunderbolt/ctl.c
++++ b/drivers/thunderbolt/ctl.c
+@@ -298,8 +298,8 @@ static void tb_cfg_print_error(struct tb_ctl *ctl, enum tb_cfg_space space,
+ 		 * - The route contains a non-PHY port (e.g. PCIe).
+ 		 * - The port in cfg_read/cfg_write does not exist.
+ 		 */
+-		tb_ctl_WARN(ctl, "CFG_ERROR(%llx:%x): Invalid port\n",
+-			res->response_route, res->response_port);
++		tb_ctl_dbg(ctl, "%llx:%x: port is not yet available\n",
++			   res->response_route, res->response_port);
+ 		return;
+ 	case TB_CFG_ERROR_LOOP:
+ 		tb_ctl_WARN(ctl, "CFG_ERROR(%llx:%x): Route contains a loop\n",
+@@ -1104,6 +1104,8 @@ static int tb_cfg_get_error(struct tb_ctl *ctl, enum tb_cfg_space space,
+ 		return -EACCES;
+ 	if (res->tb_error == TB_CFG_ERROR_PORT_NOT_CONNECTED)
+ 		return -ENOTCONN;
++	if (res->tb_error == TB_CFG_ERROR_NO_SUCH_PORT)
++		return -EAGAIN;
+ 
+ 	return -EIO;
+ }
+diff --git a/drivers/thunderbolt/switch.c b/drivers/thunderbolt/switch.c
+index a830c82..9acf936 100644
+--- a/drivers/thunderbolt/switch.c
++++ b/drivers/thunderbolt/switch.c
+@@ -535,6 +535,11 @@ int tb_wait_for_port(struct tb_port *port, bool wait_if_unplugged)
+ 			return 1;
+ 
+ 		default:
++			if (state == -EAGAIN) {
++				tb_port_dbg(port, "is not yet available, retrying...\n");
++				msleep(100);
++				break;
++			}
+ 			if (state < 0)
+ 				return state;
+ 
