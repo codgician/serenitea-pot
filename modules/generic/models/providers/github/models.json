@@ -106,6 +106,41 @@
       "reasoning"
     ]
   },
+  "gemini-3.8-flash": {
+    "contextWindow": 1048576,
+    "cost": {
+      "cacheRead": 0.07,
+      "cacheWrite": 0,
+      "input": 0.75,
+      "output": 3.75,
+      "tiers": [
+        {
+          "cacheRead": 0.07,
+          "cacheWrite": 0,
+          "input": 0.75,
+          "inputTokensAbove": 200000,
+          "output": 3.75
+        }
+      ]
+    },
+    "maxInputTokens": 983040,
+    "maxOutputTokens": 65536,
+    "mode": "chat",
+    "reasoningEfforts": [
+      "low",
+      "medium",
+      "high"
+    ],
+    "supportedEndpoints": [
+      "/v1/chat/completions"
+    ],
+    "supports": [
+      "toolCalls",
+      "parallelToolCalls",
+      "vision",
+      "reasoning"
+    ]
+  },
   "gpt-5-mini": {
     "contextWindow": 264000,
     "cost": {
