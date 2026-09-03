@@ -60,10 +60,6 @@ in
         name = "cros-ec-typec-usb4-mode-entry";
         patch = ./kernel/cros-ec-typec-usb4-mode-entry.patch;
       }
-      {
-        name = "thunderbolt-hotplug-retry";
-        patch = ./kernel/thunderbolt-hotplug-retry.patch;
-      }
     ];
     zfs.package = pkgs.zfs_unstable;
     supportedFilesystems = [ "vfat" ];
