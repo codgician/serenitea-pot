@@ -193,11 +193,11 @@
         "nixpkgs-lib": "nixpkgs-lib"
       },
       "locked": {
-        "lastModified": 1788306937,
-        "narHash": "sha256-lbrI1UYVpFgKSsyrU9oeF7FHfnu8nLD9ja0ou9f2rxk=",
+        "lastModified": 1788450739,
+        "narHash": "sha256-glZLQlzIn1fXH6PazR2iUmTo7kzzyYSshrWhLS9TqCU=",
         "owner": "hercules-ci",
         "repo": "flake-parts",
-        "rev": "f16b25b8c3d2809b87925d0b76652d7821a75c68",
+        "rev": "31729ca8cbdb4fa927b34e5f4353e6a83f39e993",
         "type": "github"
       },
       "original": {
@@ -270,11 +270,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1788355065,
-        "narHash": "sha256-gAz5oTI7ur34CfuakQduiQd/2ZhO62Bn2XXg08nZYYQ=",
+        "lastModified": 1788458226,
+        "narHash": "sha256-UZTAlg8iKVEmyEXakzKmukrzFIKrXezYsRy9vajDrGw=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "d9d750e4fc11c10cab2da677bdd31e427f3a3a71",
+        "rev": "aa308770461dcf22c333a5e8a31c8bddbde5bee9",
         "type": "github"
       },
       "original": {
@@ -353,11 +353,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1788350369,
-        "narHash": "sha256-Vk+oVo4FNa/McD2/K5BO2Off6Z8l9mKmT9f0xZ6mDYQ=",
+        "lastModified": 1788437273,
+        "narHash": "sha256-dn+N26nSI4WqryWWBUfClz6qSpFHGNGJmc9M46usr70=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "4ab625e16a6cc52fe3f606b95f1e2ac20dafa80b",
+        "rev": "c48d91c89868c53dd0b51bf840977cc83f2544fb",
         "type": "github"
       },
       "original": {
@@ -417,11 +417,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1788321782,
-        "narHash": "sha256-sOg8M7qYl3mW8woJMVn00kVdzpH0EwezD9jneHYdgwE=",
+        "lastModified": 1788408011,
+        "narHash": "sha256-VErLyHIT3U4x64a2G6J6wplB4yDPIpMXlhUpBjUMNEE=",
         "owner": "nix-community",
         "repo": "nix-vscode-extensions",
-        "rev": "4633f7c14cd41bf0d2512fc8784c35181e063a5e",
+        "rev": "f848614222a7ef023998450a6f6773e10f8adf83",
         "type": "github"
       },
       "original": {
@@ -491,11 +491,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1788346920,
-        "narHash": "sha256-3hYmjOF6w0E9Wy+hVDlDScLimnGJmJ1ROvUCu34FOlw=",
+        "lastModified": 1788447032,
+        "narHash": "sha256-yChxPQq3n/d+xYxDJquaFeJ5aJC/aHS5dEXWpoq15tU=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "9965ec1f0285c8ce4b26bc807b36c8679418e915",
+        "rev": "2a74dcaa5c47c28fee6e3e4148bba978de7a8716",
         "type": "github"
       },
       "original": {
@@ -553,11 +553,11 @@
     },
     "nixpkgs-unstable": {
       "locked": {
-        "lastModified": 1788377164,
-        "narHash": "sha256-UxvTqddOs+SIQaf3FoQpyWdDPO3rzI75pjmLpa3rUZc=",
+        "lastModified": 1788463131,
+        "narHash": "sha256-8NcNwowCmTgAvjgzM/i4uiqHkA5yGP4Vk8PUB6vBcR8=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "a4014feca5db2c1d7a8644f92aa5d6b3c38380d3",
+        "rev": "8d9500f3d1311d5251a72d67f0ffb4ac313cac6b",
         "type": "github"
       },
       "original": {
@@ -605,11 +605,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1788370456,
-        "narHash": "sha256-w06cB/wypyf1rINwVygmeyZUdBg/fjaLpu8XjLnpoAY=",
+        "lastModified": 1788457760,
+        "narHash": "sha256-mgc2nP0VswanDYro+5coUi9yBc8SIGJizkWUNfr+DIs=",
         "owner": "noctalia-dev",
         "repo": "noctalia",
-        "rev": "c5f5ab26111c665aab04b0c4f686a14c86ae0f72",
+        "rev": "709ebef1497899737275d1406266157af331be05",
         "type": "github"
       },
       "original": {
@@ -629,11 +629,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1788377009,
-        "narHash": "sha256-sIoE+dEdxcPL8RZAldvu3yAE9PnapfwZj0ayi+gczkY=",
+        "lastModified": 1788463104,
+        "narHash": "sha256-sofZL03roVC4gBoVila0xh7oOFGgEKIeAV6/SB+i4jY=",
         "owner": "nix-community",
         "repo": "NUR",
-        "rev": "20c058077e84af3cad033129e979623f3309c805",
+        "rev": "54ad86dbb5be5be10d0b44d30130f01b9e2bebe0",
         "type": "github"
       },
       "original": {
