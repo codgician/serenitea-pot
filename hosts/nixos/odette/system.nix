@@ -144,6 +144,8 @@ in
         voxtype-onnx
         moonlight-qt
         gimp
+        kdePackages.cantor
+        kdePackages.kalgebra
       ];
     };
 

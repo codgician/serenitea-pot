@@ -57,7 +57,7 @@ in
       kde-smartcard = lib.mkIf config.security.pam.p11.enable { p11Auth = true; };
     };
 
-    # Configure keymap in X11
+    # Configure the keymap used by X11 and Wayland compositors.
     services.xserver.xkb.layout = "us";
 
     # Plasma Login Manager reads user avatars from AccountsService's icon directory.
@@ -97,16 +97,24 @@ in
         aha
         appmenu-glib-translator
         kdePackages.breeze-gtk
+        kdePackages.filelight
+        kdePackages.kcalc
+        kdePackages.kcharselect
+        kdePackages.kfind
         kdePackages.kio-admin
+        kdePackages.kjournald
         kdePackages.krdp
         kdePackages.krdc
         kdePackages.krfb
+        kdePackages.kruler
         kdePackages.kquickcharts
         kdePackages.krecorder
         kdePackages.kwallet-pam
+        kdePackages.partitionmanager
         kdePackages.plasma-camera
         kdePackages.plasma-browser-integration
         kdePackages.plasma-keyboard
+        krita
         qt6.qtvirtualkeyboard
         wayland-utils
       ];

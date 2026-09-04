@@ -71,6 +71,27 @@ in
 
   services = {
     dbus.packages = [ rustFp ];
+    keyd = {
+      enable = true;
+      keyboards.redrix = {
+        ids = [ "k:0fac:0ade:bea394c0" ];
+        settings.meta = {
+          back = "f1";
+          refresh = "f2";
+          zoom = "f3";
+          scale = "f4";
+          sysrq = "f5";
+          brightnessdown = "f6";
+          brightnessup = "f7";
+          kbdillumtoggle = "f8";
+          playpause = "f9";
+          micmute = "f10";
+          mute = "f11";
+          volumedown = "f12";
+          volumeup = "f13";
+        };
+      };
+    };
     hardware.bolt.enable = true;
     thermald = {
       enable = true;
