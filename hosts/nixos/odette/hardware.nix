@@ -74,7 +74,7 @@ in
     keyd = {
       enable = true;
       keyboards.redrix = {
-        ids = [ "k:0fac:0ade:bea394c0" ];
+        ids = [ "0001:0001:a51dd4d3" ];
         settings.meta = {
           back = "f1";
           refresh = "f2";
