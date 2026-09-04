@@ -186,6 +186,12 @@ in
 
   networking.hostId = "000de77e";
 
+  # Plasma Login Manager currently reads wallpaper configuration from the main file.
+  environment.etc."plasmalogin.conf".text = ''
+    [Greeter][Wallpaper][org.kde.image][General]
+    Image=file://${wallpaper}
+  '';
+
   # Global packages
   environment.systemPackages = with pkgs; [
     google-chrome
