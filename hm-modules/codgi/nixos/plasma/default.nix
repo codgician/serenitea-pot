@@ -541,26 +541,5 @@ in
         rm -f $HOME/.gtkrc-2.0
       fi
     '';
-
-    # KWin persists the *actual* per-monitor Wayland output scale (keyed by
-    # EDID) in `~/.config/kwinoutputconfig.json`, which it owns and rewrites
-    # itself outside of any home-manager-managed dotfile. `kwinrc`'s
-    # `Xwayland.Scale` above only governs the scale XWayland (X11) clients
-    # see; it does not affect KWin's native compositor scale, so once this
-    # file exists KWin keeps using its own recorded value even after
-    # `Xwayland.Scale`/`kdeglobals` change. Force every output's `scale` to
-    # match `cfg.scale` on each activation so the config stays authoritative.
-    home.activation.plasmaOutputScale = lib.mkIf (cfg.scale != null) (
-      lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        outputConfig="$HOME/.config/kwinoutputconfig.json"
-        if [ -f "$outputConfig" ]; then
-          ${lib.getExe pkgs.jq} \
-            --argjson scale ${lib.strings.floatToString cfg.scale} \
-            '(.[] | select(.name == "outputs") | .data[]).scale = $scale' \
-            "$outputConfig" > "$outputConfig.tmp"
-          mv "$outputConfig.tmp" "$outputConfig"
-        fi
-      ''
-    );
   };
 }
