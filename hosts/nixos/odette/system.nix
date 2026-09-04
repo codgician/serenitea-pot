@@ -61,6 +61,7 @@ in
             "~/Work/" = "work";
             "~/GitHub/" = "personal";
           };
+          send-email.enable = true;
         };
         herdr.enable = true;
         mcp.enable = true;

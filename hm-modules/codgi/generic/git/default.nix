@@ -12,6 +12,9 @@ let
   # Platform keyring for GCM: macOS Keychain, or Secret Service on Linux.
   credentialStore = if isDarwin then "keychain" else "secretservice";
 
+  # Email account for git send-email.
+  sendEmailUser = "codgician@outlook.com";
+
   # Identity submodule type
   identityType = lib.types.submodule {
     options = {
@@ -94,6 +97,11 @@ in
         }
       '';
     };
+
+    # git send-email via the Outlook SMTP server. OAuth2 tokens are handled
+    # by `git-credential-outlook` (git-credential-email package); one-time
+    # browser auth: `git credential-outlook --authenticate`.
+    send-email.enable = lib.mkEnableOption "git send-email via git-credential-email";
   };
 
   config = lib.mkIf cfg.enable {
@@ -131,8 +139,30 @@ in
         user = {
           inherit (defaultIdentity) name email signingkey;
         };
+      }
+      // lib.optionalAttrs cfg."send-email".enable {
+        # OAuth2 token provider for the Outlook SMTP server. The empty helper
+        # first resets the credential lookup; `outlook` then resolves the
+        # XOAUTH2 access token on every send-email invocation.
+        "credential \"smtp://smtp.office365.com:587\"" = {
+          helper = [
+            ""
+            "outlook"
+          ];
+        };
+
+        sendemail = {
+          smtpServer = "smtp.office365.com";
+          smtpServerPort = 587;
+          smtpUser = sendEmailUser;
+          smtpEncryption = "tls";
+          smtpAuth = "XOAUTH2";
+          from = "${defaultIdentity.name} <${sendEmailUser}>";
+        };
       };
     };
+
+    home.packages = lib.optional cfg."send-email".enable pkgs.git-credential-email;
 
     programs.gh = {
       enable = true;
