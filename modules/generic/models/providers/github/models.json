@@ -345,17 +345,17 @@
   "gpt-5.6-sol": {
     "contextWindow": 1050000,
     "cost": {
-      "cacheRead": 0.2,
-      "cacheWrite": 2.5,
-      "input": 2,
-      "output": 10,
+      "cacheRead": 0.4,
+      "cacheWrite": 5,
+      "input": 4,
+      "output": 20,
       "tiers": [
         {
-          "cacheRead": 0.4,
-          "cacheWrite": 5,
-          "input": 4,
+          "cacheRead": 0.8,
+          "cacheWrite": 10,
+          "input": 8,
           "inputTokensAbove": 272000,
-          "output": 15
+          "output": 30
         }
       ]
     },
@@ -384,17 +384,17 @@
   "gpt-5.6-sol-fast": {
     "contextWindow": 1050000,
     "cost": {
-      "cacheRead": 0.4,
-      "cacheWrite": 5,
-      "input": 4,
-      "output": 20,
+      "cacheRead": 0.8,
+      "cacheWrite": 10,
+      "input": 8,
+      "output": 40,
       "tiers": [
         {
-          "cacheRead": 0.8,
-          "cacheWrite": 10,
-          "input": 8,
+          "cacheRead": 1.6,
+          "cacheWrite": 20,
+          "input": 16,
           "inputTokensAbove": 272000,
-          "output": 30
+          "output": 60
         }
       ]
     },
