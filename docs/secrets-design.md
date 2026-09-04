@@ -81,10 +81,13 @@ There is no separate reference list.
 - `secrets check` compares Nix policy, `.sops.yaml`, and embedded recipients
   without decrypting values.
 - `secrets create <secret>` creates a declared secret through SOPS.
-- `secrets edit <secret>` opens the containing document through SOPS.
+- `secrets edit <secret>` decrypts only the selected secret into a protected
+  temporary plaintext file, opens that value in the editor, and updates only
+  that key.
 - `secrets rekey` syncs policy and runs `sops updatekeys`.
 - `secrets exec-env <document.json> -- <command>` runs a command with one SOPS
   document exposed as environment variables.
 
 Operator commands derive an age identity temporarily from the operator SSH
-private key. The temporary identity is mode `0600` and removed on exit.
+private key. The temporary identity and editor plaintext files are mode `0600`
+and removed on exit.

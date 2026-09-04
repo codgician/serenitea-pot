@@ -111,6 +111,7 @@ in
         coreutils
         git
         sops
+        jq
         ssh-to-age
         yq-go
       ];
@@ -125,12 +126,16 @@ in
         policy_file=${policyFile}
         identity_file=
         policy_tmp=
+        secret_tmp_dir=
         cleanup() {
-          [ -z "$identity_file" ] || rm -f -- "$identity_file"
-          [ -z "$policy_tmp" ] || rm -f -- "$policy_tmp"
+          [ -z "$secret_tmp_dir" ] || rm -rf -- "$secret_tmp_dir" || :
+          [ -z "$identity_file" ] || rm -f -- "$identity_file" || :
+          [ -z "$policy_tmp" ] || rm -f -- "$policy_tmp" || :
         }
         trap cleanup EXIT
+        trap 'exit 129' HUP
         trap 'exit 130' INT
+        trap 'exit 131' QUIT
         trap 'exit 143' TERM
 
         prepare_identity() {
@@ -271,6 +276,12 @@ in
             || err "unknown secret: $secret"
         }
 
+        secret_key() {
+          local secret=$1
+          SECRET="$secret" yq -e -r '.secrets[strenv(SECRET)].key' "$policy_file" 2>/dev/null \
+            || err "unknown secret: $secret"
+        }
+
         create_secret() {
           local secret="''${1:-}" root document
           [[ "$secret" =~ ^[a-z0-9-]+$ ]] || err "usage: ${name} create <secret>"
@@ -284,13 +295,44 @@ in
         }
 
         edit_secret() {
-          local secret="''${1:-}" root document
+          local secret="''${1:-}" root document key index document_path recipients runtime_dir secret_sops_file
           [[ "$secret" =~ ^[a-z0-9-]+$ ]] || err "usage: ${name} edit <secret>"
           root="$(repo_root)"
           document="$(secret_document "$secret")"
+          key="$(secret_key "$secret")"
           [ -f "$root/secrets/$document" ] || err "$secret has not been created"
           prepare_identity
-          (cd "$root/secrets" && sops "$document")
+
+          document_path="$root/secrets/$document"
+          recipients="$(yq -r '[.sops.age[].recipient] | join(",")' "$document_path")"
+          [ -n "$recipients" ] || err "$document has no age recipients"
+
+          runtime_dir="''${XDG_RUNTIME_DIR:-''${TMPDIR:-/tmp}}"
+          umask 077
+          secret_tmp_dir="$(mktemp -d "$runtime_dir/sops-secret.XXXXXX")"
+          secret_sops_file="$secret_tmp_dir/value.sops"
+          index="$(jq -cn --arg key "$key" '[$key]')"
+
+          sops decrypt --extract "$index" "$document_path" |
+            (
+              cd "$secret_tmp_dir"
+              sops encrypt \
+                --age "$recipients" \
+                --input-type binary \
+                --output-type binary \
+                --filename-override value.bin \
+                --output "$secret_sops_file"
+            )
+          TMPDIR="$secret_tmp_dir" sops edit \
+            --input-type binary \
+            --output-type binary \
+            "$secret_sops_file"
+          sops decrypt \
+            --input-type binary \
+            --output-type binary \
+            "$secret_sops_file" |
+            jq -Rs . |
+            sops set --idempotent --value-stdin "$document_path" "$index"
           git -C "$root" add "secrets/$document"
         }
 
