@@ -1,38 +1,36 @@
-platform/chrome: cros_ec_typec: Serialize USB4 mode entry
+platform/chrome: cros_ec_typec: Serialize USB4 mode transitions
 
-Mode selection can start after DisplayPort or Thunderbolt compatibility
-mode is already active. Entering USB4 directly then races the EC mux
-transition and can leave the host router disconnected.
+Mode selection can start with DisplayPort, Thunderbolt compatibility, or
+USB4 inherited from firmware. Treating inherited USB4 as a completed AP
+request can leave the EC and AP muxes describing different modes and the
+host router disconnected.
 
-Exit the active mode first and advance the transition from the existing
-serialized port update work whenever the EC reports a mux change. A
-freezable delayed work item only wakes the port work at the timeout
-boundary, so the normal path is event driven and all state transitions
-stay in one execution context.
+Exit every inherited high-speed mode first. Then advance the transition
+from the serialized port update work whenever the EC reports a mux change.
+A freezable delayed work item only wakes that work at the timeout boundary,
+so the normal path remains event driven.
 
-Fall back to alternate-mode selection when USB4 entry fails.
+Fall back to alternate-mode selection when a USB4 transition fails.
 
 ---
-
 diff --git a/drivers/platform/chrome/cros_ec_typec.c b/drivers/platform/chrome/cros_ec_typec.c
-index 16fc3f4..cb911d3 100644
 --- a/drivers/platform/chrome/cros_ec_typec.c
 +++ b/drivers/platform/chrome/cros_ec_typec.c
-@@ -346,11 +346,107 @@ static int cros_typec_usb_disconnect_state(struct cros_typec_port *port)
+@@ -340,11 +340,102 @@
  	return typec_mux_set(port->mux, &port->state);
  }
  
 +static void cros_typec_start_altmode_selection(struct cros_typec_port *port,
-+					       int usb4_error)
++					       int transition_error)
 +{
 +	int ret;
 +
 +	port->usb4_state = CROS_USB4_IDLE;
 +	cancel_delayed_work(&port->usb4_timeout_work);
-+	if (usb4_error)
++	if (transition_error)
 +		dev_warn(port->typec_data->dev,
-+			 "USB4 mode entry failed, port: %d, err = %d\n",
-+			 port->port_num, usb4_error);
++			 "USB4 transition failed, port: %d, err = %d\n",
++			 port->port_num, transition_error);
 +	if (!port->partner)
 +		return;
 +
@@ -61,14 +59,8 @@ index 16fc3f4..cb911d3 100644
 +
 +static void cros_typec_start_usb4_selection(struct cros_typec_port *port)
 +{
-+	u8 mux_flags = port->mux_flags;
-+
-+	if (mux_flags & USB_PD_MUX_USB4_ENABLED) {
-+		typec_partner_set_usb_mode(port->partner, USB_MODE_USB4);
-+		return;
-+	}
-+
-+	if (mux_flags & (USB_PD_MUX_DP_ENABLED | USB_PD_MUX_TBT_COMPAT_ENABLED))
++	if (port->mux_flags & (USB_PD_MUX_USB4_ENABLED | USB_PD_MUX_DP_ENABLED |
++			       USB_PD_MUX_TBT_COMPAT_ENABLED))
 +		cros_typec_set_usb4_state(port, USB_MODE_USB3, CROS_USB4_WAIT_EXIT);
 +	else
 +		cros_typec_set_usb4_state(port, USB_MODE_USB4, CROS_USB4_WAIT_ENTRY);
@@ -76,35 +68,36 @@ index 16fc3f4..cb911d3 100644
 +
 +static void cros_typec_update_usb4_selection(struct cros_typec_port *port)
 +{
-+	u8 mux_flags = port->mux_flags;
-+
-+	if (port->usb4_state == CROS_USB4_IDLE || !port->partner)
++	if (!port->partner)
 +		return;
 +
-+	if (mux_flags & USB_PD_MUX_USB4_ENABLED) {
-+		port->usb4_state = CROS_USB4_IDLE;
-+		cancel_delayed_work(&port->usb4_timeout_work);
-+		typec_partner_set_usb_mode(port->partner, USB_MODE_USB4);
++	switch (port->usb4_state) {
++	case CROS_USB4_IDLE:
 +		return;
++	case CROS_USB4_WAIT_EXIT:
++		if (!(port->mux_flags & (USB_PD_MUX_USB4_ENABLED |
++				 USB_PD_MUX_DP_ENABLED |
++				 USB_PD_MUX_TBT_COMPAT_ENABLED))) {
++			cros_typec_set_usb4_state(port, USB_MODE_USB4,
++						  CROS_USB4_WAIT_ENTRY);
++			return;
++		}
++		if (!delayed_work_pending(&port->usb4_timeout_work)) {
++			port->usb4_state = CROS_USB4_IDLE;
++			dev_warn(port->typec_data->dev,
++				 "USB4 mode exit timed out, port: %d\n",
++				 port->port_num);
++		}
++		return;
++	case CROS_USB4_WAIT_ENTRY:
++		if (port->mux_flags & USB_PD_MUX_USB4_ENABLED) {
++			port->usb4_state = CROS_USB4_IDLE;
++			cancel_delayed_work(&port->usb4_timeout_work);
++			typec_partner_set_usb_mode(port->partner, USB_MODE_USB4);
++		} else if (!delayed_work_pending(&port->usb4_timeout_work)) {
++			cros_typec_start_altmode_selection(port, -ETIMEDOUT);
++		}
 +	}
-+
-+	if (port->usb4_state == CROS_USB4_WAIT_EXIT &&
-+	    !(mux_flags & (USB_PD_MUX_DP_ENABLED | USB_PD_MUX_TBT_COMPAT_ENABLED))) {
-+		cros_typec_set_usb4_state(port, USB_MODE_USB4, CROS_USB4_WAIT_ENTRY);
-+		return;
-+	}
-+
-+	if (delayed_work_pending(&port->usb4_timeout_work))
-+		return;
-+
-+	if (port->usb4_state == CROS_USB4_WAIT_EXIT) {
-+		port->usb4_state = CROS_USB4_IDLE;
-+		dev_warn(port->typec_data->dev,
-+			 "USB4 mode exit timed out, port: %d\n", port->port_num);
-+		return;
-+	}
-+
-+	cros_typec_start_altmode_selection(port, -ETIMEDOUT);
 +}
 +
 +static void cros_typec_usb4_timeout_work(struct work_struct *work)
@@ -126,7 +119,7 @@ index 16fc3f4..cb911d3 100644
  	if (!port->partner)
  		return;
  
-@@ -512,6 +608,8 @@ static int cros_typec_init_ports(struct cros_typec_data *typec)
+@@ -506,6 +597,8 @@
  		cros_port->port_num = port_num;
  		cros_port->typec_data = typec;
  		typec->ports[port_num] = cros_port;
@@ -135,7 +128,7 @@ index 16fc3f4..cb911d3 100644
  		cap = &cros_port->caps;
  
  		ret = cros_typec_parse_port_props(cap, fwnode, dev);
-@@ -976,29 +1074,15 @@ static int cros_typec_register_altmodes(struct cros_typec_data *typec, int port_
+@@ -970,29 +1063,15 @@
  		goto err_cleanup;
  	}
  
@@ -170,7 +163,7 @@ index 16fc3f4..cb911d3 100644
  	}
  
  	return 0;
-@@ -1333,6 +1417,8 @@ static int cros_typec_port_update(struct cros_typec_data *typec, int port_num)
+@@ -1327,6 +1406,8 @@
  	if (typec->typec_cmd_supported)
  		cros_typec_handle_status(typec, port_num);
  
@@ -179,7 +172,7 @@ index 16fc3f4..cb911d3 100644
  	return 0;
  }
  
-@@ -1374,6 +1460,16 @@ static void cros_typec_port_work(struct work_struct *work)
+@@ -1368,6 +1449,16 @@
  	}
  }
  
@@ -196,7 +189,7 @@ index 16fc3f4..cb911d3 100644
  static int cros_ec_typec_event(struct notifier_block *nb,
  			       unsigned long host_event, void *_notify)
  {
-@@ -1475,6 +1571,7 @@ static int cros_typec_probe(struct platform_device *pdev)
+@@ -1461,6 +1552,7 @@
  	return 0;
  
  unregister_ports:
@@ -204,7 +197,7 @@ index 16fc3f4..cb911d3 100644
  	cros_unregister_ports(typec);
  	return ret;
  }
-@@ -1484,7 +1581,7 @@ static void cros_typec_remove(struct platform_device *pdev)
+@@ -1470,7 +1562,7 @@
  	struct cros_typec_data *typec = platform_get_drvdata(pdev);
  
  	cros_usbpd_unregister_notify(&typec->nb);
@@ -214,10 +207,9 @@ index 16fc3f4..cb911d3 100644
  }
  
 diff --git a/drivers/platform/chrome/cros_ec_typec.h b/drivers/platform/chrome/cros_ec_typec.h
-index f9c31f0..5205c4e 100644
 --- a/drivers/platform/chrome/cros_ec_typec.h
 +++ b/drivers/platform/chrome/cros_ec_typec.h
-@@ -43,6 +43,12 @@ struct cros_typec_data {
+@@ -43,6 +43,12 @@
  	bool ap_driven_altmode;
  };
  
@@ -230,7 +222,7 @@ index f9c31f0..5205c4e 100644
  /* Per port data. */
  struct cros_typec_port {
  	struct typec_port *port;
-@@ -66,6 +72,8 @@ struct cros_typec_port {
+@@ -66,6 +72,8 @@
  	struct typec_mux_state state;
  	uint8_t mux_flags;
  	uint8_t role;
@@ -239,3 +231,5 @@ index f9c31f0..5205c4e 100644
  
  	struct typec_altmode *port_altmode[CROS_EC_ALTMODE_MAX];
  
+-- 
+2.54.0

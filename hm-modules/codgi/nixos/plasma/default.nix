@@ -322,11 +322,7 @@ in
                 font = {
                   family = "Noto Sans";
                   weight = 400;
-                  size =
-                    if cfg.scale == 1 then
-                      18
-                    else 
-                      9;
+                  size = if cfg.scale == 1 then 18 else 9;
                 };
               };
             }

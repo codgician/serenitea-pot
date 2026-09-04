@@ -53,6 +53,10 @@ in
         };
       }
       {
+        name = "cros-ec-typec-notifier-first";
+        patch = ./kernel/cros-ec-typec-notifier-first.patch;
+      }
+      {
         name = "cros-ec-typec-usb4-capability";
         patch = ./kernel/cros-ec-typec-usb4-capability.patch;
       }

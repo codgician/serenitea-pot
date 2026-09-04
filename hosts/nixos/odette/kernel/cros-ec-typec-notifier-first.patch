@@ -1,0 +1,55 @@
+platform/chrome: cros_ec_typec: Register notifier before initial update
+
+Mode selection can issue EC commands while processing an already attached
+partner during the first port update. Those commands generate PD or mux
+events, but probe currently performs the update before registering its
+notifier. The event can then be lost until the transition timeout.
+
+Register the notifier first and queue the initial update through the same
+work item used for later events. An event arriving between notifier
+registration and the explicit queue operation is naturally coalesced, and
+event-driven updates remain serialized.
+
+An initial EC read failure then follows the same path as a later failure:
+the worker reports it, and a later notification can recover without
+rebinding the driver.
+
+---
+diff --git a/drivers/platform/chrome/cros_ec_typec.c b/drivers/platform/chrome/cros_ec_typec.c
+--- a/drivers/platform/chrome/cros_ec_typec.c
++++ b/drivers/platform/chrome/cros_ec_typec.c
+@@ -1383,7 +1383,7 @@
+ 	struct device *dev = &pdev->dev;
+ 	struct cros_typec_data *typec;
+ 	struct ec_response_usb_pd_ports resp;
+-	int ret, i;
++	int ret;
+ 
+ 	typec = devm_kzalloc(dev, sizeof(*typec), GFP_KERNEL);
+ 	if (!typec)
+@@ -1433,21 +1433,13 @@
+ 
+ 	INIT_WORK(&typec->port_work, cros_typec_port_work);
+ 
+-	/*
+-	 * Safe to call port update here, since we haven't registered the
+-	 * PD notifier yet.
+-	 */
+-	for (i = 0; i < typec->num_ports; i++) {
+-		ret = cros_typec_port_update(typec, i);
+-		if (ret < 0)
+-			goto unregister_ports;
+-	}
+-
+ 	typec->nb.notifier_call = cros_ec_typec_event;
+ 	ret = cros_usbpd_register_notify(&typec->nb);
+ 	if (ret < 0)
+ 		goto unregister_ports;
+ 
++	schedule_work(&typec->port_work);
++
+ 	return 0;
+ 
+ unregister_ports:
+-- 
+2.54.0
