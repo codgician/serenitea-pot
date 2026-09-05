@@ -459,6 +459,44 @@
       "reasoning"
     ]
   },
+  "gpt-6-astra": {
+    "contextWindow": 1000000,
+    "cost": {
+      "cacheRead": 1,
+      "cacheWrite": 12.5,
+      "input": 10,
+      "output": 50,
+      "tiers": [
+        {
+          "cacheRead": 2,
+          "cacheWrite": 25,
+          "input": 20,
+          "inputTokensAbove": 272000,
+          "output": 75
+        }
+      ]
+    },
+    "maxInputTokens": 872000,
+    "maxOutputTokens": 128000,
+    "mode": "responses",
+    "reasoningEfforts": [
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max"
+    ],
+    "supportedEndpoints": [
+      "/v1/responses"
+    ],
+    "supports": [
+      "toolCalls",
+      "parallelToolCalls",
+      "structuredOutputs",
+      "vision",
+      "reasoning"
+    ]
+  },
   "grok-4.5": {
     "contextWindow": 500000,
     "cost": {
