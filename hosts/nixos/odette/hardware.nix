@@ -173,6 +173,17 @@ in
     };
   };
 
+  # keyd remaps only the built-in keyboard here. Preserve its internal status
+  # so libinput suppresses the remapped keys in tablet mode as well.
+  environment.etc."libinput/local-overrides.quirks".text = ''
+    [Odette keyd internal keyboard]
+    MatchUdevType=keyboard
+    MatchName=keyd virtual keyboard
+    MatchVendor=0x0FAC
+    MatchProduct=0x0ADE
+    AttrKeyboardIntegration=internal
+  '';
+
   powerManagement.cpuFreqGovernor = "powersave";
 
   systemd.services.rust-fp-dbus-interface = {
