@@ -457,7 +457,16 @@ in
             BottomLeft = "ActivityManager";
             BottomRight = "None";
           };
+          # Touchscreen edges are independent of the mouse hot corners above.
+          # Leave the bottom edge available for Plasma's native dock reveal.
+          TouchEdges = {
+            Top = "None";
+            Right = "ApplicationLauncher";
+            Bottom = "None";
+            Left = "None";
+          };
           "Effect-overview".BorderActivate = "3";
+          "Effect-overview".TouchBorderActivate = "6"; # Left edge
           Plugins.kwin4_effect_shapecornersEnabled = true;
           "Round-Corners" = {
             InactiveCornerRadius = 8;
