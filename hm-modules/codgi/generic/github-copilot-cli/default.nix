@@ -24,15 +24,15 @@ in
 
   config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.nur.repos.codgician.agent-browser ];
-    # Bypass programs.github-copilot-cli.skills: Home Manager inspects those
-    # paths during evaluation, which would realize these target-platform sources.
-    home.file = {
-      "${config.programs.github-copilot-cli.configDir}/skills/agent-browser".source =
-        "${pkgs.nur.repos.codgician.agent-browser.src}/skills/agent-browser";
-    }
-    // lib.optionalAttrs (config.codgician.codgi.herdr.enable or false) {
-      "${config.programs.github-copilot-cli.configDir}/skills/herdr".source =
-        "${config.codgician.codgi.herdr.package.src}/skills/herdr";
+    # Own the directory symlink so Home Manager can replace stale generations.
+    home.file."${config.programs.github-copilot-cli.configDir}/skills".source = pkgs.symlinkJoin {
+      name = "copilot-cli-skills";
+      paths = [
+        "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
+      ]
+      ++ lib.optionals (config.codgician.codgi.herdr.enable or false) [
+        "${config.codgician.codgi.herdr.package.src}/skills"
+      ];
     };
     programs.github-copilot-cli = {
       enable = true;
