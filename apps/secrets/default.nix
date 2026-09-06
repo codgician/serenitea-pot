@@ -337,14 +337,44 @@ in
         }
 
         rekey_documents() {
-          local root files
+          local root file repair_mac=0
+          local -a files
+          if [ "''${1:-}" = --repair-mac ]; then
+            repair_mac=1
+            shift
+          fi
+          [ $# -eq 0 ] || err "usage: ${name} rekey [--repair-mac]"
           root="$(repo_root)"
           sync_policy
           prepare_identity
           shopt -s nullglob
           files=("$root"/secrets/data/*.json)
           [ ''${#files[@]} -gt 0 ] || err "no structured SOPS documents"
-          (cd "$root/secrets" && sops updatekeys --yes data/*.json)
+          if [ "$repair_mac" -eq 1 ]; then
+            log "WARNING: accepting current document contents without MAC verification; review all edits first"
+            secret_tmp_dir="$(mktemp -d "$root/secrets/.sops-rekey.XXXXXX")"
+            (
+              cd "$root/secrets"
+              for file in data/*.json; do
+                sops decrypt --ignore-mac "$file" |
+                  sops encrypt \
+                    --input-type json \
+                    --output-type json \
+                    --filename-override "$file" \
+                    --output "$secret_tmp_dir/''${file##*/}"
+              done
+            )
+            for file in "''${files[@]}"; do
+              mv -- "$secret_tmp_dir/''${file##*/}" "$file"
+            done
+            rmdir -- "$secret_tmp_dir"
+            secret_tmp_dir=
+          else
+            for file in "''${files[@]}"; do
+              sops decrypt "$file" >/dev/null
+            done
+            (cd "$root/secrets" && sops updatekeys --yes data/*.json)
+          fi
           git -C "$root" add secrets/data
           check_policy
         }
@@ -372,7 +402,7 @@ in
           secrets check
           secrets create <secret>
           secrets edit <secret>
-          secrets rekey
+          secrets rekey [--repair-mac]
           secrets exec-env <document.json> -- <command> [args...]
         EOF
         }
@@ -385,7 +415,7 @@ in
           check) check_policy ;;
           create) create_secret "$@" ;;
           edit) edit_secret "$@" ;;
-          rekey) rekey_documents ;;
+          rekey) rekey_documents "$@" ;;
           exec-env) exec_environment "$@" ;;
           -h|--help) show_help ;;
           *) err "unknown command: $command_name" ;;

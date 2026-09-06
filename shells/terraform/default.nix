@@ -16,7 +16,7 @@ let
   tfConfig = outputs.packages.${pkgs.stdenv.hostPlatform.system}.terraform-config;
   secretsApp = outputs.apps.${pkgs.stdenv.hostPlatform.system}.secrets.program;
   terraformShell = pkgs.writeShellScript "terraform-shell" ''
-    ${lib.getExe terraform} init || exit
+    ${lib.getExe terraform} init -upgrade || exit
     exec "$SHELL"
   '';
 in

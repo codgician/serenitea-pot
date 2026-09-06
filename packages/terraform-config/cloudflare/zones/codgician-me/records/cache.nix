@@ -16,7 +16,7 @@ in
         name = "${name}-cname";
         value = {
           name = "${name}.${zone_name}";
-          proxied = false;
+          proxied = true;
           ttl = 1;
           comment = "Binary Cache";
           type = "CNAME";

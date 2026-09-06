@@ -80,10 +80,6 @@ let
       ];
       users = with users; [ codgi ];
     };
-    cloudflare-email = {
-      users = with users; [ codgi ];
-      key = "CLOUDFLARE_EMAIL";
-    };
     codex-openai-api-key = {
       hosts = with hosts; [
         fischl

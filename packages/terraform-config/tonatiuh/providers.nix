@@ -1,9 +1,11 @@
+{ pkgs, ... }:
+
 {
   terraform = {
     required_providers = {
       google = {
         source = "hashicorp/google";
-        version = "~> 7.22";
+        version = pkgs.unstable.terraform-providers.hashicorp_google.version;
       };
     };
   };

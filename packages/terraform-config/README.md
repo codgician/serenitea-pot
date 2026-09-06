@@ -28,6 +28,10 @@ environment variables, and initializes Terraform:
 nix develop .#terraform
 ```
 
+Provider versions are pinned to the unstable nixpkgs packages bundled with the
+shell. Initialization refreshes `.terraform.lock.hcl` to match those versions,
+including after a nixpkgs input update.
+
 Use the native Terraform CLI inside the shell:
 
 ```bash

@@ -1,3 +1,5 @@
+{ pkgs, ... }:
+
 let
   # client_secret provided with env variable "ARM_CLIENT_SECRET"
   subscription_id = "d80e6deb-21e3-4aed-9455-5573a2086f66";
@@ -9,7 +11,7 @@ in
     required_providers = {
       azurerm = {
         source = "hashicorp/azurerm";
-        version = "~> 5.0";
+        version = pkgs.unstable.terraform-providers.hashicorp_azurerm.version;
       };
 
     };

@@ -62,6 +62,23 @@ git diff --cached -- secrets/.sops.yaml
 Run `nix run .#secrets -- rekey` after approval. `sync` alone does not revoke an
 old recipient because the document still contains its wrapped data key.
 
+Normal rekeying verifies every document's MAC before updating recipients. If an
+intentional edit to an encrypted document (such as deleting a field) invalidated
+its MAC, review the diff and explicitly accept the current contents with:
+
+```bash
+nix run .#secrets -- rekey --repair-mac
+```
+
+This skips the old document MAC check, decrypts the remaining values, and
+re-encrypts every document with a fresh data key, a new MAC, and the recipients
+from the generated policy. Individual ciphertext authentication still applies;
+this cannot repair damaged ciphertext or recover deleted values. Plaintext is
+passed through a pipe, never saved to a file. All encrypted replacements are
+prepared before any original document is replaced, so decryption or encryption
+failure leaves the original documents unchanged. Recipient policy generation
+still updates `.sops.yaml` before processing the documents.
+
 ## Edit and verify
 
 ```bash
