@@ -151,6 +151,8 @@ in
         gimp
         kdePackages.cantor
         kdePackages.kalgebra
+        chatgpt-wrapped
+        azure-cli
       ];
     };
 

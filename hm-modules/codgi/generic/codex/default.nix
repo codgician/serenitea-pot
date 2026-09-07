@@ -41,22 +41,18 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.nur.repos.codgician.agent-browser ];
 
-    # Link skills directory to ~/.agents/skills
-    home.file.".agents/skills".source = pkgs.symlinkJoin {
-      name = "codex-skills";
-      paths = [
-        "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
-      ]
-      ++ lib.optionals (config.codgician.codgi.herdr.enable or false) [
-        "${config.codgician.codgi.herdr.package.src}/skills"
-      ];
-    };
-
     programs.codex = {
       enable = true;
       package = cfg.package;
       enableMcpIntegration = config.codgician.codgi.mcp.enable;
+      skills = {
+        agent-browser = "${pkgs.nur.repos.codgician.agent-browser.src}/skills/agent-browser";
+      }
+      // lib.optionalAttrs (config.codgician.codgi.herdr.enable or false) {
+        herdr = "${config.codgician.codgi.herdr.package.src}/skills/herdr";
+      };
       settings = {
+        approval_policy = "never";
         model_provider = "litellm";
         model_providers.litellm = {
           name = "LiteLLM";
