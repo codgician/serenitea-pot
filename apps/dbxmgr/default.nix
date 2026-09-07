@@ -6,7 +6,19 @@
 let
   name = "dbxmgr";
 
-  # Map Nix platform to Microsoft release asset directory name
+  # Map Nix platform to Microsoft's signed DBX asset.
+  # v1.7.0 ships authenticated EFI updates under edk2-2023.
+  dbxAsset =
+    {
+      "x86_64-linux" = "edk2-2023/dbx_x64.efiauth2";
+      "aarch64-linux" = "edk2-2023/dbx_aarch64.efiauth2";
+      "i686-linux" = "edk2-2023/dbx_ia32.efiauth2";
+      "armv7l-linux" = "edk2-2023/dbx_arm.efiauth2";
+    }
+    .${pkgs.stdenv.hostPlatform.system}
+      or (throw "Unsupported platform: ${pkgs.stdenv.hostPlatform.system}");
+
+  # Keep the Microsoft architecture name for status output.
   msftArch =
     {
       "x86_64-linux" = "amd64";
@@ -74,7 +86,7 @@ in
 
         ARCH="${msftArch}"
         DBX_GUID="${dbxGuid}"
-        DBX_SOURCE="${securebootObjectsDir}/$ARCH/DBXUpdate.bin"
+        DBX_SOURCE="${securebootObjectsDir}/${dbxAsset}"
         DBX_VERSION="${securebootObjects.version}"
         DBX_VAR_PATH="/sys/firmware/efi/efivars/dbx-$DBX_GUID"
 
