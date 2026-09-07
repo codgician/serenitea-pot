@@ -99,6 +99,13 @@ in
     };
     pipewire = {
       package = pipewireWithChromebookUcm;
+
+      # Electron/Chromium clients (Cider, Edge, Teams) ask for ~10 ms buffers,
+      # which drags the whole graph, EasyEffects included, down to a 480/512
+      # sample quantum. On the powersave governor that is where the xruns show
+      # up; keep the graph at the 1024-sample (21 ms) default instead.
+      extraConfig.pipewire."92-min-quantum"."context.properties"."default.clock.min-quantum" = 1024;
+
       wireplumber = {
         package = pkgs.wireplumber.override {
           pipewire = pipewireWithChromebookUcm;
@@ -109,6 +116,19 @@ in
             {
               matches = [ { "node.name" = "~alsa_output.*"; } ];
               actions.update-props."api.alsa.headroom" = 2048;
+            }
+          ];
+        };
+
+        # WirePlumber closes an idle PCM after 5 s; the SOF DSP then hits PCI
+        # runtime suspend 2 s later and every new stream pays a firmware
+        # resume, which is the source of the gaps/pops at playback start on
+        # this card. Keep the built-in outputs open instead.
+        extraConfig."51-sof-no-suspend" = {
+          "monitor.alsa.rules" = [
+            {
+              matches = [ { "node.name" = "~alsa_output.pci-0000_00_1f.3.*"; } ];
+              actions.update-props."session.suspend-timeout-seconds" = 0;
             }
           ];
         };
@@ -135,6 +155,24 @@ in
         };
       };
     };
+  };
+
+  # Apply the Redrix-specific MAX98390 amplifier settings from the
+  # Chromebook UCM configuration before PipeWire opens the card.
+  systemd.services.redrix-audio-boot = {
+    description = "Apply Redrix Chromebook audio settings";
+    wantedBy = [ "sound.target" ];
+    after = [ "sound.target" ];
+    before = [ "pipewire.service" ];
+    unitConfig.ConditionPathExists = "/dev/snd/controlC0";
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+    };
+    environment.ALSA_CONFIG_UCM2 = "${pkgs.alsa-ucm-conf-chromebook}/share/alsa/ucm2";
+    script = ''
+      exec ${pkgs.alsa-utils}/bin/alsaucm -c hw:sofrt5682 set _boot ""
+    '';
   };
 
   environment.systemPackages = with pkgs; [

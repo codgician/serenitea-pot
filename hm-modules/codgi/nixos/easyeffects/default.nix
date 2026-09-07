@@ -52,7 +52,12 @@ let
 
       deviceProfile = lib.mkOption {
         type = lib.types.str;
-        description = ''Device profile string, e.g. "HiFi: Speaker: sink".'';
+        description = ''
+          The PipeWire *route* description of the device (`pw-dump <device-id>`
+          → `params.Route[].description`, e.g. "Speaker"), which is what
+          EasyEffects uses as the autoload lookup key. This is *not* the
+          `device.profile.name` node property (e.g. "HiFi: Speaker: sink").
+        '';
       };
 
       preset = lib.mkOption {
@@ -72,10 +77,17 @@ let
     )
   ) cfg.presets;
 
+  # EasyEffects looks the rule up at
+  # `autoload/<direction>/<device>:<route>.json`, replacing "/" with "_" in
+  # both components (see AutoloadManager::getFilePath); mirror that so a
+  # route like "HDMI / DisplayPort 1 Output" resolves to a file, not a subdir.
+  autoloadFileName = s: lib.replaceStrings [ "/" ] [ "_" ] s;
+
   autoloadFiles = lib.listToAttrs (
     map (
       rule:
-      lib.nameValuePair "easyeffects/autoload/${rule.direction}/${rule.device}:${rule.deviceProfile}.json"
+      lib.nameValuePair
+        "easyeffects/autoload/${rule.direction}/${autoloadFileName rule.device}:${autoloadFileName rule.deviceProfile}.json"
         {
           text = builtins.toJSON {
             device = rule.device;
