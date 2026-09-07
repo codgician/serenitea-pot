@@ -1,23 +1,25 @@
-{ ... }:
+{ lib, ... }:
 
 final: prev:
 let
   mkEnvWrappedApplication =
     package: template:
-    final.writeShellApplication {
-      name = package.meta.mainProgram;
-      runtimeInputs = [ package ];
-      text = ''
+    let
+      mainProgram = package.meta.mainProgram;
+      envFile = "/run/secrets/rendered/${template}";
+      loadEnv = ''
         set -a
-        eval "$(sudo cat '/run/secrets/rendered/${template}')"
+        eval "$(sudo cat ${lib.escapeShellArg envFile})"
         set +a
-        exec ${package.meta.mainProgram} "$@"
       '';
-      inherit (package) meta;
-    }
-    // {
-      inherit (package) version;
-    };
+    in
+    package.overrideAttrs (old: {
+      nativeBuildInputs = (old.nativeBuildInputs or [ ]) ++ [ final.makeWrapper ];
+      postFixup = (old.postFixup or "") + ''
+        wrapProgram "$out/bin/${mainProgram}" \
+          --run ${lib.escapeShellArg loadEnv}
+      '';
+    });
 in
 {
   # Env bundles are sops-nix host templates, rendered at activation to

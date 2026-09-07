@@ -126,6 +126,7 @@ in
         wget
         htop
         aria2
+        ripgrep-all
         iftop
         iperf3
         dnsutils
