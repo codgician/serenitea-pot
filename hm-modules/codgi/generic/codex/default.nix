@@ -64,7 +64,7 @@ in
           env_key = "OPENAI_API_KEY";
           wire_api = "responses";
         };
-        model = "gpt-5.6-sol";
+        model = "gpt-6-astra";
       };
     };
 
