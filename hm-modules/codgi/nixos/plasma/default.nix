@@ -524,7 +524,7 @@ in
     # KDE Connect
     services.kdeconnect = {
       enable = true;
-      indicator = true;
+      indicator = false;
     };
 
     # Keep ksshaskpass discoverable by the host portal and use it only when
