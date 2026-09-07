@@ -48,13 +48,18 @@ in
           enable = true;
           gpuAcceleration = "intel";
         };
+        claude-code.enable = true;
+        codex = {
+          enable = true;
+          package = pkgs.codex-wrapped;
+        };
         dev = {
           haskell.enable = true;
           nix.enable = true;
           rust.enable = true;
         };
 
-        claude-code.enable = true;
+        pi-coding-agent.enable = true;
         git = {
           enable = true;
           directoryIdentities = {
