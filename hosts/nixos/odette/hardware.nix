@@ -1,9 +1,8 @@
 { lib, pkgs, ... }:
 let
-  pipewireWithChromebookUcm = pkgs.pipewire.override {
-    alsa-lib = pkgs.alsa-lib.override {
-      alsa-ucm-conf = pkgs.alsa-ucm-conf-chromebook;
-    };
+  chromeosUcm = pkgs.redrix.chromeos-ucm.override { noiseReduction = true; };
+  pipewireWithChromeosUcm = pkgs.pipewire.override {
+    alsa-lib = pkgs.alsa-lib.override { alsa-ucm-conf = chromeosUcm; };
   };
   rustFp = pkgs.nur.repos.codgician.rust-fp;
 in
@@ -34,7 +33,12 @@ in
       "intel_iommu=on"
       "i915.force_probe=!46a8"
       "xe.force_probe=46a8"
-      "xe.max_vfs=2"
+      "xe.max_vfs=0"
+      "snd_sof.ipc_type=0"
+      "snd_sof.fw_path=intel/sof/redrix"
+      "snd_sof.fw_filename=sof-adl.ri"
+      "snd_sof.tplg_path=intel/sof-tplg/redrix"
+      "snd_sof.tplg_filename=sof-adl-max98390-rt5682.tplg"
     ];
     kernelPackages = pkgs.linuxPackages_testing;
     kernelPatches = [
@@ -98,7 +102,7 @@ in
       configFile = ./thermald.xml;
     };
     pipewire = {
-      package = pipewireWithChromebookUcm;
+      package = pipewireWithChromeosUcm;
 
       # Electron/Chromium clients (Cider, Edge, Teams) ask for ~10 ms buffers,
       # which drags the whole graph, EasyEffects included, down to a 480/512
@@ -108,7 +112,7 @@ in
 
       wireplumber = {
         package = pkgs.wireplumber.override {
-          pipewire = pipewireWithChromebookUcm;
+          pipewire = pipewireWithChromeosUcm;
         };
 
         extraConfig."51-increase-headroom" = {
@@ -157,8 +161,16 @@ in
     };
   };
 
-  # Apply the Redrix-specific MAX98390 amplifier settings from the
-  # Chromebook UCM configuration. PipeWire runs in a separate user manager.
+  # ChromeOS's Redrix UCM writes Digital Volume 153/155, then runs
+  # sound_card_init boot_time_calibration (redrix.MAX98390.yaml). That
+  # calibration needs the factory VPD keys dsm_calib_r0_{0..3} and
+  # dsm_calib_temp_{0..3}, which this unit's RO VPD does not contain
+  # (coreboot log: "failed to find key in VPD: dsm_calib_r0_0"). Its failure
+  # path enables safe mode: safe_mode_volume = 138 (-11 dB) on all four
+  # amplifiers. The user reports matching loudness at 138; the comparison
+  # device's calibration state has not been read. The native UCM's HiFi
+  # verb sets 138 directly (overlays/24-redrix-firmware/ucm/linux-adaptation.patch), so
+  # selecting HiFi alone applies both the boot sequence and the safe-mode gain.
   systemd.services.redrix-audio-boot = {
     description = "Apply Redrix Chromebook audio settings";
     wantedBy = [ "sound.target" ];
@@ -168,9 +180,9 @@ in
       Type = "oneshot";
       RemainAfterExit = true;
     };
-    environment.ALSA_CONFIG_UCM2 = "${pkgs.alsa-ucm-conf-chromebook}/share/alsa/ucm2";
+    environment.ALSA_CONFIG_UCM2 = "${chromeosUcm}/share/alsa/ucm2";
     script = ''
-      exec ${pkgs.alsa-utils}/bin/alsaucm -c hw:sofrt5682 set _boot ""
+      exec ${pkgs.alsa-utils}/bin/alsaucm -c hw:sofrt5682 set _verb HiFi
     '';
   };
 
@@ -199,7 +211,10 @@ in
   };
 
   hardware = {
-    firmware = [ pkgs.redrix.max98390-firmware ];
+    firmware = [
+      pkgs.redrix.max98390-firmware
+      pkgs.redrix.sof-firmware
+    ];
     bluetooth.enable = true;
     enableRedistributableFirmware = true;
     cpu.intel.updateMicrocode = true;
