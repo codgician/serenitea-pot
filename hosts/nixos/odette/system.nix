@@ -90,36 +90,6 @@ in
         vscode.enable = true;
         zsh.enable = true;
 
-        easyeffects = {
-          enable = true;
-          presets = {
-            "ChromeOS Redrix".content = ./easyeffects/chromeos-redrix.json;
-            Nothing.content = {
-              blocklist = [ ];
-              plugins_order = [ ];
-            };
-          };
-          # Both rules target the *Speaker* sink only; nothing is applied to the
-          # HDMI sinks (their node names never match). EasyEffects keys autoload
-          # on the card's route description and, on every route event, stamps
-          # that route onto every sink of the card. The sof-rt5682 card reports
-          # "Speaker" and then "HDMI / DisplayPort 1 Output" at startup, so the
-          # Speaker sink gets autoloaded twice; without a match for the second
-          # key the fallback preset overwrites the one loaded by the first.
-          autoload =
-            map
-              (deviceProfile: {
-                inherit deviceProfile;
-                device = "alsa_output.pci-0000_00_1f.3-platform-adl_rt5682_def.HiFi__Speaker__sink";
-                deviceDescription = "Alder Lake PCH-P High Definition Audio Controller Speaker";
-                preset = "ChromeOS Redrix";
-              })
-              [
-                "Speaker"
-                "HDMI / DisplayPort 1 Output"
-              ];
-          fallback.output = "Nothing";
-        };
       };
 
       # Set Microsoft Edge as default browser

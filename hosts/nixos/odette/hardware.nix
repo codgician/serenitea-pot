@@ -158,12 +158,11 @@ in
   };
 
   # Apply the Redrix-specific MAX98390 amplifier settings from the
-  # Chromebook UCM configuration before PipeWire opens the card.
+  # Chromebook UCM configuration. PipeWire runs in a separate user manager.
   systemd.services.redrix-audio-boot = {
     description = "Apply Redrix Chromebook audio settings";
     wantedBy = [ "sound.target" ];
     after = [ "sound.target" ];
-    before = [ "pipewire.service" ];
     unitConfig.ConditionPathExists = "/dev/snd/controlC0";
     serviceConfig = {
       Type = "oneshot";

@@ -53,6 +53,7 @@ in
       };
       settings = {
         approval_policy = "never";
+        sandbox_mode = "danger-full-access";
         model_provider = "litellm";
         model_providers.litellm = {
           name = "LiteLLM";
