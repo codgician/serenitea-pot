@@ -65,6 +65,7 @@ in
           CLAUDE_CODE_EFFORT_LEVEL = "xhigh";
           ANTHROPIC_BASE_URL = "https://dendro.codgician.me";
           ANTHROPIC_MODEL = "claude-opus-5[1m]";
+          ANTHROPIC_DEFAULT_FABLE_MODEL = "claude-fable-5-1[1m]";
           ANTHROPIC_DEFAULT_SONNET_MODEL = "claude-sonnet-5[1m]";
           ANTHROPIC_DEFAULT_OPUS_MODEL = "claude-opus-5[1m]";
           ANTHROPIC_DEFAULT_HAIKU_MODEL = "claude-haiku-4-5";
