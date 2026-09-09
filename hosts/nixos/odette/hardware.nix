@@ -79,6 +79,9 @@ in
       enable = true;
       keyboards.redrix = {
         ids = [ "0001:0001:a51dd4d3" ];
+        settings.main = {
+          "leftalt+leftmeta" = "capslock";
+        };
         settings.meta = {
           back = "f1";
           refresh = "f2";
