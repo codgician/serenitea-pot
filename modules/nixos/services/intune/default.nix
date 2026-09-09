@@ -9,6 +9,12 @@ let
 
   # GlobalProtect VPN helper for off-site Intune compliance: authenticates
   # via Microsoft SSO in Microsoft Edge, driven directly by gpclient.
+  # Edge is wrapped to always launch with the "Default" profile, since
+  # gpclient invokes the browser binary directly with no way to pass
+  # extra flags of its own.
+  msftvpnEdge = pkgs.writeShellScriptBin "msftvpn-edge" ''
+    exec ${pkgs.microsoft-edge}/bin/microsoft-edge-stable --profile-directory=Default "$@"
+  '';
   msftvpn = pkgs.writeShellApplication {
     name = "msftvpn";
     text = ''
@@ -18,7 +24,7 @@ let
             ${pkgs.gpclient}/bin/gpclient \
             --fix-openssl \
             connect \
-            --browser ${pkgs.microsoft-edge}/bin/microsoft-edge-stable \
+            --browser ${msftvpnEdge}/bin/msftvpn-edge \
             https://msftvpn-alt.ras.microsoft.com
           ;;
         disconnect)

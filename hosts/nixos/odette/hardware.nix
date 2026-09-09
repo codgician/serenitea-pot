@@ -22,18 +22,14 @@ in
       kernelModules = [
         "intel_lpss_pci"
         "tpm_tis_i2c_cr50"
-        "xe"
       ];
     };
 
     kernelModules = [ "kvm-intel" ];
-    # Force enable xe
     kernelParams = [
       "iommu.passthrough=0"
       "intel_iommu=on"
-      "i915.force_probe=!46a8"
-      "xe.force_probe=46a8"
-      "xe.max_vfs=0"
+      "i915.enable_guc=3"
       "snd_sof.ipc_type=0"
       "snd_sof.fw_path=intel/sof/redrix"
       "snd_sof.fw_filename=sof-adl.ri"
