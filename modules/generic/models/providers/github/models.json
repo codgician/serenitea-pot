@@ -570,32 +570,6 @@
       "reasoning"
     ]
   },
-  "mai-code-1-flash-picker": {
-    "contextWindow": 256000,
-    "cost": {
-      "cacheRead": 0.07,
-      "cacheWrite": 0,
-      "input": 0.75,
-      "output": 4.5
-    },
-    "maxInputTokens": 128000,
-    "maxOutputTokens": 128000,
-    "mode": "responses",
-    "reasoningEfforts": [
-      "low",
-      "medium",
-      "high"
-    ],
-    "supportedEndpoints": [
-      "/v1/responses"
-    ],
-    "supports": [
-      "toolCalls",
-      "parallelToolCalls",
-      "structuredOutputs",
-      "reasoning"
-    ]
-  },
   "mai-code-1.1-flash": {
     "contextWindow": 256000,
     "cost": {
