@@ -1,70 +1,81 @@
-# Standalone speaker correction graph, loaded by the systemd user service.
-{ plugin, target }:
+# Native audioconvert graphs: no extra sinks, streams, or asynchronous gain writer.
+let
+  library = "redrix-cras-dsp";
+in
 {
-  "context.properties" = {
-    "log.level" = 2;
-    "cpu.zero.denormals" = true;
+  speaker = {
+    nodes = [
+      {
+        type = "ladspa";
+        name = "cras";
+        plugin = library;
+        label = "redrix_cras_dsp";
+      }
+      {
+        type = "ladspa";
+        name = "gain";
+        plugin = library;
+        label = "redrix_speaker_gain";
+        control = {
+          "Volume Left" = 0;
+          "Volume Right" = 0;
+        };
+      }
+    ];
+    links = [
+      {
+        output = "cras:Output Left";
+        input = "gain:Input Left";
+      }
+      {
+        output = "cras:Output Right";
+        input = "gain:Input Right";
+      }
+    ];
+    inputs = [
+      "cras:Input Left"
+      "cras:Input Right"
+    ];
+    outputs = [
+      "gain:Output Left"
+      "gain:Output Right"
+    ];
+    # audioconvert forwards node Props to the graph's capture volume controls,
+    # even on a capture device. Mute is delivered as zero on these controls.
+    "capture.volumes" = [
+      {
+        control = "gain:Volume Left";
+        min = 0;
+        max = 100;
+        scale = "cubic";
+      }
+      {
+        control = "gain:Volume Right";
+        min = 0;
+        max = 100;
+        scale = "cubic";
+      }
+    ];
   };
-  "context.spa-libs" = {
-    "audio.convert.*" = "audioconvert/libspa-audioconvert";
-    "support.*" = "support/libspa-support";
+  microphone = {
+    nodes = [
+      {
+        type = "ladspa";
+        name = "gain";
+        plugin = library;
+        label = "redrix_mic_gain";
+        control."Volume" = 0;
+      }
+    ];
+    inputs = [ "gain:Input" ];
+    outputs = [ "gain:Output" ];
+    "capture.volumes" = [
+      {
+        control = "gain:Volume";
+        min = 0;
+        max = 100;
+        scale = "cubic";
+      }
+    ];
   };
-  "context.modules" = [
-    { name = "libpipewire-module-protocol-native"; }
-    { name = "libpipewire-module-client-node"; }
-    { name = "libpipewire-module-adapter"; }
-    {
-      name = "libpipewire-module-filter-chain";
-      args = {
-        "node.description" = "Redrix CRAS DSP (experimental)";
-        "audio.rate" = 48000;
-        "audio.channels" = 2;
-        "audio.position" = [
-          "FL"
-          "FR"
-        ];
-        "filter.graph" = {
-          nodes = [
-            {
-              type = "ladspa";
-              name = "cras";
-              # Absolute path: independent of the desktop's LADSPA_PATH.
-              plugin = "${plugin}/lib/ladspa/redrix-cras-dsp.so";
-              label = "redrix_cras_dsp";
-            }
-          ];
-          inputs = [
-            "cras:Input Left"
-            "cras:Input Right"
-          ];
-          outputs = [
-            "cras:Output Left"
-            "cras:Output Right"
-          ];
-        };
-        "capture.props" = {
-          "node.name" = "redrix_chromeos_sink";
-          "node.description" = "Redrix internal speaker correction";
-          "media.class" = "Audio/Sink";
-          "node.virtual" = true;
-          "priority.session" = 0;
-          "filter.smart" = true;
-          "filter.smart.name" = "redrix-speakers";
-          "filter.smart.target" = {
-            "node.name" = target;
-          };
-          "filter.smart.targetable" = false;
-          "stream.dont-remix" = true;
-        };
-        "playback.props" = {
-          "node.name" = "redrix_chromeos_output";
-          "target.object" = target;
-          "node.passive" = true;
-          "node.dont-fallback" = true;
-          "node.dont-move" = true;
-          "node.linger" = true;
-        };
-      };
-    }
-  ];
 }

@@ -29,74 +29,80 @@ hashes. Its two generic DSM files are intentionally not installed.
 
 ChromeOS UCM writes `Digital Volume` 153/155 and then runs `sound_card_init boot_time_calibration` per `/etc/sound_card_init/redrix.MAX98390.yaml`. That
 workflow requires factory calibration keys `dsm_calib_r0_{0..3}` and
-`dsm_calib_temp_{0..3}` in RO VPD. This unit has none (coreboot log:
-`failed to find key in VPD: dsm_calib_r0_0`). ChromeOS's calibration failure
-path selects `safe_mode_volume: 138` (-11 dB) on all four amplifiers.
-The user reports matching loudness at 138; the comparison device's actual
-calibration state has not been read. The native UCM's HiFi verb sets 138 directly
-(`overlays/24-redrix-firmware/ucm/linux-adaptation.patch`), so selecting HiFi alone applies
-both the boot sequence and the safe-mode gain; `redrix-audio-boot.service`
-does nothing beyond that selection.
+`dsm_calib_temp_{0..3}` in RO VPD when valid prior calibration is unavailable.
+This unit has no factory entries (coreboot: `failed to find key in VPD: dsm_calib_r0_0`); that alone does not determine the comparison unit's state,
+because ChromeOS may reuse calibration from its DSM datastore. Its handled
+calibration-failure path selects `safe_mode_volume: 138` (-11 dB).
+The user reports matching loudness with all four amplifiers at 138. The native
+HiFi verb sets that conservative value directly; it does not reproduce
+calibration, Rdc/temperature selection, or thermal-history decisions.
+WirePlumber's normal UCM selection owns initialization. There is no competing
+system service re-selecting HiFi and resetting RTNR while a session is active.
 
 The Linux driver reports zero cached calibration values, while the hardware
 registers contain nonzero blob defaults. This is not evidence of the comparison
 unit's calibration state or of equivalent thermal protection.
 
-### One speaker, one volume control
+### Device-owned processing and one volume control
 
-Select **Speakers** in KDE. WirePlumber's Smart Filters policy transparently
-inserts CRAS correction for applications targeting that physical output.
-The Speaker slider and mute are applied after processing; internal filter gain
-is unity. There is no second user-facing Redrix volume or fixed 70% limit.
-Amplifier settings are independent of that software volume.
+Select **Speakers** and **Internal Microphone** in KDE. PipeWire's native
+`audioconvert.filter-graph.0` embeds the processing in each physical ALSA node:
 
-`pkgs.redrix.volume-curve` installs `redrix/volume-curve.lua`, which maps the
-Speaker slider through ChromeOS's explicit `[Speaker]` table from
-`/etc/cras/redrix/sof-rt5682.card_settings` (fetched from the same pinned
-ChromiumOS commit as the UCM; identical to recovery 16733.54.0). PipeWire's
-plain cubic slider puts 20% at -42 dB where ChromeOS uses -27 dB, so quiet
-settings were audibly softer than ChromeOS while 100% matched. The script
-rewrites only the sink's soft volumes: desktop controls keep showing the slider
-position, 0% stays silent, 100% stays 0 dB, and above 100% PipeWire's own gain
-applies. Like CRAS, the gain is applied in software after the speaker DSP.
-Headphones, Bluetooth and HDMI are unaffected.
+```text
+Speaker: applications -> CRAS DRC -> EQ -> speaker gain/ramp -> ALSA
+Mic1:    PCM99 channel 0 -> unity ALSA route -> float capture gain -> applications
+```
 
-`redrix-speaker-dsp.service` starts with the user PipeWire service. DSP runs in
-a separate process, not inside the main audio server. It is restarted on failure
-and follows PipeWire/WirePlumber restarts. If it exits, ordinary Speaker playback
-can continue without correction; existing streams regain correction on restart.
+The graph consumes the node's `channelVolumes` and mute changes directly through
+`capture.volumes`. The adapter's ordinary software gain/mute is locked at unity,
+so it cannot apply a second gain or cut off the plugin's mute ramp. Desktop
+controllers still use the ALSA device Route for their requested volume/mute.
+Low-level node Props can therefore show unity; PulseAudio's reported dB remains
+the nominal cubic-control value, not the board-specific applied gain.
 
-Two WirePlumber scripts provide desktop integration:
+The speaker plugin imports all 101 entries from the pinned ChromeOS
+`sof-rt5682.card_settings` `[Speaker]` section at build time. Desktop percentages
+are rounded to the nearest integer table position; 20% is -27 dB, 50% is
+-13.5 dB, and 98-100% is 0 dB. Zero is silence, and requests above 100% cannot
+raise the actual speaker gain above unity. Amplifier gains remain independent.
+Fractional/native requests follow this explicitly defined percentage policy.
 
-- `hide-filter.lua` hides the internal sink/output from KDE's audio applet,
-  shortcuts, System Settings, and PulseAudio volume controllers. Playback clients
-  retain access because PipeWire requires it for links to the filter. Native
-  diagnostic tools such as `pw-dump` still show the internal graph.
-- `monitor-target.lua` keeps sink-monitor capture and level meters on the real
-  output, rather than letting Smart Filters redirect them to the playback-only
-  internal filter.
+Speaker amplitude ramps run sample-by-sample: activation starts from silence
+over 10 ms, ordinary changes and mute take 100 ms, and leaving a zero target
+takes 500 ms. Interrupted ramps continue from the current gain; an unchanged
+target does not restart the ramp. Mute and a zero slider both reach the same
+zero target. ChromeOS's separate resume/switch silence windows and exact client
+event classification are not reproduced by these ramps.
 
-Headphones, Bluetooth and HDMI remain separate outputs, without the Redrix
-speaker correction. The filter never falls back to them when its speaker target
-disappears. Physical jack detection and automatic device selection remain the
-responsibility of the existing UCM/WirePlumber policy.
+There are no auxiliary sinks/streams, Smart Filters substitutions, visibility
+exceptions, asynchronous gain-correction Lua, or standalone speaker-DSP service.
+The graph follows ALSA node creation and destruction, eliminating the separate
+process/link race and extra stream gains. DSP now shares its ALSA adapter host
+instead of having a dedicated crash-isolation process. The local PipeWire patch
+propagates explicit graph load/activation failures rather than publishing a dry
+fallback. Graph replacement is disabled after initial configuration.
 
-The old EasyEffects service, Redrix preset and autoload entries are no longer
-configured on Odette. Do not add another speaker EQ in front of this chain.
+The LADSPA `latency` output reports the compressor's actual predelay (288 frames
+at 48 kHz); PipeWire propagates it through port latency. This is reporting, not
+an additional delay line. The ChromeOS board's separate +64 ms timestamp offset
+has not been applied without checking existing hardware timing compensation.
 
-### Native configuration versus custom policy
+One small WirePlumber script manages only the RTNR setting described below.
+Its persistent settings use the already-persisted `/home`; no new service,
+state directory or tmpfiles rule is required. Headset, headphones, HDMI and
+Bluetooth are not matched by the internal speaker/microphone graph rules.
 
-Audio samples are processed in CRAS C code and PipeWire; Lua never processes
-samples. Standard WirePlumber Smart Filters provide automatic insertion.
-The two custom scripts only cover desktop visibility and sink-monitor routing.
+### Monitor and processing boundaries
 
-With PipeWire 1.6.6/WirePlumber 0.5.14, a hardware-free native-only probe still
-exposed the extra filter sink through PulseAudio when `node.hidden=true` and
-`device.class=filter` were set. Plasma 6.6.6's applet can filter virtual devices,
-but its System Settings page does not enable that same filter. Removing the
-visibility policy would therefore not preserve the single-Speaker interface.
-The upstream smart-filter hook also still redirects sink-monitor capture; the
-monitor policy preserves the real output and its volume for meters/recording.
+With embedded device DSP, the standard sink monitor is the unmodified adapter
+input, before the graph and its gain. It is not a measurement of the sound sent
+to the speakers and is not automatically a suitable echo-cancellation reference.
+Do not infer SPL or applied board gain from a monitor recording or `pactl` dB.
+
+The old EasyEffects presets/service are not configured. Direct ALSA clients
+bypass the PipeWire graphs, including microphone gain compensation; use the
+desktop/PipeWire path for the tuned behavior. Full CRAS per-stream APM policy,
+firmware AEC selection and acoustic/driver equivalence remain outside this port.
 
 ### Comparison and remaining gaps
 
@@ -106,19 +112,17 @@ monitor policy preserves the real output and its volume for meters/recording.
   The final EasyEffects profile had its compressor bypassed, so it did not
   reproduce this dynamic processing at all. The additional EasyEffects limiter
   is absent, matching the recovered two-stage DRC/EQ configuration.
-- The desktop has one volume stage after correction, with no fixed software
-  attenuation. Its cubic percentage mapping is not ChromeOS's explicit volume
-  table. Both curves end at 0 dB at 100%; this alone does not prove equal SPL.
-- The C implementation is pinned to an older Android-hosted CRAS copy.
-  Source inspection against R151 is not a numerical equivalence test;
-  reference-output and acoustic comparisons are still needed.
-- CRAS's nominal 6 ms lookahead is present in the processing, but the LADSPA
-  adapter does not report a `latency` control port to PipeWire. A/V latency and
-  ChromeOS's board-specific timing compensation have not been matched.
-- Amplifier boot initialization is not ordered against user-session PipeWire;
-  it still relies on the card being ready when the system unit executes. Full
-  machine suspend/resume, physical jack detection and long-duration behavior
-  need hardware validation.
+- Speaker integer volume mapping and its unity maximum now match the board
+  curve; actual acoustic equivalence is still not established.
+- The C implementation remains pinned to an older Android-hosted CRAS copy.
+  It is not the R151 Rust DSP, and integer conversion/clipping boundaries and
+  resampling are not sample-identical to CRAS. No extra quantizer was added.
+- The DRC delay is reported, but the separate +64 ms board timing offset still
+  requires timing verification. Existing Linux quantum/headroom/no-suspend
+  settings remain for stability, rather than copying CRAS buffer defaults.
+- Fixed gain 138 does not reproduce the full amplifier calibration workflow.
+  Mainline driver behavior, physical jack insertion, suspend/resume and long
+  playback still need hardware comparison; source matches alone do not prove it.
 
 With the earlier community SOF firmware the user reported matching loudness but
 slightly coarser voices at maximum volume. After switching to the matched
@@ -132,7 +136,8 @@ checks did not establish the cause; firmware and topology changed together.
 `pkgs.redrix.sof-firmware` packages the exact board-specific files from Google
 brya recovery 16733.54.0. The three binaries are stored directly under
 `overlays/24-redrix-firmware/sof-firmware/`; redistribution has not been
-assessed. This is the only firmware/topology combination Odette boots.
+assessed. This is the firmware/topology configured for new Odette generations;
+the running kernel and any older boot entries must be checked separately.
 
 Build the package directly:
 
@@ -182,8 +187,8 @@ Both original files match recovery 16733.54.0 byte-for-byte (4,470 and 98 bytes)
 downloads can differ in archive metadata while containing identical files.
 `overlays/24-redrix-firmware/ucm/linux-adaptation.patch` then applies the local
 Linux adaptations; there are no separately maintained copies of the two UCM
-files. The complete installed package has the same NAR hash as before this
-source migration, with noise reduction both enabled and disabled.
+files. Their earlier source-only migration preserved installed contents; the
+later gain/policy changes described here intentionally modify the adaptation.
 The vendored Redrix SOF binaries and AEC payload are unchanged.
 
 The native package copies the official `alsa-ucm-conf` base for ALSA discovery
@@ -198,16 +203,16 @@ and standard helpers. Its deliberate Linux adaptations are:
   capture-volume element is advertised. Software capture volume remains usable.
 - OEM capture channel 0 is exposed as mono; S16_LE is required by the RTC stage.
 - OEM safe-mode amplifier gain 138 replaces the pre-calibration 153/155 values.
-- CRAS's named NR/AEC modifiers are not exposed as unsupported ACP media-role
-  modifiers. The configured NR state is applied with the microphone route;
-  firmware AEC stays off. No new automatic conferencing policy is implied.
+- CRAS's named NR/AEC modifiers are not exposed as ACP media-role modifiers.
+  HiFi initializes both off; WirePlumber applies the saved RTNR choice using a
+  native bound control. Firmware AEC remains off; no call policy is implied.
 - CRAS-internal Echo Reference/SCO PCMs remain accessible to ALSA but are not
   advertised as extra desktop microphones/speakers. PipeWire manages Bluetooth.
 
-`DspName` and `IntrinsicSensitivity` are retained as OEM metadata, not interpreted
-as PipeWire DSP activation or an extra microphone gain. The existing explicit
-CRAS speaker filter is still needed. Full CRAS processing-policy parity is not
-claimed.
+`DspName` and `IntrinsicSensitivity` are retained as OEM metadata. Explicit
+native graphs implement speaker DSP and microphone compensation; PipeWire does
+not infer them from those metadata keys. Full CRAS processing-policy parity is
+not claimed.
 
 ### Internal microphone
 
@@ -234,57 +239,62 @@ plain-PCM path and no `SplitPCM` node or WirePlumber-specific rule is needed
 for routing, naming or capture format; the `Comment` in the UCM device supplies
 the desktop description directly.
 
-### Microphone gain
+### Microphone gain and runtime noise reduction
 
-With the plain channel selection above, the microphone was audibly very quiet.
-ChromeOS's UCM declares `IntrinsicSensitivity "-2600"` for this device. CRAS
-reads that and applies **software gain** `DEFAULT_CAPTURE_VOLUME_DBFS - IntrinsicSensitivity = -600 - (-2600) = +2000` (+20 dB; `cras_alsa_io.c`,
-`cras_system_state.h`, release-R151) whenever a node declares
-`IntrinsicSensitivity`; without reproducing that gain, Linux only gets the
-unamplified microphone signal.
+The ALSA route now uses `ttable.0.0 1.0`: channel selection and the known-working
+S16_LE hardware format only. The previous integer x10 gain could clip before a
+later desktop attenuation. Compensation and UI gain are now combined in float.
 
-The `route` PCM applies the same +20 dB via its `ttable.0.0 10.0` coefficient
-(a linear gain, not a channel on/off switch), alongside the channel selection
-and format conversion already described above. `IntrinsicSensitivity` remains
-in the UCM device as OEM metadata for documentation; it does not independently
-drive any Linux gain.
+CRAS derives intrinsic compensation from `-600 - (-2600) = +2000` centibels
+(+20 dB). Redrix's default capture UI law is `0.4 * (percent - 50)` dB, separate
+from that compensation. The graph applies their sum for positive percentages:
 
-`noiseReduction = true` in the host's `chromeosUcm` package override enables RTNR
-when the microphone device is enabled. Set it to `false` and rebuild to persist
-an unprocessed-noise-reduction comparison. For a temporary A/B while recording:
+| Input slider | Combined gain relative to processed PCM99 |
+| --- | --- |
+| 20% | +8 dB |
+| 50% | +20 dB |
+| 100% and above | +40 dB maximum |
+| 0% or muted | Silence |
+
+**Zero remains silent intentionally.** CRAS's capture zero is -20 dB UI gain,
+not mute; retaining Linux's zero-is-silent behavior avoids a surprising privacy
+change. This is a documented deviation, not strict CRAS parity. Start speech
+testing at 50%: the old Linux 100% and new 50% both provide nominal +20 dB.
+The gain stage preserves float headroom rather than clipping before subsequent
+application attenuation. A loud input can still clip when finally converted to
+integer samples. These gains are not AGC and do not implement CRAS's per-stream
+gain ownership, `IGNORE_UI_GAINS`, or APM pre/post-processing decisions.
+
+RTNR uses PipeWire's native `api.alsa.bind-ctls` on the exact Mic1 node. Change
+the persistent setting without rebuilding or restarting audio:
 
 ```bash
-nix shell nixpkgs#alsa-utils -c amixer -c sofrt5682 cset 'name=RTNR10.0 rtnr_enable_10' off
-nix shell nixpkgs#alsa-utils -c amixer -c sofrt5682 cset 'name=RTNR10.0 rtnr_enable_10' on
+wpctl settings --save redrix.noise-reduction false
+wpctl settings --save redrix.noise-reduction true
+wpctl settings redrix.noise-reduction
 ```
 
-Re-enabling the UCM device restores the configured setting. This is not a KDE
-noise-cancellation toggle. The recovered `AEC_Off.bin` initializes the Google
-RTC component with firmware AEC disabled, leaving conferencing applications
-free to handle echo cancellation without an always-on second AEC stage.
+The default is enabled. WirePlumber reapplies the latest desired value on node
+recreation; hardware writes use `Props.params`, followed by a fresh parameter
+query for verification rather than a stale cache comparison. No shell helper,
+polling, duplicate UCM device-level writer or separate daemon is involved.
+This is a CLI/runtime setting, not a new KDE toggle or CRAS provider arbitration.
 
-Verification: PipeWire's ACP probe accepted the native HiFi profile with eight
-devices/ports: six outputs, one internal microphone and one headset microphone.
-The route-based ACP probe exercised the plain PCM mapping; it was not a
-rendered Plasma test. Native route enable/disable and HiFi re-selection ran
-successfully, with all four amplifier gains remaining 138 after initialization.
-Direct capture through the `route` PCM returned 48,000 mono S16_LE frames with
-nonzero samples. The separate room recordings at -92.8 and -52.5 dBFS RMS
-differ by 40.3 dB, not 20.2 dB, and cannot establish the gain ratio because
-they contain different input signals. The +20 dB setting comes from the CRAS
-formula and the route coefficient, not that uncontrolled comparison. These were
-room-sound tests, not a controlled speech recording; they do not establish
-speech quality, whether +20 dB is the right level for this specific
-microphone/room, physical jack insertion, HDMI audio or suspend/resume
-behavior. All temporary board-profile/mixer changes and test files used during
-development were restored/removed; no extra background service or persistent
-state remains as a result.
+AEC remains disabled through the original `AEC_Off.bin`. No system AEC/NS/AGC
+was added, and empty `apm.ini` is not evidence that ChromeOS never uses host APM.
+Applications can provide their own processing; automatic double-processing
+avoidance and echo-reference alignment remain separate work.
+
+Historical ACP/room-capture probes established that the mono route works, not
+controlled gain or acoustic equivalence. The new gain checks use identical
+synthetic inputs and actual PipeWire output; no new room recording is implied.
 
 ### Verification
 
-The plugin check exercises descriptor lifecycle, buffers from 0 through 16385
-frames, in-place processing, and block-size consistency at 44.1/48/96 kHz,
-including AddressSanitizer and UndefinedBehaviorSanitizer runs.
+The package checks cover DSP block-size consistency and in-place/lifecycle
+behavior at 44.1/48/96 kHz, actual predelay reporting, the 101 speaker table
+entries, capped gain, ramp timing/interruption, microphone float headroom and
+zero/mute behavior, including AddressSanitizer and UndefinedBehaviorSanitizer.
 
 Run the retained plugin checks with:
 
@@ -292,12 +302,18 @@ Run the retained plugin checks with:
 nix build .#nixosConfigurations.odette.pkgs.redrix.cras-dsp --no-link -L
 ```
 
-During implementation, a separate virtual-device harness verified transparent
-playback, volume/mute, output switching, monitor capture and process recovery.
-That harness was removed to keep the repository small; these are historical
-verification results, not ongoing integration coverage. Changes to routing or
-desktop policy require a new smoke test. Physical jack behavior, full-machine
-suspend/resume and acoustic quality still need hardware testing.
+An isolated PipeWire instance exercised the production graphs with synthetic
+audio: speaker 20/50/100/150% produced -27/-13.5/0/0 dB, mic 20/50/100%
+produced +8/+20/+40 dB without intermediate clipping, and zero produced silence.
+Actual speaker output showed 100 ms mute and 500 ms unmute ramps. The full
+DRC/EQ graph preserved the post-DSP volume ratio and reported 288 frames on its
+ports. A missing required plugin rejected node creation instead of bypassing DSP.
+A separate settings-policy instance exercised the real RTNR bound control via
+an ALSA null PCM (no microphone recording), including saved state, rapid changes
+and node recreation; the original hardware setting was restored.
+These are smoke-test results, not permanent integration coverage or a deployed
+hardware/acoustic acceptance test. Physical jack and full suspend/resume still
+need testing after activation.
 
 ### Applying the change
 
@@ -307,22 +323,23 @@ Build and activate the default configuration:
 sudo nixos-rebuild switch --flake .#odette
 ```
 
-Then reboot into the newest ordinary NixOS generation. No `chromeos-sof`
-specialisation needs to be selected. Older generations (and their historical
-specialisation entries) may remain in the boot menu for rollback; this change
-does not delete them. A WirePlumber restart alone cannot change loaded SOF
-firmware, so reboot when migrating from the old community-firmware entry.
+This gain/policy update does not change SOF firmware and does not itself need a
+reboot. Switching the configuration restarts the relevant audio services. If
+migrating from the old community firmware, reboot to load the Redrix firmware;
+restarting WirePlumber cannot replace firmware already loaded by the kernel.
+No specialisation is needed; older generations remain available for rollback.
 
 Select **Speakers** and **Internal Microphone** in KDE. The separate headset
 microphone is intentional; there should be no second built-in `Mic2`.
-Start playback at moderate volume and test a spoken microphone recording.
+Start playback at moderate volume and microphone speech testing at 50%.
 
 Diagnostics:
 
 ```bash
 wpctl status -n
-journalctl --user -u redrix-speaker-dsp.service -n 50 --no-pager
+journalctl --user -b -u pipewire.service -u wireplumber.service --no-pager
 ```
 
-For an unprocessed comparison, stop `redrix-speaker-dsp.service`; keep Speakers
-selected. Starting it again restores the correction.
+Do not stop a DSP service for a dry comparison: there is no separate service
+now. A deliberate raw-ALSA comparison bypasses the graphs and is not equivalent
+to lowering the desktop volume or disabling RTNR.

@@ -5,81 +5,531 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#define FRAMES 16385
+#include "redrix-speaker-curve.h"
 
-static void process(const LADSPA_Descriptor *d, float *input[2], float *output[2],
-                    unsigned long quantum, unsigned long rate) {
-  LADSPA_Handle h = d->instantiate(d, rate);
-  assert(h != NULL);
-  if (d->activate) d->activate(h);
+#define FRAMES 16385UL
+
+struct stereo_ports {
+  unsigned long input_left;
+  unsigned long input_right;
+  unsigned long output_left;
+  unsigned long output_right;
+};
+
+struct dsp_ports {
+  struct stereo_ports audio;
+  unsigned long latency;
+};
+
+struct speaker_ports {
+  struct stereo_ports audio;
+  unsigned long volume_left;
+  unsigned long volume_right;
+};
+
+struct mic_ports {
+  unsigned long input;
+  unsigned long output;
+  unsigned long volume;
+};
+
+static void assert_close(float actual, float expected) {
+  const float tolerance = 1e-5f * fmaxf(1.0f, fabsf(expected));
+  assert(isfinite(actual));
+  assert(fabsf(actual - expected) <= tolerance);
+}
+
+static unsigned long find_port(const LADSPA_Descriptor *descriptor,
+                               const char *name,
+                               LADSPA_PortDescriptor required_flags) {
+  for (unsigned long port = 0; port < descriptor->PortCount; ++port) {
+    if (!strcmp(descriptor->PortNames[port], name)) {
+      if ((descriptor->PortDescriptors[port] & required_flags) == required_flags)
+        return port;
+      fprintf(stderr, "%s has incompatible port flags\n", name);
+      abort();
+    }
+  }
+  fprintf(stderr, "%s is missing a required port\n", name);
+  abort();
+}
+
+static void assert_percent_range(const LADSPA_Descriptor *descriptor,
+                                 unsigned long port) {
+  const LADSPA_PortRangeHint *hint = &descriptor->PortRangeHints[port];
+  assert(hint->HintDescriptor & LADSPA_HINT_BOUNDED_BELOW);
+  assert(hint->HintDescriptor & LADSPA_HINT_BOUNDED_ABOVE);
+  assert(hint->LowerBound == 0.0f);
+  assert(hint->UpperBound == 100.0f);
+}
+
+static struct stereo_ports find_stereo_ports(const LADSPA_Descriptor *descriptor) {
+  return (struct stereo_ports) {
+    .input_left = find_port(descriptor, "Input Left",
+                            LADSPA_PORT_INPUT | LADSPA_PORT_AUDIO),
+    .input_right = find_port(descriptor, "Input Right",
+                             LADSPA_PORT_INPUT | LADSPA_PORT_AUDIO),
+    .output_left = find_port(descriptor, "Output Left",
+                             LADSPA_PORT_OUTPUT | LADSPA_PORT_AUDIO),
+    .output_right = find_port(descriptor, "Output Right",
+                              LADSPA_PORT_OUTPUT | LADSPA_PORT_AUDIO),
+  };
+}
+
+static const LADSPA_Descriptor *require_descriptor(
+    LADSPA_Descriptor_Function entry, unsigned long index, const char *label) {
+  const LADSPA_Descriptor *descriptor = entry(index);
+  assert(descriptor != NULL);
+  assert(!strcmp(descriptor->Label, label));
+  assert(descriptor->instantiate != NULL);
+  assert(descriptor->connect_port != NULL);
+  assert(descriptor->activate != NULL);
+  assert(descriptor->run != NULL);
+  assert(descriptor->deactivate != NULL);
+  assert(descriptor->cleanup != NULL);
+  return descriptor;
+}
+
+static void connect_dsp(const LADSPA_Descriptor *descriptor, LADSPA_Handle handle,
+                        struct dsp_ports ports, float *input[2],
+                        float *output[2], float *latency) {
+  descriptor->connect_port(handle, ports.audio.input_left, input[0]);
+  descriptor->connect_port(handle, ports.audio.input_right, input[1]);
+  descriptor->connect_port(handle, ports.audio.output_left, output[0]);
+  descriptor->connect_port(handle, ports.audio.output_right, output[1]);
+  descriptor->connect_port(handle, ports.latency, latency);
+}
+
+static void run_dsp(const LADSPA_Descriptor *descriptor, LADSPA_Handle handle,
+                    struct dsp_ports ports, float *input[2], float *output[2],
+                    float *latency, unsigned long quantum) {
   for (unsigned long offset = 0; offset < FRAMES;) {
     unsigned long count = FRAMES - offset;
     if (count > quantum) count = quantum;
-    for (int channel = 0; channel < 2; ++channel) {
-      d->connect_port(h, channel, input[channel] + offset);
-      d->connect_port(h, channel + 2, output[channel] + offset);
-    }
-    d->run(h, count);
+    float *input_at_offset[2] = { input[0] + offset, input[1] + offset };
+    float *output_at_offset[2] = { output[0] + offset, output[1] + offset };
+    connect_dsp(descriptor, handle, ports, input_at_offset, output_at_offset,
+                latency);
+    descriptor->run(handle, count);
     offset += count;
   }
-  d->run(h, 0);
-  if (d->deactivate) d->deactivate(h);
-  /* Hosts may reactivate the same instance, rather than instantiate again. */
-  if (d->activate) d->activate(h);
-  float scratch[4] = {0};
-  for (int p = 0; p < 4; ++p) d->connect_port(h, p, &scratch[p]);
-  d->run(h, 1);
-  if (d->deactivate) d->deactivate(h);
-  d->cleanup(h);
+  descriptor->run(handle, 0);
+}
+
+static unsigned long expected_drc_delay(unsigned long rate) {
+  unsigned long frames = (unsigned long)(0.006f * (float)rate);
+  if (frames > 1023) frames = 1023;
+  frames &= ~31UL;
+  return frames < 32 ? 32 : frames;
+}
+
+static float process_dsp(const LADSPA_Descriptor *descriptor,
+                         struct dsp_ports ports, float *input[2],
+                         float *output[2], unsigned long quantum,
+                         unsigned long rate) {
+  LADSPA_Handle handle = descriptor->instantiate(descriptor, rate);
+  assert(handle != NULL);
+  float latency = NAN;
+  connect_dsp(descriptor, handle, ports, input, output, &latency);
+  descriptor->activate(handle);
+  run_dsp(descriptor, handle, ports, input, output, &latency, quantum);
+  descriptor->deactivate(handle);
+  descriptor->cleanup(handle);
+  return latency;
+}
+
+static void assert_dsp_output(float *actual[2], float *reference[2]) {
+  for (int channel = 0; channel < 2; ++channel) {
+    double energy = 0.0;
+    for (unsigned long frame = 0; frame < FRAMES; ++frame) {
+      assert_close(actual[channel][frame], reference[channel][frame]);
+      energy += (double)actual[channel][frame] * actual[channel][frame];
+    }
+    assert(energy > 0.001 && energy < FRAMES);
+  }
+}
+
+static void test_dsp_lifecycle(const LADSPA_Descriptor *descriptor,
+                               struct dsp_ports ports, float *input[2],
+                               float *first[2], float *second[2],
+                               unsigned long rate) {
+  LADSPA_Handle handle = descriptor->instantiate(descriptor, rate);
+  assert(handle != NULL);
+  float first_latency = NAN;
+  float second_latency = NAN;
+
+  connect_dsp(descriptor, handle, ports, input, first, &first_latency);
+  descriptor->activate(handle);
+  run_dsp(descriptor, handle, ports, input, first, &first_latency, 256);
+  descriptor->deactivate(handle);
+
+  connect_dsp(descriptor, handle, ports, input, second, &second_latency);
+  descriptor->activate(handle);
+  run_dsp(descriptor, handle, ports, input, second, &second_latency, 256);
+  descriptor->deactivate(handle);
+  descriptor->cleanup(handle);
+
+  assert(first_latency == (float)expected_drc_delay(rate));
+  assert(second_latency == (float)expected_drc_delay(rate));
+  assert_dsp_output(second, first);
+}
+
+static float expected_speaker_gain(int percent) {
+  if (percent <= 0) return 0.0f;
+  if (percent > 100) percent = 100;
+  int decibels_cent = redrix_speaker_curve_db_centibel[percent];
+  if (decibels_cent > 0) decibels_cent = 0;
+  return powf(10.0f, (float)decibels_cent / 2000.0f);
+}
+
+static void connect_speaker(const LADSPA_Descriptor *descriptor,
+                            LADSPA_Handle handle, struct speaker_ports ports,
+                            float *input[2], float *output[2],
+                            float *volume_left, float *volume_right) {
+  descriptor->connect_port(handle, ports.audio.input_left, input[0]);
+  descriptor->connect_port(handle, ports.audio.input_right, input[1]);
+  descriptor->connect_port(handle, ports.audio.output_left, output[0]);
+  descriptor->connect_port(handle, ports.audio.output_right, output[1]);
+  descriptor->connect_port(handle, ports.volume_left, volume_left);
+  descriptor->connect_port(handle, ports.volume_right, volume_right);
+}
+
+static void run_speaker(const LADSPA_Descriptor *descriptor, LADSPA_Handle handle,
+                        struct speaker_ports ports, float *input[2],
+                        float *output[2], float *volume_left,
+                        float *volume_right, unsigned long offset,
+                        unsigned long frames) {
+  float *input_at_offset[2] = { input[0] + offset, input[1] + offset };
+  float *output_at_offset[2] = { output[0] + offset, output[1] + offset };
+  connect_speaker(descriptor, handle, ports, input_at_offset, output_at_offset,
+                  volume_left, volume_right);
+  descriptor->run(handle, frames);
+}
+
+static float speaker_settled_gain(const LADSPA_Descriptor *descriptor,
+                                  struct speaker_ports ports,
+                                  float control) {
+  float input_left[11];
+  float input_right[11];
+  float output_left[11] = { 0 };
+  float output_right[11] = { 0 };
+  float *input[2] = { input_left, input_right };
+  float *output[2] = { output_left, output_right };
+  for (unsigned long frame = 0; frame < 11; ++frame) {
+    input_left[frame] = 1.0f;
+    input_right[frame] = 1.0f;
+  }
+
+  LADSPA_Handle handle = descriptor->instantiate(descriptor, 1000);
+  assert(handle != NULL);
+  connect_speaker(descriptor, handle, ports, input, output, &control, &control);
+  descriptor->activate(handle);
+  descriptor->run(handle, 11);
+  descriptor->deactivate(handle);
+  descriptor->cleanup(handle);
+  assert_close(output_left[0], 0.0f);
+  assert_close(output_left[10], output_right[10]);
+  return output_left[10];
+}
+
+static void test_speaker_curve(const LADSPA_Descriptor *descriptor,
+                               struct speaker_ports ports) {
+  enum { rate = 48000, startup_frames = 480, frames = startup_frames + 1 };
+  float input_left[frames];
+  float input_right[frames];
+  float output_left[frames];
+  float output_right[frames];
+  float *input[2] = { input_left, input_right };
+  float *output[2] = { output_left, output_right };
+  for (unsigned long frame = 0; frame < (unsigned long)frames; ++frame) {
+    input_left[frame] = 1.0f;
+    input_right[frame] = 1.0f;
+  }
+
+  for (int percent = 0; percent <= 100; ++percent) {
+    float control = (float)percent;
+    LADSPA_Handle handle = descriptor->instantiate(descriptor, rate);
+    assert(handle != NULL);
+    connect_speaker(descriptor, handle, ports, input, output, &control, &control);
+    descriptor->activate(handle);
+    descriptor->run(handle, frames);
+    descriptor->deactivate(handle);
+    descriptor->cleanup(handle);
+
+    const float expected = expected_speaker_gain(percent);
+    assert_close(output_left[0], 0.0f);
+    assert_close(output_right[0], 0.0f);
+    assert_close(output_left[startup_frames], expected);
+    assert_close(output_right[startup_frames], expected);
+  }
+
+  assert_close(speaker_settled_gain(descriptor, ports, 50.49f),
+               expected_speaker_gain(50));
+  assert_close(speaker_settled_gain(descriptor, ports, 50.50f),
+               expected_speaker_gain(51));
+  assert_close(speaker_settled_gain(descriptor, ports, 1000.0f),
+               expected_speaker_gain(100));
+  assert_close(speaker_settled_gain(descriptor, ports, -1.0f), 0.0f);
+  assert_close(speaker_settled_gain(descriptor, ports, NAN), 0.0f);
+  assert_close(speaker_settled_gain(descriptor, ports, INFINITY), 0.0f);
+}
+
+static void test_speaker_ramps(const LADSPA_Descriptor *descriptor,
+                               struct speaker_ports ports) {
+  enum { rate = 1000, frames = 700 };
+  float input_left[frames];
+  float input_right[frames];
+  float output_left[frames] = { 0 };
+  float output_right[frames] = { 0 };
+  float *input[2] = { input_left, input_right };
+  float *output[2] = { output_left, output_right };
+  for (unsigned long frame = 0; frame < (unsigned long)frames; ++frame) {
+    input_left[frame] = 1.0f;
+    input_right[frame] = 1.0f;
+  }
+
+  const float gain_50 = expected_speaker_gain(50);
+  const float gain_75 = expected_speaker_gain(75);
+  const float gain_100 = expected_speaker_gain(100);
+  float left_control = 100.0f;
+  float right_control = 100.0f;
+  LADSPA_Handle handle = descriptor->instantiate(descriptor, rate);
+  assert(handle != NULL);
+  connect_speaker(descriptor, handle, ports, input, output, &left_control,
+                  &right_control);
+  descriptor->activate(handle);
+
+  unsigned long offset = 0;
+  run_speaker(descriptor, handle, ports, input, output, &left_control,
+              &right_control, offset, 3);
+  assert_close(output_left[0], 0.0f);
+  assert_close(output_left[1], gain_100 / 10.0f);
+  assert_close(output_left[2], 2.0f * gain_100 / 10.0f);
+  offset += 3;
+
+  /* An unchanged target continues the original ten-sample startup ramp. */
+  run_speaker(descriptor, handle, ports, input, output, &left_control,
+              &right_control, offset, 2);
+  assert_close(output_left[offset], 3.0f * gain_100 / 10.0f);
+  assert_close(output_left[offset + 1], 4.0f * gain_100 / 10.0f);
+  offset += 2;
+  run_speaker(descriptor, handle, ports, input, output, &left_control,
+              &right_control, offset, 5);
+  offset += 5;
+
+  left_control = 50.0f;
+  run_speaker(descriptor, handle, ports, input, output, &left_control,
+              &right_control, offset, 20);
+  for (unsigned long frame = 0; frame < 20; ++frame) {
+    const float expected = gain_100 +
+        (float)frame * (gain_50 - gain_100) / 100.0f;
+    assert_close(output_left[offset + frame], expected);
+    assert_close(output_right[offset + frame], gain_100);
+  }
+  const float interrupted_start = gain_100 +
+      20.0f * (gain_50 - gain_100) / 100.0f;
+  offset += 20;
+
+  /* A new target begins from the current sample-domain gain, not the old one. */
+  left_control = 75.0f;
+  run_speaker(descriptor, handle, ports, input, output, &left_control,
+              &right_control, offset, 2);
+  assert_close(output_left[offset], interrupted_start);
+  assert_close(output_left[offset + 1], interrupted_start +
+               (gain_75 - interrupted_start) / 100.0f);
+  assert_close(output_right[offset], gain_100);
+  assert_close(output_right[offset + 1], gain_100);
+  descriptor->deactivate(handle);
+  descriptor->cleanup(handle);
+
+  left_control = 100.0f;
+  right_control = 100.0f;
+  handle = descriptor->instantiate(descriptor, rate);
+  assert(handle != NULL);
+  connect_speaker(descriptor, handle, ports, input, output, &left_control,
+                  &right_control);
+  descriptor->activate(handle);
+  run_speaker(descriptor, handle, ports, input, output, &left_control,
+              &right_control, 0, 10);
+  offset = 10;
+
+  left_control = 0.0f;
+  run_speaker(descriptor, handle, ports, input, output, &left_control,
+              &right_control, offset, 101);
+  for (unsigned long frame = 0; frame <= 100; ++frame) {
+    assert_close(output_left[offset + frame],
+                 gain_100 - (float)frame * gain_100 / 100.0f);
+    assert_close(output_right[offset + frame], gain_100);
+  }
+  offset += 101;
+
+  left_control = 100.0f;
+  run_speaker(descriptor, handle, ports, input, output, &left_control,
+              &right_control, offset, 501);
+  for (unsigned long frame = 0; frame <= 500; ++frame) {
+    assert_close(output_left[offset + frame],
+                 (float)frame * gain_100 / 500.0f);
+    assert_close(output_right[offset + frame], gain_100);
+  }
+  descriptor->deactivate(handle);
+  descriptor->cleanup(handle);
+}
+
+static float expected_mic_gain(float control) {
+  if (!isfinite(control) || control <= 0.0f) return 0.0f;
+  if (control > 100.0f) control = 100.0f;
+  float decibels = 20.0f + 0.4f * (control - 50.0f);
+  if (decibels > 40.0f) decibels = 40.0f;
+  return powf(10.0f, decibels / 20.0f);
+}
+
+static void connect_mic(const LADSPA_Descriptor *descriptor, LADSPA_Handle handle,
+                        struct mic_ports ports, float *input, float *output,
+                        float *volume) {
+  descriptor->connect_port(handle, ports.input, input);
+  descriptor->connect_port(handle, ports.output, output);
+  descriptor->connect_port(handle, ports.volume, volume);
+}
+
+static void test_mic_gain(const LADSPA_Descriptor *descriptor,
+                          struct mic_ports ports) {
+  static float source[] = { 0.02f, -0.01f, 0.0f, 0.003f };
+  static const float controls[] = {
+    0.0f, 50.0f, 50.5f, 100.0f, 1000.0f, -1.0f, NAN, INFINITY,
+  };
+  float output[sizeof(source) / sizeof(*source)];
+
+  for (unsigned long test = 0; test < sizeof(controls) / sizeof(*controls);
+       ++test) {
+    float control = controls[test];
+    LADSPA_Handle handle = descriptor->instantiate(descriptor, 48000);
+    assert(handle != NULL);
+    connect_mic(descriptor, handle, ports, source, output, &control);
+    descriptor->activate(handle);
+    descriptor->run(handle, sizeof(source) / sizeof(*source));
+    descriptor->deactivate(handle);
+    descriptor->cleanup(handle);
+
+    const float gain = expected_mic_gain(control);
+    for (unsigned long frame = 0; frame < sizeof(source) / sizeof(*source);
+         ++frame)
+      assert_close(output[frame], source[frame] * gain);
+    if (control == 100.0f) assert(output[0] > 1.0f);
+  }
+
+  float in_place[sizeof(source) / sizeof(*source)];
+  memcpy(in_place, source, sizeof(source));
+  float control = 100.0f;
+  LADSPA_Handle handle = descriptor->instantiate(descriptor, 48000);
+  assert(handle != NULL);
+  connect_mic(descriptor, handle, ports, in_place, in_place, &control);
+  descriptor->activate(handle);
+  descriptor->run(handle, sizeof(in_place) / sizeof(*in_place));
+  descriptor->deactivate(handle);
+  descriptor->cleanup(handle);
+  for (unsigned long frame = 0; frame < sizeof(in_place) / sizeof(*in_place);
+       ++frame)
+    assert_close(in_place[frame], source[frame] * expected_mic_gain(control));
 }
 
 int main(int argc, char **argv) {
   assert(argc == 2);
   void *library = dlopen(argv[1], RTLD_NOW | RTLD_LOCAL);
-  if (!library) { fprintf(stderr, "%s\n", dlerror()); return 1; }
-  LADSPA_Descriptor_Function entry = (LADSPA_Descriptor_Function)dlsym(library, "ladspa_descriptor");
+  if (!library) {
+    fprintf(stderr, "%s\n", dlerror());
+    return 1;
+  }
+  LADSPA_Descriptor_Function entry =
+      (LADSPA_Descriptor_Function)dlsym(library, "ladspa_descriptor");
   assert(entry != NULL);
-  const LADSPA_Descriptor *d = entry(0);
-  assert(d && !entry(1));
-  /* Cleanup is mandatory; deactivation must never destroy an instance. */
-  assert(d->cleanup != NULL);
-  assert(d->instantiate && d->connect_port && d->run);
-  assert(d->PortCount == 4);
-  const unsigned long rates[] = {44100, 48000, 96000};
-  const unsigned long quanta[] = {1, 31, 256, 2048, 2049, 8192, FRAMES};
-  float *input[2], *output[2], *reference[2];
-  for (int c = 0; c < 2; ++c) {
-    input[c] = calloc(FRAMES, sizeof(float));
-    output[c] = calloc(FRAMES, sizeof(float));
-    reference[c] = calloc(FRAMES, sizeof(float));
-    assert(input[c] && output[c] && reference[c]);
+
+  const LADSPA_Descriptor *dsp =
+      require_descriptor(entry, 0, "redrix_cras_dsp");
+  const LADSPA_Descriptor *speaker =
+      require_descriptor(entry, 1, "redrix_speaker_gain");
+  const LADSPA_Descriptor *mic =
+      require_descriptor(entry, 2, "redrix_mic_gain");
+  assert(entry(3) == NULL);
+
+  struct dsp_ports dsp_ports = {
+    .audio = find_stereo_ports(dsp),
+    .latency = find_port(dsp, "latency",
+                         LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL),
+  };
+  const LADSPA_PortRangeHint *latency_hint =
+      &dsp->PortRangeHints[dsp_ports.latency];
+  assert(latency_hint->HintDescriptor & LADSPA_HINT_BOUNDED_BELOW);
+  assert(latency_hint->LowerBound == 0.0f);
+
+  struct speaker_ports speaker_ports = {
+    .audio = find_stereo_ports(speaker),
+    .volume_left = find_port(speaker, "Volume Left",
+                             LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL),
+    .volume_right = find_port(speaker, "Volume Right",
+                              LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL),
+  };
+  assert_percent_range(speaker, speaker_ports.volume_left);
+  assert_percent_range(speaker, speaker_ports.volume_right);
+
+  struct mic_ports mic_ports = {
+    .input = find_port(mic, "Input", LADSPA_PORT_INPUT | LADSPA_PORT_AUDIO),
+    .output = find_port(mic, "Output", LADSPA_PORT_OUTPUT | LADSPA_PORT_AUDIO),
+    .volume = find_port(mic, "Volume", LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL),
+  };
+  assert_percent_range(mic, mic_ports.volume);
+
+  const unsigned long rates[] = { 44100, 48000, 96000 };
+  const unsigned long quanta[] = { 1, 31, 256, 2048, 2049, 8192, FRAMES };
+  float *input[2];
+  float *output[2];
+  float *reference[2];
+  for (int channel = 0; channel < 2; ++channel) {
+    input[channel] = calloc(FRAMES, sizeof(*input[channel]));
+    output[channel] = calloc(FRAMES, sizeof(*output[channel]));
+    reference[channel] = calloc(FRAMES, sizeof(*reference[channel]));
+    assert(input[channel] && output[channel] && reference[channel]);
   }
-  for (unsigned int r = 0; r < sizeof(rates) / sizeof(*rates); ++r) {
-    for (int c = 0; c < 2; ++c)
-      for (int i = 0; i < FRAMES; ++i)
-        input[c][i] = 0.1f * sinf(2.0f * 3.14159265358979323846f * (c ? 1700 : 440) * i / rates[r]);
-    process(d, input, reference, 256, rates[r]);
-    for (unsigned int q = 0; q < sizeof(quanta) / sizeof(*quanta); ++q) {
-      process(d, input, output, quanta[q], rates[r]);
-      for (int c = 0; c < 2; ++c) {
-        double energy = 0;
-        for (int i = 0; i < FRAMES; ++i) {
-          assert(isfinite(output[c][i]));
-          assert(fabsf(output[c][i] - reference[c][i]) < 1e-5f);
-          energy += (double)output[c][i] * output[c][i];
-        }
-        assert(energy > 0.001 && energy < FRAMES);
-      }
+
+  for (unsigned long rate_index = 0;
+       rate_index < sizeof(rates) / sizeof(*rates); ++rate_index) {
+    const unsigned long rate = rates[rate_index];
+    for (int channel = 0; channel < 2; ++channel)
+      for (unsigned long frame = 0; frame < FRAMES; ++frame)
+        input[channel][frame] = 0.1f * sinf(2.0f * 3.14159265358979323846f *
+            (channel ? 1700.0f : 440.0f) * (float)frame / (float)rate);
+
+    const float reference_latency = process_dsp(
+        dsp, dsp_ports, input, reference, 256, rate);
+    assert(reference_latency == (float)expected_drc_delay(rate));
+    for (unsigned long quantum_index = 0;
+         quantum_index < sizeof(quanta) / sizeof(*quanta); ++quantum_index) {
+      const float latency = process_dsp(dsp, dsp_ports, input, output,
+                                        quanta[quantum_index], rate);
+      assert(latency == (float)expected_drc_delay(rate));
+      assert_dsp_output(output, reference);
     }
-    /* LADSPA permits in-place operation, which PipeWire can choose. */
-    process(d, input, input, 8192, rates[r]);
-    for (int c = 0; c < 2; ++c)
-      for (int i = 0; i < FRAMES; ++i)
-        assert(fabsf(input[c][i] - reference[c][i]) < 1e-5f);
-    printf("PASS: %lu Hz; block-size equivalence, lifecycle, cleanup, in-place\n", rates[r]);
+
+    test_dsp_lifecycle(dsp, dsp_ports, input, reference, output, rate);
+    const float in_place_latency = process_dsp(dsp, dsp_ports, input, input,
+                                               8192, rate);
+    assert(in_place_latency == (float)expected_drc_delay(rate));
+    assert_dsp_output(input, reference);
+    printf("PASS: %lu Hz; DSP block sizes, delay, lifecycle, cleanup, in-place\n",
+           rate);
   }
-  for (int c = 0; c < 2; ++c) { free(input[c]); free(output[c]); free(reference[c]); }
+
+  test_speaker_curve(speaker, speaker_ports);
+  test_speaker_ramps(speaker, speaker_ports);
+  test_mic_gain(mic, mic_ports);
+  puts("PASS: ChromeOS speaker curve, linear ramps, and microphone gain");
+
+  for (int channel = 0; channel < 2; ++channel) {
+    free(input[channel]);
+    free(output[channel]);
+    free(reference[channel]);
+  }
   dlclose(library);
   return 0;
 }

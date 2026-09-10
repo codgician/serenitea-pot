@@ -1,6 +1,6 @@
 --- a/HiFi.conf
 +++ b/HiFi.conf
-@@ -1,216 +1,161 @@
+@@ -1,216 +1,145 @@
 +# Based on ChromeOS brya recovery 16733.54.0:
 +# /usr/share/alsa/ucm/sof-rt5682.redrix/HiFi.conf
 +# UCM2/desktop adaptations are noted at their respective sections.
@@ -301,37 +301,22 @@
 +}
 +
 +# ChromeOS Internal Mic -> Mic1 for ALSA port classification and stable node ID.
-+# CaptureChannelMap "0 0 -1 ..." selects PCM output 0 for both logical
-+# channels; the redrix_mic route alias below captures that channel directly
-+# and applies the CRAS-equivalent +20 dB software gain.
++# The route alias below selects processed channel 0 as a mono stream in its
++# firmware-required S16_LE format.
 +SectionDevice."Mic1" {
 +    Comment "Internal Microphone"
 +    Value {
 +        CapturePCM "redrix_mic"
 +        CaptureChannels 1
 +        CapturePriority 100
-+        # Preserve the OEM CRAS metadata; the ttable gain below reproduces
-+        # the +20 dB CRAS derives from it, not a reinterpretation as a UI knob.
++        # Preserve the OEM CRAS metadata for applications that read it.
 +        IntrinsicSensitivity "-2600"
 +    }
-+    EnableSequence [
-+        cset "name='RTNR10.0 rtnr_enable_10' @noiseReduction@"
-+    ]
-+    DisableSequence [
-+        cset "name='RTNR10.0 rtnr_enable_10' off"
-+    ]
 +}
 +
-+# Plain alsa-lib route alias: select the firmware's processed channel 0,
-+# convert to the S16_LE format its Google RTC component requires, and apply
-+# CRAS's own +20 dB software gain (DEFAULT_CAPTURE_VOLUME_DBFS -600 minus
-+# IntrinsicSensitivity -2600, from cras_alsa_io.c / cras_system_state.h,
-+# release-R151). This is a documented, standalone alsa-lib plugin: any ALSA
-+# client opens the same finished 1-channel PCM identically. It intentionally
-+# avoids UCM's CaptureChannel<N>/CaptureChannelPos<N> keys, which PipeWire's
-+# ACP layer (alsa-ucm.c: ucm_get_split_channels) interprets as a request to
-+# build its own SplitPCM node pair in WirePlumber's ALSA monitor
-+# (monitors/alsa.lua) -- an internal mechanism, not documented UCM2 syntax.
++# Plain alsa-lib route alias selects the firmware's processed channel 0,
++# exposes a mono PCM, and preserves its required S16_LE format. It avoids
++# CaptureChannel<N> UCM keys, which PipeWire ACP interprets as a SplitPCM request.
 +LibraryConfig.mic.SubstiConfig.pcm.redrix_mic {
 +    type route
 +    slave {
@@ -339,7 +324,7 @@
 +        channels 2
 +        format S16_LE
 +    }
-+    ttable.0.0 10.0
++    ttable.0.0 1.0
 +}
 +
 +# ChromeOS Mic -> Headset. Mainline exposes the routing switch below, not a
@@ -370,8 +355,7 @@
 +    { HDMI { Number 4 Device 5 Priority 500 } }
 +]
 +
-+# CRAS's named noise/echo modifiers are not understood by PipeWire ACP.
-+# Instead, Mic1 applies the configured NR setting and HiFi initializes AEC off.
++# RTNR is controlled on the Mic1 PipeWire node; keep AEC disabled.
 +# Do not assign a generic media role that could enable firmware AEC implicitly.
 +
 +# ChromeOS's Echo Reference (PCM 6) and SCO Line In/Out (PCM 7) are CRAS

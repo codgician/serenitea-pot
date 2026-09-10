@@ -3,7 +3,6 @@
   stdenvNoCC,
   fetchzip,
   alsa-ucm-conf,
-  noiseReduction ? false,
 }:
 stdenvNoCC.mkDerivation {
   pname = "redrix-chromeos-ucm";
@@ -26,7 +25,6 @@ stdenvNoCC.mkDerivation {
     install -Dm444 sof-rt5682.redrix.conf "$card/sof-rt5682.conf"
     install -Dm644 HiFi.conf "$card/HiFi.conf"
     substituteInPlace "$card/HiFi.conf" \
-      --replace-fail '@noiseReduction@' '${if noiseReduction then "on" else "off"}' \
       --replace-fail '@aecOff@' '${./sof-firmware/AEC_Off.bin}'
     runHook postInstall
   '';

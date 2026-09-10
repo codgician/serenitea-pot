@@ -5,5 +5,8 @@ final: _prev: {
   redrix.cras-dsp = final.callPackage ./cras-dsp.nix { };
   redrix.sof-firmware = final.callPackage ./sof-firmware.nix { };
   redrix.chromeos-ucm = final.callPackage ./chromeos-ucm.nix { };
-  redrix.volume-curve = final.callPackage ./volume-curve.nix { };
+  # Explicit device DSP must fail with the node, never silently become dry audio.
+  redrix.pipewire = final.pipewire.overrideAttrs (old: {
+    patches = (old.patches or [ ]) ++ [ ./pipewire-required-graph.patch ];
+  });
 }
