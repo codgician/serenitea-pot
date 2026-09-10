@@ -50,6 +50,17 @@ The Speaker slider and mute are applied after processing; internal filter gain
 is unity. There is no second user-facing Redrix volume or fixed 70% limit.
 Amplifier settings are independent of that software volume.
 
+`pkgs.redrix.volume-curve` installs `redrix/volume-curve.lua`, which maps the
+Speaker slider through ChromeOS's explicit `[Speaker]` table from
+`/etc/cras/redrix/sof-rt5682.card_settings` (fetched from the same pinned
+ChromiumOS commit as the UCM; identical to recovery 16733.54.0). PipeWire's
+plain cubic slider puts 20% at -42 dB where ChromeOS uses -27 dB, so quiet
+settings were audibly softer than ChromeOS while 100% matched. The script
+rewrites only the sink's soft volumes: desktop controls keep showing the slider
+position, 0% stays silent, 100% stays 0 dB, and above 100% PipeWire's own gain
+applies. Like CRAS, the gain is applied in software after the speaker DSP.
+Headphones, Bluetooth and HDMI are unaffected.
+
 `redrix-speaker-dsp.service` starts with the user PipeWire service. DSP runs in
 a separate process, not inside the main audio server. It is restarted on failure
 and follows PipeWire/WirePlumber restarts. If it exits, ordinary Speaker playback

@@ -26,6 +26,7 @@ in
           };
         }
       ];
+      configPackages = [ pkgs.redrix.volume-curve ];
       extraConfig."51-redrix-filter-visibility" = {
         "wireplumber.components" = [
           {
@@ -38,9 +39,18 @@ in
             type = "script/lua";
             provides = "custom.redrix-monitor-target";
           }
+          {
+            name = "redrix/volume-curve.lua";
+            type = "script/lua";
+            arguments = {
+              "node.name" = speakerNode;
+            };
+            provides = "custom.redrix-volume-curve";
+          }
         ];
         "wireplumber.profiles".main."custom.redrix-filter-visibility" = "required";
         "wireplumber.profiles".main."custom.redrix-monitor-target" = "required";
+        "wireplumber.profiles".main."custom.redrix-volume-curve" = "required";
       };
     };
   };
