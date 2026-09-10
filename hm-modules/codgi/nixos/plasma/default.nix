@@ -230,7 +230,7 @@ in
       };
 
       panels = [
-        # Nix + metrics | weather + clock + notes | tray + notifications + desktop
+        # Nix | weather + clock + notes | tray (including notifications)
         {
           location = "top";
           height = 32;
@@ -249,36 +249,6 @@ in
             {
               name = "org.kde.plasma.kickoff";
               config.General.icon = "nix-snowflake-white";
-            }
-            {
-              panelSpacer = {
-                expanding = false;
-                length = 6;
-              };
-            }
-            {
-              systemMonitor = {
-                title = "System";
-                showTitle = false;
-                displayStyle = "org.kde.ksysguard.textonly";
-                sensors = [
-                  {
-                    name = "cpu/all/usage";
-                    color = "101,180,255";
-                    label = "CPU:";
-                  }
-                  {
-                    name = "memory/physical/usedPercent";
-                    color = "130,210,130";
-                    label = "RAM:";
-                  }
-                  {
-                    name = "gpu/gpu1/usage";
-                    color = "210,140,255";
-                    label = "GPU:";
-                  }
-                ];
-              };
             }
             {
               panelSpacer.expanding = true;
@@ -349,10 +319,11 @@ in
                   scaleToFit = false;
                   spacing = "medium";
                 };
-                items.hidden = [ "org.kde.plasma.notifications" ];
+                # Keep notifications in the tray for native tablet-mode sizing
+                # and spacing.
+                items.shown = [ "org.kde.plasma.notifications" ];
               };
             }
-            "org.kde.plasma.notifications"
             {
               panelSpacer = {
                 expanding = false;
