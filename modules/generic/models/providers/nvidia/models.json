@@ -8,5 +8,6 @@
   "nvidia/nemotron-4-340b-instruct": {},
   "nvidia/nemotron-4-340b-reward": {},
   "nvidia/nemotron-nano-3-30b-a3b": {},
-  "nvidia/nemotron-parse": {}
+  "nvidia/nemotron-parse": {},
+  "z-ai/glm-5.3-flash": {}
 }
