@@ -1,0 +1,56 @@
+# Subject: Withdraw filter-graph snapshots before rebuild and cleanup
+# Origin: https://github.com/PipeWire/pipewire/commit/f174b4e688346898b7cdf3a45934ab91849d7369
+# Origin: https://github.com/PipeWire/pipewire/commit/f252ed337f4a84ddd376d1582ad27e1a3f754488
+# Upstream-Status: Backport (adapted to 1.6.6; not an unmodified cherry-pick)
+# Base: PipeWire 1.6.6, after pipewire-required-graph.patch
+# Regression: check-pipewire-graphs.py active Suspend/Start and graph reopening.
+# Drop-When: the packaged audioconvert withdraws snapshots before rebuild, cleanup and reset.
+# 1.6.8 covers forced rebuild, not all teardown paths; do not drop the whole patch for it.
+diff --git a/spa/plugins/audioconvert/audioconvert.c b/spa/plugins/audioconvert/audioconvert.c
+--- a/spa/plugins/audioconvert/audioconvert.c
++++ b/spa/plugins/audioconvert/audioconvert.c
+@@ -1293,2 +1293,4 @@
+ 
++static void unpublish_filter_graphs(struct impl *impl, bool force);
++
+ static int setup_filter_graphs(struct impl *impl, bool force)
+@@ -1307,2 +1309,5 @@
+ 
++	if (force)
++		unpublish_filter_graphs(impl, true);
++
+ 	spa_list_for_each_safe(g, t, &impl->active_graphs, link) {
+@@ -1310,4 +1315,2 @@
+ 			continue;
+-		if (force)
+-			g->setup = false;
+ 		if ((res = setup_filter_graph(impl, g, channels, position)) < 0) {
+@@ -1353,2 +1356,18 @@
+ 
++/* Pull graphs out of the data-loop snapshot before their handles change. */
++static void unpublish_filter_graphs(struct impl *impl, bool force)
++{
++	struct filter_graph *g;
++	bool sync = false;
++
++	spa_list_for_each(g, &impl->active_graphs, link) {
++		if (force && !g->removing)
++			g->setup = false;
++		if (g->removing || !g->setup)
++			sync = true;
++	}
++	if (sync)
++		sync_filter_graph(impl);
++}
++
+ static void clean_filter_handles(struct impl *impl, bool force)
+@@ -1357,2 +1376,4 @@
+ 
++	unpublish_filter_graphs(impl, force);
++
+ 	spa_list_for_each_safe(g, t, &impl->active_graphs, link) {
+@@ -2565,2 +2586,4 @@
+ 
++	unpublish_filter_graphs(this, true);
++
+ 	spa_list_for_each(g, &this->active_graphs, link) {

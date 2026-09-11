@@ -166,9 +166,12 @@ with tempfile.TemporaryDirectory(prefix="redrix-graphs-") as directory:
                     time.sleep(0.01)
                 assert node, "recorder node did not appear"
                 port_config(node["id"], "Input", channels)
-                for channel in (["MONO"] if channels == 1 else ["FL", "FR"]):
-                    command("pw-link", name + ":capture_" + channel,
-                            "pw-cat:input_" + channel)
+                source = find_node(name)
+                assert source is not None, "capture source disappeared"
+                # Queue all channel links from one client. Separate pw-link
+                # processes let recording start with only one channel linked.
+                command("pw-cli", "create-link", source["id"], "*",
+                        node["id"], "*", '{ "object.linger": true }')
                 if during:
                     during()
                 # pw-cat 1.6.6 returns 1 upon reaching --sample-count; verify PCM,
@@ -187,7 +190,11 @@ with tempfile.TemporaryDirectory(prefix="redrix-graphs-") as directory:
         values = data[settle * channels + channel::channels]
         assert values, "no measured samples"
         max_error = max(abs(x - expected) for x in values)
-        assert max_error < max(1e-5, expected * 1e-3), (max_error, expected)
+        tolerance = max(1e-5, expected * 1e-3)
+        if max_error >= tolerance:
+            bad = [i + settle for i, x in enumerate(values) if abs(x - expected) >= tolerance]
+            raise AssertionError(("steady gain mismatch", max_error, expected,
+                                  "bad frame range", bad[0], bad[-1], "count", len(bad)))
 
     try:
         deadline = time.monotonic() + 5
@@ -195,6 +202,20 @@ with tempfile.TemporaryDirectory(prefix="redrix-graphs-") as directory:
             assert server.poll() is None, "server failed to start"
             assert time.monotonic() < deadline, "server startup timed out"
             time.sleep(0.01)
+        # Explicit device DSP must not silently disappear when a required
+        # plugin is unavailable. The following normal-volume scenario also
+        # proves rejection did not just kill the server or break node creation.
+        missing_graph = json.loads(json.dumps(VOLUME_GRAPH))
+        missing_graph["nodes"][0]["plugin"] = "redrix-deliberately-missing-plugin"
+        try:
+            create("missing-plugin-probe", graph=missing_graph)
+        except AssertionError:
+            pass
+        else:
+            raise AssertionError("missing required plugin published a usable audio node")
+        assert server.poll() is None, "missing plugin crashed the audio server"
+        assert find_node("missing-plugin-probe") is None, "failed graph exposed an unprocessed node"
+
 
         # ACP may not emit a changed-volume event when its requested value is
         # already the default unity. The graph must initialize without one.
@@ -203,6 +224,7 @@ with tempfile.TemporaryDirectory(prefix="redrix-graphs-") as directory:
         check_gain(capture("default-volume-probe"), 1)
         command("pw-cli", "destroy", node)
         print("PASS default device volume initializes without a change event", flush=True)
+        print("PASS missing required plugin rejects the node without disabling valid audio", flush=True)
 
         node = create("saved-volume-probe")
         props(node, {"channelVolumes": [0.125, 0.125], "mute": False})

@@ -53,11 +53,26 @@ fallback. Graph replacement is disabled after initial configuration.
 The first embedded-graph deployment exposed a PipeWire 1.6.6 lifecycle race:
 Suspend cleared plugin handles while an ALSA callback still saw the old graph.
 The retained crash had `started=0`, `setup=0`, `n_graph=1` and a null LADSPA
-handle. `pipewire-graph-lifecycle.patch` withdraws graphs under the data-loop
-lock before teardown, quiesces the callback-owning follower first on Suspend,
-and resets live Flush state in place. Late callbacks do not process a stopped
-converter. Its snapshot-withdrawal logic is backported from upstream changes;
-the patch records the commits and additional 1.6.6 lifecycle adaptations.
+handle. `pipewire-graph-snapshot-backport.patch` withdraws graphs under the
+data-loop lock before rebuild and teardown. It adapts two upstream fixes to
+1.6.6 rather than claiming to be an unmodified cherry-pick.
+`pipewire-graph-lifecycle.patch` separately maintains local Suspend ordering,
+live Flush resets and stopped-callback handling.
+
+The series is deliberately ordered in `overlays/24-redrix-firmware/default.nix`:
+
+| Patch | Status and removal condition |
+| --- | --- |
+| `pipewire-required-graph.patch` | Local failure policy/error propagation; remove only when explicit graphs fail closed and initialization errors propagate upstream. |
+| `pipewire-graph-snapshot-backport.patch` | Adapted upstream backport; remove when rebuild, cleanup and reset all withdraw the data-loop snapshot. PipeWire 1.6.8 only covers part of this. |
+| `pipewire-graph-lifecycle.patch` | Local lifecycle fixes; remove when upstream provides equivalent follower-first Suspend, live Flush and stopped-callback behavior. |
+| `pipewire-graph-volume.patch` | Local volume-state fix; remove when requested volume/mute survives locked mixing and is restored before graph activation. |
+
+Each patch header records its base, provenance/status, regression and retirement
+criteria. Local fixes have no tracked upstream submission. Do not remove a patch
+based solely on a version number or because its hunks still apply. Splitting or
+rebasing this series without a behavior change must preserve the resulting
+`audioconvert.c` and `audioadapter.c` byte-for-byte; then run the graph checks.
 
 The LADSPA `latency` output reports the compressor's actual predelay (288 frames
 at 48 kHz); PipeWire propagates it through port latency. This is reporting, not
@@ -308,6 +323,8 @@ nix build .#nixosConfigurations.odette.pkgs.redrix.cras-dsp --no-link -L
 PipeWire host and ALSA file/null PCMs. A continuously fed FIFO avoids input
 exhaustion; synthetic-clock resampling is disabled. The unchanged speaker gain
 stage supplies exact adapter volume/lifecycle checks on a synthetic ALSA source.
+A missing-plugin negative case must reject the node, followed by a working
+control node, so neither silent DSP bypass nor a dead server can pass.
 These cover default initialization without a volume event, saved gain/mute,
 stereo balance, active Suspend/Start and Flush cycles, and reopening. Steady
 gain is checked across the entire settled window, not just its peak, so a single

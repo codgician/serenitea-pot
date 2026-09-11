@@ -1,3 +1,9 @@
+# Subject: Reject explicitly configured graphs instead of silently bypassing DSP
+# Upstream-Status: Pending (local failure policy and init-error propagation; not submitted)
+# Base: PipeWire 1.6.6; first patch in the Redrix series
+# Regression: check-pipewire-graphs.py missing-plugin node rejection with a valid control node.
+# Drop-When: upstream provides equivalent fail-closed graph loading/activation and propagates
+# converter initialization errors. A policy knob must be enabled before removing this patch.
 diff --git a/spa/plugins/audioconvert/audioconvert.c b/spa/plugins/audioconvert/audioconvert.c
 --- a/spa/plugins/audioconvert/audioconvert.c
 +++ b/spa/plugins/audioconvert/audioconvert.c

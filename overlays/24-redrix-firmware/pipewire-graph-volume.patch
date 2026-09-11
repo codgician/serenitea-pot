@@ -1,3 +1,9 @@
+# Subject: Restore requested graph volume and mute before graph activation
+# Upstream-Status: Pending (local fix; no upstream submission tracked)
+# Base: PipeWire 1.6.6, after pipewire-graph-lifecycle.patch
+# Regression: check-pipewire-graphs.py default initialization, saved gain/mute and stereo balance.
+# Drop-When: upstream retains requested volume independently of the locked software mixer and
+# applies it before activation, including unchanged defaults and graph/format recreation.
 diff --git a/spa/plugins/audioconvert/audioconvert.c b/spa/plugins/audioconvert/audioconvert.c
 --- a/spa/plugins/audioconvert/audioconvert.c
 +++ b/spa/plugins/audioconvert/audioconvert.c

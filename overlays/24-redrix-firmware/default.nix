@@ -12,6 +12,7 @@ final: _prev: {
   redrix.pipewire = final.pipewire.overrideAttrs (old: {
     patches = (old.patches or [ ]) ++ [
       ./pipewire-required-graph.patch
+      ./pipewire-graph-snapshot-backport.patch
       ./pipewire-graph-lifecycle.patch
       ./pipewire-graph-volume.patch
     ];
