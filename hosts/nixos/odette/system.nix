@@ -9,7 +9,10 @@ in
 {
   codgician = {
     services = {
-      fcitx5.enable = true;
+      fcitx5 = {
+        enable = true;
+        osk.enable = true;
+      };
       nixos-vscode-server.enable = true;
       plasma.enable = true;
       rasdaemon.enable = true;

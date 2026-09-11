@@ -450,7 +450,11 @@ in
           "org.kde.kdecoration3" = {
             inherit (config.programs.plasma.workspace.windowDecorations) library theme;
           };
-          Wayland.InputMethod = "${osConfig.i18n.inputMethod.package}/share/applications/fcitx5-wayland-launcher.desktop";
+          Wayland.InputMethod =
+            if osConfig.codgician.services.fcitx5.osk.enable or false then
+              "${osConfig.codgician.services.fcitx5.osk.package}/share/applications/fyi.fortime.Fcitx5Osk.KwinLauncher.desktop"
+            else
+              "${osConfig.i18n.inputMethod.package}/share/applications/fcitx5-wayland-launcher.desktop";
         };
       };
     };

@@ -6,9 +6,24 @@
 }:
 let
   cfg = config.codgician.services.fcitx5;
+  oskPackage = pkgs.nur.repos.codgician.fcitx5-osk;
 in
 {
-  options.codgician.services.fcitx5.enable = lib.mkEnableOption "Fcitx 5 input method.";
+  options.codgician.services.fcitx5 = {
+    enable = lib.mkEnableOption "Fcitx 5 input method.";
+
+    osk = {
+      enable = lib.mkEnableOption "Fcitx 5 Osk, an on-screen keyboard for touch/tablet devices.";
+
+      package = lib.mkOption {
+        type = lib.types.package;
+        readOnly = true;
+        default = oskPackage;
+        defaultText = lib.literalExpression "pkgs.nur.repos.codgician.fcitx5-osk";
+        description = "The fcitx5-osk package, exposed so desktop modules can reference its KWin launcher desktop entry.";
+      };
+    };
+  };
 
   config = lib.mkIf cfg.enable {
     environment.variables.XMODIFIERS = "@im=fcitx";
@@ -39,5 +54,13 @@ in
         };
       };
     };
+
+    # Fcitx 5 Osk: register the desktop entries/D-Bus services shipped in the
+    # package, and start the key helper that fixes modifier events on Wayland.
+    environment.systemPackages = lib.mkIf cfg.osk.enable [ cfg.osk.package ];
+    services.dbus.packages = lib.mkIf cfg.osk.enable [ cfg.osk.package ];
+    systemd.packages = lib.mkIf cfg.osk.enable [ cfg.osk.package ];
+    # `systemd.packages` ignores the unit's `[Install]` section.
+    systemd.services.fcitx5-osk-key-helper.wantedBy = lib.mkIf cfg.osk.enable [ "multi-user.target" ];
   };
 }
