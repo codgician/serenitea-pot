@@ -129,7 +129,6 @@ stdenv.mkDerivation {
 
   installPhase = ''
     install -Dm444 redrix-cras-dsp.so $out/lib/ladspa/redrix-cras-dsp.so
-    install -Dm444 redrix-speaker-curve.h $out/include/redrix-speaker-curve.h
   '';
 
   meta = {

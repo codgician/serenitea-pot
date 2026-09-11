@@ -1,50 +1,53 @@
 { config, pkgs, ... }:
 let
-  speakerNode = "alsa_output.pci-0000_00_1f.3-platform-adl_rt5682_def.HiFi__Speaker__sink";
-  micNode = "alsa_input.pci-0000_00_1f.3-platform-adl_rt5682_def.HiFi__Mic1__source";
-  graphs = import ../../../overlays/24-redrix-firmware/filter-chain.nix;
+  dsp = import ../../../overlays/24-redrix-firmware/software-dsp.nix { };
 in
 {
-  # Exercise the same patched host with file/null PCMs, never real hardware.
+  # Exercise the same host and native WirePlumber policy without real hardware.
   system.checks = [
-    (pkgs.redrix.check-graphs.override { pipewire = config.services.pipewire.package; })
+    (pkgs.redrix.check-graphs.override {
+      pipewire = config.services.pipewire.package;
+      wireplumber = config.services.pipewire.wireplumber.package;
+    })
   ];
 
-  # Embedded graphs only load plugins from their host's allowed LADSPA path.
-  services.pipewire.extraLadspaPackages = [ pkgs.redrix.cras-dsp ];
   services.pipewire.wireplumber = {
     extraLadspaPackages = [ pkgs.redrix.cras-dsp ];
     extraConfig."51-redrix-audio" = {
+      "wireplumber.profiles".main = {
+        "pw.node-factory.adapter" = "required";
+        "node.software-dsp" = "required";
+      };
+      "node.software-dsp.rules" = dsp.rules;
       "monitor.alsa.rules" = [
         {
-          matches = [ { "node.name" = speakerNode; } ];
+          matches = [ { "node.name" = dsp.speakerNode; } ];
           actions.update-props = {
-            "node.description" = "Speakers";
-            "node.nick" = "Speakers";
+            "node.name" = dsp.speakerBackend;
+            "node.description" = "Redrix speaker backend";
+            "node.nick" = "Redrix speaker backend";
             "audio.format" = "S16LE";
             "audio.rate" = 48000;
-            "audioconvert.filter-graph.0" = builtins.toJSON graphs.speaker;
-            # The graph consumes channelVolumes/mute itself. Keep the adapter
-            # at unity, including during the plugin's sample-domain mute ramp.
+            # Only the processed public endpoint owns desktop volume/mute.
             "channelmix.lock-volumes" = true;
-            "audioconvert.filter-graph.disable" = true;
+            "priority.session" = 1;
           };
         }
         {
-          matches = [ { "node.name" = micNode; } ];
+          matches = [ { "node.name" = dsp.micNode; } ];
           actions.update-props = {
-            "node.description" = "Internal Microphone";
-            "node.nick" = "Internal Microphone";
+            "node.name" = dsp.micBackend;
+            "node.description" = "Redrix microphone backend";
+            "node.nick" = "Redrix microphone backend";
             "audio.format" = "S32LE";
             "audio.rate" = 48000;
-            "audioconvert.filter-graph.0" = builtins.toJSON graphs.microphone;
             "channelmix.lock-volumes" = true;
-            "audioconvert.filter-graph.disable" = true;
+            "priority.session" = 1;
           };
         }
       ];
     };
   };
-  # Device graphs follow ALSA node creation/destruction. No custom runtime
-  # script, service, persistent state or tmpfiles directory is needed.
+  # Upstream node.software-dsp owns filter lifetime and parent visibility.
+  # Existing WirePlumber state stores endpoint volumes; no new service or state directory.
 }

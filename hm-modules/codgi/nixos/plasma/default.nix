@@ -424,19 +424,23 @@ in
           Xwayland.Scale = lib.mkIf (cfg.scale != null) cfg.scale;
           ElectricBorders = {
             TopLeft = "ApplicationLauncher";
-            TopRight = "ShowDesktop";
-            BottomLeft = "ActivityManager";
+            TopRight = "None";
+            BottomLeft = "None";
             BottomRight = "None";
           };
           # Touchscreen edges are independent of the mouse hot corners above.
           # Leave the bottom edge available for Plasma's native dock reveal.
           TouchEdges = {
-            Top = "None";
+            Top = "KRunner";
             Right = "ApplicationLauncher";
             Bottom = "None";
             Left = "None";
           };
-          "Effect-overview".BorderActivate = "3";
+          # Overview is not a valid ElectricBorders/TouchEdges action string; it is
+          # reserved directly via the effect's own border activation lists, which
+          # take a comma-separated ElectricBorder enum value:
+          # Top=0, TopRight=1, Right=2, BottomRight=3, Bottom=4, BottomLeft=5, Left=6, TopLeft=7.
+          "Effect-overview".BorderActivate = "5"; # Bottom-left corner
           "Effect-overview".TouchBorderActivate = "6"; # Left edge
           Plugins.kwin4_effect_shapecornersEnabled = true;
           "Round-Corners" = {

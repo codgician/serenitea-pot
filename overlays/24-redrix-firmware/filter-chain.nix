@@ -1,4 +1,4 @@
-# Native audioconvert graphs: no extra sinks, streams, or asynchronous gain writer.
+# Standard filter-chain graphs; software-dsp.nix binds them to device endpoints.
 let
   library = "redrix-cras-dsp";
 in
@@ -40,8 +40,7 @@ in
       "gain:Output Left"
       "gain:Output Right"
     ];
-    # audioconvert forwards node Props to the graph's capture volume controls,
-    # even on a capture device. Mute is delivered as zero on these controls.
+    # The virtual sink owns input-side volume; the plugin applies it after EQ.
     "capture.volumes" = [
       {
         control = "gain:Volume Left";
@@ -78,7 +77,7 @@ in
       "apm:Output Left"
       "apm:Output Right"
     ];
-    "capture.volumes" = [
+    "playback.volumes" = [
       {
         control = "apm:Volume Left";
         min = 0;

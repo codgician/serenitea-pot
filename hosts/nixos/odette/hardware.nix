@@ -1,7 +1,7 @@
 { lib, pkgs, ... }:
 let
   chromeosUcm = pkgs.redrix.chromeos-ucm;
-  pipewireWithChromeosUcm = pkgs.redrix.pipewire.override {
+  pipewireWithChromeosUcm = pkgs.pipewire.override {
     alsa-lib = pkgs.alsa-lib.override { alsa-ucm-conf = chromeosUcm; };
   };
   rustFp = pkgs.nur.repos.codgician.rust-fp;
@@ -101,13 +101,13 @@ in
       package = pipewireWithChromeosUcm;
 
       # Electron/Chromium clients (Cider, Edge, Teams) ask for ~10 ms buffers,
-      # which drags the whole graph, EasyEffects included, down to a 480/512
+      # which drags the whole graph down to a 480/512
       # sample quantum. On the powersave governor that is where the xruns show
       # up; keep the graph at the 1024-sample (21 ms) default instead.
       extraConfig.pipewire."92-min-quantum"."context.properties"."default.clock.min-quantum" = 1024;
 
       wireplumber = {
-        package = pkgs.wireplumber.override {
+        package = pkgs.unstable.wireplumber.override {
           pipewire = pipewireWithChromeosUcm;
         };
 

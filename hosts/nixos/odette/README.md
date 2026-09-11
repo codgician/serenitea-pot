@@ -6,90 +6,94 @@ HP Elite Dragonfly chromebook
 
 ### Current audio path
 
-Select **Speakers** and **Internal Microphone** in KDE. PipeWire's native
-`audioconvert.filter-graph.0` embeds the processing in each physical ALSA node:
+Select **Speakers** and **Internal Microphone** in KDE. Both are standard
+`libpipewire-module-filter-chain` endpoints, created by WirePlumber's upstream
+`node.software-dsp` policy when their corresponding ALSA devices appear:
 
 ```text
-Speaker: applications -> CRAS DRC -> EQ -> speaker gain/ramp -> ALSA
-Mic1:    PCM99 channels 0/1 -> unity stereo route -> WebRTC speech APM -> output attenuation -> applications
+applications -> Speakers filter [CRAS DRC -> EQ -> volume/ramp] -> raw ALSA speaker
+applications <- Internal Microphone filter [APM -> attenuation] <- raw PCM99 channels 0/1
 ```
 
-The graph consumes the node's `channelVolumes` and mute changes directly through
-`capture.volumes`. The adapter's ordinary software gain/mute is locked at unity,
-so it cannot apply a second gain or cut off the plugin's mute ramp. Desktop
-controllers still use the ALSA device Route for their requested volume/mute.
-Low-level node Props can therefore show unity; PulseAudio's reported dB remains
-the nominal cubic-control value, not the board-specific applied gain.
+Plasma's tray volume applet hides virtual devices by default. Enable **Show
+virtual devices** in the volume icon's context menu (or the applet's **More
+actions** menu) to display these endpoints there. System Settings can show them
+even while the tray list is empty. This only changes the applet's display
+filter; it does not expose the hidden raw backends or bypass DSP.
 
-The native adapter keeps a separate snapshot of requested graph volume/mute.
-It initializes each graph from that snapshot before activation, using normal
-unity volume only when no request has arrived. This matters because ACP may
-not send a changed-volume event for a route already at 100%. The snapshot is
-independent of the locked software mixer, and survives format/graph recreation;
-saved lower volumes, mute and stereo balance are not replaced with defaults.
+`software-dsp.nix` binds each filter to exactly one backend. Physical node names
+gain a `.raw` suffix; the public endpoints retain the previous node names and
+desktop descriptions. Headset, headphones, HDMI and Bluetooth are not matched
+by these rules. There is no parallel scheme-A configuration or compatibility
+alias; the committed previous implementation is the rollback reference.
 
-The speaker plugin imports all 101 entries from the pinned ChromeOS
-`sof-rt5682.card_settings` `[Speaker]` section at build time. Desktop percentages
-are rounded to the nearest integer table position; 20% is -27 dB, 50% is
--13.5 dB, and 98-100% is 0 dB. Zero is silence, and requests above 100% cannot
-raise the actual speaker gain above unity. Amplifier gains remain independent.
-Fractional/native requests follow this explicitly defined percentage policy.
+The public speaker sink uses `capture.volumes`; the public microphone source
+uses `playback.volumes`. These upstream filter-chain controls drive the same
+LADSPA volume ports as before. Backend adapters and private connecting streams
+keep their software gain at unity, and private streams do not restore separate
+volume/target state. The public endpoints alone own desktop volume and mute.
+PulseAudio's reported dB is still the nominal cubic-control value, not the
+board-specific applied gain.
 
-Speaker amplitude ramps run sample-by-sample: activation starts from silence
-over 10 ms, ordinary changes and mute take 100 ms, and leaving a zero target
-takes 500 ms. Interrupted ramps continue from the current gain; an unchanged
-target does not restart the ramp. Mute and a zero slider both reach the same
-zero target. ChromeOS's separate resume/switch silence windows and exact client
-event classification are not reproduced by these ramps.
+**First cutover starts at 0% for both processed endpoints.** Scheme A stored
+volume on ALSA device Routes, while these virtual endpoints use WirePlumber's
+native stream-properties state. Old Route volume/mute values are not silently
+reinterpreted as filter state. Set the desired volume once after activation;
+subsequent filter recreation and session-manager restarts use native state
+restoration. Existing default-device names remain valid.
 
-There are no auxiliary sinks/streams, Smart Filters substitutions, visibility
-exceptions, asynchronous gain-correction Lua, or standalone speaker-DSP service.
-The graph follows ALSA node creation and destruction, eliminating the separate
-process/link race and extra stream gains. DSP now shares its ALSA adapter host
-instead of having a dedicated crash-isolation process. The local PipeWire patch
-propagates explicit graph load/activation failures rather than publishing a dry
-fallback. Graph replacement is disabled after initial configuration.
+Upstream `hide-parent` removes ordinary clients' access to the raw backend,
+including clients that connect later. A missing plugin leaves the processed
+endpoint absent and the raw parent hidden; it must not become an unprocessed
+fallback. Private streams have explicit targets, `node.dont-fallback`,
+`node.dont-move` and `node.linger`, so they wait for their own hardware rather
+than switching to another device. Parent removal releases its filter module.
+After correcting a plugin/configuration load failure, restart WirePlumber to
+recreate the filters. These session-policy permissions are not a security
+boundary against a user who can use direct ALSA or privileged diagnostic clients.
 
-The first embedded-graph deployment exposed a PipeWire 1.6.6 lifecycle race:
-Suspend cleared plugin handles while an ALSA callback still saw the old graph.
-The retained crash had `started=0`, `setup=0`, `n_graph=1` and a null LADSPA
-handle. `pipewire-graph-snapshot-backport.patch` withdraws graphs under the
-data-loop lock before rebuild and teardown. It adapts two upstream fixes to
-1.6.6 rather than claiming to be an unmodified cherry-pick.
-`pipewire-graph-lifecycle.patch` separately maintains local Suspend ordering,
-live Flush resets and stopped-callback handling.
+The modules run inside WirePlumber, not a new DSP daemon. The profile requires
+the native `pw.node-factory.adapter` feature, whose dependencies load client-node
+and the export core once. Do not also load those modules in `context.modules`:
+that duplicates native component registration when hardware features activate.
+PipeWire has no local audio source patches; its board-specific package override
+selects the UCM through alsa-lib. Only WirePlumber needs the LADSPA package.
 
-The series is deliberately ordered in `overlays/24-redrix-firmware/default.nix`:
+Odette selects WirePlumber from `pkgs.unstable.wireplumber` (currently 0.5.17),
+keeping only the PipeWire dependency override for the board's UCM. It includes upstream
+[`5941c9f4bcc9`](https://github.com/PipeWire/wireplumber/commit/5941c9f4bcc97cbe1fefc581436b4c93a40d7e0d),
+which prevents a partial `Props` object from erasing previously collected mute
+or volume state. This matters for a speaker filter exposing both ordinary
+volume properties and plugin-control properties. Use the pinned unstable package
+for newer audio releases rather than maintaining a local version/source override.
+No local WirePlumber source patches or custom Lua scripts are introduced.
+Its existing state directory holds volumes; no new persistence or tmpfiles rule
+is needed.
 
-| Patch | Status and removal condition |
-| --- | --- |
-| `pipewire-required-graph.patch` | Local failure policy/error propagation; remove only when explicit graphs fail closed and initialization errors propagate upstream. |
-| `pipewire-graph-snapshot-backport.patch` | Adapted upstream backport; remove when rebuild, cleanup and reset all withdraw the data-loop snapshot. PipeWire 1.6.8 only covers part of this. |
-| `pipewire-graph-lifecycle.patch` | Local lifecycle fixes; remove when upstream provides equivalent follower-first Suspend, live Flush and stopped-callback behavior. |
-| `pipewire-graph-volume.patch` | Local volume-state fix; remove when requested volume/mute survives locked mixing and is restored before graph activation. |
+The speaker plugin still imports all 101 entries of the pinned ChromeOS board
+curve. Percentages round to integer table entries: 20% is -27 dB, 50% is
+-13.5 dB, and 98-100% is 0 dB. Zero is silence; values above 100% cannot exceed
+unity. The unchanged plugin implements 10 ms activation, 100 ms ordinary gain
+changes and 500 ms recovery from a zero target. However, **native filter-chain
+mute and 0% also silence the stream immediately**, so scheme A's 100 ms
+fade-out is not preserved. This is the chosen upstream behavior; locking the
+public stream mixer would break native volume/mute restoration. Nonzero volume
+curves and the DSP algorithms remain unchanged. The DRC still reports its
+288-frame predelay at 48 kHz, and the amplifier retains its safe-mode gain.
 
-Each patch header records its base, provenance/status, regression and retirement
-criteria. Local fixes have no tracked upstream submission. Do not remove a patch
-based solely on a version number or because its hunks still apply. Splitting or
-rebasing this series without a behavior change must preserve the resulting
-`audioconvert.c` and `audioadapter.c` byte-for-byte; then run the graph checks.
-
-The LADSPA `latency` output reports the compressor's actual predelay (288 frames
-at 48 kHz); PipeWire propagates it through port latency. This is reporting, not
-an additional delay line. The ChromeOS board's separate +64 ms timestamp offset
-has not been applied without checking existing hardware timing compensation.
-
-There is no custom WirePlumber runtime script or separate audio service. No new
-persistent directory or tmpfiles rule is needed. Headset, headphones, HDMI and
-Bluetooth are not matched by the internal speaker/microphone graph rules.
+Filter-chain adds stream scheduling to the graph; plugin latency alone is not
+end-to-end latency. Preserve the existing hardware quantum/headroom/no-suspend
+settings and validate real playback, recording and suspend/resume before drawing
+latency or power conclusions. The board's separate +64 ms timestamp offset is
+still not applied without hardware timing verification.
 
 ### System microphone speech processing
 
-The physical **Internal Microphone** includes `redrix_mic_apm`, a stereo LADSPA
-adapter around Nixpkgs' WebRTC audio-processing library. It is system-wide for
-PipeWire/PulseAudio applications, including KDE Recorder: no virtual input,
-per-application opt-in, extra daemon or separate volume-restoration script is
-needed. Direct ALSA capture bypasses this processing.
+The public **Internal Microphone** uses `redrix_mic_apm`, a stereo LADSPA adapter
+around Nixpkgs' WebRTC audio-processing library. Ordinary PipeWire/PulseAudio
+applications, including KDE Recorder, receive this processed input without
+per-application opt-in. The underlying raw node is not a second selectable
+microphone. Direct ALSA capture bypasses the processing.
 
 The ALSA route stays at unity. WebRTC applies high-pass filtering and high-level
 noise suppression, followed by adaptive digital AGC2. Fixed +20 dB sensitivity
@@ -181,10 +185,11 @@ Do not copy another unit's calibration values.
 
 ### Monitor and processing boundaries
 
-With embedded device DSP, the standard sink monitor is the unmodified adapter
-input, before the graph and its gain. It is not a measurement of the sound sent
-to the speakers and is not automatically a suitable echo-cancellation reference.
-Do not infer SPL or applied board gain from a monitor recording or `pactl` dB.
+The public speaker filter's monitor is before its DSP and volume. The hidden
+physical backend's monitor is after the filter, but is only available to trusted
+diagnostics/processing contexts. Neither is a measurement of acoustic SPL.
+AEC still requires a validated reference and hardware timing; changing the graph
+layout does not automatically make either monitor a correct echo reference.
 
 The old EasyEffects presets/service are not configured. Direct ALSA clients
 bypass the PipeWire graphs, including microphone gain compensation; use the
@@ -319,24 +324,32 @@ Run the retained plugin checks with:
 nix build .#nixosConfigurations.odette.pkgs.redrix.cras-dsp --no-link -L
 ```
 
-`check-pipewire-graphs.py` exercises these contracts using an isolated real
-PipeWire host and ALSA file/null PCMs. A continuously fed FIFO avoids input
-exhaustion; synthetic-clock resampling is disabled. The unchanged speaker gain
-stage supplies exact adapter volume/lifecycle checks on a synthetic ALSA source.
-A missing-plugin negative case must reject the node, followed by a working
-control node, so neither silent DSP bypass nor a dead server can pass.
-These cover default initialization without a volume event, saved gain/mute,
-stereo balance, active Suspend/Start and Flush cycles, and reopening. Steady
-gain is checked across the entire settled window, not just its peak, so a single
-correct sample cannot hide dropped audio. Startup and mute/unmute ramps have
-explicit settling windows.
-The suite also opens the installed UCM route against distinct four-channel S32
-samples. The production speech APM graph receives synthetic voiced harmonics,
-checking bounded output, post-AGC balance, mute and reactivation without assuming
-a fixed adaptive gain value.
+`check-pipewire-graphs.py` runs unmodified PipeWire and WirePlumber in a private
+runtime directory and D-Bus session. Native tone sources and a null sink stand
+in for hardware; the same software-DSP rules and complete filter graphs are
+loaded by WirePlumber. It checks hidden raw parents, safe first-use volume,
+single gain ownership, post-APM balance, mute, the full speaker volume curve,
+backend removal/recreation, unrelated-device isolation and native volume-state
+restoration across WirePlumber restart. Missing microphone/speaker plugins must
+reject explicit and default application requests rather than exposing raw audio.
+The separate installed-UCM check still verifies selection of channels 0/1 from
+distinct four-channel S32 samples with ALSA's parser and file/null PCMs.
+Speaker checks also change volume while idle and verify public readback against
+rendered output without resending the volume at playback start. Non-default
+stereo volume and mute must survive a WirePlumber restart; unmuting without a
+new volume command must recover the saved gain, not a default.
 
-Odette's `system.checks` runs this against its actual configured PipeWire package
-on every changed system build; a failed graph regression prevents that build.
+Captures require a fresh, complete sample file and no recorder diagnostics.
+PipeWire 1.6.x's `pw-cat --sample-count` can exit 1 after a complete recording
+because that path does not mark the stream drained; this is checked alongside
+the sample count rather than treated as success by exit status alone. Missing-DSP
+probes require either a server `ENOENT` rejection or a live, registered,
+non-running stream waiting for a target, as well as no captured/raw output.
+An unrelated command failure or an unregistered hung process cannot pass.
+
+Odette's `system.checks` uses its actual PipeWire and WirePlumber packages; a
+failed routing regression prevents the system build. No embedded graph or local
+PipeWire patch is used by these checks.
 The generic package can also be tested with:
 
 ```bash
@@ -359,8 +372,11 @@ sudo nixos-rebuild switch --flake .#odette
 
 Changed audio units restart during activation, briefly interrupting playback
 and recording. Verify that **Speakers** and **Internal Microphone** return as
-defaults before testing. This is not an instruction to switch new UCM controls
-onto incompatible running firmware.
+defaults. On the first scheme-B cutover both endpoints intentionally start at
+0%; choose a moderate speaker level and the desired microphone level once, then
+verify that restarting an application preserves those choices. Future updates
+restore native filter state. Do not switch new UCM controls onto incompatible
+running firmware.
 
 #### Firmware, topology or boot-parameter updates
 
@@ -392,11 +408,25 @@ wpctl status -n
 journalctl --user -b -u pipewire.service -u wireplumber.service --no-pager
 ```
 
+The `gain:Volume Left/Right` custom-control values in a node's `Props` dump are
+diagnostic snapshots, not continuous measurements of samples reaching ALSA.
+They need not refresh on every ordinary volume update. Use the public
+`channelVolumes`/`mute` values for desktop state, and a controlled post-DSP audio
+measurement to establish actual gain. A differing custom-control snapshot alone
+does not prove an incorrect volume or justify a volume-synchronization script.
+
 Do not stop a DSP service for a dry comparison: there is no separate service
 now. A deliberate raw-ALSA comparison bypasses the graphs and is not equivalent
 to lowering the desktop volume.
 
 ### Historical comparisons and remaining gaps
+
+Scheme A embedded the same DSP/APM in ALSA audioconvert nodes and maintained
+four PipeWire patches for graph failure, snapshot withdrawal, lifecycle and
+volume restoration. Scheme B removes those patches and the patched package
+export; historical commits retain the previous implementation. Its direct
+adapter callback tests are replaced by native filter-chain/session-policy tests,
+while DSP/APM algorithm tests remain unchanged.
 
 The former vendored RTC/RTNR firmware, `redrix.noise-reduction` setting and
 control script are removed. They are not required by the current host APM.
