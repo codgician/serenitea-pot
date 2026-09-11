@@ -67,6 +67,11 @@ in
   };
 
   services = {
+    # Keep the Bluetooth pen independent of keyd's tablet-mode-disabled keyboard.
+    udev.extraHwdb = ''
+      evdev:input:b0005v18D1p4F80*
+       KEYBOARD_KEY_c0190=f14
+    '';
     dbus.packages = [ rustFp ];
     keyd = {
       enable = true;

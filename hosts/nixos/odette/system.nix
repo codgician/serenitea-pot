@@ -132,6 +132,7 @@ in
         gimp
         kdePackages.cantor
         kdePackages.kalgebra
+        drawy
         chatgpt-wrapped
         azure-cli
       ];
