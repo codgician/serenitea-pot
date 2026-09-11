@@ -61,17 +61,32 @@ in
     nodes = [
       {
         type = "ladspa";
-        name = "gain";
+        name = "apm";
         plugin = library;
-        label = "redrix_mic_gain";
-        control."Volume" = 0;
+        label = "redrix_mic_apm";
+        control = {
+          "Volume Left" = 0;
+          "Volume Right" = 0;
+        };
       }
     ];
-    inputs = [ "gain:Input" ];
-    outputs = [ "gain:Output" ];
+    inputs = [
+      "apm:Input Left"
+      "apm:Input Right"
+    ];
+    outputs = [
+      "apm:Output Left"
+      "apm:Output Right"
+    ];
     "capture.volumes" = [
       {
-        control = "gain:Volume";
+        control = "apm:Volume Left";
+        min = 0;
+        max = 100;
+        scale = "cubic";
+      }
+      {
+        control = "apm:Volume Right";
         min = 0;
         max = 100;
         scale = "cubic";

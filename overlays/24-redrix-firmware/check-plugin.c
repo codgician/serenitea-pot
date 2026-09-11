@@ -3,6 +3,7 @@
 #include <dlfcn.h>
 #include <ladspa.h>
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,9 +31,10 @@ struct speaker_ports {
 };
 
 struct mic_ports {
-  unsigned long input;
-  unsigned long output;
-  unsigned long volume;
+  struct stereo_ports audio;
+  unsigned long volume_left;
+  unsigned long volume_right;
+  unsigned long latency;
 };
 
 static void assert_close(float actual, float expected) {
@@ -377,61 +379,138 @@ static void test_speaker_ramps(const LADSPA_Descriptor *descriptor,
   descriptor->cleanup(handle);
 }
 
-static float expected_mic_gain(float control) {
-  if (!isfinite(control) || control <= 0.0f) return 0.0f;
-  if (control > 100.0f) control = 100.0f;
-  float decibels = 20.0f + 0.4f * (control - 50.0f);
-  if (decibels > 40.0f) decibels = 40.0f;
-  return powf(10.0f, decibels / 20.0f);
-}
-
-static void connect_mic(const LADSPA_Descriptor *descriptor, LADSPA_Handle handle,
-                        struct mic_ports ports, float *input, float *output,
-                        float *volume) {
-  descriptor->connect_port(handle, ports.input, input);
-  descriptor->connect_port(handle, ports.output, output);
-  descriptor->connect_port(handle, ports.volume, volume);
-}
-
-static void test_mic_gain(const LADSPA_Descriptor *descriptor,
-                          struct mic_ports ports) {
-  static float source[] = { 0.02f, -0.01f, 0.0f, 0.003f };
-  static const float controls[] = {
-    0.0f, 50.0f, 50.5f, 100.0f, 1000.0f, -1.0f, NAN, INFINITY,
-  };
-  float output[sizeof(source) / sizeof(*source)];
-
-  for (unsigned long test = 0; test < sizeof(controls) / sizeof(*controls);
-       ++test) {
-    float control = controls[test];
-    LADSPA_Handle handle = descriptor->instantiate(descriptor, 48000);
-    assert(handle != NULL);
-    connect_mic(descriptor, handle, ports, source, output, &control);
-    descriptor->activate(handle);
-    descriptor->run(handle, sizeof(source) / sizeof(*source));
-    descriptor->deactivate(handle);
-    descriptor->cleanup(handle);
-
-    const float gain = expected_mic_gain(control);
-    for (unsigned long frame = 0; frame < sizeof(source) / sizeof(*source);
-         ++frame)
-      assert_close(output[frame], source[frame] * gain);
-    if (control == 100.0f) assert(output[0] > 1.0f);
+static void run_mic(const LADSPA_Descriptor *descriptor, LADSPA_Handle handle,
+                    struct mic_ports ports, float **input, float **output,
+                    unsigned long quantum) {
+  for (unsigned long offset = 0; offset < FRAMES; offset += quantum) {
+    unsigned long count = FRAMES - offset;
+    if (count > quantum) count = quantum;
+    descriptor->connect_port(handle, ports.audio.input_left, input[0] + offset);
+    descriptor->connect_port(handle, ports.audio.input_right, input[1] + offset);
+    descriptor->connect_port(handle, ports.audio.output_left, output[0] + offset);
+    descriptor->connect_port(handle, ports.audio.output_right, output[1] + offset);
+    descriptor->run(handle, count);
   }
+}
 
-  float in_place[sizeof(source) / sizeof(*source)];
-  memcpy(in_place, source, sizeof(source));
-  float control = 100.0f;
+static void test_mic_apm(const LADSPA_Descriptor *descriptor,
+                         struct mic_ports ports) {
+  float *input[2], *reference[2], *output[2];
+  for (int channel = 0; channel < 2; ++channel) {
+    input[channel] = calloc(FRAMES, sizeof(float));
+    reference[channel] = calloc(FRAMES, sizeof(float));
+    output[channel] = calloc(FRAMES, sizeof(float));
+    assert(input[channel] && reference[channel] && output[channel]);
+    for (unsigned long i = 0; i < FRAMES; ++i) {
+      const float phase = 2 * 3.14159265358979323846f * (float)i / 48000;
+      input[channel][i] = 0.15f * (1 + sinf(7 * phase)) *
+          (sinf((channel ? 230 : 170) * phase) + 0.3f * sinf(610 * phase));
+    }
+  }
+  float left = 100, right = 100, latency = -1;
   LADSPA_Handle handle = descriptor->instantiate(descriptor, 48000);
-  assert(handle != NULL);
-  connect_mic(descriptor, handle, ports, in_place, in_place, &control);
+  assert(handle);
+  assert(descriptor->instantiate(descriptor, 44100) == NULL);
+  descriptor->connect_port(handle, ports.volume_left, &left);
+  descriptor->connect_port(handle, ports.volume_right, &right);
+  descriptor->connect_port(handle, ports.latency, &latency);
   descriptor->activate(handle);
-  descriptor->run(handle, sizeof(in_place) / sizeof(*in_place));
+  run_mic(descriptor, handle, ports, input, reference, 256);
+  assert(latency == 480);
+  double energy = 0;
+  for (int channel = 0; channel < 2; ++channel)
+    for (unsigned long i = 0; i < FRAMES; ++i) {
+      assert(isfinite(reference[channel][i]));
+      assert(fabsf(reference[channel][i]) <= 1.0f);
+      if (i < 480) assert(reference[channel][i] == 0);
+      energy += reference[channel][i] * reference[channel][i];
+    }
+  assert(energy > 1.0); // A broken/missing processor must not pass by silencing.
+  const unsigned long quanta[] = {1, 31, 480, 2049, FRAMES};
+  for (unsigned long q = 0; q < sizeof(quanta) / sizeof(*quanta); ++q) {
+    descriptor->deactivate(handle);
+    descriptor->activate(handle);
+    run_mic(descriptor, handle, ports, input, output, quanta[q]);
+    for (int channel = 0; channel < 2; ++channel)
+      for (unsigned long i = 0; i < FRAMES; ++i)
+        assert_close(output[channel][i], reference[channel][i]);
+  }
+  left = 50;
+  right = 75;
+  descriptor->deactivate(handle);
+  descriptor->activate(handle);
+  run_mic(descriptor, handle, ports, input, output, 113);
+  for (unsigned long i = 0; i < FRAMES; ++i) {
+    assert_close(output[0][i], reference[0][i] * 0.1f);
+    assert_close(output[1][i], reference[1][i] * sqrtf(0.1f));
+  }
+  // Muting must silence even the already processed, buffered output.
+  left = 0;
+  right = NAN;
+  run_mic(descriptor, handle, ports, input, output, 31);
+  for (int channel = 0; channel < 2; ++channel)
+    for (unsigned long i = 0; i < FRAMES; ++i) assert(output[channel][i] == 0);
+  left = 1000;
+  right = 100;
+  descriptor->deactivate(handle);
+  descriptor->activate(handle);
+  for (int channel = 0; channel < 2; ++channel)
+    memcpy(output[channel], input[channel], FRAMES * sizeof(float));
+  run_mic(descriptor, handle, ports, output, output, 8192);
+  for (int channel = 0; channel < 2; ++channel)
+    for (unsigned long i = 0; i < FRAMES; ++i)
+      assert_close(output[channel][i], reference[channel][i]);
   descriptor->deactivate(handle);
   descriptor->cleanup(handle);
-  for (unsigned long frame = 0; frame < sizeof(in_place) / sizeof(*in_place);
-       ++frame)
-    assert_close(in_place[frame], source[frame] * expected_mic_gain(control));
+  for (int channel = 0; channel < 2; ++channel) {
+    free(input[channel]);
+    free(reference[channel]);
+    free(output[channel]);
+  }
+  puts("PASS: speech APM bounded output, post-AGC volume, buffered mute, block sizes and lifecycle");
+}
+
+static void test_mic_noise_suppression(const LADSPA_Descriptor *descriptor,
+                                       struct mic_ports ports) {
+  enum { BLOCK = 480, BLOCKS = 600, WARMUP = 300 };
+  float input[2][BLOCK], output[2][BLOCK];
+  float volume = 100;
+  LADSPA_Handle handle = descriptor->instantiate(descriptor, 48000);
+  assert(handle);
+  descriptor->connect_port(handle, ports.audio.input_left, input[0]);
+  descriptor->connect_port(handle, ports.audio.input_right, input[1]);
+  descriptor->connect_port(handle, ports.audio.output_left, output[0]);
+  descriptor->connect_port(handle, ports.audio.output_right, output[1]);
+  descriptor->connect_port(handle, ports.volume_left, &volume);
+  descriptor->connect_port(handle, ports.volume_right, &volume);
+  descriptor->activate(handle);
+  uint32_t random_state = 719;
+  double input_energy = 0, output_energy[2] = {0, 0};
+  for (unsigned int block = 0; block < BLOCKS; ++block) {
+    for (unsigned int frame = 0; frame < BLOCK; ++frame) {
+      random_state = random_state * UINT32_C(1664525) + UINT32_C(1013904223);
+      const float noise = (float)(random_state >> 8) / 16777215.0f * 0.006f - 0.003f;
+      input[0][frame] = input[1][frame] = noise;
+      if (block >= WARMUP) input_energy += (double)noise * noise;
+    }
+    descriptor->run(handle, BLOCK);
+    if (block >= WARMUP)
+      for (unsigned int channel = 0; channel < 2; ++channel)
+        for (unsigned int frame = 0; frame < BLOCK; ++frame) {
+          const float value = output[channel][frame];
+          assert(isfinite(value));
+          output_energy[channel] += (double)value * value;
+        }
+  }
+  descriptor->deactivate(handle);
+  descriptor->cleanup(handle);
+  // Require at least 6 dB attenuation versus the +20 dB compensated input,
+  // not a particular WebRTC release's adaptive output. The separate voiced
+  // test rejects a processor that merely silences everything.
+  const double compensated_energy = input_energy * 100;
+  for (unsigned int channel = 0; channel < 2; ++channel)
+    assert(output_energy[channel] < compensated_energy * 0.25);
+  puts("PASS: microphone suppresses stationary noise after adaptation");
 }
 
 int main(int argc, char **argv) {
@@ -450,7 +529,7 @@ int main(int argc, char **argv) {
   const LADSPA_Descriptor *speaker =
       require_descriptor(entry, 1, "redrix_speaker_gain");
   const LADSPA_Descriptor *mic =
-      require_descriptor(entry, 2, "redrix_mic_gain");
+      require_descriptor(entry, 2, "redrix_mic_apm");
   assert(entry(3) == NULL);
 
   struct dsp_ports dsp_ports = {
@@ -474,11 +553,13 @@ int main(int argc, char **argv) {
   assert_percent_range(speaker, speaker_ports.volume_right);
 
   struct mic_ports mic_ports = {
-    .input = find_port(mic, "Input", LADSPA_PORT_INPUT | LADSPA_PORT_AUDIO),
-    .output = find_port(mic, "Output", LADSPA_PORT_OUTPUT | LADSPA_PORT_AUDIO),
-    .volume = find_port(mic, "Volume", LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL),
+    .audio = find_stereo_ports(mic),
+    .volume_left = find_port(mic, "Volume Left", LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL),
+    .volume_right = find_port(mic, "Volume Right", LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL),
+    .latency = find_port(mic, "latency", LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL),
   };
-  assert_percent_range(mic, mic_ports.volume);
+  assert_percent_range(mic, mic_ports.volume_left);
+  assert_percent_range(mic, mic_ports.volume_right);
 
   const unsigned long rates[] = { 44100, 48000, 96000 };
   const unsigned long quanta[] = { 1, 31, 256, 2048, 2049, 8192, FRAMES };
@@ -522,8 +603,9 @@ int main(int argc, char **argv) {
 
   test_speaker_curve(speaker, speaker_ports);
   test_speaker_ramps(speaker, speaker_ports);
-  test_mic_gain(mic, mic_ports);
-  puts("PASS: ChromeOS speaker curve, linear ramps, and microphone gain");
+  test_mic_apm(mic, mic_ports);
+  test_mic_noise_suppression(mic, mic_ports);
+  puts("PASS: ChromeOS speaker curve and linear ramps");
 
   for (int channel = 0; channel < 2; ++channel) {
     free(input[channel]);

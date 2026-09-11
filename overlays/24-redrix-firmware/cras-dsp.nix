@@ -5,6 +5,8 @@
   fetchzip,
   gawk,
   ladspa-sdk,
+  pkg-config,
+  webrtc-audio-processing,
   ...
 }:
 
@@ -14,6 +16,16 @@ let
     hash = "sha256-C9B6ACbMnjf4dcg3ALej1xVaPdA3JnqISobOFUBww24=";
     stripRoot = false;
   };
+  dspNames = [
+    "biquad"
+    "crossover2"
+    "drc"
+    "drc_kernel"
+    "drc_math"
+    "eq2"
+  ];
+  dspSources = lib.escapeShellArgs (map (name: "audio/hal/dsp/${name}.c") dspNames);
+  dspObjects = lib.escapeShellArgs (map (name: "${name}.o") dspNames);
 in
 stdenv.mkDerivation {
   pname = "redrix-cras-dsp";
@@ -25,14 +37,24 @@ stdenv.mkDerivation {
     hash = "sha256-+XGsOcgHdIaDCoQ1sglcEbYmOJE+KTI/1Nty4sNwgg8=";
   };
 
-  nativeBuildInputs = [ gawk ];
+  nativeBuildInputs = [
+    gawk
+    pkg-config
+  ];
+  buildInputs = [ webrtc-audio-processing ];
 
   postPatch = ''
     cp ${./redrix-cras-dsp.c} redrix-cras-dsp.c
+    cp ${./redrix-mic-apm.cpp} redrix-mic-apm.cpp
   '';
 
   buildPhase = ''
     runHook preBuild
+    # Shared with checkPhase so sanitized and normal builds use the same inputs.
+    adapterIncludes=(-I. -Iaudio/hal/dsp -I${ladspa-sdk}/include)
+    webrtcCflags=( $(pkg-config --cflags webrtc-audio-processing-2)
+      -isystem "$(pkg-config --variable=includedir webrtc-audio-processing-2)/webrtc-audio-processing-2" )
+    webrtcLibs=( $(pkg-config --libs webrtc-audio-processing-2) )
     # Keep the ChromeOS PA curve as integer centibels.  The plugin rounds its
     # percent control before indexing this generated, complete 0..100 table.
     awk -F ' = ' '
@@ -70,17 +92,14 @@ stdenv.mkDerivation {
 
     # Catch incomplete descriptors and incorrect callback types in our adapter.
     $CC -std=gnu11 -O2 -Wall -Wextra -Werror -fPIC \
-      -I. -Iaudio/hal/dsp -I${ladspa-sdk}/include \
+      "''${adapterIncludes[@]}" \
       -c redrix-cras-dsp.c -o adapter.o
-    $CC -std=gnu11 -O2 -fPIC -shared \
-      -I. -Iaudio/hal/dsp -I${ladspa-sdk}/include \
-      adapter.o \
-      audio/hal/dsp/biquad.c \
-      audio/hal/dsp/crossover2.c \
-      audio/hal/dsp/drc.c \
-      audio/hal/dsp/drc_kernel.c \
-      audio/hal/dsp/drc_math.c \
-      audio/hal/dsp/eq2.c \
+    $CXX -std=c++17 -O2 -Wall -Wextra -Werror -fPIC \
+      "''${webrtcCflags[@]}" -I${ladspa-sdk}/include \
+      -c redrix-mic-apm.cpp -o microphone.o
+    $CC -std=gnu11 -O2 -fPIC -c \
+      "''${adapterIncludes[@]}" ${dspSources}
+    $CXX -shared adapter.o microphone.o ${dspObjects} "''${webrtcLibs[@]}" \
       -lm -Wl,-z,defs -o redrix-cras-dsp.so
     runHook postBuild
   '';
@@ -93,11 +112,15 @@ stdenv.mkDerivation {
     ./check-plugin ./redrix-cras-dsp.so
 
     # Include the upstream DSP, not just the adapter, in memory-safety checks.
-    $CC -std=gnu11 -O1 -g -fPIC -shared \
+    $CC -std=gnu11 -O1 -g -fPIC -c \
       -fsanitize=address,undefined -fno-omit-frame-pointer \
-      -I. -Iaudio/hal/dsp -I${ladspa-sdk}/include \
-      redrix-cras-dsp.c audio/hal/dsp/{biquad,crossover2,drc,drc_kernel,drc_math,eq2}.c \
-      -lm -Wl,-z,defs -o checked.so
+      "''${adapterIncludes[@]}" redrix-cras-dsp.c ${dspSources}
+    $CXX -std=c++17 -O1 -g -fPIC -c \
+      -fsanitize=address,undefined -fno-omit-frame-pointer \
+      "''${webrtcCflags[@]}" -I${ladspa-sdk}/include \
+      redrix-mic-apm.cpp -o microphone-checked.o
+    $CXX -shared -fsanitize=address,undefined redrix-cras-dsp.o microphone-checked.o \
+      ${dspObjects} "''${webrtcLibs[@]}" -lm -Wl,-z,defs -o checked.so
     $CC -std=gnu11 -O1 -g -fsanitize=address,undefined \
       -I. -I${ladspa-sdk}/include ${./check-plugin.c} -ldl -lm -o check-sanitized
     ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=halt_on_error=1 ./check-sanitized ./checked.so
@@ -110,7 +133,7 @@ stdenv.mkDerivation {
   '';
 
   meta = {
-    description = "Redrix ChromeOS CRAS DSP and gain LADSPA descriptors";
+    description = "Redrix speaker DSP and system microphone speech APM";
     license = lib.licenses.bsd3;
     platforms = lib.platforms.linux;
   };

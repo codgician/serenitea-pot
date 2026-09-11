@@ -423,123 +423,13 @@ static const LADSPA_Descriptor speaker_descriptor = {
   .cleanup = speaker_cleanup,
 };
 
-enum redrix_mic_ports {
-  REDRIX_MIC_INPUT,
-  REDRIX_MIC_OUTPUT,
-  REDRIX_MIC_VOLUME,
-  REDRIX_MIC_PORT_COUNT,
-};
-
-struct redrix_mic_instance {
-  LADSPA_Data *ports[REDRIX_MIC_PORT_COUNT];
-  LADSPA_Data cached_percent;
-  float gain;
-  int has_cached_gain;
-  int active;
-};
-
-static LADSPA_Data mic_percent_from_control(LADSPA_Data value) {
-  if (!isfinite(value) || value <= 0.0f) return 0.0f;
-  return value > 100.0f ? 100.0f : value;
-}
-
-/* +20 dB corrects the microphone sensitivity.  CRAS's 0.4 dB/UI-percent
- * curve then reaches the requested +40 dB maximum at 100 percent. */
-static float mic_gain_for_percent(LADSPA_Data percent) {
-  if (percent <= 0.0f) return 0.0f;
-
-  float decibels = 20.0f + 0.4f * (percent - 50.0f);
-  if (decibels > 40.0f) decibels = 40.0f;
-  return powf(10.0f, decibels / 20.0f);
-}
-
-static LADSPA_Handle mic_instantiate(const LADSPA_Descriptor *descriptor,
-                                     unsigned long sample_rate) {
-  (void)descriptor;
-  (void)sample_rate;
-  return calloc(1, sizeof(struct redrix_mic_instance));
-}
-
-static void mic_connect_port(LADSPA_Handle handle, unsigned long port,
-                             LADSPA_Data *data) {
-  if (port < REDRIX_MIC_PORT_COUNT)
-    ((struct redrix_mic_instance *)handle)->ports[port] = data;
-}
-
-static void mic_activate(LADSPA_Handle handle) {
-  struct redrix_mic_instance *instance = handle;
-  instance->has_cached_gain = 0;
-  instance->active = 1;
-}
-
-static void mic_deactivate(LADSPA_Handle handle) {
-  ((struct redrix_mic_instance *)handle)->active = 0;
-}
-
-static void mic_run(LADSPA_Handle handle, unsigned long frames) {
-  struct redrix_mic_instance *instance = handle;
-  if (!instance->active || !instance->ports[REDRIX_MIC_INPUT] ||
-      !instance->ports[REDRIX_MIC_OUTPUT]) {
-    silence(instance->ports[REDRIX_MIC_OUTPUT], frames);
-    return;
-  }
-
-  const LADSPA_Data percent = mic_percent_from_control(
-      instance->ports[REDRIX_MIC_VOLUME] ? *instance->ports[REDRIX_MIC_VOLUME]
-                                          : 0.0f);
-  if (!instance->has_cached_gain || percent != instance->cached_percent) {
-    instance->cached_percent = percent;
-    instance->gain = mic_gain_for_percent(percent);
-    instance->has_cached_gain = 1;
-  }
-
-  for (unsigned long frame = 0; frame < frames; ++frame)
-    instance->ports[REDRIX_MIC_OUTPUT][frame] =
-        instance->ports[REDRIX_MIC_INPUT][frame] * instance->gain;
-}
-
-static void mic_cleanup(LADSPA_Handle handle) {
-  free(handle);
-}
-
-static const LADSPA_PortDescriptor mic_port_descriptors[] = {
-  LADSPA_PORT_INPUT | LADSPA_PORT_AUDIO,
-  LADSPA_PORT_OUTPUT | LADSPA_PORT_AUDIO,
-  LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL,
-};
-static const char *mic_port_names[] = {
-  "Input", "Output", "Volume",
-};
-static const LADSPA_PortRangeHint mic_port_hints[] = {
-  { 0, 0.0f, 0.0f },
-  { 0, 0.0f, 0.0f },
-  { LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, 0.0f, 100.0f },
-};
-
-static const LADSPA_Descriptor mic_descriptor = {
-  .UniqueID = 0x72647a,
-  .Label = "redrix_mic_gain",
-  .Properties = LADSPA_PROPERTY_HARD_RT_CAPABLE,
-  .Name = "Redrix ChromeOS microphone gain",
-  .Maker = "serenitea-pot",
-  .Copyright = "BSD-3-Clause",
-  .PortCount = REDRIX_MIC_PORT_COUNT,
-  .PortDescriptors = mic_port_descriptors,
-  .PortNames = mic_port_names,
-  .PortRangeHints = mic_port_hints,
-  .instantiate = mic_instantiate,
-  .connect_port = mic_connect_port,
-  .activate = mic_activate,
-  .run = mic_run,
-  .deactivate = mic_deactivate,
-  .cleanup = mic_cleanup,
-};
+extern const LADSPA_Descriptor *redrix_mic_apm_descriptor(void);
 
 const LADSPA_Descriptor *ladspa_descriptor(unsigned long index) {
   switch (index) {
     case 0: return &cras_descriptor;
     case 1: return &speaker_descriptor;
-    case 2: return &mic_descriptor;
+    case 2: return redrix_mic_apm_descriptor();
     default: return NULL;
   }
 }

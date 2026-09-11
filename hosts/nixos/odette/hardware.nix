@@ -30,10 +30,7 @@ in
       "iommu.passthrough=0"
       "intel_iommu=on"
       "i915.enable_guc=3"
-      "snd_sof.ipc_type=0"
-      "snd_sof.fw_path=intel/sof/redrix"
-      "snd_sof.fw_filename=sof-adl.ri"
-      "snd_sof.tplg_path=intel/sof-tplg/redrix"
+      # Chromebook DMI selects community firmware; pin only the paired topology.
       "snd_sof.tplg_filename=sof-adl-max98390-rt5682.tplg"
     ];
     kernelPackages = pkgs.linuxPackages_testing;
@@ -185,7 +182,8 @@ in
   };
 
   hardware = {
-    firmware = [
+    # These exact ChromeOS files must precede the stock redistributable SOF set.
+    firmware = lib.mkBefore [
       pkgs.redrix.max98390-firmware
       pkgs.redrix.sof-firmware
     ];

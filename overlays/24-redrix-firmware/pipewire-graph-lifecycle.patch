@@ -1,0 +1,182 @@
+# Backport provenance:
+# https://github.com/PipeWire/pipewire/commit/f174b4e688346898b7cdf3a45934ab91849d7369
+# https://github.com/PipeWire/pipewire/commit/f252ed337f4a84ddd376d1582ad27e1a3f754488
+#
+# The first upstream change establishes safe snapshot withdrawal before a
+# forced graph rebuild; the second extends that ordering to teardown.  This
+# 1.6.6 backport additionally keeps a live Flush in-place, quiesces the
+# callback-owning follower before Suspend teardown, and resets its cycle state.
+diff --git a/spa/plugins/audioconvert/audioconvert.c b/spa/plugins/audioconvert/audioconvert.c
+--- a/spa/plugins/audioconvert/audioconvert.c
++++ b/spa/plugins/audioconvert/audioconvert.c
+@@ -1293,2 +1293,4 @@
+ 
++static void unpublish_filter_graphs(struct impl *impl, bool force);
++
+ static int setup_filter_graphs(struct impl *impl, bool force)
+@@ -1307,2 +1309,5 @@
+ 
++	if (force)
++		unpublish_filter_graphs(impl, true);
++
+ 	spa_list_for_each_safe(g, t, &impl->active_graphs, link) {
+@@ -1310,4 +1315,2 @@
+ 			continue;
+-		if (force)
+-			g->setup = false;
+ 		if ((res = setup_filter_graph(impl, g, channels, position)) < 0) {
+@@ -1353,2 +1356,18 @@
+ 
++/* Pull graphs out of the data-loop snapshot before their handles change. */
++static void unpublish_filter_graphs(struct impl *impl, bool force)
++{
++	struct filter_graph *g;
++	bool sync = false;
++
++	spa_list_for_each(g, &impl->active_graphs, link) {
++		if (force && !g->removing)
++			g->setup = false;
++		if (g->removing || !g->setup)
++			sync = true;
++	}
++	if (sync)
++		sync_filter_graph(impl);
++}
++
+ static void clean_filter_handles(struct impl *impl, bool force)
+@@ -1357,2 +1376,4 @@
+ 
++	unpublish_filter_graphs(impl, force);
++
+ 	spa_list_for_each_safe(g, t, &impl->active_graphs, link) {
+@@ -2565,2 +2586,4 @@
+ 
++	unpublish_filter_graphs(this, true);
++
+ 	spa_list_for_each(g, &this->active_graphs, link) {
+@@ -2577,2 +2600,29 @@
+ 
++static int do_flush_node(struct spa_loop *loop, bool async, uint32_t seq,
++		const void *data, size_t size, void *user_data)
++{
++	struct impl *this = user_data;
++	struct filter_graph *g;
++	int res;
++
++	spa_list_for_each(g, &this->active_graphs, link) {
++		if (!g->setup || g->removing || g->graph == NULL)
++			continue;
++		if ((res = spa_filter_graph_reset(g->graph)) < 0)
++			return res;
++	}
++	if (this->resample.reset)
++		resample_reset(&this->resample);
++	this->in_offset = 0;
++	this->out_offset = 0;
++	return 0;
++}
++
++static int flush_node(struct impl *this)
++{
++	if (this->data_loop)
++		return spa_loop_locked(this->data_loop, do_flush_node, 0, NULL, 0, this);
++	return do_flush_node(NULL, false, 0, NULL, 0, this);
++}
++
+ static int impl_node_send_command(void *object, const struct spa_command *command)
+@@ -2594,4 +2644,5 @@
+ 	case SPA_NODE_COMMAND_Suspend:
++		this->started = false;
+ 		reset_node(this);
+-		SPA_FALLTHROUGH;
++		break;
+ 	case SPA_NODE_COMMAND_Pause:
+@@ -2600,4 +2651,3 @@
+ 	case SPA_NODE_COMMAND_Flush:
+-		reset_node(this);
+-		break;
++		return flush_node(this);
+ 	default:
+@@ -3823,2 +3873,5 @@
+ 
++	if (SPA_UNLIKELY(!this->started))
++		return SPA_STATUS_OK;
++
+ 	/* calculate quantum scale, this is how many samples we need to produce or
+diff --git a/spa/plugins/audioconvert/audioadapter.c b/spa/plugins/audioconvert/audioadapter.c
+--- a/spa/plugins/audioconvert/audioadapter.c
++++ b/spa/plugins/audioconvert/audioadapter.c
+@@ -1086,2 +1086,3 @@
+ 	case SPA_NODE_COMMAND_Suspend:
++		this->ready = false;
+ 		spa_log_debug(this->log, "%p: suspending", this);
+@@ -1099,17 +1100,41 @@
+ 
+-	res = spa_node_send_command(this->target, command);
+-	if (res == -ENOTSUP && this->target != this->follower)
+-		res = 0;
+-	if (res < 0) {
+-		spa_log_error(this->log, "%p: can't send command %d: %s",
+-				this, SPA_NODE_COMMAND_ID(command),
+-				spa_strerror(res));
+-	}
++	if (SPA_NODE_COMMAND_ID(command) == SPA_NODE_COMMAND_Suspend &&
++	    this->target != this->follower) {
++		int follower_res;
+ 
+-	if (res >= 0 && this->target != this->follower) {
+-		if ((res = spa_node_send_command(this->follower, command)) < 0) {
++		/* The follower owns the data-loop callback; stop it before target teardown. */
++		follower_res = spa_node_send_command(this->follower, command);
++		if (follower_res < 0) {
+ 			spa_log_error(this->log, "%p: can't send command %d: %s",
+ 					this, SPA_NODE_COMMAND_ID(command),
++					spa_strerror(follower_res));
++		}
++
++		res = spa_node_send_command(this->target, command);
++		if (res == -ENOTSUP)
++			res = 0;
++		if (res < 0) {
++			spa_log_error(this->log, "%p: can't send command %d: %s",
++					this, SPA_NODE_COMMAND_ID(command),
++					spa_strerror(res));
++		} else if (follower_res < 0) {
++			res = follower_res;
++		}
++	} else {
++		res = spa_node_send_command(this->target, command);
++		if (res == -ENOTSUP && this->target != this->follower)
++			res = 0;
++		if (res < 0) {
++			spa_log_error(this->log, "%p: can't send command %d: %s",
++					this, SPA_NODE_COMMAND_ID(command),
+ 					spa_strerror(res));
+ 		}
++
++		if (res >= 0 && this->target != this->follower) {
++			if ((res = spa_node_send_command(this->follower, command)) < 0) {
++				spa_log_error(this->log, "%p: can't send command %d: %s",
++						this, SPA_NODE_COMMAND_ID(command),
++						spa_strerror(res));
++			}
++		}
+ 	}
+@@ -1128,6 +1153,7 @@
+ 		configure_format(this, 0, NULL);
+ 		this->started = false;
+ 		this->warned = false;
++		this->driver = false;
+ 		this->ready = false;
+ 		spa_log_debug(this->log, "%p: suspended", this);
+ 		break;
+@@ -1529,3 +1555,3 @@
+ 		spa_log_info(this->log, "%p: ready stopped node", this);
+-		return -EIO;
++		return SPA_STATUS_OK;
+ 	}
+@@ -1825,3 +1851,3 @@
+ 		this->warned = true;
+-		return -EIO;
++		return SPA_STATUS_OK;
+ 	}

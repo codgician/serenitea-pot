@@ -1,7 +1,7 @@
 --- a/HiFi.conf
 +++ b/HiFi.conf
-@@ -1,216 +1,145 @@
-+# Based on ChromeOS brya recovery 16733.54.0:
+@@ -1,192 +1,142 @@
++# Adapted from the pinned ChromeOS Redrix UCM used with community SOF.
 +# /usr/share/alsa/ucm/sof-rt5682.redrix/HiFi.conf
 +# UCM2/desktop adaptations are noted at their respective sections.
  SectionVerb {
@@ -36,13 +36,44 @@
 -		cset "name='Tweeter Left Boost Clock Phase' 1"
 -		cset "name='Right Boost Clock Phase' 2"
 -		cset "name='Tweeter Right Boost Clock Phase' 3"
--		cset "name='RTNR10.0 rtnr_enable_10' off"
--		cset-tlv "name='GOOGLE_RTC_AUDIO_PROCESSING10.0 Config' /opt/google/rtc_audio_processing/AEC_Off.bin"
 -	]
 -	DisableSequence [
 -	]
--}
--
++    EnableSequence [
++        cdev "hw:${CardId}"
++        cset "name='Stereo1 DAC MIXL DAC L1 Switch' off"
++        cset "name='Stereo1 DAC MIXR DAC R1 Switch' off"
++        cset "name='RECMIX1L CBJ Switch' on"
++        cset "name='IF1 01 ADC Swap Mux' L/L"
++        cset "name='CBJ Boost Volume' 28"
++        cset "name='Stereo1 ADC L Mux' ADC1 L"
++        cset "name='Stereo1 ADC L1 Mux' ADC"
++        cset "name='Stereo1 ADC MIXL ADC2 Switch' off"
++        cset "name='Stereo1 ADC MIXL ADC1 Switch' on"
++        cset "name='Left DAI Sel Mux' Left"
++        cset "name='Tweeter Left DAI Sel Mux' Left"
++        cset "name='Right DAI Sel Mux' Right"
++        cset "name='Tweeter Right DAI Sel Mux' Right"
++        # Use the documented sound_card_init safe-mode value on this unit,
++        # not the original pre-calibration UCM values 153/155.
++        cset "name='Left Digital Volume' 138"
++        cset "name='Tweeter Left Digital Volume' 138"
++        cset "name='Right Digital Volume' 138"
++        cset "name='Tweeter Right Digital Volume' 138"
++        cset "name='Left Current Limit' 2.20A"
++        cset "name='Tweeter Left Current Limit' 2.20A"
++        cset "name='Right Current Limit' 2.20A"
++        cset "name='Tweeter Right Current Limit' 2.20A"
++        cset "name='Left Boost Clock Phase' 0"
++        cset "name='Tweeter Left Boost Clock Phase' 1"
++        cset "name='Right Boost Clock Phase' 2"
++        cset "name='Tweeter Right Boost Clock Phase' 3"
++        # CRAS uses host DRC/EQ on the reference. The pinned topology's EQIIR
++        # response assignments are already -1 (bypass) for both channels.
++        cset "name='MULTIBAND_DRC1.0 multiband_drc_enable_1' off"
++    ]
+ }
+ 
 -SectionDevice."Speaker".0 {
 -	Value {
 -		PlaybackPCM "hw:sofrt5682,0"
@@ -64,8 +95,29 @@
 -		cset "name='TL Spk Switch' off"
 -		cset "name='TR Spk Switch' off"
 -	]
--}
--
++SectionDevice."Speaker" {
++    Comment "Speakers"
++    Value {
++        PlaybackPCM "hw:${CardId},0"
++        PlaybackChannels 2
++        PlaybackPriority 100
++        # CRAS metadata; PipeWire uses our explicit speaker filter instead.
++        DspName "speaker_eq"
++    }
++    EnableSequence [
++        cset "name='Left Spk Switch' on"
++        cset "name='Right Spk Switch' on"
++        cset "name='TL Spk Switch' on"
++        cset "name='TR Spk Switch' on"
++    ]
++    DisableSequence [
++        cset "name='Left Spk Switch' off"
++        cset "name='Right Spk Switch' off"
++        cset "name='TL Spk Switch' off"
++        cset "name='TR Spk Switch' off"
++    ]
+ }
+ 
 -SectionDevice."Headphone".0 {
 -	Value {
 -		PlaybackPCM "hw:sofrt5682,1"
@@ -87,13 +139,34 @@
 -		cset "name='Stereo1 DAC MIXL DAC L1 Switch' 0"
 -		cset "name='Stereo1 DAC MIXR DAC R1 Switch' 0"
 -	]
--}
--
++# ChromeOS Headphone -> ALSA's standard Headphones device identifier.
++# JackControl replaces CRAS's JackDev/JackSwitch event-device mapping.
++SectionDevice."Headphones" {
++    Comment "Headphones"
++    Value {
++        PlaybackPCM "hw:${CardId},1"
++        PlaybackChannels 2
++        PlaybackPriority 200
++        PlaybackMixerElem "DAC1"
++        JackControl "Headphone Jack"
++    }
++    EnableSequence [
++        cset "name='Headphone Jack Switch' on"
++        cset "name='Stereo1 DAC MIXL DAC L1 Switch' 1"
++        cset "name='Stereo1 DAC MIXR DAC R1 Switch' 1"
++    ]
++    DisableSequence [
++        cset "name='Headphone Jack Switch' off"
++        cset "name='Stereo1 DAC MIXL DAC L1 Switch' 0"
++        cset "name='Stereo1 DAC MIXR DAC R1 Switch' 0"
++    ]
+ }
+ 
 -
 -SectionDevice."Internal Mic".0 {
 -	Value {
 -		CapturePCM "hw:sofrt5682,99"
--		CaptureChannelMap "0 0 -1 -1 -1 -1 -1 -1 -1 -1 -1"
+-		CaptureChannelMap "0 1 -1 -1 -1 -1 -1 -1 -1 -1 -1"
 -		IntrinsicSensitivity "-2600"
 -	}
 -	EnableSequence [
@@ -103,8 +176,19 @@
 -	DisableSequence [
 -		cdev "hw:sofrt5682"
 -	]
--}
--
++# ChromeOS Internal Mic -> Mic1 for ALSA port classification and stable node ID.
++# The reference maps logical FL/FR to raw PCM99 channels 0/1.
++SectionDevice."Mic1" {
++    Comment "Internal Microphone"
++    Value {
++        CapturePCM "redrix_mic"
++        CaptureChannels 2
++        CapturePriority 100
++        # Preserve the OEM CRAS metadata for applications that read it.
++        IntrinsicSensitivity "-2600"
++    }
+ }
+ 
 -
 -
 -SectionDevice."Mic".0 {
@@ -123,8 +207,19 @@
 -
 -		cset "name='Headset Mic Switch' off"
 -	]
--}
--
++# Keep the reference's four-channel S32_LE hardware PCM, selecting channels
++# 0 and 1 without mixing or gain. Avoid ACP's implicit SplitPCM node pair.
++LibraryConfig.mic.SubstiConfig.pcm.redrix_mic {
++    type route
++    slave {
++        pcm "hw:${CardId},99"
++        channels 4
++        format S32_LE
++    }
++    ttable.0.0 1.0
++    ttable.1.1 1.0
+ }
+ 
 -SectionDevice."HDMI1".0 {
 -	Value {
 -		PlaybackPCM "hw:sofrt5682,2"
@@ -134,8 +229,24 @@
 -	]
 -	DisableSequence [
 -	]
--}
--
++# ChromeOS Mic -> Headset. Mainline exposes the routing switch below, not a
++# "Headset Mic" capture-volume element; applications retain software volume.
++SectionDevice."Headset" {
++    Comment "Headset Microphone"
++    Value {
++        CapturePCM "hw:${CardId},1"
++        CaptureChannels 2
++        CapturePriority 200
++        JackControl "Headset Mic Jack"
++    }
++    EnableSequence [
++        cset "name='Headset Mic Switch' on"
++    ]
++    DisableSequence [
++        cset "name='Headset Mic Switch' off"
++    ]
+ }
+ 
 -SectionDevice."HDMI2".0 {
 -	Value {
 -		PlaybackPCM "hw:sofrt5682,3"
@@ -146,7 +257,16 @@
 -	DisableSequence [
 -	]
 -}
--
++# Keep the OEM PCM 2..5 mapping, with ALSA's standard jack/IEC958 handling
++# and the existing Linux port priorities. No community Chromebook include.
++Include.hdmi.File "/codecs/hda/hdmi.conf"
++Macro [
++    { HDMI { Number 1 Device 2 Priority 200 } }
++    { HDMI { Number 2 Device 3 Priority 300 } }
++    { HDMI { Number 3 Device 4 Priority 400 } }
++    { HDMI { Number 4 Device 5 Priority 500 } }
++]
+ 
 -SectionDevice."HDMI3".0 {
 -	Value {
 -		PlaybackPCM "hw:sofrt5682,4"
@@ -198,166 +318,6 @@
 -	DisableSequence [
 -	]
 -}
--
--SectionModifier."Internal Mic Noise Cancellation".0 {
--	EnableSequence [
--		cdev "hw:sofrt5682"
--		cset "name='RTNR10.0 rtnr_enable_10' on"
--	]
--	DisableSequence [
--		cdev "hw:sofrt5682"
--		cset "name='RTNR10.0 rtnr_enable_10' off"
--	]
--}
--
--SectionModifier."RTC Proc Echo Cancellation".0 {
--	EnableSequence [
--		cdev "hw:sofrt5682"
--		cset-tlv "name='GOOGLE_RTC_AUDIO_PROCESSING10.0 Config' /opt/google/rtc_audio_processing/AEC_On.bin"
--	]
--	DisableSequence [
--		cdev "hw:sofrt5682"
--		cset-tlv "name='GOOGLE_RTC_AUDIO_PROCESSING10.0 Config' /opt/google/rtc_audio_processing/AEC_Off.bin"
--	]
--}
-+    EnableSequence [
-+        cdev "hw:${CardId}"
-+        cset "name='Stereo1 DAC MIXL DAC L1 Switch' off"
-+        cset "name='Stereo1 DAC MIXR DAC R1 Switch' off"
-+        cset "name='RECMIX1L CBJ Switch' on"
-+        cset "name='IF1 01 ADC Swap Mux' L/L"
-+        cset "name='CBJ Boost Volume' 28"
-+        cset "name='Stereo1 ADC L Mux' ADC1 L"
-+        cset "name='Stereo1 ADC L1 Mux' ADC"
-+        cset "name='Stereo1 ADC MIXL ADC2 Switch' off"
-+        cset "name='Stereo1 ADC MIXL ADC1 Switch' on"
-+        cset "name='Left DAI Sel Mux' Left"
-+        cset "name='Tweeter Left DAI Sel Mux' Left"
-+        cset "name='Right DAI Sel Mux' Right"
-+        cset "name='Tweeter Right DAI Sel Mux' Right"
-+        # Use the documented sound_card_init safe-mode value on this unit,
-+        # not the original pre-calibration UCM values 153/155.
-+        cset "name='Left Digital Volume' 138"
-+        cset "name='Tweeter Left Digital Volume' 138"
-+        cset "name='Right Digital Volume' 138"
-+        cset "name='Tweeter Right Digital Volume' 138"
-+        cset "name='Left Current Limit' 2.20A"
-+        cset "name='Tweeter Left Current Limit' 2.20A"
-+        cset "name='Right Current Limit' 2.20A"
-+        cset "name='Tweeter Right Current Limit' 2.20A"
-+        cset "name='Left Boost Clock Phase' 0"
-+        cset "name='Tweeter Left Boost Clock Phase' 1"
-+        cset "name='Right Boost Clock Phase' 2"
-+        cset "name='Tweeter Right Boost Clock Phase' 3"
-+        cset "name='RTNR10.0 rtnr_enable_10' off"
-+        cset-tlv "name='GOOGLE_RTC_AUDIO_PROCESSING10.0 Config' @aecOff@"
-+    ]
-+}
-+
-+SectionDevice."Speaker" {
-+    Comment "Speakers"
-+    Value {
-+        PlaybackPCM "hw:${CardId},0"
-+        PlaybackChannels 2
-+        PlaybackPriority 100
-+        # CRAS metadata; PipeWire uses our explicit speaker filter instead.
-+        DspName "speaker_eq"
-+    }
-+    EnableSequence [
-+        cset "name='Left Spk Switch' on"
-+        cset "name='Right Spk Switch' on"
-+        cset "name='TL Spk Switch' on"
-+        cset "name='TR Spk Switch' on"
-+    ]
-+    DisableSequence [
-+        cset "name='Left Spk Switch' off"
-+        cset "name='Right Spk Switch' off"
-+        cset "name='TL Spk Switch' off"
-+        cset "name='TR Spk Switch' off"
-+    ]
-+}
-+
-+# ChromeOS Headphone -> ALSA's standard Headphones device identifier.
-+# JackControl replaces CRAS's JackDev/JackSwitch event-device mapping.
-+SectionDevice."Headphones" {
-+    Comment "Headphones"
-+    Value {
-+        PlaybackPCM "hw:${CardId},1"
-+        PlaybackChannels 2
-+        PlaybackPriority 200
-+        PlaybackMixerElem "DAC1"
-+        JackControl "Headphone Jack"
-+    }
-+    EnableSequence [
-+        cset "name='Headphone Jack Switch' on"
-+        cset "name='Stereo1 DAC MIXL DAC L1 Switch' 1"
-+        cset "name='Stereo1 DAC MIXR DAC R1 Switch' 1"
-+    ]
-+    DisableSequence [
-+        cset "name='Headphone Jack Switch' off"
-+        cset "name='Stereo1 DAC MIXL DAC L1 Switch' 0"
-+        cset "name='Stereo1 DAC MIXR DAC R1 Switch' 0"
-+    ]
-+}
-+
-+# ChromeOS Internal Mic -> Mic1 for ALSA port classification and stable node ID.
-+# The route alias below selects processed channel 0 as a mono stream in its
-+# firmware-required S16_LE format.
-+SectionDevice."Mic1" {
-+    Comment "Internal Microphone"
-+    Value {
-+        CapturePCM "redrix_mic"
-+        CaptureChannels 1
-+        CapturePriority 100
-+        # Preserve the OEM CRAS metadata for applications that read it.
-+        IntrinsicSensitivity "-2600"
-+    }
-+}
-+
-+# Plain alsa-lib route alias selects the firmware's processed channel 0,
-+# exposes a mono PCM, and preserves its required S16_LE format. It avoids
-+# CaptureChannel<N> UCM keys, which PipeWire ACP interprets as a SplitPCM request.
-+LibraryConfig.mic.SubstiConfig.pcm.redrix_mic {
-+    type route
-+    slave {
-+        pcm "hw:${CardId},99"
-+        channels 2
-+        format S16_LE
-+    }
-+    ttable.0.0 1.0
-+}
-+
-+# ChromeOS Mic -> Headset. Mainline exposes the routing switch below, not a
-+# "Headset Mic" capture-volume element; applications retain software volume.
-+SectionDevice."Headset" {
-+    Comment "Headset Microphone"
-+    Value {
-+        CapturePCM "hw:${CardId},1"
-+        CaptureChannels 2
-+        CapturePriority 200
-+        JackControl "Headset Mic Jack"
-+    }
-+    EnableSequence [
-+        cset "name='Headset Mic Switch' on"
-+    ]
-+    DisableSequence [
-+        cset "name='Headset Mic Switch' off"
-+    ]
-+}
-+
-+# Keep the OEM PCM 2..5 mapping, with ALSA's standard jack/IEC958 handling
-+# and the existing Linux port priorities. No community Chromebook include.
-+Include.hdmi.File "/codecs/hda/hdmi.conf"
-+Macro [
-+    { HDMI { Number 1 Device 2 Priority 200 } }
-+    { HDMI { Number 2 Device 3 Priority 300 } }
-+    { HDMI { Number 3 Device 4 Priority 400 } }
-+    { HDMI { Number 4 Device 5 Priority 500 } }
-+]
-+
-+# RTNR is controlled on the Mic1 PipeWire node; keep AEC disabled.
-+# Do not assign a generic media role that could enable firmware AEC implicitly.
-+
 +# ChromeOS's Echo Reference (PCM 6) and SCO Line In/Out (PCM 7) are CRAS
 +# internal/offload endpoints, not additional desktop microphones or speakers.
 +# They remain accessible as hardware PCMs but are not advertised here.
@@ -365,7 +325,7 @@
 +++ b/sof-rt5682.redrix.conf
 @@ -1,6 +1,8 @@
 -Comment "Alderlake internal card"
-+# Based on ChromeOS brya recovery 16733.54.0:
++# Adapted from the pinned ChromeOS Redrix UCM used with community SOF.
 +# /usr/share/alsa/ucm/sof-rt5682.redrix/sof-rt5682.redrix.conf
 +Syntax 6
  
