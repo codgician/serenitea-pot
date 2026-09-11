@@ -122,7 +122,7 @@ in
         yubikey-manager
         yubico-piv-tool
         unstable.cider-2
-        splayer
+        unstable.splayer-next
         telegram-desktop
         nextcloud-talk-desktop
         element-desktop
