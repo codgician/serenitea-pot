@@ -117,6 +117,7 @@ in
           vendorId = "04F3";
           productId = "323B";
           naturalScroll = true;
+          tapToClick = false;
         }
       ];
 
