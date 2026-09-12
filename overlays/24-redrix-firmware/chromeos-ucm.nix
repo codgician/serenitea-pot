@@ -7,7 +7,7 @@
 stdenvNoCC.mkDerivation {
   pname = "redrix-chromeos-ucm";
   version = "16805.10.0";
-  # Matches the inspected R154 Redrix community-firmware profile byte-for-byte.
+  # Preserve R154 board controls, adapting the routes to the stock SOF topology.
   # Hash the unpacked files: Gitiles archive timestamps can vary between fetches.
   src = fetchzip {
     url = "https://chromium.googlesource.com/chromiumos/overlays/board-overlays/+archive/619bf55cd33588db1111f6481db62ad0ddc6dfd5/overlay-brya/chromeos-base/chromeos-bsp-brya/files/redrix/audio/ucm-config/sof-rt5682.redrix.tar.gz";

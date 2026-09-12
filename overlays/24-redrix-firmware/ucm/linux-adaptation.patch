@@ -1,6 +1,6 @@
 # Subject: Adapt the pinned Redrix ChromeOS profile to desktop ALSA UCM2
 # Origin: ChromiumOS board-overlays 619bf55cd33588db1111f6481db62ad0ddc6dfd5
-# Upstream-Status: Local adaptation (UCM2, desktop routes, amplifier safe mode)
+# Upstream-Status: Local adaptation (UCM2, stock SOF routes, amplifier safe mode)
 # Base: redrix-chromeos-ucm 16805.10.0
 # Regression: check-microphone-route.c validates the installed PCM99 channel route.
 # Drop-When: upstream ALSA UCM supplies equivalent Redrix routes, controls and safe gain.
@@ -8,7 +8,7 @@
 --- a/HiFi.conf
 +++ b/HiFi.conf
 @@ -1,10 +1,9 @@
-+# Adapted from the pinned ChromeOS Redrix UCM used with community SOF.
++# Adapted from the pinned ChromeOS Redrix UCM for the stock SOF topology.
 +# /usr/share/alsa/ucm/sof-rt5682.redrix/HiFi.conf
 +# UCM2/desktop adaptations are noted at their respective sections.
  SectionVerb {
@@ -45,9 +45,9 @@
  		cset "name='Tweeter Right Boost Clock Phase' 3"
 -	]
 -	DisableSequence [
-+		# CRAS uses host DRC/EQ on the reference. The pinned topology's EQIIR
-+		# response assignments are already -1 (bypass) for both channels.
-+		cset "name='MULTIBAND_DRC1.0 multiband_drc_enable_1' off"
++		# Stock SOF has no speaker DRC/EQ; keep its PGA at unity.
++		# The native PipeWire filter owns the board curve and DRC/EQ.
++		cset "name='PGA1.1 1 Master Playback Volume' 32,32"
  	]
  }
  
@@ -264,7 +264,7 @@
 +++ b/sof-rt5682.redrix.conf
 @@ -1,6 +1,8 @@
 -Comment "Alderlake internal card"
-+# Adapted from the pinned ChromeOS Redrix UCM used with community SOF.
++# Adapted from the pinned ChromeOS Redrix UCM for the stock SOF topology.
 +# /usr/share/alsa/ucm/sof-rt5682.redrix/sof-rt5682.redrix.conf
 +Syntax 6
  

@@ -603,9 +603,9 @@ int main(int argc, char **argv) {
 
   test_speaker_curve(speaker, speaker_ports);
   test_speaker_ramps(speaker, speaker_ports);
+  puts("PASS: ChromeOS speaker curve and linear ramps");
   test_mic_apm(mic, mic_ports);
   test_mic_noise_suppression(mic, mic_ports);
-  puts("PASS: ChromeOS speaker curve and linear ramps");
 
   for (int channel = 0; channel < 2; ++channel) {
     free(input[channel]);

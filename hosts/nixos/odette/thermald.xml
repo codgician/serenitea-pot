@@ -4,14 +4,14 @@
     <Name>HP Elite Dragonfly Chromebook</Name>
     <ProductName>*</ProductName>
     <Preference>QUIET</Preference>
-    <PPCC>
-      <PowerLimitIndex>0</PowerLimitIndex>
-      <PowerLimitMaximum>20000</PowerLimitMaximum>
-      <PowerLimitMinimum>5000</PowerLimitMinimum>
-      <TimeWindowMinimum>28000</TimeWindowMinimum>
-      <TimeWindowMaximum>28000</TimeWindowMaximum>
-      <StepSize>1000</StepSize>
-    </PPCC>
+    <!--
+      No PPCC block: the RAPL long-term (PL1) power limit baseline is set
+      directly via powercap sysfs by rapl-power-limit-select (AC/battery
+      dependent), not by thermald. thermald here handles only the passive
+      thermal trips below, stepping the already-set PL1 down further via
+      rapl_controller if a sensor crosses its threshold, and restoring it on
+      cooldown. This applies identically regardless of AC/battery state.
+    -->
     <ThermalZones>
       <ThermalZone>
         <Type>TCPU</Type>

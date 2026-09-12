@@ -33,7 +33,7 @@ in
       # Chromebook DMI selects community firmware; pin only the paired topology.
       "snd_sof.tplg_filename=sof-adl-max98390-rt5682.tplg"
     ];
-    kernelPackages = pkgs.linuxPackages_testing;
+    kernelPackages = pkgs.linuxPackages_latest;
     kernelPatches = [
       {
         name = "cros-ec-typec-priority-mode-selection";
@@ -72,6 +72,12 @@ in
       evdev:input:b0005v18D1p4F80*
        KEYBOARD_KEY_c0190=f14
     '';
+    # Re-apply the RAPL PL1 power-limit baseline whenever the AC adapter's
+    # online state changes, including the synthetic coldplug replay udev
+    # performs for already-present devices during early boot.
+    udev.extraRules = ''
+      SUBSYSTEM=="power_supply", KERNEL=="AC", TAG+="systemd", ENV{SYSTEMD_WANTS}+="rapl-power-limit-select.service"
+    '';
     dbus.packages = [ rustFp ];
     keyd = {
       enable = true;
@@ -100,6 +106,8 @@ in
     hardware.bolt.enable = true;
     thermald = {
       enable = true;
+      # Thermal protection only (no PPCC block): the RAPL PL1 baseline is
+      # set directly by rapl-power-limit-select instead. See thermald.xml.
       configFile = ./thermald.xml;
     };
     pipewire = {
@@ -187,10 +195,10 @@ in
   };
 
   hardware = {
-    # These exact ChromeOS files must precede the stock redistributable SOF set.
+    # Keep the board's amp parameters and use Nixpkgs' paired IPC3 firmware/topology.
     firmware = lib.mkBefore [
       pkgs.redrix.max98390-firmware
-      pkgs.redrix.sof-firmware
+      pkgs.sof-firmware
     ];
     bluetooth.enable = true;
     enableRedistributableFirmware = true;
@@ -224,6 +232,30 @@ in
       Restart = "on-failure";
       RestartSec = 3;
     };
+  };
+
+  # Reads the AC adapter's actual sysfs state (never trusts udev event
+  # timing/env, so it converges correctly whether triggered by a real
+  # hotplug, udev's boot-time coldplug replay, or a manual restart) and
+  # writes the matching RAPL PL1 baseline directly via powercap sysfs: a
+  # 20 W ceiling on AC, 15 W on battery (this platform's native default).
+  # thermald.xml carries no PPCC block, so it never overwrites this value on
+  # its own; it only steps PL1 further down, reactively, if a passive trip
+  # fires, and lets it recover once temperature drops. That keeps full
+  # burst/PL2 performance available on both AC and battery, differing only
+  # in the sustained ceiling, with no thermald restart involved.
+  systemd.services.rapl-power-limit-select = {
+    description = "Set the RAPL PL1 power limit for the current AC/battery state";
+    serviceConfig.Type = "oneshot";
+    script = ''
+      limit_path=/sys/class/powercap/intel-rapl:0/constraint_0_power_limit_uw
+      if [ "$(cat /sys/class/power_supply/AC/online 2>/dev/null)" = "1" ]; then
+        watts=20
+      else
+        watts=15
+      fi
+      echo $(( watts * 1000000 )) > "$limit_path"
+    '';
   };
 
   # The Redrix EC otherwise aborts S0ix entry after its firmware timeout.
