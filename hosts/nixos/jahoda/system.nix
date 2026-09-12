@@ -201,7 +201,7 @@ in
           yubikey-manager
           yubico-piv-tool
           unstable.cider-2
-          splayer
+          unstable.splayer-next
           virt-manager
           looking-glass-client-nvhack
           telegram-desktop
