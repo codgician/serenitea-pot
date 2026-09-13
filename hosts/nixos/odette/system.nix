@@ -67,7 +67,10 @@ in
         };
         herdr.enable = true;
         mcp.enable = true;
-        oh-my-pi.enable = true;
+        oh-my-pi = {
+          enable = true;
+          defaultProfile = "github-copilot";
+        };
         opencode.enable = true;
         plasma = {
           inherit wallpaper;
