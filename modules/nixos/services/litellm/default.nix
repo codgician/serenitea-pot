@@ -308,6 +308,8 @@ in
           {
             # Align nginx timeouts with LiteLLM's request_timeout (plus margin).
             "/".passthru.extraConfig = ''
+              # Allow OpenAI's documented 512 MB vision request payloads.
+              client_max_body_size 512M;
               proxy_connect_timeout ${builtins.toString reverseProxyTimeout}s;
               proxy_send_timeout ${builtins.toString reverseProxyTimeout}s;
               proxy_read_timeout ${builtins.toString reverseProxyTimeout}s;
