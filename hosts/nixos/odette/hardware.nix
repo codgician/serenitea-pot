@@ -27,7 +27,6 @@ in
 
     kernelModules = [ "kvm-intel" ];
     kernelParams = [
-      "iomem=relaxed"
       "iommu.passthrough=0"
       "intel_iommu=on"
       "i915.enable_guc=3"
