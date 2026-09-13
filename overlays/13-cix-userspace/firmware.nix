@@ -10,13 +10,13 @@
 # meta accordingly to keep `nixpkgs.config.allowUnfree` honest.
 stdenv.mkDerivation {
   pname = "cix-firmware";
-  version = "2026-06-29";
+  version = "2026-08-19";
 
   src = fetchFromGitHub {
     owner = "cixtech";
     repo = "cix_proprietary__cix_proprietary";
-    rev = "6b1952c90f1469436713f184756e404a43b6e2ad";
-    hash = "sha256-Xey6x36zgkV5RSeBeFjcq40Pu4aVCPP1wyxjWyQkvGQ=";
+    rev = "p1_v3.0.0";
+    hash = "sha256-sRU/eUCZykQyO6JXwDu1IMD73aCp/n7BsNQRS3WabjI=";
   };
 
   dontConfigure = true;

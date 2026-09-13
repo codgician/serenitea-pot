@@ -1,0 +1,22 @@
+Refresh patch 0070's probe error-path context for Linux 6.18.50.
+The kernel now disables the device and returns directly instead of
+jumping to err_disable. Keep the upstream IRQ-resume changes intact.
+
+diff --git a/0070-DPTSW-26437-iommu-arm-smmu-v3-fix-IRQ-setup-on-resum.patch b/0070-DPTSW-26437-iommu-arm-smmu-v3-fix-IRQ-setup-on-resum.patch
+--- a/0070-DPTSW-26437-iommu-arm-smmu-v3-fix-IRQ-setup-on-resum.patch
++++ b/0070-DPTSW-26437-iommu-arm-smmu-v3-fix-IRQ-setup-on-resum.patch
+@@ -127,9 +127,11 @@
+-@@ -4906,7 +4918,7 @@ static int arm_smmu_device_probe(struct platform_device *pdev)
++@@ -4906,9 +4918,9 @@ static int arm_smmu_device_probe(struct platform_device *pdev)
+  	arm_smmu_rmr_install_bypass_ste(smmu);
+  
+  	/* Reset the device */
+ -	ret = arm_smmu_device_reset(smmu);
+ +	ret = arm_smmu_device_reset(smmu, false);
+- 	if (ret)
+- 		goto err_disable;
++ 	if (ret) {
++ 		arm_smmu_device_disable(smmu);
++ 		return ret;
++ 	}
+  

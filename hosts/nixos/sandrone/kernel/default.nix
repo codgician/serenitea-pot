@@ -1,10 +1,21 @@
-{ inputs, lib }:
+{
+  inputs,
+  lib,
+  pkgs,
+}:
 let
   inherit (lib.kernel) yes no;
 
   patchDir = "${inputs.cix-linux-main}/patches-6.18";
+  # Refresh only the incompatible context; keep the upstream series intact.
+  patchedPatchDir = pkgs.applyPatches {
+    name = "cix-linux-patches-6.18";
+    src = patchDir;
+    patches = [ ./cix-smmu-resume-context.patch ];
+  };
 
-  # Linux 6.18.42 changed PL011 RS485 shutdown code that CIX replaces.
+  # The current 6.18 kernel still carries the PL011 changes that conflict
+  # with the CIX replacement, so restore only the superseded RS485 context.
   cixCompatPatches = [
     {
       name = "pl011-cix-compat";
@@ -15,10 +26,11 @@ let
   # The cix-linux-main repo ships its patches as one-per-file under
   # `patches-6.18/`. `builtins.attrNames` (used inside
   # `getRegularFileNames`) already returns names alphabetically sorted,
-  # which matches upstream's `0001-…`, `0002-…` ordering.
+  # which matches upstream's `0001-…`, `0002-…` ordering. Enumerate the
+  # original source to avoid import-from-derivation during evaluation.
   cixPatches = map (name: {
     inherit name;
-    patch = "${patchDir}/${name}";
+    patch = "${patchedPatchDir}/${name}";
   }) (builtins.filter (lib.hasSuffix ".patch") (lib.codgician.getRegularFileNames patchDir));
 
   localPatches = [

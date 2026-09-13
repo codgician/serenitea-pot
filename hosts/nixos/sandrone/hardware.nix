@@ -39,7 +39,7 @@
       "cma=512M"
     ];
     kernelPackages = pkgs.linuxPackages_6_18;
-    kernelPatches = import ./kernel { inherit inputs lib; };
+    kernelPatches = import ./kernel { inherit inputs lib pkgs; };
     zfs.package = pkgs.zfs_2_4;
     extraModulePackages = with config.boot.kernelPackages; [
       cix-vpu-driver
