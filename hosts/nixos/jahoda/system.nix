@@ -96,12 +96,6 @@ in
       enable = true;
       hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
       passwordAgeFile = getAgeSecretPathFromName "codgi-password";
-      extraGroups = [
-        "wheel"
-        "video"
-        "render"
-        "podman"
-      ];
     };
   };
 

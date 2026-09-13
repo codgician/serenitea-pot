@@ -259,10 +259,6 @@
         enable = true;
         hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
         passwordAgeFile = getAgeSecretPathFromName "codgi-password";
-        extraGroups = [
-          "wheel"
-          "podman"
-        ];
       };
 
       smb = {

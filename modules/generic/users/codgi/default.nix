@@ -1,8 +1,13 @@
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   name = builtins.baseNameOf ./.;
   pubKeys = import (lib.codgician.secretsDir + "/pubkeys.nix");
-  inherit (pkgs.stdenvNoCC) isDarwin;
+  inherit (pkgs.stdenvNoCC) isDarwin isLinux;
 in
 {
   users.users.codgi = lib.mkMerge [
@@ -23,12 +28,24 @@ in
     })
   ];
 
-  codgician.users.codgi.avatar =
-    lib.mkDefault
-      (pkgs.fetchurl {
-        url = "https://media.githubusercontent.com/media/codgician/assets/refs/heads/main/images/user-tiles/zeitlind.png";
-        sha256 = "sha256-r6hz3HA7xyDXpc855lUnB0UlJ1wwHona/nr1wgBtnFk=";
-      }).outPath;
+  codgician.users.codgi = {
+    avatar =
+      lib.mkDefault
+        (pkgs.fetchurl {
+          url = "https://media.githubusercontent.com/media/codgician/assets/refs/heads/main/images/user-tiles/zeitlind.png";
+          sha256 = "sha256-r6hz3HA7xyDXpc855lUnB0UlJ1wwHona/nr1wgBtnFk=";
+        }).outPath;
+  }
+  // lib.optionalAttrs isLinux {
+    extraGroups = [
+      "wheel"
+    ]
+    ++ lib.optionals config.hardware.graphics.enable [
+      "video"
+      "render"
+    ]
+    ++ lib.optional config.codgician.virtualization.podman.enable "podman";
+  };
 
   # Trust me
   nix.settings.trusted-users = [ name ];

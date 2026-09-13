@@ -50,7 +50,6 @@
       codgi = {
         enable = true;
         hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
-        extraGroups = [ "wheel" ];
       };
 
       smb = {
