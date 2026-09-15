@@ -233,6 +233,8 @@ in
         # Nix | weather + clock + notes | tray (including notifications)
         {
           location = "top";
+          # Plasma's screen IDs start at 0 for the primary display.
+          screen = 0;
           height = 32;
           floating = true;
           opacity = "translucent";
@@ -337,6 +339,8 @@ in
         # Bottom dock: centered, fits content, hides under windows (macOS feel)
         {
           location = "bottom";
+          # Keep the dock on the same primary display as the top panel.
+          screen = 0;
           height = 72;
           floating = true;
           alignment = "center";
