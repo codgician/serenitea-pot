@@ -231,11 +231,11 @@ let
     # Image generation (OpenAI-compatible engine via LiteLLM)
     ENABLE_IMAGE_GENERATION = "True";
     IMAGE_GENERATION_ENGINE = "openai";
-    IMAGE_GENERATION_MODEL = "gpt-image-2";
+    IMAGE_GENERATION_MODEL = "gpt-image-2.5-flare";
     IMAGE_SIZE = "";
     ENABLE_IMAGE_EDIT = "True";
     IMAGE_EDIT_ENGINE = "openai";
-    IMAGE_EDIT_MODEL = "gpt-image-2";
+    IMAGE_EDIT_MODEL = "gpt-image-2.5-sunburst";
     # IMAGES_OPENAI_API_BASE_URL / IMAGES_OPENAI_API_KEY and the edit variants
     # are provided through the environment file (secrets template).
     # Audio: browser-side speech-to-text (no server credentials required)

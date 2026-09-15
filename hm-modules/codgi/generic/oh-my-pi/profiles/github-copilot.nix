@@ -1,7 +1,7 @@
 {
   defaultThinkingLevel = "high";
   modelRoles = {
-    default = "github-copilot/gpt-5.6-terra-1m:medium";
+    default = "github-copilot/gpt-6-astra:low";
     smol = "github-copilot/gpt-5.6-luna:medium";
     task = "github-copilot/gpt-5.6-terra:xhigh";
     slow = "github-copilot/gpt-6-astra:medium";
