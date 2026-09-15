@@ -128,12 +128,17 @@
     {
       codgician.codgi = {
         claude-code.enable = true;
+        codex = {
+          enable = true;
+          package = pkgs.codex-wrapped;
+        };
         dev = {
           dotnet.enable = true;
           nix.enable = true;
         };
         git.enable = true;
         github-copilot-cli.enable = true;
+        herdr.enable = true;
         mcp.enable = true;
         opencode = {
           enable = true;
