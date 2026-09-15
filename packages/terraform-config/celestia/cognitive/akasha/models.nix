@@ -95,5 +95,37 @@
         capacity = 10;
       };
     };
+
+    "gpt-image-2.5-flare" = {
+      registry = {
+        mode = "image_generation";
+        apiVersion = "2025-04-01-preview";
+      };
+      model = {
+        format = "OpenAI";
+        name = "gpt-image-2.5-flare";
+        version = "2026-09-08";
+      };
+      sku = {
+        name = "GlobalStandard";
+        capacity = 2;
+      };
+    };
+
+    "gpt-image-2.5-sunburst" = {
+      registry = {
+        mode = "image_generation";
+        apiVersion = "2025-04-01-preview";
+      };
+      model = {
+        format = "OpenAI";
+        name = "gpt-image-2.5-sunburst";
+        version = "2026-09-08";
+      };
+      sku = {
+        name = "GlobalStandard";
+        capacity = 2;
+      };
+    };
   };
 }
