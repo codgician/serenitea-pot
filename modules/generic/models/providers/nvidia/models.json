@@ -10,5 +10,6 @@
   "nvidia/nemotron-nano-3-30b-a3b": {},
   "nvidia/nemotron-parse": {},
   "nvidia/nemotron-parse-2.0": {},
+  "z-ai/glm-5.3": {},
   "z-ai/glm-5.3-flash": {}
 }
