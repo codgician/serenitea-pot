@@ -126,6 +126,7 @@ in
         wget
         htop
         aria2
+        ripgrep
         ripgrep-all
         iftop
         iperf3
