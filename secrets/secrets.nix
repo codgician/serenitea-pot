@@ -80,6 +80,13 @@ let
       ];
       users = with users; [ codgi ];
     };
+    coturn-auth-secret = {
+      hosts = with hosts; [
+        paimon
+        xianyun
+      ];
+      users = with users; [ codgi ];
+    };
     codex-openai-api-key = {
       hosts = with hosts; [
         fischl
@@ -452,10 +459,6 @@ let
       users = with users; [ codgi ];
     };
     tuwunel-oidc-secret-authelia-main = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    tuwunel-turn-secret = {
       hosts = with hosts; [ paimon ];
       users = with users; [ codgi ];
     };

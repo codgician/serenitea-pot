@@ -83,8 +83,9 @@ in
           turn_uris = [
             "turn:turn.codgician.me?transport=udp"
             "turn:turn.codgician.me?transport=tcp"
+            "turns:turn.codgician.me:5349?transport=tcp"
           ];
-          turn_secret_file = config.codgician.secrets.files.tuwunel-turn-secret.path;
+          turn_secret_file = config.codgician.secrets.files.coturn-auth-secret.path;
           turn_ttl = 86400;
         }
         // lib.optionalAttrs cfg.zfsOptimizations {
@@ -138,7 +139,7 @@ in
           group = serviceUser;
           mode = "0600";
         };
-        tuwunel-turn-secret = {
+        coturn-auth-secret = {
           owner = serviceUser;
           group = serviceUser;
           mode = "0600";

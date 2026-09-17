@@ -1,9 +1,36 @@
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  outputs,
+  ...
+}:
+let
+  dnsRecords =
+    outputs.packages.${pkgs.stdenv.hostPlatform.system}.terraform-config.config.resource.cloudflare_dns_record;
+  # Tencent's stable DHCP address, mapped 1:1 to the public IPv4 address.
+  privateIPv4 = "10.6.4.16";
+in
 {
   # My settings
   codgician = {
     services = {
       nixos-vscode-server.enable = true;
+
+      coturn = {
+        enable = true;
+        domain = "turn.codgician.me";
+        openFirewall = true;
+        listening-ips = [
+          "0.0.0.0"
+          "::"
+        ];
+        relay-ips = [
+          privateIPv4
+          dnsRecords."${config.networking.hostName}-aaaa".content
+        ];
+        external-ips = [ "${dnsRecords."${config.networking.hostName}-a".content}/${privateIPv4}" ];
+      };
 
       nginx = {
         enable = true;
