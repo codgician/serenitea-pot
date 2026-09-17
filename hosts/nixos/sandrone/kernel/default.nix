@@ -7,11 +7,16 @@ let
   inherit (lib.kernel) yes no;
 
   patchDir = "${inputs.cix-linux-main}/patches-6.18";
-  # Refresh only the incompatible context; keep the upstream series intact.
+  # Adapt the patches to the current stable kernel; keep the series intact.
   patchedPatchDir = pkgs.applyPatches {
     name = "cix-linux-patches-6.18";
     src = patchDir;
-    patches = [ ./cix-smmu-resume-context.patch ];
+    patches = [
+      ./cix-scmi-context.patch
+      ./cix-regulator-context.patch
+      ./cix-pl011-context.patch
+      ./cix-smmu-resume-context.patch
+    ];
   };
 
   # The current 6.18 kernel still carries the PL011 changes that conflict

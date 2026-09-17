@@ -1,0 +1,15 @@
+Refresh the regulator ACPI patch for Linux 6.18.52, retaining the
+workqueue include added by the stable kernel's regulator fixes.
+
+--- a/0033-regulator-add-acpi-support.patch
++++ b/0033-regulator-add-acpi-support.patch
+@@ -34,7 +34,8 @@
+-@@ -27,6 +27,7 @@
++@@ -27,7 +27,8 @@
+  #include <linux/regulator/driver.h>
+  #include <linux/regulator/machine.h>
+  #include <linux/module.h>
+ +#include <linux/acpi.h>
++ #include <linux/workqueue.h>
+  
+  #define CREATE_TRACE_POINTS

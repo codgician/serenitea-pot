@@ -1,0 +1,185 @@
+Refresh the CIX PL011 patch for Linux 6.18.52 without reverting the
+stable kernel's console clock fix. Keep console setup/exit and system
+suspend/resume clock ownership, including resume failure cleanup. Do not
+reintroduce per-write clock operations in the CIX legacy console callback.
+Save CIX registers before disabling the console clock and restore them
+after re-enabling it. Retain the remaining CIX changes.
+
+--- a/0046-tty-amba-pl011-use-driver-from-cix-bsp.patch
++++ b/0046-tty-amba-pl011-use-driver-from-cix-bsp.patch
+@@ -641,7 +641,7 @@
+  	.type		= pl011_type,
+  	.config_port	= pl011_config_port,
+  	.verify_port	= pl011_verify_port,
+-@@ -2367,40 +2441,88 @@ static void pl011_console_putchar(struct uart_port *port, unsigned char ch)
++@@ -2367,40 +2441,84 @@ static void pl011_console_putchar(struct uart_port *port, unsigned char ch)
+  	while (pl011_read(uap, REG_FR) & UART01x_FR_TXFF)
+  		cpu_relax();
+  	pl011_write(ch, uap, REG_DR);
+@@ -656,8 +656,6 @@
+ +	unsigned long flags;
+ +	int locked = 1;
+ +
+-+	clk_enable(uap->clk);
+-+
+ +	local_irq_save(flags);
+ +	if (uap->port.sysrq)
+ +		locked = 0;
+@@ -692,8 +690,6 @@
+ +	if (locked)
+ +		uart_port_unlock(&uap->port);
+ +	local_irq_restore(flags);
+-+
+-+	clk_disable(uap->clk);
+  }
+  
+  static void pl011_console_get_options(struct uart_amba_port *uap, int *baud,
+@@ -781,7 +777,7 @@
+  	if (uap->vendor->fixed_options) {
+  		baud = uap->fixed_baud;
+  	} else {
+-@@ -2508,112 +2638,21 @@ static int pl011_console_match(struct console *co, char *name, int idx,
++@@ -2508,105 +2638,22 @@ static int pl011_console_match(struct console *co, char *name, int idx,
+  			continue;
+  
+  		co->index = i;
+@@ -802,8 +798,6 @@
+ -	if (!nbcon_enter_unsafe(wctxt))
+ -		return;
+ -
+--	clk_enable(uap->clk);
+--
+ -	if (!uap->vendor->always_enabled) {
+ -		old_cr = pl011_read(uap, REG_CR);
+ -		pl011_write((old_cr & ~UART011_CR_CTSEN) | (UART01x_CR_UARTEN | UART011_CR_TXE),
+@@ -820,8 +814,6 @@
+ -	if (!uap->vendor->always_enabled)
+ -		pl011_write(old_cr, uap, REG_CR);
+ -
+--	clk_disable(uap->clk);
+--
+ -	nbcon_exit_unsafe(wctxt);
+ -}
+ -
+@@ -834,8 +826,6 @@
+ -	if (!nbcon_enter_unsafe(wctxt))
+ -		return;
+ -
+--	clk_enable(uap->clk);
+--
+ -	if (!uap->vendor->always_enabled) {
+ -		old_cr = pl011_read(uap, REG_CR);
+ -		pl011_write((old_cr & ~UART011_CR_CTSEN) | (UART01x_CR_UARTEN | UART011_CR_TXE),
+@@ -864,8 +854,6 @@
+ -	if (!uap->vendor->always_enabled)
+ -		pl011_write(old_cr, uap, REG_CR);
+ -
+--	clk_disable(uap->clk);
+--
+ -	nbcon_exit_unsafe(wctxt);
+ -}
+ -
+@@ -887,6 +875,7 @@
+ +	.write		= pl011_console_write,
+  	.device		= uart_console_device,
+  	.setup		= pl011_console_setup,
++ 	.exit		= pl011_console_exit,
+  	.match		= pl011_console_match,
+ -	.write_atomic	= pl011_console_write_atomic,
+ -	.write_thread	= pl011_console_write_thread,
+@@ -1004,7 +993,7 @@
+  }
+  
+  static void pl011_remove(struct amba_device *dev)
+-@@ -2941,51 +3000,204 @@ static void pl011_remove(struct amba_device *dev)
++@@ -2941,75 +3000,221 @@ static void pl011_remove(struct amba_device *dev)
+  }
+  
+  #ifdef CONFIG_PM_SLEEP
+@@ -1028,13 +1017,12 @@
+ +
+  static int pl011_suspend(struct device *dev)
+  {
+-+	int ret = 0;
+  	struct uart_amba_port *uap = dev_get_drvdata(dev);
++ 	int ret;
+  
+  	if (!uap)
+  		return -EINVAL;
+  
+--	return uart_suspend_port(&amba_reg, &uap->port);
+ +	/*During the STR suspend phase, pm_runtime_get_noresume is actively called
+ +	in the device_prepare function, causing the usage_count to be incremented
+ +	by 1 before entering the device's suspend callback function. Therefore,
+@@ -1043,17 +1031,22 @@
+ +	if(!uart_console(&uap->port))
+ +		pm_runtime_put_noidle((&uap->port)->dev);
+ +
+-+	ret = uart_suspend_port(&amba_reg, &uap->port);
++ 	ret = uart_suspend_port(&amba_reg, &uap->port);
++-	if (ret)
+ +	if (ret) {
+ +		dev_err(dev, "%s uart_suspend_port failed! \n", __func__);
+-+		return ret;
++ 		return ret;
+ +	}
+ +
+ +	pm_runtime_get_sync(dev);
+ +	pl011_suspend_prepare(uap);
+ +	pm_runtime_put_sync(dev);
+-+
+-+	return ret;
++ 
++ 	if (console_suspend_enabled && uap->port.suspended &&
++ 	    uart_console_registered(&uap->port))
++ 		clk_disable_unprepare(uap->clk);
++ 
++ 	return 0;
+ +}
+ +
+ +static void pl011_resume_prepare(struct uart_amba_port *uap)
+@@ -1072,18 +1065,30 @@
+  
+  static int pl011_resume(struct device *dev)
+  {
+-+	int ret = 0;
+  	struct uart_amba_port *uap = dev_get_drvdata(dev);
++ 	bool resume_console;
++ 	int ret;
+  
+  	if (!uap)
+  		return -EINVAL;
+  
+--	return uart_resume_port(&amba_reg, &uap->port);
++ 	resume_console = console_suspend_enabled &&
++ 			 uap->port.suspended &&
++ 			 uart_console_registered(&uap->port);
++ 	if (resume_console) {
++ 		ret = clk_prepare_enable(uap->clk);
++ 		if (ret)
++ 			return ret;
++ 	}
++ 
+ +	pm_runtime_get_sync(dev);
+ +	pl011_resume_prepare(uap);
+ +	pm_runtime_put_sync(dev);
+ +
+-+	ret = uart_resume_port(&amba_reg, &uap->port);
++ 	ret = uart_resume_port(&amba_reg, &uap->port);
++ 	if (ret && resume_console)
++ 		clk_disable_unprepare(uap->clk);
+++
+ +	if(ret) {
+ +		dev_err(dev, "%s uart_resume_port failed! \n", __func__);
+ +		return ret;
+@@ -1097,8 +1102,8 @@
+ +	of the clock. */
+ +	if(!uart_console(&uap->port))
+ +		pm_runtime_get_noresume((&uap->port)->dev);
+-+
+-+	return ret;
++ 
++ 	return ret;
+  }
+ -#endif
+  
