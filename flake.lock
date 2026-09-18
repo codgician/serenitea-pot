@@ -347,17 +347,17 @@
           "flake-parts"
         ],
         "nixpkgs": [
-          "nixpkgs"
+          "nixpkgs-unstable"
         ],
         "systems": "systems_2",
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1789673944,
-        "narHash": "sha256-eOARvQuZiSr8cQOeg7/YzWyLjG3Yw207ksAewheUJxU=",
+        "lastModified": 1789680409,
+        "narHash": "sha256-OkkjsL/EdyeXlp0MPBK1DG6m0YvFNA3RS+arTFF8wlc=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "a23471a25c6d0a7f6fa3e750d1ce407213ed9618",
+        "rev": "4717689c08cd20a99420da9866a1392950dfb0f2",
         "type": "github"
       },
       "original": {

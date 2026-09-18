@@ -25,7 +25,7 @@
       url = "github:numtide/llm-agents.nix";
       inputs = {
         flake-parts.follows = "flake-parts";
-        nixpkgs.follows = "nixpkgs";
+        nixpkgs.follows = "nixpkgs-unstable";
       };
     };
     nixos-generators = {
