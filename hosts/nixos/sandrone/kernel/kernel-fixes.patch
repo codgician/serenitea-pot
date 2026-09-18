@@ -1,9 +1,10 @@
 From: serenitea-pot <noreply@localhost>
 Subject: [PATCH] cix: fix modular kernel build
 
-Fix two defects in the CIX patchset that prevent the configured kernel from
-building: Linlon constructs invalid duplicated include paths, and the modular
-Sky1 pinctrl base calls an unexported ACPI helper.
+Fix three defects in the CIX patchset that prevent the configured kernel from
+building: Linlon constructs invalid duplicated include paths, the modular
+Sky1 pinctrl base calls an unexported ACPI helper, and the Sky1 PDC irqchip
+still targets the pre-6.19 register_syscore_ops() signature/API.
 
 ---
 diff --git a/drivers/gpu/drm/cix/linlon-dp/Makefile b/drivers/gpu/drm/cix/linlon-dp/Makefile
@@ -35,3 +36,50 @@ diff --git a/drivers/pinctrl/pinctrl-acpi.c b/drivers/pinctrl/pinctrl-acpi.c
  	return 0;
  }
 +EXPORT_SYMBOL_GPL(pinctrl_acpi_get_pin_groups);
+diff --git a/drivers/irqchip/irq-sky1-pdc.c b/drivers/irqchip/irq-sky1-pdc.c
+--- a/drivers/irqchip/irq-sky1-pdc.c
++++ b/drivers/irqchip/irq-sky1-pdc.c
+@@ -20,18 +20,22 @@
+ };
+ 
+-static int pdcv1_wakeup_source_save(void)
++static int pdcv1_wakeup_source_save(void *data)
+ {
+ 	return 0;
+ }
+ 
+-static void pdcv1_wakeup_source_restore(void)
++static void pdcv1_wakeup_source_restore(void *data)
+ {
+ 	return;
+ }
+ 
+-static struct syscore_ops sky1_pdc_syscore_ops = {
++static const struct syscore_ops sky1_pdc_syscore_ops = {
+ 	.suspend        = pdcv1_wakeup_source_save,
+ 	.resume         = pdcv1_wakeup_source_restore,
+ };
+ 
++static struct syscore sky1_pdc_syscore = {
++	.ops            = &sky1_pdc_syscore_ops,
++};
++
+ static int sky1_pdc_irq_set_wake(struct irq_data *d, unsigned int on)
+@@ -191,7 +195,7 @@
+ 	cix_domain = domain;
+ 	pr_info("sky1_pdc: domain created successfully for %pOF\n", node);
+ 
+-	register_syscore_ops(&sky1_pdc_syscore_ops);
++	register_syscore(&sky1_pdc_syscore);
+ 
+ 	/*
+ 	 * Clear the OF_POPULATED flag set in of_irq_init so that
+@@ -235,7 +239,7 @@
+ 	irq_set_default_domain(domain);
+ 	cix_domain = domain;
+ 
+-	register_syscore_ops(&sky1_pdc_syscore_ops);
++	register_syscore(&sky1_pdc_syscore);
+ 
+ 	return 0;
+ }
