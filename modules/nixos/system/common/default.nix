@@ -134,6 +134,7 @@ in
         inetutils
         net-tools
         sysstat
+        exfatprogs
         config.boot.kernelPackages.cpupower
       ])
       ++ (lib.optionals pkgs.stdenv.hostPlatform.isx86 (
