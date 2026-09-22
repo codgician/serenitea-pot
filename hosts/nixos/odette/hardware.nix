@@ -75,8 +75,17 @@ in
     # Re-apply the RAPL PL1 power-limit baseline whenever the AC adapter's
     # online state changes, including the synthetic coldplug replay udev
     # performs for already-present devices during early boot.
+    #
+    # Also keep the touchpad's I2C host controller (Alder Lake-P Serial IO
+    # I2C Controller #1, the ELAN2703 touchpad's only client) out of
+    # runtime suspend. Runtime PM cycling this controller races the
+    # i2c-hid transaction and corrupts the touchpad's HID report ("device
+    # returned incorrect report" / "incomplete report" in dmesg), which
+    # wedges the ELAN2703 until the i2c_hid_acpi driver is unbound and
+    # rebound. Pinning the controller active avoids the race entirely.
     udev.extraRules = ''
       SUBSYSTEM=="power_supply", KERNEL=="AC", TAG+="systemd", ENV{SYSTEMD_WANTS}+="rapl-power-limit-select.service"
+      SUBSYSTEM=="pci", KERNEL=="0000:00:19.1", ATTR{power/control}="on"
     '';
     dbus.packages = [ rustFp ];
     keyd = {

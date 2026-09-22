@@ -118,6 +118,13 @@ in
         }
       ];
 
+      # Keep existing lid/idle policies, but use battery-aware sleep in every profile.
+      programs.plasma.powerdevil = {
+        AC.whenSleepingEnter = "standbyThenHibernate";
+        battery.whenSleepingEnter = "standbyThenHibernate";
+        lowBattery.whenSleepingEnter = "standbyThenHibernate";
+      };
+
       home.stateVersion = "26.05";
       home.packages = with pkgs; [
         yubikey-manager
@@ -192,6 +199,13 @@ in
 
   # Enable zram swap
   zramSwap.enable = true;
+
+  # Outside Plasma, logind handles lid and suspend-key requests directly.
+  # Leave HibernateDelaySec unset: systemd hibernates on low battery, not a timer.
+  services.logind.settings.Login = {
+    HandleLidSwitch = "suspend-then-hibernate";
+    HandleSuspendKey = "suspend-then-hibernate";
+  };
 
   # Firewall
   networking.firewall.enable = false;

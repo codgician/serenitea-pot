@@ -13,7 +13,7 @@ let
   # gpclient invokes the browser binary directly with no way to pass
   # extra flags of its own.
   msftvpnEdge = pkgs.writeShellScriptBin "msftvpn-edge" ''
-    exec ${pkgs.microsoft-edge}/bin/microsoft-edge-stable --profile-directory=Default "$@"
+    exec ${pkgs.microsoft-edge}/bin/microsoft-edge-stable --profile-directory='Profile 1' "$@"
   '';
   msftvpn = pkgs.writeShellApplication {
     name = "msftvpn";
