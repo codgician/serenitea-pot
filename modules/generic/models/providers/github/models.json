@@ -1,4 +1,43 @@
 {
+  "claude-opus-5.5": {
+    "contextWindow": 1000000,
+    "cost": {
+      "cacheRead": 0.2,
+      "cacheWrite": 5,
+      "input": 4,
+      "output": 20,
+      "tiers": [
+        {
+          "cacheRead": 0.2,
+          "cacheWrite": 5,
+          "input": 4,
+          "inputTokensAbove": 200000,
+          "output": 20
+        }
+      ]
+    },
+    "maxInputTokens": 872000,
+    "maxOutputTokens": 128000,
+    "mode": "chat",
+    "reasoningEfforts": [
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max"
+    ],
+    "supportedEndpoints": [
+      "/v1/messages",
+      "/v1/chat/completions"
+    ],
+    "supports": [
+      "toolCalls",
+      "parallelToolCalls",
+      "structuredOutputs",
+      "vision",
+      "reasoning"
+    ]
+  },
   "gemini-3.5-flash": {
     "contextWindow": 1000000,
     "cost": {
@@ -460,7 +499,7 @@
     ]
   },
   "gpt-6-astra": {
-    "contextWindow": 1178000,
+    "contextWindow": 1050000,
     "cost": {
       "cacheRead": 1,
       "cacheWrite": 12.5,
@@ -480,6 +519,84 @@
     "maxOutputTokens": 128000,
     "mode": "responses",
     "reasoningEfforts": [
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max"
+    ],
+    "supportedEndpoints": [
+      "/v1/responses"
+    ],
+    "supports": [
+      "toolCalls",
+      "parallelToolCalls",
+      "structuredOutputs",
+      "vision",
+      "reasoning"
+    ]
+  },
+  "gpt-6-luna": {
+    "contextWindow": 1000000,
+    "cost": {
+      "cacheRead": 0.01,
+      "cacheWrite": 0.12,
+      "input": 0.1,
+      "output": 0.5,
+      "tiers": [
+        {
+          "cacheRead": 0.02,
+          "cacheWrite": 0.25,
+          "input": 0.2,
+          "inputTokensAbove": 272000,
+          "output": 0.75
+        }
+      ]
+    },
+    "maxInputTokens": 872000,
+    "maxOutputTokens": 128000,
+    "mode": "responses",
+    "reasoningEfforts": [
+      "none",
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max"
+    ],
+    "supportedEndpoints": [
+      "/v1/responses"
+    ],
+    "supports": [
+      "toolCalls",
+      "parallelToolCalls",
+      "structuredOutputs",
+      "vision",
+      "reasoning"
+    ]
+  },
+  "gpt-6-sol": {
+    "contextWindow": 1000000,
+    "cost": {
+      "cacheRead": 0.2,
+      "cacheWrite": 2.5,
+      "input": 2,
+      "output": 10,
+      "tiers": [
+        {
+          "cacheRead": 0.4,
+          "cacheWrite": 5,
+          "input": 4,
+          "inputTokensAbove": 272000,
+          "output": 15
+        }
+      ]
+    },
+    "maxInputTokens": 872000,
+    "maxOutputTokens": 128000,
+    "mode": "responses",
+    "reasoningEfforts": [
+      "none",
       "low",
       "medium",
       "high",

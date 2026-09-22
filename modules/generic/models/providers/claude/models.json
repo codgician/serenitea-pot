@@ -204,6 +204,33 @@
       "reasoning"
     ]
   },
+  "claude-opus-5.5": {
+    "aliases": [
+      "claude-opus-5-5"
+    ],
+    "contextWindow": 1000000,
+    "maxInputTokens": 1000000,
+    "maxOutputTokens": 128000,
+    "mode": "chat",
+    "path": "claude-opus-5-5",
+    "reasoningEfforts": [
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max"
+    ],
+    "supportedEndpoints": [
+      "/v1/messages"
+    ],
+    "supports": [
+      "toolCalls",
+      "parallelToolCalls",
+      "structuredOutputs",
+      "vision",
+      "reasoning"
+    ]
+  },
   "claude-sonnet-4.5": {
     "aliases": [
       "claude-sonnet-4-5",
