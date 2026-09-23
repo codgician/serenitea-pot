@@ -16,7 +16,7 @@
         }
       ]
     },
-    "maxInputTokens": 872000,
+    "maxInputTokens": 1000000,
     "maxOutputTokens": 128000,
     "mode": "chat",
     "reasoningEfforts": [
