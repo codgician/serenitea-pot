@@ -1,17 +1,5 @@
 {
   defaultThinkingLevel = "high";
-  enabledModels = [
-    "dendro/gpt-5.2"
-    "dendro/gpt-5.2-codex"
-    "dendro/gpt-5.3-codex"
-    "dendro/gpt-5.4"
-    "dendro/gpt-5.4-mini"
-    "dendro/gpt-5.5"
-    "dendro/gpt-5.6-luna"
-    "dendro/gpt-5.6-terra"
-    "dendro/gpt-5.6-sol"
-    "dendro/gpt-6-astra"
-  ];
   modelRoles = {
     default = "dendro/gpt-5.6-terra:high";
     smol = "dendro/gpt-5.4-mini";
