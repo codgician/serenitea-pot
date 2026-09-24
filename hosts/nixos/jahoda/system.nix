@@ -129,7 +129,6 @@ in
           dotnet.enable = true;
           nix.enable = true;
         };
-        opencode.enable = true;
         mcp.enable = true;
         oh-my-pi = {
           enable = true;

@@ -56,7 +56,6 @@
       codgician.codgi = {
         dev.nix.enable = true;
         git.enable = true;
-        opencode.enable = true;
         pwsh.enable = true;
         ssh.enable = true;
         tmux.enable = true;

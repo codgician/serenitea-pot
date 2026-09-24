@@ -280,7 +280,6 @@
           package = pkgs.codex-wrapped;
         };
         git.enable = true;
-        opencode.enable = true;
         mcp.enable = true;
         pi-coding-agent.enable = true;
         oh-my-pi.enable = true;

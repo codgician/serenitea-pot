@@ -42,7 +42,6 @@ in
         git.enable = true;
         mcp.enable = true;
         oh-my-pi.enable = true;
-        opencode.enable = true;
         plasma = {
           inherit wallpaper;
           scale = 2;

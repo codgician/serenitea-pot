@@ -71,7 +71,6 @@ in
           enable = true;
           defaultProfile = "github-copilot";
         };
-        opencode.enable = true;
         plasma = {
           inherit wallpaper;
           scale = 1.5;

@@ -36,7 +36,6 @@
         git.enable = true;
         mcp.enable = true;
         oh-my-pi.enable = true;
-        opencode.enable = true;
         plasma.scale = 1;
         pwsh.enable = true;
         ssh.enable = true;

@@ -111,7 +111,7 @@
     {
       codgician.codgi = {
         dev.nix.enable = true;
-        opencode.enable = true;
+        oh-my-pi.enable = true;
         mcp.enable = true;
         git.enable = true;
         pwsh.enable = true;
