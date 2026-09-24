@@ -101,6 +101,20 @@ in
     "LC_*"
   ];
 
+  # proxmox-nixos ships a verbatim sysv-generator translation of Debian's LSB
+  # script (Type=forking, GuessMainPID=false, KillMode=process, no PIDFile,
+  # ExecStop="rrdcached stop"). rrdcached has no start/stop verbs, so
+  # ExecStop never stops anything and systemd has no main PID to kill: the
+  # daemon outlives every stop and the next start dies on its pid file.
+  # Run it as a native foreground service, like upstream's rrdcached.service.
+  systemd.services.rrdcached = {
+    description = lib.mkForce "Data caching daemon for rrdtool";
+    unitConfig.Documentation = lib.mkForce "man:rrdcached(1)";
+    serviceConfig = lib.mkForce {
+      ExecStart = "${pkgs.rrdtool}/bin/rrdcached -g -b /var/lib/rrdcached/db/ -j /var/lib/rrdcached/journal/ -l /run/rrdcached.sock -p /run/rrdcached.pid";
+    };
+  };
+
   # Enable dm-thin-pool kernel module for LVM thin provisioning
   boot.kernelModules = [ "dm-thin-pool" ];
 
