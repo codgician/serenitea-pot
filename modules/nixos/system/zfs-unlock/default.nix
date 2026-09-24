@@ -172,10 +172,12 @@ in
 
     boot.zfs.requestEncryptionCredentials = lib.mkDefault false;
 
-    boot.initrd.secrets = lib.listToAttrs (
+    # TPM2-sealed, so not secret: ship as store content rather than `boot.initrd.secrets`,
+    # whose sources are not GC roots and vanish from flake source trees.
+    boot.initrd.systemd.contents = lib.listToAttrs (
       map (d: {
         name = d.credPath;
-        value = d.credentialFile;
+        value.source = d.credentialFile;
       }) devices
     );
 
