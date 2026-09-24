@@ -237,6 +237,18 @@ in
     };
   };
 
+  systemd.services.elan-haptune = {
+    description = "Set Odette touchpad click thresholds";
+    wantedBy = [ "multi-user.target" ];
+    wants = [ "systemd-udev-settle.service" ];
+    after = [ "systemd-udev-settle.service" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      ExecStart = "${lib.getExe pkgs.nur.repos.codgician.elan-haptune} set --press-threshold 120 --release-threshold 95 --drag-release-threshold 95";
+    };
+  };
+
   # Reads the AC adapter's actual sysfs state (never trusts udev event
   # timing/env, so it converges correctly whether triggered by a real
   # hotplug or udev's boot-time coldplug replay) and writes the matching
