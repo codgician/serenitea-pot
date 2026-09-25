@@ -72,10 +72,8 @@ in
       evdev:input:b0005v18D1p4F80*
        KEYBOARD_KEY_c0190=f14
     '';
-    # Re-apply the RAPL PL1 power-limit baseline whenever the AC adapter's
-    # online state changes, including the synthetic coldplug replay udev
-    # performs for already-present devices during early boot.
-    #
+    # Reapply power limits when AC state changes (including boot coldplug).
+
     # Also keep the touchpad's I2C host controller (Alder Lake-P Serial IO
     # I2C Controller #1, the ELAN2703 touchpad's only client) out of
     # runtime suspend. Runtime PM cycling this controller races the
@@ -249,23 +247,8 @@ in
     };
   };
 
-  # Reads the AC adapter's actual sysfs state (never trusts udev event
-  # timing/env, so it converges correctly whether triggered by a real
-  # hotplug or udev's boot-time coldplug replay) and writes the matching
-  # RAPL PL1 baseline directly via powercap sysfs: a 20 W ceiling on AC,
-  # 15 W on battery (this platform's native default). This is a fixed
-  # baseline with no reactive thermal step-down (thermald was removed: its
-  # only job here was polling TCPU and stepping PL1 further down above
-  # 80 C, which added a userspace polling loop this system doesn't want).
-  # Fan cooling remains fully autonomous via the ChromeOS EC regardless
-  # (confirmed: EC-driven fan curve is independent of any OS thermal
-  # daemon), and the silicon's own PROCHOT/TjMax clamp (~97 C effective)
-  # remains as the hardware backstop for sustained heavy load.
-  #
-  # Also resets intel_pstate/max_perf_pct to 100, since it was observed
-  # stuck at 80% indefinitely after thermald applied it as a passive-trip
-  # side effect and never reverted it. Kept here as a safety net even
-  # after thermald's removal, in case anything else touches this knob.
+  # Set PL1/PL2 from the current AC state; Redrix advertises a 35 W PL2.
+  # Leave PL4 unchanged; clear any lingering intel_pstate cap.
   systemd.services.rapl-power-limit-select = {
     description = "Set the RAPL power limit and turbo ceiling for the current AC/battery state";
     wantedBy = [ "multi-user.target" ];
@@ -273,13 +256,15 @@ in
     script = ''
       echo 100 > /sys/devices/system/cpu/intel_pstate/max_perf_pct
 
-      limit_path=/sys/class/powercap/intel-rapl:0/constraint_0_power_limit_uw
       if [ "$(cat /sys/class/power_supply/AC/online 2>/dev/null)" = "1" ]; then
-        watts=20
+        pl1=20
+        pl2=55
       else
-        watts=15
+        pl1=15
+        pl2=35
       fi
-      echo $(( watts * 1000000 )) > "$limit_path"
+      echo $(( pl1 * 1000000 )) > /sys/class/powercap/intel-rapl:0/constraint_0_power_limit_uw
+      echo $(( pl2 * 1000000 )) > /sys/class/powercap/intel-rapl:0/constraint_1_power_limit_uw
     '';
   };
 
