@@ -21,8 +21,6 @@
             "force user" = "smb";
             "valid users" = "smb";
             "read only" = "no";
-            "guest ok" = "yes";
-            "guest account" = "smb";
             "create mask" = "0640";
             "directory mask" = "0751";
           };
@@ -137,6 +135,14 @@
 
   # Enable zram swap
   zramSwap.enable = true;
+
+  # Always-on server: disable all sleep states
+  systemd.sleep.settings.Sleep = {
+    AllowSuspend = false;
+    AllowHibernation = false;
+    AllowHybridSleep = false;
+    AllowSuspendThenHibernate = false;
+  };
 
   # Firewall
   networking.firewall.enable = false;
