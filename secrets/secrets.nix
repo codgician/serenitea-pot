@@ -216,7 +216,7 @@ let
         zibai
       ];
       users = with users; [ codgi ];
-      expires = "2026-10-15";
+      expires = "2026-12-25";
     };
     github-auth-header = {
       hosts = with hosts; [
