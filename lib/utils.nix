@@ -27,32 +27,35 @@ rec {
       inputs.nix-vscode-extensions.overlays.default
       inputs.mlnx-ofed-nixos.overlays.default
     ]
-    ++ (lib.optional (isLinuxSystem system) inputs.proxmox-nixos.overlays.${system});
+    ++ (lib.optional (isLinuxSystem system) inputs.proxmox-nixos.overlays.${system})
+    ++ [
+      (mkNixpkgsOverlay "master" system)
+      (mkNixpkgsOverlay "unstable" system)
+    ];
 
   # nixpkgs master no longer supports x86_64-darwin after 26.05. Keep that
   # system on the release input while all supported systems continue on master.
-  getUnstableNixpkgs =
-    system: if system == "x86_64-darwin" then inputs.nixpkgs else inputs.nixpkgs-unstable;
+  mkNixpkgsOverlay =
+    branch: system: final: prev:
+    let
+      nixpkgs = if system == "x86_64-darwin" then inputs.nixpkgs else inputs."nixpkgs-${branch}";
+    in
+    {
+      "${branch}" = import nixpkgs {
+        inherit system;
+        config = {
+          allowUnfree = true;
+          # Inherit CUDA/ROCm config from the host's stable pkgs
+          cudaSupport = prev.config.cudaSupport or false;
+          rocmSupport = prev.config.rocmSupport or false;
+        };
+        overlays = getCommonOverlays system;
+      };
+    };
 
-  getOverlays =
+  mkOverlays =
     system:
     (getCommonOverlays system)
-    ++ [
-      (final: prev: {
-        # Lazy unstable - only evaluated when pkgs.unstable.* is accessed
-        unstable = import (getUnstableNixpkgs system) {
-          inherit system;
-          config = {
-            allowUnfree = true;
-            # Inherit CUDA/ROCm config from the host's stable pkgs
-            cudaSupport = prev.config.cudaSupport or false;
-            rocmSupport = prev.config.rocmSupport or false;
-          };
-          overlays = getCommonOverlays system;
-        };
-        inherit lib;
-      })
-    ]
     ++ (builtins.map (
       x:
       import x {
@@ -70,7 +73,7 @@ rec {
     system:
     (import nixpkgs {
       inherit system;
-      overlays = getOverlays system;
+      overlays = mkOverlays system;
       config.allowUnfree = true;
       flake.source = nixpkgs.outPath;
     });
@@ -153,7 +156,7 @@ rec {
       networking.hostName = hostName;
       nixpkgs = {
         config.allowUnfree = true;
-        overlays = getOverlays system;
+        overlays = mkOverlays system;
       };
     };
 
