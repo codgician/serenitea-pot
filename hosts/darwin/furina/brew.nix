@@ -75,5 +75,6 @@
     "obs-backgroundremoval"
     "trader-workstation"
     "gimp"
+    "blender"
   ];
 }
