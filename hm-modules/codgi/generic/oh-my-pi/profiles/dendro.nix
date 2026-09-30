@@ -3,7 +3,7 @@
   modelRoles = {
     default = "dendro/claude-opus-5.5:medium";
     smol = "dendro/gpt-6-luna:medium";
-    task = "dendro/gpt-6-sol:medium";
+    task = "dendro/gpt-6.1-sol:medium";
     slow = "dendro/gpt-6-astra:medium";
     plan = "dendro/claude-opus-5.5:xhigh";
     advisor = "dendro/grok-4.6:high";
