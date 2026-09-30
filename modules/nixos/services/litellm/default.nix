@@ -73,8 +73,6 @@ let
 
   # Environment variables
   environment = {
-    "LITELLM_MODEL_COST_MAP_URL" =
-      "https://raw.githubusercontent.com/codgician/litellm/refs/heads/my/model_prices_and_context_window.json";
     "PYTHONPATH" = if cfg.backend == "nixpkgs" then "${claudeOAuthHook}" else "/";
     # Require pending PR: https://github.com/BerriAI/litellm/pull/34889
     "GITHUB_COPILOT_CLIENT_ID" = "Ov23li8tweQw6odWQebz";
