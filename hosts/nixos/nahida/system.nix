@@ -138,7 +138,8 @@
         };
         git.enable = true;
         github-copilot-cli.enable = true;
-        herdr.enable = true;
+        # herdr fails to link with binutils 2.46 (overlapping FDEs)
+        herdr.enable = false;
         mcp.enable = true;
         opencode = {
           enable = true;
