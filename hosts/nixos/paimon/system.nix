@@ -86,7 +86,7 @@
           host = "0.0.0.0";
           port = 8000;
           memFractionStatic = 0.95;
-          image = "lmsysorg/sglang:dev-qwen38-27b-dflash2";
+          image = "lmsysorg/sglang:latest";
           environmentVariables = {
             SGLANG_DISABLE_SILU_FP4_QUANT_FUSION = "1";
           };
