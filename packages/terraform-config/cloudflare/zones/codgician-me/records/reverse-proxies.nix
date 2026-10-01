@@ -14,6 +14,7 @@ let
     "fin"
     "fragments"
     "git"
+    "gns3"
     "hass"
     "leyline"
     "lumenstone"

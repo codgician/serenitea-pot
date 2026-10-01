@@ -237,6 +237,25 @@
           domains = [ "fin.codgician.me" ];
         };
       };
+
+      # Network lab
+      gns3-server = {
+        enable = true;
+        dataDir = "/xpool/appdata/gns3";
+        reverseProxy = {
+          enable = true;
+          domains = [ "gns3.codgician.me" ];
+          authelia = {
+            enable = true;
+            rules = [
+              {
+                groups = [ "gns3" ];
+                policy = "two_factor";
+              }
+            ];
+          };
+        };
+      };
     };
 
     system = {

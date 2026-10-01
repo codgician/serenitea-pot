@@ -11,6 +11,7 @@
   "fin.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "fragments.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "git.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
+  "gns3.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "hass.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "leyline.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "lumenstone.codgician.me".challengeProfile = ./profiles/codgician-me.nix;

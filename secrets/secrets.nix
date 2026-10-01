@@ -272,6 +272,10 @@ let
       hosts = with hosts; [ paimon ];
       users = with users; [ codgi ];
     };
+    gns3-server-password = {
+      hosts = with hosts; [ paimon ];
+      users = with users; [ codgi ];
+    };
     google-maps-api-key = {
       hosts = with hosts; [ paimon ];
       users = with users; [ codgi ];

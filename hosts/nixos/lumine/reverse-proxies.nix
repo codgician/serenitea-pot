@@ -64,6 +64,12 @@
       anubis.enable = true;
     };
 
+    gns3-server.reverseProxy = {
+      enable = true;
+      domains = [ "gns3.codgician.me" ];
+      proxyPass = "https://192.168.0.22";
+    };
+
     jellyfin.reverseProxy = {
       enable = true;
       domains = [ "fin.codgician.me" ];
