@@ -76,5 +76,6 @@
     "trader-workstation"
     "gimp"
     "blender"
+    "gns3"
   ];
 }
