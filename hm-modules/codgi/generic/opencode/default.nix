@@ -98,7 +98,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ pkgs.nur.repos.codgician.agent-browser ];
+    home.packages = [ pkgs.llm-agents.agent-browser ];
     programs.opencode = {
       enable = true;
       inherit (cfg) package;
@@ -172,7 +172,7 @@ in
         source = pkgs.symlinkJoin {
           name = "opencode-skills";
           paths = [
-            "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
+            "${pkgs.llm-agents.agent-browser.src}/skills"
           ]
           ++ lib.optionals (config.codgician.codgi.herdr.enable or false) [
             "${config.codgician.codgi.herdr.package.src}/skills"

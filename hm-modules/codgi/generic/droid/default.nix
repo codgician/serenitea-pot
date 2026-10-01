@@ -49,7 +49,7 @@ let
   skillsDir = pkgs.symlinkJoin {
     name = "droid-skills";
     paths = [
-      "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
+      "${pkgs.llm-agents.agent-browser.src}/skills"
     ]
     ++ lib.optionals (config.codgician.codgi.herdr.enable or false) [
       "${config.codgician.codgi.herdr.package.src}/skills"
@@ -73,7 +73,7 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = [
       cfg.package
-      pkgs.nur.repos.codgician.agent-browser
+      pkgs.llm-agents.agent-browser
     ];
 
     home.file = {

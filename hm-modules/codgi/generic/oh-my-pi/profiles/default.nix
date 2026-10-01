@@ -37,7 +37,7 @@ let
       enableAgentsUser = false;
       enableAgentsProject = true;
       customDirectories = [
-        "${pkgs.nur.repos.codgician.agent-browser.src}/skills"
+        "${pkgs.llm-agents.agent-browser.src}/skills"
       ]
       ++ extraSkillDirectories;
     };

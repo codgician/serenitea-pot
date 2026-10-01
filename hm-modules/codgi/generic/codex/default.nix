@@ -39,14 +39,14 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ pkgs.nur.repos.codgician.agent-browser ];
+    home.packages = [ pkgs.llm-agents.agent-browser ];
 
     programs.codex = {
       enable = true;
       package = cfg.package;
       enableMcpIntegration = config.codgician.codgi.mcp.enable;
       skills = {
-        agent-browser = "${pkgs.nur.repos.codgician.agent-browser.src}/skills/agent-browser";
+        agent-browser = "${pkgs.llm-agents.agent-browser.src}/skills/agent-browser";
       }
       // lib.optionalAttrs (config.codgician.codgi.herdr.enable or false) {
         herdr = "${config.codgician.codgi.herdr.package.src}/skills/herdr";
