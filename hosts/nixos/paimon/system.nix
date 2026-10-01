@@ -89,6 +89,8 @@
           image = "lmsysorg/sglang:latest";
           environmentVariables = {
             SGLANG_DISABLE_SILU_FP4_QUANT_FUSION = "1";
+            # Drop one mamba slot per running request (lazy: 4 -> 3).
+            SGLANG_OPT_MAMBA_SKIP_DECODE_LOCK = "1";
           };
           extraArgs = [
             "--trust-remote-code"
@@ -101,7 +103,7 @@
             "--fp4-gemm-backend"
             "marlin"
             "--chunked-prefill-size"
-            "8192"
+            "2048"
             # "--enable-mixed-chunk" # no-op when dflash enabled
             "--mamba-radix-cache-strategy"
             "extra_buffer_lazy"
@@ -118,7 +120,7 @@
             "--max-running-requests"
             "6"
             "--max-mamba-cache-size"
-            "16"
+            "18" # 6 requests x 3 slots
             "--reasoning-parser"
             "qwen3"
             "--tool-call-parser"
@@ -127,6 +129,8 @@
             "DFLASH"
             "--speculative-draft-model-path"
             "z-lab/Qwen3.8-27B-DFlash2"
+            "--speculative-draft-model-quantization"
+            "fp8"
             "--speculative-num-draft-tokens"
             "8"
           ];
