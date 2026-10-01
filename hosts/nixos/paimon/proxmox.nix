@@ -124,15 +124,15 @@ in
       enable = true;
       openFirewall = true;
       reverseProxies = {
-        "pve.codgician.me" = {
+        "simulanka.codgician.me" = {
           enable = true;
           https = true;
-          domains = [ "pve.codgician.me" ];
+          domains = [ "simulanka.codgician.me" ];
           locations."/".passthru.proxyPass = "https://127.0.0.1:8006";
         };
       };
     };
-    acme."pve.codgician.me".postRun = ''
+    acme."simulanka.codgician.me".postRun = ''
       cp -f cert.pem /etc/pve/local/pveproxy-ssl.pem
       cp -f key.pem /etc/pve/local/pveproxy-ssl.key
       systemctl restart pveproxy.service

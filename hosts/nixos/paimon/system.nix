@@ -244,7 +244,7 @@
         dataDir = "/xpool/appdata/gns3";
         reverseProxy = {
           enable = true;
-          domains = [ "gns3.codgician.me" ];
+          domains = [ "miliastra.codgician.me" ];
           authelia = {
             enable = true;
             rules = [

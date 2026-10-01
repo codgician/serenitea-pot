@@ -66,7 +66,7 @@
 
     gns3-server.reverseProxy = {
       enable = true;
-      domains = [ "gns3.codgician.me" ];
+      domains = [ "miliastra.codgician.me" ];
       proxyPass = "https://192.168.0.22";
     };
 
@@ -112,10 +112,10 @@
           locations."/".passthru.proxyPass = "http://192.168.0.11:8123";
         };
 
-        "pve.codgician.me" = {
+        "simulanka.codgician.me" = {
           enable = true;
           https = true;
-          domains = [ "pve.codgician.me" ];
+          domains = [ "simulanka.codgician.me" ];
           locations."/".passthru.proxyPass = "https://192.168.0.21";
         };
 

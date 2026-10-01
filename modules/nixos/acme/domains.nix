@@ -11,13 +11,13 @@
   "fin.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "fragments.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "git.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
-  "gns3.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "hass.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "leyline.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "lumenstone.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "lumine.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "matrix.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
-  "pve.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
+  "miliastra.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
+  "simulanka.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "saw.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "turn.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "vanarana.codgician.me".challengeProfile = ./profiles/codgician-me.nix;

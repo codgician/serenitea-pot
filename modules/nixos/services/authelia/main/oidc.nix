@@ -36,7 +36,7 @@
       require_pkce = true;
       pkce_challenge_method = "S256";
       redirect_uris = [
-        "https://pve.codgician.me"
+        "https://simulanka.codgician.me"
       ];
       scopes = [
         "openid"
