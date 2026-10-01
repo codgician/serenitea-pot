@@ -28,11 +28,11 @@ in
     # during evaluation, which would realize these target-platform sources.
     home.file = {
       "${config.programs.claude-code.configDir}/skills/agent-browser".source =
-      "${pkgs.llm-agents.agent-browser.src}/skills/agent-browser";
+        "${pkgs.llm-agents.agent-browser.src}/skills/agent-browser";
     }
     // lib.optionalAttrs (config.codgician.codgi.herdr.enable or false) {
       "${config.programs.claude-code.configDir}/skills/herdr".source =
-      "${config.codgician.codgi.herdr.package.src}/skills/herdr";
+        "${config.codgician.codgi.herdr.package.src}/skills/herdr";
     };
     programs.claude-code = {
       enable = true;
