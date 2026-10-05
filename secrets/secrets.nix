@@ -439,7 +439,10 @@ let
       users = with users; [ codgi ];
     };
     sing-ss-lumidouce-password = {
-      hosts = with hosts; [ jahoda ];
+      hosts = with hosts; [
+        jahoda
+        odette
+      ];
       users = with users; [ codgi ];
     };
     smb-hashed-password = {

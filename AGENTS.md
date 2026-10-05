@@ -51,6 +51,11 @@ Hosts needing full control use the upstream nixpkgs/home-manager module directly
 - For new NixOS services, persist state via `codgician.system.impermanence.extraItems` and create custom dirs via `systemd.tmpfiles.rules` (see `jellyfin`)
 - Request approval for: deploy, `terraform apply`, `nix run .#secrets -- rekey`
 
+### Documentation
+
+- Update `README.md` only when necessary to document a meaningful change in usage, behavior, or setup; do not add routine implementation notes or verification logs.
+- Fit additions into the README's existing scope, structure, tone, and level of detail. Prefer updating a relevant section over appending a disconnected section or duplicating existing documentation.
+
 ## Commit Format
 
 ```

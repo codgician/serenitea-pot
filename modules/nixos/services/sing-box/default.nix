@@ -17,6 +17,16 @@ in
   options.codgician.services.${serviceName} = {
     enable = lib.mkEnableOption serviceName;
 
+    autoStart = lib.mkOption {
+      type = types.bool;
+      default = true;
+      description = ''
+        Start sing-box automatically at boot. When disabled, the configured
+        service remains available for manual start and stop through systemctl.
+        This does not enforce that an already-running service stays stopped.
+      '';
+    };
+
     domain = lib.mkOption {
       type = with types; nullOr str;
       default = null;
@@ -59,6 +69,8 @@ in
         ];
       };
     };
+
+    systemd.services.sing-box.wantedBy = lib.mkIf (!cfg.autoStart) (lib.mkForce [ ]);
 
     # Configure user and group for running sing-box
     systemd.services.sing-box.serviceConfig = {

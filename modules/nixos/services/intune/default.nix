@@ -7,40 +7,6 @@
 let
   cfg = config.codgician.services.intune;
 
-  # GlobalProtect VPN helper for off-site Intune compliance: authenticates
-  # via Microsoft SSO in Microsoft Edge, driven directly by gpclient.
-  # Edge is wrapped to always launch with the "Default" profile, since
-  # gpclient invokes the browser binary directly with no way to pass
-  # extra flags of its own.
-  msftvpnEdge = pkgs.writeShellScriptBin "msftvpn-edge" ''
-    exec ${pkgs.microsoft-edge}/bin/microsoft-edge-stable --profile-directory='Profile 1' "$@"
-  '';
-  msftvpn = pkgs.writeShellApplication {
-    name = "msftvpn";
-    text = ''
-      case "''${1:-connect}" in
-        connect)
-          exec ${config.security.wrapperDir}/sudo -E \
-            ${pkgs.gpclient}/bin/gpclient \
-            --fix-openssl \
-            connect \
-            --browser ${msftvpnEdge}/bin/msftvpn-edge \
-            https://msftvpn-alt.ras.microsoft.com
-          ;;
-        disconnect)
-          exec ${config.security.wrapperDir}/sudo \
-            ${pkgs.gpclient}/bin/gpclient disconnect --wait 3
-          ;;
-        help|-h|--help)
-          echo "Usage: msftvpn [connect|disconnect]"
-          ;;
-        *)
-          echo "Usage: msftvpn [connect|disconnect]" >&2
-          exit 2
-          ;;
-      esac
-    '';
-  };
   intuneRegisterDevice = pkgs.writers.writePython3Bin "intune-register-device" {
     libraries = [ pkgs.python3Packages.dbus-next ];
     makeWrapperArgs = [
@@ -54,6 +20,8 @@ let
   } (builtins.readFile ./register-device.py);
 in
 {
+  imports = [ ./vpn.nix ];
+
   options.codgician.services.intune = {
     enable = lib.mkEnableOption "Microsoft Intune enrollment (identity broker, Intune daemon/agent, and compliance tooling)";
 
@@ -73,9 +41,6 @@ in
       };
 
     };
-    vpn = {
-      enable = lib.mkEnableOption "GlobalProtect VPN helper (msftvpn) for off-site Intune compliance";
-    };
   };
 
   config = lib.mkIf cfg.enable (
@@ -87,18 +52,12 @@ in
       services.pcscd.enable = true;
 
       environment = {
-        systemPackages =
-          with pkgs;
-          [
-            libpwquality
-            cfg.packages.intune-portal
-            cfg.packages.microsoft-identity-broker
-            intuneRegisterDevice
-          ]
-          ++ lib.optionals cfg.vpn.enable [
-            pkgs.gpclient
-            msftvpn
-          ];
+        systemPackages = with pkgs; [
+          libpwquality
+          cfg.packages.intune-portal
+          cfg.packages.microsoft-identity-broker
+          intuneRegisterDevice
+        ];
 
         # Register OpenSC as a p11-kit PKCS#11 module so that the identity
         # broker can discover smart-card credentials (e.g. Yubikey PIV) via

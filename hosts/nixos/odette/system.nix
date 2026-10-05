@@ -20,6 +20,11 @@ in
         enable = true;
         vpn.enable = true;
       };
+      sing-box = {
+        enable = true;
+        autoStart = false;
+        clients.ss-lumidouce.enable = true;
+      };
     };
 
     system = {
@@ -142,6 +147,15 @@ in
         drawy
         chatgpt-wrapped
         azure-cli
+        # QCAD replaces Qt's plugin paths at startup; expose QtWayland in its own plugin directory.
+        (unstable.qcad.overrideAttrs (old: {
+          buildInputs = old.buildInputs ++ [ unstable.qt5.qtwayland ];
+          postInstall = (old.postInstall or "") + ''
+            for plugin in wayland-shell-integration wayland-graphics-integration-client wayland-decoration-client; do
+              ln -s ${unstable.qt5.qtwayland.bin}/${unstable.qt5.qtbase.qtPluginPrefix}/$plugin $out/lib/plugins/$plugin
+            done
+          '';
+        }))
       ];
     };
 
