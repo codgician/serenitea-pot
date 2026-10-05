@@ -52,7 +52,7 @@ in
             "xianyun4.codgician.me"
             "xianyun6.codgician.me"
           ];
-          locations."/".passthru.root = import ./xianyun-web.nix { inherit pkgs; };
+          locations."/".passthru.return = "403";
         };
       };
 
