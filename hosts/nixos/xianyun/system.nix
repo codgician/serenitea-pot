@@ -44,6 +44,16 @@ in
           ];
           locations."/".passthru.root = import ./xianyun-web.nix { inherit pkgs; };
         };
+        reverseProxies."xianyun.codgician.me" = {
+          enable = true;
+          https = true;
+          domains = [
+            "xianyun.codgician.me"
+            "xianyun4.codgician.me"
+            "xianyun6.codgician.me"
+          ];
+          locations."/".passthru.root = import ./xianyun-web.nix { inherit pkgs; };
+        };
       };
 
       sing-box = {
@@ -55,6 +65,10 @@ in
           "itscd"
         ];
         servers.hysteria2.enable = true;
+        servers.shadowsocks = {
+          enable = true;
+          port = 8444;
+        };
       };
 
       wireguard = {
@@ -90,6 +104,10 @@ in
       hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
     };
   };
+
+  services.nginx.virtualHosts."xianyun.codgician.me".extraConfig = ''
+    add_header Alt-Svc 'h3=":443"; ma=86400' always;
+  '';
 
   # Home manager
   home-manager.users.codgi =

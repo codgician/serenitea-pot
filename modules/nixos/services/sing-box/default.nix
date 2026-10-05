@@ -92,12 +92,10 @@ in
     };
 
     # Secrets
-    codgician.secrets.files =
-      lib.genAttrs (builtins.map (x: "sing-${x}-proxy-password") cfg.users)
-        (name: {
-          owner = user;
-          inherit group;
-          mode = "0600";
-        });
+    codgician.secrets.files = lib.genAttrs (builtins.map (x: "sing-${x}-password") cfg.users) (name: {
+      owner = user;
+      inherit group;
+      mode = "0600";
+    });
   };
 }

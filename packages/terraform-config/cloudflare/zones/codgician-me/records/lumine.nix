@@ -24,5 +24,20 @@ in
       content = config.resource.azurerm_linux_virtual_machine.lumine "public_ip_addresses[1]";
       inherit zone_id;
     };
+
+    # Reverse-proxy CNAMEs inherit discovery from this target.
+    lumine-https = {
+      name = "lumine.${zone_name}";
+      type = "HTTPS";
+      proxied = false;
+      ttl = 120;
+      comment = "HTTP/3 discovery for Lumine reverse proxies";
+      data = {
+        priority = 1;
+        target = ".";
+        value = ''alpn="h3,h2"'';
+      };
+      inherit zone_id;
+    };
   };
 }

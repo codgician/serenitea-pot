@@ -24,5 +24,18 @@ in
       type = "AAAA";
       content = ipv6;
       inherit zone_id;
+    }))
+    // (lib.genAttrs [ "xianyun-https" "xianyun4-https" "xianyun6-https" ] (name: {
+      name = "${lib.removeSuffix "-https" name}.${zone_name}";
+      type = "HTTPS";
+      proxied = false;
+      ttl = 120;
+      comment = "HTTP/3 discovery for Xianyun";
+      data = {
+        priority = 1;
+        target = ".";
+        value = ''alpn="h3,h2"'';
+      };
+      inherit zone_id;
     }));
 }

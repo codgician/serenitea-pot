@@ -409,7 +409,16 @@ let
       hosts = with hosts; [ lumine ];
       users = with users; [ codgi ];
     };
-    sing-codgi-proxy-password = {
+    sing-codgi-password = {
+      key = "sing-codgi-proxy-password";
+      hosts = with hosts; [
+        jahoda
+        lumine
+        xianyun
+      ];
+      users = with users; [ codgi ];
+    };
+    sing-codgi-ss-password = {
       hosts = with hosts; [
         jahoda
         lumine
@@ -424,14 +433,30 @@ let
       ];
       users = with users; [ codgi ];
     };
-    sing-itscd-proxy-password = {
+    sing-itscd-password = {
+      key = "sing-itscd-proxy-password";
       hosts = with hosts; [
         lumine
         xianyun
       ];
       users = with users; [ codgi ];
     };
-    sing-lxm75-proxy-password = {
+    sing-itscd-ss-password = {
+      hosts = with hosts; [
+        lumine
+        xianyun
+      ];
+      users = with users; [ codgi ];
+    };
+    sing-lxm75-password = {
+      key = "sing-lxm75-proxy-password";
+      hosts = with hosts; [
+        lumine
+        xianyun
+      ];
+      users = with users; [ codgi ];
+    };
+    sing-lxm75-ss-password = {
       hosts = with hosts; [
         lumine
         xianyun
@@ -442,6 +467,14 @@ let
       hosts = with hosts; [
         jahoda
         odette
+      ];
+      users = with users; [ codgi ];
+    };
+    sing-ss-password = {
+      hosts = with hosts; [
+        jahoda
+        lumine
+        xianyun
       ];
       users = with users; [ codgi ];
     };

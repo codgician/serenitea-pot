@@ -97,7 +97,7 @@ in
 
         users = builtins.map (name: {
           inherit name;
-          password._secret = config.codgician.secrets.files."sing-${name}-proxy-password".path;
+          password._secret = config.codgician.secrets.files."sing-${name}-password".path;
         }) serverCfg.users;
       }
     ];

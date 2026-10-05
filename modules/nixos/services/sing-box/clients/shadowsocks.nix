@@ -1,9 +1,8 @@
 { config, lib, ... }:
 let
-  profileName = "hysteria2";
+  profileName = "shadowsocks";
   cfg = config.codgician.services.sing-box;
   clientCfg = cfg.clients.${profileName};
-  serverCfg = cfg.servers.${profileName};
   inherit (lib) types;
 in
 {
@@ -16,22 +15,17 @@ in
       description = "Server to connect.";
     };
 
+    port = lib.mkOption {
+      type = types.port;
+      default = cfg.servers.${profileName}.port;
+      defaultText = "config.codgician.services.sing-box.servers.shadowsocks.port";
+      description = "Port of the remote Shadowsocks server.";
+    };
+
     user = lib.mkOption {
       type = with types; nullOr (enum cfg.users);
       default = null;
       description = "Identity used for accessing server.";
-    };
-
-    downMbps = lib.mkOption {
-      type = with types; nullOr int;
-      default = null;
-      description = "Max download bandwidth in Mbps.";
-    };
-
-    upMbps = lib.mkOption {
-      type = with types; nullOr int;
-      default = null;
-      description = "Max upload bandwidth in Mbps.";
     };
 
     tag = lib.mkOption {
@@ -45,37 +39,28 @@ in
 
   config = lib.mkIf clientCfg.enable {
     services.sing-box.settings.outbounds = [
-      rec {
-        type = "hysteria2";
+      {
+        type = "shadowsocks";
         tag = clientCfg.tag;
         server = clientCfg.server;
-        server_port = serverCfg.publicPort;
-        password._secret = config.codgician.secrets.files."sing-${clientCfg.user}-password".path;
-        down_mbps = lib.mkIf (clientCfg.downMbps != null) clientCfg.downMbps;
-        up_mbps = lib.mkIf (clientCfg.upMbps != null) clientCfg.upMbps;
-        hop_interval = "30s";
-        brutal_debug = false;
-
-        tls = {
+        server_port = clientCfg.port;
+        method = "2022-blake3-aes-256-gcm";
+        password._secret =
+          config.codgician.secrets.templates."sing-${clientCfg.user}-ss-client-password".path;
+        multiplex = {
           enabled = true;
-          alpn = [ "h3" ];
-          insecure = false;
-          server_name = server;
-          ech = {
-            enabled = true;
-            config_path = ./ech.configs;
-          };
+          protocol = "h2mux";
         };
       }
     ];
 
     assertions = [
       {
-        assertion = !clientCfg.enable || clientCfg.server != null;
+        assertion = clientCfg.server != null;
         message = "Server must be specified for ${profileName} client.";
       }
       {
-        assertion = !clientCfg.enable || clientCfg.user != null;
+        assertion = clientCfg.user != null;
         message = "User must be specified for ${profileName} client.";
       }
     ];
