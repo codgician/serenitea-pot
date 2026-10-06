@@ -432,6 +432,7 @@ in
         # Plasma 6.3+ reads window decoration from `org.kde.kdecoration3`,
         # while plasma-manager currently writes the legacy
         # `org.kde.kdecoration2` section. Mirror the selected Breeze decoration.
+        kglobalshortcutsrc.kwin.Overview = "Meta+W,Meta+W,Toggle Overview";
         kwinrc = {
           Xwayland.Scale = lib.mkIf (cfg.scale != null) cfg.scale;
           ElectricBorders = {
