@@ -73,6 +73,33 @@
       "reasoning"
     ]
   },
+  "claude-haiku-5.5": {
+    "aliases": [
+      "claude-haiku-5-5"
+    ],
+    "contextWindow": 1000000,
+    "maxInputTokens": 1000000,
+    "maxOutputTokens": 128000,
+    "mode": "chat",
+    "path": "claude-haiku-5-5",
+    "reasoningEfforts": [
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max"
+    ],
+    "supportedEndpoints": [
+      "/v1/messages"
+    ],
+    "supports": [
+      "toolCalls",
+      "parallelToolCalls",
+      "structuredOutputs",
+      "vision",
+      "reasoning"
+    ]
+  },
   "claude-opus-4.5": {
     "aliases": [
       "claude-opus-4-5",
@@ -236,8 +263,8 @@
       "claude-sonnet-4-5",
       "claude-sonnet-4-5-20250929"
     ],
-    "contextWindow": 1000000,
-    "maxInputTokens": 1000000,
+    "contextWindow": 200000,
+    "maxInputTokens": 200000,
     "maxOutputTokens": 64000,
     "mode": "chat",
     "path": "claude-sonnet-4-5-20250929",
