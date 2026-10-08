@@ -15,7 +15,7 @@ in
           "anthropic"
           "remote"
         ];
-        extraParams = lib.optionalAttrs (!lib.hasInfix "haiku" name) {
+        extraParams = {
           guardrails = [ "claude_oauth_hook" ];
         };
       } name spec;
