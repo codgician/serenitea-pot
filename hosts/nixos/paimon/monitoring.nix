@@ -2,7 +2,12 @@
 # - Prometheus metrics from NGINX stub_status and access logs
 # - Loki access-log storage with local GeoIP enrichment
 # - Grafana provisioned data sources and dashboards
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   # Nginx log path
   nginxAccessLogPath = "/var/log/nginx/access.log";
@@ -51,6 +56,27 @@ in
   services.prometheus.exporters.nvidia-gpu = {
     enable = true;
     listenAddress = "127.0.0.1";
+    # The default queries all ~190 fields on every scrape. That burst of driver
+    # calls kicks paimon's GPU from P8 into P0, which it never leaves on its own.
+    extraFlags = [
+      "--query-field-names=${
+        lib.concatStringsSep "," [
+          "pstate"
+          "temperature.gpu"
+          "fan.speed"
+          "utilization.gpu"
+          "utilization.memory"
+          "memory.used"
+          "memory.total"
+          "power.draw"
+          "power.limit"
+          "enforced.power.limit"
+          "power.default_limit"
+          "clocks.current.graphics"
+          "clocks.current.memory"
+        ]
+      }"
+    ];
   };
 
   systemd.services.prometheus-nvidia-gpu-exporter = {

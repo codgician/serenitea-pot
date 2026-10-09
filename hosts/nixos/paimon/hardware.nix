@@ -155,59 +155,21 @@
     serviceConfig.Type = "oneshot";
   };
 
-  # Hack: quirk to force GPU into P8 on idle
-  systemd.timers.nvidia-gpu-idle-quirk = {
-    description = "NVIDIA GPU idle quirk timer";
-    wants = [ "nvidia-gpu-idle-quirk.service" ];
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnBootSec = "1min";
-      OnUnitActiveSec = "10min";
-      AccuracySec = "1min";
-    };
-  };
+  # Quirk: this GPU never leaves P0 on its own; see nvidia-gpu-idle-quirk.py
   systemd.services.nvidia-gpu-idle-quirk = {
-    description = "NVIDIA GPU idle quirk";
+    description = "Drop idle NVIDIA GPU from P0 to P8";
+    wantedBy = [ "multi-user.target" ];
     wants = [ "nvidia-gpu-config.service" ];
     after = [ "nvidia-gpu-config.service" ];
-    path = [
-      pkgs.gawk
-      config.hardware.nvidia.package.bin
-    ];
-    script = ''
-      perf_state=$(
-        nvidia-smi -q -d PERFORMANCE \
-          | awk -F: '/^\s*Performance State/ {
-              gsub(/^[ \t]+|[ \t]+$/, "", $2)
-              print $2
-              exit
-            }'
-      )
-
-      if [ "$perf_state" != "P0" ]; then
-        echo "Performance State is $perf_state, skipping idle quirk."
-        exit 0
-      fi
-
-      idle_status=$(
-        nvidia-smi -q -d PERFORMANCE \
-          | awk -F: '/^\s*Idle\s*:/ {
-              gsub(/^[ \t]+|[ \t]+$/, "", $2)
-              print $2
-              exit
-            }'
-      )
-
-      if [ "$idle_status" == "Active" ]; then
-        echo "Idle is Active, running idle quirk..."
-        nvidia-smi -lmc 405
-        sleep 1
-        nvidia-smi -rmc
-      else
-        echo "Idle is $idle_status, skipping idle quirk."
-      fi
-    '';
-    serviceConfig.Type = "oneshot";
+    serviceConfig = {
+      ExecStart = lib.getExe (
+        pkgs.writers.writePython3Bin "nvidia-gpu-idle-quirk" {
+          libraries = [ pkgs.python3Packages.nvidia-ml-py ];
+        } (builtins.readFile ./nvidia-gpu-idle-quirk.py)
+      );
+      Restart = "on-failure";
+      RestartSec = 10;
+    };
   };
 
   # Start ollama after configuring GPU
