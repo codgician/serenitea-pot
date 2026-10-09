@@ -215,7 +215,9 @@ in
       };
 
       virtualHosts = lib.mkMerge [
-        (builtins.mapAttrs mkVirtualHostConfig cfg.reverseProxies)
+        (builtins.mapAttrs mkVirtualHostConfig (
+          lib.filterAttrs (_: hostCfg: hostCfg.enable) cfg.reverseProxies
+        ))
         {
           _ = {
             default = true;
