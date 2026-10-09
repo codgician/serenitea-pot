@@ -92,7 +92,7 @@
         enable = true;
         openFirewall = true;
         reverseProxies.opencode-web = {
-          enable = true;
+          enable = false;
           domains = [ "fragments.codgician.me" ];
           authelia = {
             enable = true;
