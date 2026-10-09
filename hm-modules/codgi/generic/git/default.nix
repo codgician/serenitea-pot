@@ -175,5 +175,22 @@ in
     # Force overwrite any pre-existing config.yml (e.g. from manual `gh auth
     # login`) instead of failing activation.
     xdg.configFile."gh/config.yml".force = true;
+
+    # Seed mutable host state so first login does not dirty the root config and
+    # try to rewrite Home Manager's immutable config.yml (cli/cli#4955).
+    home.activation.ghInitializeHosts =
+      let
+        initialHosts = pkgs.writeText "gh-initial-hosts.yml" ''
+          github.com:
+              git_protocol: https
+        '';
+      in
+      lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+        ghHosts=${lib.escapeShellArg "${config.xdg.configHome}/gh/hosts.yml"}
+        if [[ ! -e "$ghHosts" || -f "$ghHosts" ]] &&
+           [[ ! -L "$ghHosts" && ! -s "$ghHosts" ]]; then
+          run ${pkgs.coreutils}/bin/install -D -m 600 ${initialHosts} "$ghHosts"
+        fi
+      '';
   };
 }
