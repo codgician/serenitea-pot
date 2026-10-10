@@ -56,6 +56,21 @@ let
     acc: m: acc // (lib.genAttrs m.aliases (_: m.model))
   ) { } config.codgician.models.all;
 
+  retryPolicy = {
+    BadRequestErrorRetries = 0;
+    NotFoundErrorRetries = 0;
+    ContentPolicyViolationErrorRetries = 0;
+    RateLimitErrorRetries = 1;
+    TimeoutErrorRetries = 1;
+    InternalServerErrorRetries = 1;
+    ServiceUnavailableErrorRetries = 1;
+  };
+
+  # Group policies replace, rather than merge with, the shared policy in LiteLLM.
+  modelGroupRetryPolicies = lib.genAttrs (map (model: model.model_name) (
+    builtins.filter (model: model.model_info.mode == "image_generation") allModels
+  )) (_: retryPolicy // { TimeoutErrorRetries = 0; });
+
   # Cap upstream wait. Reverse proxy gets a margin so LiteLLM trips first.
   requestTimeout = 600;
   reverseProxyTimeout = requestTimeout + 30;
@@ -72,7 +87,6 @@ let
       user_api_key_cache_ttl = "300";
     };
     litellm_settings = {
-      num_retries = 3;
       cache = true;
       enable_redis_auth_cache = true;
       enable_caching_on_provider_specific_optional_params = true;
@@ -88,6 +102,11 @@ let
       model_alias_map = aliasMap;
       request_timeout = requestTimeout;
       stream = true;
+    };
+    router_settings = {
+      num_retries = 1;
+      retry_policy = retryPolicy;
+      model_group_retry_policy = modelGroupRetryPolicies;
     };
     model_list = allModels;
   };
