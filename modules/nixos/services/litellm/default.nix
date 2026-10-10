@@ -76,6 +76,7 @@ let
       cache = true;
       enable_redis_auth_cache = true;
       enable_caching_on_provider_specific_optional_params = true;
+      enable_anthropic_prompt_caching = true;
       cache_params = {
         type = "redis";
         namespace = "litellm.caching.caching";
