@@ -83,6 +83,7 @@ in
     # rebound. Pinning the controller active avoids the race entirely.
     udev.extraRules = ''
       SUBSYSTEM=="power_supply", KERNEL=="AC", TAG+="systemd", ENV{SYSTEMD_WANTS}+="rapl-power-limit-select.service"
+      SUBSYSTEM=="hidraw", KERNELS=="0018:04F3:323B.*", DRIVERS=="hid-multitouch", TAG+="systemd", ENV{SYSTEMD_WANTS}+="elan-haptune.service"
       SUBSYSTEM=="pci", KERNEL=="0000:00:19.1", ATTR{power/control}="on"
     '';
     dbus.packages = [ rustFp ];
@@ -235,17 +236,27 @@ in
     };
   };
 
-  systemd.services.elan-haptune = {
-    description = "Set Odette touchpad click thresholds";
-    wantedBy = [ "multi-user.target" ];
-    wants = [ "systemd-udev-settle.service" ];
-    after = [ "systemd-udev-settle.service" ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = "${lib.getExe pkgs.nur.repos.codgician.elan-haptune} set --press-threshold 115 --release-threshold 90 --drag-release-threshold 90";
+  # Touchpad thresholds live in volatile firmware state that i2c-hid resets on
+  # every suspend/hibernate without re-enumerating the device. udev applies
+  # them whenever the driver binds (boot, rebind); sleep targets cover resume.
+  systemd.services.elan-haptune =
+    let
+      sleepTargets = [
+        "suspend.target"
+        "hibernate.target"
+        "hybrid-sleep.target"
+        "suspend-then-hibernate.target"
+      ];
+    in
+    {
+      description = "Set Odette touchpad click thresholds";
+      wantedBy = sleepTargets;
+      after = sleepTargets;
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${lib.getExe pkgs.nur.repos.codgician.elan-haptune} set --press-threshold 115 --release-threshold 90 --drag-release-threshold 90";
+      };
     };
-  };
 
   # Set PL1/PL2 from the current AC state; Redrix advertises a 35 W PL2.
   # Leave PL4 unchanged; clear any lingering intel_pstate cap.
