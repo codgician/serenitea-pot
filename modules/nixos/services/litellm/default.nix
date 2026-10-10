@@ -23,8 +23,35 @@ let
     litellm_params = m.litellmParams;
   };
 
-  # Model list and alias map from registry
-  allModels = map mkLiteLLMModel config.codgician.models.all;
+  # Keep one public model/alias while preferring subscription quota over API spend.
+  allModels = lib.concatMap (
+    m:
+    let
+      model = mkLiteLLMModel m;
+    in
+    if m.provider == "claude" then
+      [
+        (
+          model
+          // {
+            litellm_params = model.litellm_params // {
+              order = 1;
+            };
+          }
+        )
+        (
+          model
+          // {
+            litellm_params = model.litellm_params // {
+              api_key = "os.environ/ANTHROPIC_API_KEY";
+              order = 2;
+            };
+          }
+        )
+      ]
+    else
+      [ model ]
+  ) config.codgician.models.all;
   aliasMap = lib.foldl' (
     acc: m: acc // (lib.genAttrs m.aliases (_: m.model))
   ) { } config.codgician.models.all;

@@ -15,9 +15,6 @@ in
           "anthropic"
           "remote"
         ];
-        extraParams = {
-          guardrails = [ "claude_oauth_hook" ];
-        };
       } name spec;
     inherit models;
   };

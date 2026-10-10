@@ -1,13 +1,12 @@
 from __future__ import annotations
 
+import os
 from typing import Any
 
-from litellm.integrations.custom_guardrail import CustomGuardrail
-from litellm.types.guardrails import GuardrailEventHooks
+from litellm.integrations.custom_logger import CustomLogger
 from litellm.types.utils import CallTypes
 
 
-GUARDRAIL_NAME = "claude_oauth_hook"
 IDENTITY = "You are a Claude agent, built on Anthropic's Claude Agent SDK."
 VALID_IDENTITIES = {
     IDENTITY,
@@ -55,7 +54,7 @@ def _inject_messages(data: dict) -> bool:
 
     identity = {"type": "text", "text": IDENTITY}
     if isinstance(system, list):
-        system.insert(0, identity)
+        data["system"] = [identity, *system]
     elif isinstance(system, str):
         data["system"] = [identity]
         if system:
@@ -93,26 +92,21 @@ def _inject_chat_completions(data: dict) -> bool:
     messages = data.get("messages")
     if not isinstance(messages, list) or _is_valid_identity(_first_message_system(messages)):
         return False
-    messages.insert(0, {"role": "system", "content": IDENTITY})
+    data["messages"] = [{"role": "system", "content": IDENTITY}, *messages]
     return True
 
 
-class ClaudeOAuthIdentityHook(CustomGuardrail):
-    def __init__(self) -> None:
-        super().__init__(
-            guardrail_name=GUARDRAIL_NAME,
-            supported_event_hooks=[GuardrailEventHooks.pre_call],
-            event_hook=GuardrailEventHooks.pre_call,
-            default_on=False,
-        )
-
-    async def async_pre_call_hook(
-        self,
-        user_api_key_dict: Any,
-        cache: Any,
-        data: dict,
-        call_type: Any,
+class ClaudeOAuthIdentityHook(CustomLogger):
+    async def async_pre_call_deployment_hook(
+        self, kwargs: dict[str, Any], call_type: CallTypes | None
     ) -> dict | None:
+        token = os.environ.get("CLAUDE_CODE_OAUTH_TOKEN")
+        if not token or kwargs.get("api_key") != token:
+            return None
+
+        # Retries/fallbacks share nested input objects. Replace changed fields
+        # instead of inserting into the caller's lists or mutating its payload.
+        data = kwargs.copy()
         call_type = getattr(call_type, "value", call_type)
         if call_type in MESSAGES_CALLS:
             injected = _inject_messages(data)
