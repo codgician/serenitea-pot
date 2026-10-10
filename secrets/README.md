@@ -45,6 +45,13 @@ git add secrets/secrets.nix
 nix run .#secrets -- create example
 ```
 
+`create` opens a blank editor using SOPS' editor selection (`SOPS_EDITOR` or
+`EDITOR`). Enter only the secret value, then save and
+exit; do not enter JSON or a key name. The CLI wraps the text under the declared
+SOPS key, encrypts it for the declared recipients, and stages the encrypted
+document and generated policy. Whitespace and newlines are preserved. Closing
+the editor without entering a value leaves the secret uncreated.
+
 New secrets use `data/<name>.json`. Templates use `ref "<name>"` directly in
 their content; dependencies are discovered automatically.
 

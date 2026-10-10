@@ -13,6 +13,15 @@ let
       hosts = with hosts; [ paimon ];
       users = with users; [ codgi ];
     };
+    anthropic-api-key = {
+      hosts = with hosts; [
+        furina
+        lumine
+        paimon
+        wanderer
+      ];
+      users = with users; [ codgi ];
+    };
     anubis-ed25519-private-key-hex = {
       hosts = with hosts; [ lumine ];
       users = with users; [ codgi ];

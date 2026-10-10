@@ -283,14 +283,45 @@ in
         }
 
         create_secret() {
-          local secret="''${1:-}" root document
+          local secret="''${1:-}" root document key runtime_dir secret_sops_file
           [[ "$secret" =~ ^[a-z0-9-]+$ ]] || err "usage: ${name} create <secret>"
           root="$(repo_root)"
           document="$(secret_document "$secret")"
+          key="$(secret_key "$secret")"
           [ ! -e "$root/secrets/$document" ] || err "$secret already exists; use edit"
           sync_policy
           prepare_identity
-          (cd "$root/secrets" && sops "$document")
+
+          runtime_dir="''${XDG_RUNTIME_DIR:-''${TMPDIR:-/tmp}}"
+          umask 077
+          secret_tmp_dir="$(mktemp -d "$runtime_dir/sops-secret.XXXXXX")"
+          secret_sops_file="$secret_tmp_dir/value.sops"
+
+          (
+            cd "$root/secrets"
+            sops encrypt \
+              --input-type binary \
+              --output-type binary \
+              --filename-override "$document" \
+              --output "$secret_sops_file" </dev/null
+          )
+          TMPDIR="$secret_tmp_dir" sops edit \
+            --input-type binary \
+            --output-type binary \
+            "$secret_sops_file"
+          sops decrypt \
+            --input-type binary \
+            --output-type binary \
+            "$secret_sops_file" |
+            jq -Rs --arg key "$key" '{($key): .}' |
+            (
+              cd "$root/secrets"
+              sops encrypt \
+                --input-type json \
+                --output-type json \
+                --filename-override "$document" \
+                --output "$document"
+            )
           git -C "$root" add "secrets/$document"
         }
 
