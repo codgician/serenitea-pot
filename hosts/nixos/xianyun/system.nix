@@ -16,6 +16,17 @@ in
   codgician = {
     services = {
       nixos-vscode-server.enable = true;
+      nats = {
+        enable = true;
+        reverseProxy = {
+          enable = true;
+          domains = [
+            "xianyun.codgician.me"
+            "xianyun4.codgician.me"
+            "xianyun6.codgician.me"
+          ];
+        };
+      };
 
       coturn = {
         enable = true;
@@ -43,16 +54,6 @@ in
             "*.codgi.cn"
           ];
           locations."/".passthru.root = import ./xianyun-web.nix { inherit pkgs; };
-        };
-        reverseProxies."xianyun.codgician.me" = {
-          enable = true;
-          https = true;
-          domains = [
-            "xianyun.codgician.me"
-            "xianyun4.codgician.me"
-            "xianyun6.codgician.me"
-          ];
-          locations."/".passthru.return = "403";
         };
       };
 
@@ -105,7 +106,7 @@ in
     };
   };
 
-  services.nginx.virtualHosts."xianyun.codgician.me".extraConfig = ''
+  services.nginx.virtualHosts.nats.extraConfig = ''
     add_header Alt-Svc 'h3=":443"; ma=86400' always;
   '';
 

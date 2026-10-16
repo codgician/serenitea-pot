@@ -370,6 +370,12 @@ let
       hosts = with hosts; [ fischl ];
       users = with users; [ codgi ];
     };
+    nats-controller-seed = {
+      users = with users; [ codgi ];
+    };
+    nats-extension-seed = {
+      users = with users; [ codgi ];
+    };
     nut-password = {
       hosts = with hosts; [
         fischl
