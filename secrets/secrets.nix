@@ -371,6 +371,7 @@ let
       users = with users; [ codgi ];
     };
     nats-controller-seed = {
+      hosts = with hosts; [ jahoda ];
       users = with users; [ codgi ];
     };
     nats-extension-seed = {

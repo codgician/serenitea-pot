@@ -10,6 +10,8 @@ in
 
   # My settings
   codgician = {
+    secrets.files.nats-controller-seed.owner = "codgi";
+
     services = {
       fcitx5.enable = true;
       nixos-vscode-server.enable = true;
