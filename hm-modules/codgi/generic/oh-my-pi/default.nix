@@ -39,8 +39,8 @@ let
   # the model defines wins). Map values are the exact effort strings sent
   # upstream via `compat.reasoningEffortMap`, so name mismatches resolve
   # precisely. omp's ceiling level is `max`, which outranks `xhigh`.
+  # `off` is not an effort-map key; omp handles reasoning disablement separately.
   ompLevelToEffortKeys = {
-    off = [ "none" ];
     minimal = [ "minimal" ];
     low = [ "low" ];
     medium = [ "medium" ];
