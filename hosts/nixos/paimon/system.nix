@@ -8,6 +8,11 @@
   # My settings
   codgician = {
     services = {
+      nats = {
+        enable = true;
+        host = "192.168.0.22";
+      };
+
       comfyui = {
         enable = false;
         dataDir = "/xpool/appdata/comfyui";

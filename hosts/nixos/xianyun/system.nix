@@ -16,18 +16,6 @@ in
   codgician = {
     services = {
       nixos-vscode-server.enable = true;
-      nats = {
-        enable = true;
-        reverseProxy = {
-          enable = true;
-          domains = [
-            "xianyun.codgician.me"
-            "xianyun4.codgician.me"
-            "xianyun6.codgician.me"
-          ];
-        };
-      };
-
       coturn = {
         enable = true;
         domain = "turn.codgician.me";
@@ -105,10 +93,6 @@ in
       hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
     };
   };
-
-  services.nginx.virtualHosts.nats.extraConfig = ''
-    add_header Alt-Svc 'h3=":443"; ma=86400' always;
-  '';
 
   # Home manager
   home-manager.users.codgi =

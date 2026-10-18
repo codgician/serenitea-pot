@@ -25,13 +25,6 @@
 
       postgresql.zfsOptimizations = true;
       nixos-vscode-server.enable = true;
-      nats = {
-        enable = true;
-        reverseProxy = {
-          enable = true;
-          domains = [ "lumine.codgician.me" ];
-        };
-      };
       sing-box = {
         enable = true;
         domain = "lumine.codgician.me";

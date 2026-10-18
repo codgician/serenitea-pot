@@ -45,15 +45,6 @@ let
         '';
       };
 
-      ageSecretFilePath = lib.mkOption {
-        type = types.nullOr types.path;
-        internal = true;
-        visible = false;
-        default = null;
-        description = ''
-          Path to the age secret file for retrieving the certificate.
-        '';
-      };
     };
   };
 

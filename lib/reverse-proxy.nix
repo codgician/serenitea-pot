@@ -13,15 +13,30 @@ in
       defaultProxyPassText ? null,
       extraOptions ? { },
     }:
-    (import ../modules/nixos/services/nginx/reverse-proxy-options.nix {
-      inherit
-        lib
-        serviceName
-        defaultDomains
-        defaultDomainsText
-        ;
-    }).options
+    let
+      sharedOptions =
+        (import ../modules/nixos/services/nginx/reverse-proxy-options.nix {
+          inherit
+            lib
+            serviceName
+            defaultDomains
+            defaultDomainsText
+            ;
+        }).options;
+    in
+    sharedOptions
     // {
+      # Evaluate location definitions only in the nginx consumer. Otherwise the
+      # source submodule's defaults would override inherited root ACL settings.
+      locations = sharedOptions.locations // {
+        type = types.attrsOf types.deferredModule;
+        description = sharedOptions.locations.description + ''
+          Locations inherit this service's LAN-only and Authelia settings unless
+          explicitly overridden. Root location settings override the generated
+          proxy defaults.
+        '';
+      };
+
       proxyPass = lib.mkOption {
         type = with types; nullOr str;
         default = defaultProxyPass;
@@ -32,34 +47,6 @@ in
       lanOnly = lib.mkEnableOption ''
         Only allow requests from LAN clients.
       '';
-
-      anubis = {
-        enable = lib.mkEnableOption ''
-          Anubis bot protection for ${serviceName}.
-        '';
-
-        difficulty = lib.mkOption {
-          type = with types; nullOr (ints.between 1 7);
-          default = null;
-          example = 4;
-          description = ''
-            Override the global Anubis difficulty for this service.
-            Higher values require more proof-of-work from clients.
-            Set to null to use the global default.
-          '';
-        };
-
-        ogPassthrough = lib.mkOption {
-          type = with types; nullOr bool;
-          default = null;
-          example = true;
-          description = ''
-            Override Open Graph passthrough for this service.
-            When enabled, social media preview bots can access content without challenges.
-            Set to null to use the global default.
-          '';
-        };
-      };
     }
     // extraOptions;
 
@@ -81,12 +68,24 @@ in
             authelia
             domains
             anubis
+            robots
             ;
-          locations.${rootLocation} = {
-            inherit (cfg.reverseProxy) lanOnly;
-            authelia.enable = cfg.reverseProxy.authelia.enable;
-            passthru = { inherit (cfg.reverseProxy) proxyPass; };
-          };
+          locations = lib.mkMerge [
+            {
+              ${rootLocation} = {
+                lanOnly = lib.mkDefault cfg.reverseProxy.lanOnly;
+                authelia.enable = lib.mkDefault cfg.reverseProxy.authelia.enable;
+                passthru.proxyPass = lib.mkDefault cfg.reverseProxy.proxyPass;
+              };
+            }
+            (lib.mapAttrs (_: location: _: {
+              imports = [ location ];
+              config = {
+                lanOnly = lib.mkDefault cfg.reverseProxy.lanOnly;
+                authelia.enable = lib.mkDefault cfg.reverseProxy.authelia.enable;
+              };
+            }) cfg.reverseProxy.locations)
+          ];
         }
         extraVhostConfig
       ];

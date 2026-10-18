@@ -4,9 +4,6 @@
   lib,
   ...
 }:
-let
-  credPath = with lib.codgician; getAgeSecretPathFromName "tencent-dns-credential";
-in
 {
   security.acme.certs."${domain}" = {
     email = "codgician@outlook.com";
@@ -15,5 +12,4 @@ in
     group = with config.services.nginx; lib.mkIf enable user;
   };
 
-  codgician.acme."${domain}".ageSecretFilePath = credPath;
 }
