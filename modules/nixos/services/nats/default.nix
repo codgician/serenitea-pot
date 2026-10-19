@@ -32,14 +32,14 @@ in
         # Only public NKeys are deployed; the operator holds the SOPS-encrypted seeds.
         authorization.users = [
           {
-            nkey = "UDK3IPDRNO5YXNPDH6YABDAFC6CNXI7NZAVITJKY3VYJY2ZER2DM4WDZ";
+            nkey = "UC25ZHG7YKMOHFNNVQ3QV3XT2GIRMWO5YR5R7R4VU53GTIX5OXHU4TEG";
             permissions = {
               publish.allow = [ "terminal.codgi.command.>" ];
               subscribe.allow = [ "terminal.codgi.event.>" ];
             };
           }
           {
-            nkey = "UAN4DFNR7KAZ5IFDNIOC47S2MHXQC6VLLBY4ZCRGCILMPCIQUQHB2NH4";
+            nkey = "UDL4A3POPXBGYAOVRZVK7JG7OBWYSHWBOXNWAQECDIJPZVTQTP4N5IFE";
             permissions = {
               publish.allow = [ "terminal.codgi.event.>" ];
               subscribe.allow = [ "terminal.codgi.command.>" ];
