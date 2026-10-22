@@ -254,7 +254,7 @@ in
       after = sleepTargets;
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = "${lib.getExe pkgs.nur.repos.codgician.elan-haptune} set --press-threshold 115 --release-threshold 90 --drag-release-threshold 90";
+        ExecStart = "${lib.getExe pkgs.nur.repos.codgician.elan-haptune} set --press-threshold 115 --release-threshold 90 --drag-release-threshold 40";
       };
     };
 
