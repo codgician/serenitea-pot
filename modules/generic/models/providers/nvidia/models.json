@@ -1,8 +1,10 @@
 {
+  "minimaxai/minimax-m3.1-flash": {},
   "nvidia/nemotron-3-embed-1b": {},
   "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning": {},
   "nvidia/nemotron-3-super-120b-a12b": {},
   "nvidia/nemotron-3-ultra-550b-a55b": {},
+  "nvidia/nemotron-3.5-bolt-e4b": {},
   "nvidia/nemotron-3.5-content-safety": {},
   "nvidia/nemotron-3.5-embed-1b": {},
   "nvidia/nemotron-3.5-embed-8b": {},
