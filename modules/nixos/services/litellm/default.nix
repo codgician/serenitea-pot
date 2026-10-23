@@ -140,7 +140,11 @@ let
   }
   // (lib.optionalAttrs (cfg.adminUi.enable) {
     PGHOST = cfg.adminUi.dbHost; # Hack for prisma to connect postgres with unix socket
-    DATABASE_URL = "postgres://${user}@localhost/${cfg.adminUi.dbName}?host=${cfg.adminUi.dbHost}";
+    # Prisma reads the socket from `?host=`; litellm's psycopg migration lock strips
+    # that param, so also encode the socket dir as the URI host for libpq.
+    DATABASE_URL = "postgres://${user}@${
+      builtins.replaceStrings [ "/" ] [ "%2F" ] cfg.adminUi.dbHost
+    }/${cfg.adminUi.dbName}?host=${cfg.adminUi.dbHost}";
   })
   // (lib.optionalAttrs (cfg.adminUi.authelia.enable) {
     PROXY_BASE_URL = "https://${builtins.head cfg.reverseProxy.domains}";
