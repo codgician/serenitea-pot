@@ -5,49 +5,6 @@
   };
 
   deployments = {
-    "deepseek-v4-flash" = {
-      registry.provider = "azure_ai";
-      model = {
-        format = "DeepSeek";
-        name = "DeepSeek-V4-Flash";
-        version = "2026-04-23";
-      };
-      sku = {
-        name = "GlobalStandard";
-        capacity = 20;
-      };
-    };
-
-    "deepseek-v4-pro" = {
-      registry.provider = "azure_ai";
-      model = {
-        format = "DeepSeek";
-        name = "DeepSeek-V4-Pro";
-        version = "2026-04-23";
-      };
-      sku = {
-        name = "GlobalStandard";
-        capacity = 20;
-      };
-    };
-
-    "flux-2-pro" = {
-      registry = {
-        provider = "azure_ai";
-        mode = "image_generation";
-        baseModel = "azure_ai/FLUX.2-pro";
-      };
-      model = {
-        format = "Black Forest Labs";
-        name = "FLUX.2-pro";
-        version = "1";
-      };
-      sku = {
-        name = "GlobalStandard";
-        capacity = 30;
-      };
-    };
-
     "gpt-image-2" = {
       registry = {
         mode = "image_generation";
@@ -125,6 +82,35 @@
       sku = {
         name = "GlobalStandard";
         capacity = 2;
+      };
+    };
+
+    "decision-1" = {
+      model = {
+        format = "Microsoft";
+        name = "Microsoft-Decision-1";
+        version = "1";
+      };
+      sku = {
+        name = "DataZoneStandard";
+        capacity = 2160;
+      };
+    };
+
+    "mai-image-2.6" = {
+      registry = {
+        provider = "azure_ai";
+        mode = "image_generation";
+        baseModel = "azure_ai/MAI-Image-2.6";
+      };
+      model = {
+        format = "Microsoft";
+        name = "MAI-Image-2.6";
+        version = "2026-07-31";
+      };
+      sku = {
+        name = "GlobalStandard";
+        capacity = 6;
       };
     };
   };

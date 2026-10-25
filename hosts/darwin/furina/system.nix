@@ -38,6 +38,7 @@
           nix.enable = true;
           rust.enable = true;
         };
+        dsh.enable = true;
         droid = {
           enable = true;
           package = pkgs.droid-wrapped;

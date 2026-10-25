@@ -60,6 +60,8 @@ in
         "remote"
       ];
     };
-    models = lib.mapAttrs (_: deployment: deployment.registry) metadata.deployments;
+    models = lib.mapAttrs (_: deployment: deployment.registry) (
+      lib.filterAttrs (_: deployment: deployment ? registry) metadata.deployments
+    );
   };
 }
