@@ -142,6 +142,18 @@
     package = config.boot.kernelPackages.nvidiaPackages.production;
   };
 
+  # Only the host's modified 48GB RTX 4090 D; leave the VFIO GPUs untouched.
+  # NUR supplies the module and matching firmware. The first test needs a
+  # cold boot before NVIDIA binds the card.
+  hardware.gpu-unlock = {
+    enable = true;
+    targets = [ "0000:81:00.0" ];
+    rtx4090dExperimental = true;
+  };
+
+  # Same kernel and driver, without the experimental pre-driver transaction.
+  specialisation.without-gpu-unlock.configuration.hardware.gpu-unlock.enable = lib.mkForce false;
+
   # Limit nvidia GPU TDP
   systemd.services.nvidia-gpu-config = {
     description = "Configure NVIDIA GPU";
