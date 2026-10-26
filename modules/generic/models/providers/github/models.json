@@ -337,6 +337,44 @@
       "reasoning"
     ]
   },
+  "gpt-6.1-terra": {
+    "contextWindow": 1000000,
+    "cost": {
+      "cacheRead": 0.05,
+      "cacheWrite": 1.25,
+      "input": 1,
+      "output": 5,
+      "tiers": [
+        {
+          "cacheRead": 0.1,
+          "cacheWrite": 2.5,
+          "input": 2,
+          "inputTokensAbove": 272000,
+          "output": 7.5
+        }
+      ]
+    },
+    "maxInputTokens": 1000000,
+    "maxOutputTokens": 128000,
+    "mode": "responses",
+    "reasoningEfforts": [
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max"
+    ],
+    "supportedEndpoints": [
+      "/v1/responses"
+    ],
+    "supports": [
+      "toolCalls",
+      "parallelToolCalls",
+      "structuredOutputs",
+      "vision",
+      "reasoning"
+    ]
+  },
   "grok-4.6": {
     "contextWindow": 500000,
     "cost": {
