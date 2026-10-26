@@ -18,13 +18,18 @@ let
   };
   registryModelNames = lib.sort builtins.lessThan (lib.attrNames azureProvider.provider.models);
   expectedModelNames = lib.attrNames metadata.deployments;
+  # Deployments without `registry` (e.g. decision-1) are provisioned by
+  # Terraform but deliberately not exposed in the model registry.
+  expectedRegistryNames = lib.attrNames (
+    lib.filterAttrs (_: deployment: deployment ? registry) metadata.deployments
+  );
 
   onlyIn = left: right: builtins.filter (name: !(builtins.elem name right)) left;
   differences = {
     missingFromTerraform = onlyIn expectedModelNames terraformModelNames;
     unexpectedInTerraform = onlyIn terraformModelNames expectedModelNames;
-    missingFromRegistry = onlyIn expectedModelNames registryModelNames;
-    unexpectedInRegistry = onlyIn registryModelNames expectedModelNames;
+    missingFromRegistry = onlyIn expectedRegistryNames registryModelNames;
+    unexpectedInRegistry = onlyIn registryModelNames expectedRegistryNames;
   };
   consistent = lib.all (names: names == [ ]) (lib.attrValues differences);
 in
