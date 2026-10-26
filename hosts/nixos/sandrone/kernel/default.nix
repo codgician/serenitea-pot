@@ -1,41 +1,19 @@
 {
   inputs,
   lib,
-  pkgs,
 }:
 let
   inherit (lib.kernel) yes no;
 
-  patchDir = "${inputs.cix-linux-main}/patches-6.18";
-  # Adapt the patches to the current stable kernel; keep the series intact.
-  patchedPatchDir = pkgs.applyPatches {
-    name = "cix-linux-patches-6.18";
-    src = patchDir;
-    patches = [
-      ./cix-scmi-context.patch
-      ./cix-regulator-context.patch
-      ./cix-pl011-context.patch
-      ./cix-smmu-resume-context.patch
-    ];
-  };
-
-  # The current 6.18 kernel still carries the PL011 changes that conflict
-  # with the CIX replacement, so restore only the superseded RS485 context.
-  cixCompatPatches = [
-    {
-      name = "pl011-cix-compat";
-      patch = ./pl011-cix-compat.patch;
-    }
-  ];
-
   # The cix-linux-main repo ships its patches as one-per-file under
-  # `patches-6.18/`. `builtins.attrNames` (used inside
-  # `getRegularFileNames`) already returns names alphabetically sorted,
-  # which matches upstream's `0001-…`, `0002-…` ordering. Enumerate the
-  # original source to avoid import-from-derivation during evaluation.
+  # `patches-6.18/`, refreshed for the current linux-6.18.y. `builtins.attrNames`
+  # (used inside `getRegularFileNames`) already returns names alphabetically
+  # sorted, which matches upstream's `0001-…`, `0002-…` ordering. Enumerate
+  # the original source to avoid import-from-derivation during evaluation.
+  patchDir = "${inputs.cix-linux-main}/patches-6.18";
   cixPatches = map (name: {
     inherit name;
-    patch = "${patchedPatchDir}/${name}";
+    patch = "${patchDir}/${name}";
   }) (builtins.filter (lib.hasSuffix ".patch") (lib.codgician.getRegularFileNames patchDir));
 
   localPatches = [
@@ -43,12 +21,6 @@ let
     {
       name = "cix-kernel-fixes";
       patch = ./kernel-fixes.patch;
-    }
-    # Complete the CIX patchset's 64-bit DRM plane-mask conversion. Without
-    # this, the fifth DPU's planes alias the first DPU's planes above bit 31.
-    {
-      name = "drm-plane-mask-64";
-      patch = ./drm-plane-mask-64.patch;
     }
     # Preserve firmware-owned ACPI GPIO and regulator state. Without this,
     # stage-2 powers off the mounted root NVMe before its command timeout.
@@ -67,6 +39,10 @@ let
       USB_CDNS_SUPPORT = yes;
       USB_CDNSP = yes;
       USB_CDNSP_HOST = yes;
+      # CIX's 00063 backports the v7.1 reset core, which drops the `of_args`
+      # field 6.18's reset-gpio still uses. Sky1 boots via ACPI and has no
+      # DT GPIO resets, so leave the driver out instead of patching it.
+      RESET_GPIO = no;
     };
   };
 
@@ -103,8 +79,7 @@ let
     };
   };
 in
-cixCompatPatches
-++ cixPatches
+cixPatches
 ++ localPatches
 ++ [
   cixExtraConfig
