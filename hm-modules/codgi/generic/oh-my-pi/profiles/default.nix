@@ -1,5 +1,6 @@
 {
   pkgs,
+  osConfig,
   extraSkillDirectories ? [ ],
 }:
 let
@@ -62,7 +63,7 @@ let
     };
   };
 
-  dendroProfile = commonProfile // (import ./dendro.nix);
+  dendroProfile = import ./dendro.nix { inherit osConfig; };
 
   familyProfileOverrides = {
     china = import ./china.nix;
@@ -73,8 +74,25 @@ let
     private = import ./private.nix;
   };
 in
-{
-  dendro = dendroProfile;
-  github-copilot = commonProfile // (import ./github-copilot.nix);
-}
-// builtins.mapAttrs (_name: profile: dendroProfile // profile) familyProfileOverrides
+builtins.mapAttrs
+  (
+    _name: profile:
+    profile
+    // {
+      "config.yml" = commonProfile // profile."config.yml";
+    }
+  )
+  (
+    {
+      dendro = dendroProfile;
+      local = import ./local.nix;
+      github-copilot."config.yml" = import ./github-copilot.nix;
+    }
+    // builtins.mapAttrs (
+      _name: settings:
+      dendroProfile
+      // {
+        "config.yml" = dendroProfile."config.yml" // settings;
+      }
+    ) familyProfileOverrides
+  )

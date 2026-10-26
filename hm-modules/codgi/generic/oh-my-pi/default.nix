@@ -11,47 +11,23 @@ let
 
   yamlFormat = pkgs.formats.yaml { };
 
-  # Discovery supplies models, routing, limits, reasoning and pricing. Keep only
-  # the Copilot image-detail fix: Dendro hides the upstream host from OMP's
-  # endpoint detection, but Copilot rejects snapcompact's detail: "original".
-  copilotModelOverrides = builtins.listToAttrs (
-    map (m: {
-      name = m.model;
-      value.compat.supportsImageDetailOriginal = false;
-    }) (builtins.filter (m: m.provider == "github") osConfig.codgician.models.textGenerationModels)
-  );
-
-  modelsYaml = {
-    providers.dendro = {
-      baseUrl = "https://dendro.codgician.me/v1";
-      api = "openai-completions";
-      authHeader = true;
-      apiKey = "!cat ${osConfig.codgician.secrets.files."litellm-user-api-key".path}";
-      discovery.type = "litellm";
-      modelOverrides = copilotModelOverrides;
-    };
-  };
-
   profiles = import ./profiles {
-    inherit pkgs;
+    inherit pkgs osConfig;
     extraSkillDirectories = lib.optionals (config.codgician.codgi.herdr.enable or false) [
       "${config.codgician.codgi.herdr.package.src}/skills"
     ];
   };
 
-  profileConfigFiles = builtins.mapAttrs (
-    name: settings: yamlFormat.generate "omp-${name}-config.yml" settings
-  ) profiles;
-
-  modelsFile = yamlFormat.generate "omp-models.yml" modelsYaml;
-
   mkProfileFiles =
     name: agentDir:
-    {
-      "${agentDir}/config.yml" = {
-        source = profileConfigFiles.${name};
+    lib.mapAttrs' (
+      file: settings:
+      lib.nameValuePair "${agentDir}/${file}" {
+        source = yamlFormat.generate "omp-${name}-${file}" settings;
         force = true;
-      };
+      }
+    ) profiles.${name}
+    // {
       "${agentDir}/AGENTS.md" = {
         text = ''
           # Environment
@@ -72,12 +48,6 @@ let
 
           On this Nix-managed system, use `nix run` or `nix shell` for one-off tools; never install packages imperatively.
         '';
-        force = true;
-      };
-    }
-    // lib.optionalAttrs (name != "github-copilot") {
-      "${agentDir}/models.yml" = {
-        source = modelsFile;
         force = true;
       };
     };

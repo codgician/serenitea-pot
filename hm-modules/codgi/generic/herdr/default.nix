@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  osConfig,
   pkgs,
   ...
 }:
@@ -23,7 +24,7 @@ let
 
   copilotConfigDir = absolutePath config.programs.github-copilot-cli.configDir;
   copilotHook = "${copilotConfigDir}/hooks/herdr-agent-state.sh";
-  ompProfiles = import ../oh-my-pi/profiles { inherit pkgs; };
+  ompProfiles = import ../oh-my-pi/profiles { inherit pkgs osConfig; };
 
   ompIntegrationFiles = lib.mapAttrs' (
     name: _:
