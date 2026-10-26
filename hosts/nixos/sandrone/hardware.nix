@@ -55,7 +55,7 @@
     MaxLevelConsole=debug
   '';
 
-  hardware.firmware = [ pkgs.cix.firmware ];
+  hardware.firmware = [ pkgs.nur.repos.codgician.cix-firmware ];
 
   # Enable OpenGL
   hardware.graphics = {
@@ -64,7 +64,7 @@
     # `/run/opengl-driver/lib/dri/`, the standard libva search path.
     # Apps then load it by name via `LIBVA_DRIVER_NAME=cix` (set
     # globally below).
-    extraPackages = [ pkgs.cix.vaapi ];
+    extraPackages = [ pkgs.nur.repos.codgician.cix-vaapi ];
   };
 
   # Make CIX the default VA-API driver for every libva client (mpv,
@@ -112,7 +112,7 @@
     # nothing removed, so every existing `ffmpeg` invocation keeps
     # working and gains hardware acceleration when paired with
     # `-hwaccel vaapi` (with `LIBVA_DRIVER_NAME=cix` set above).
-    cix.ffmpeg
+    nur.repos.codgician.cix-ffmpeg
     # `vainfo` confirms which VA-API driver libva picks up; `v4l2-ctl`
     # enumerates and probes the VPU's V4L2 M2M `/dev/video*` nodes.
     libva-utils
