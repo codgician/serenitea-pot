@@ -22,7 +22,7 @@ in
 
     imageTag = lib.mkOption {
       type = types.str;
-      default = "cu128-slim";
+      default = "cu130-slim";
       description = "Container image tag.";
     };
 

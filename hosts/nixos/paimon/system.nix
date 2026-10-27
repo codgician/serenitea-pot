@@ -107,8 +107,10 @@
             "flashinfer"
             "--fp4-gemm-backend"
             "marlin"
+            # Each prefill chunk leaves a cached mamba checkpoint; larger chunks
+            # keep checkpoints per prompt low enough for the HiCache mamba pool.
             "--chunked-prefill-size"
-            "2048"
+            "8192"
             # "--enable-mixed-chunk" # no-op when dflash enabled
             "--mamba-radix-cache-strategy"
             "extra_buffer_lazy"
@@ -124,8 +126,21 @@
             "6"
             "--max-running-requests"
             "6"
+            # 6 running requests x 3 slots, plus 30 slots for cached prefixes.
             "--max-mamba-cache-size"
-            "18" # 6 requests x 3 slots
+            "48"
+            # Back the radix cache with pinned host RAM at 3x the device KV and
+            # mamba pools (~38 GB, plus ~8 GB for the draft KV mirror), so
+            # evicted prefixes reload over PCIe instead of being prefilled again.
+            # A ratio scales each pool by capacity; --hicache-size splits by
+            # device bytes, which overweights mamba via DFlash verify buffers.
+            "--enable-hierarchical-cache"
+            "--hicache-ratio"
+            "3"
+            # Admit queued requests with the longest cached prefix first, so
+            # cache hits finish before their prefixes are evicted.
+            "--schedule-policy"
+            "lpm"
             "--reasoning-parser"
             "qwen3"
             "--tool-call-parser"
