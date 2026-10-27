@@ -7,6 +7,8 @@ in
   options.codgician.services.nats = {
     enable = lib.mkEnableOption "authenticated NATS terminal relay";
 
+    openFirewall = lib.mkEnableOption "opening firewall for the NATS WebSocket listener";
+
     host = lib.mkOption {
       type = lib.types.str;
       default = "127.0.0.1";
@@ -26,7 +28,7 @@ in
         websocket = {
           host = cfg.host;
           port = websocketPort;
-          # LAN-only transport; application payloads remain end-to-end encrypted.
+          # Application payloads remain end-to-end encrypted over plaintext WebSocket.
           no_tls = true;
         };
         # Only public NKeys are deployed; the operator holds the SOPS-encrypted seeds.
@@ -52,6 +54,8 @@ in
         trace_verbose = false;
       };
     };
+
+    networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [ websocketPort ];
 
     systemd.services.nats = {
       wants = [ "network-online.target" ];

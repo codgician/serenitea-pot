@@ -10,7 +10,8 @@
     services = {
       nats = {
         enable = true;
-        host = "192.168.0.22";
+        openFirewall = true;
+        host = "0.0.0.0";
       };
 
       comfyui = {

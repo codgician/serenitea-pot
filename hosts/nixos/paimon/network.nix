@@ -216,11 +216,6 @@ in
     };
   };
 
-  # Expose the SAW relay only to this LAN, never the host's public IPv6 addresses.
-  networking.firewall.extraInputRules = lib.mkIf config.codgician.services.nats.enable ''
-    iifname "${getVfName 0 0}" ip saddr 192.168.0.0/24 ip daddr ${config.codgician.services.nats.host} tcp dport 9222 accept
-  '';
-
   # Use openvswitch
   codgician.virtualization.vswitch = {
     enable = true;
