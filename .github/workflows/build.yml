@@ -15,7 +15,7 @@ on:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     outputs:
       darwin: ${{ steps.get_matrix.outputs.darwin }}
       linux: ${{ steps.get_matrix.outputs.linux }}
@@ -27,7 +27,7 @@ jobs:
           tool-cache: true
           usrlocal: true
           usrmisc: true
-          opt: true
+          opt: false
           varcache: true
       - name: Checkout new change
         uses: actions/checkout@v7
@@ -67,7 +67,7 @@ jobs:
       matrix:
         host: ${{ fromJson(needs.validate.outputs.linux) }}
       fail-fast: false
-    runs-on: ${{ matrix.host.system == 'aarch64-linux' && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
+    runs-on: ${{ matrix.host.system == 'aarch64-linux' && 'ubuntu-26.04-arm' || 'ubuntu-26.04' }}
     steps:
       - uses: thiagokokada/free-disk-space@main
         continue-on-error: true
@@ -76,7 +76,7 @@ jobs:
           tool-cache: true
           usrlocal: true
           usrmisc: true
-          opt: true
+          opt: false
           varcache: true
           debug: true
       - name: Checkout new change
