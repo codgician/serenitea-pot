@@ -79,6 +79,7 @@ let
   settings = {
     general_settings = {
       # enable_jwt_auth = true;
+      disable_env_credential_login = true;
       store_model_in_db = true;
       store_prompts_in_spend_logs = true;
       maximum_spend_logs_retention_period = "30d";
