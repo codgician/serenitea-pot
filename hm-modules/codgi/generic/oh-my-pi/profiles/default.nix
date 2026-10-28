@@ -67,10 +67,6 @@ let
 
   familyProfileOverrides = {
     china = import ./china.nix;
-    claude = import ./claude.nix;
-    gemini = import ./gemini.nix;
-    gpt = import ./gpt.nix;
-    grok = import ./grok.nix;
     private = import ./private.nix;
   };
 in

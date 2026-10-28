@@ -3,13 +3,13 @@
     defaultThinkingLevel = "high";
     modelRoles = {
       default = "thor/claude-opus-5.5:medium";
-      smol = "thor/gpt-6-luna:medium";
+      smol = "thor/claude-haiku-5.5:medium";
       task = "thor/gpt-6.1-sol:medium";
-      slow = "thor/gpt-6-astra:medium";
+      slow = "thor/gpt-6.1-sol:xhigh";
       plan = "thor/claude-opus-5.5:xhigh";
-      advisor = "thor/grok-4.6:high";
-      vision = "thor/gemini-3.7-flash:high";
-      designer = "thor/gemini-3.7-flash:high";
+      advisor = "thor/gpt-6.1-sol:high";
+      vision = "thor/gpt-6.1-terra:medium";
+      designer = "thor/claude-opus-5.5:high";
       commit = "thor/gpt-6-luna:low";
       tiny = "thor/gpt-6-luna:low";
     };

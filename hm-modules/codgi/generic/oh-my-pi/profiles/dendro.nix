@@ -14,13 +14,13 @@ in
     defaultThinkingLevel = "high";
     modelRoles = {
       default = "dendro/claude-opus-5.5:medium";
-      smol = "dendro/gpt-6-luna:medium";
+      smol = "dendro/claude-haiku-5.5:medium";
       task = "dendro/gpt-6.1-sol:medium";
-      slow = "dendro/gpt-6-astra:medium";
+      slow = "dendro/gpt-6.1-sol:xhigh";
       plan = "dendro/claude-opus-5.5:xhigh";
-      advisor = "dendro/grok-4.6:high";
-      vision = "dendro/gemini-3.7-flash:high";
-      designer = "dendro/gemini-3.7-flash:high";
+      advisor = "dendro/gpt-6.1-sol:high";
+      vision = "dendro/gpt-6.1-terra:medium";
+      designer = "dendro/claude-opus-5.5:high";
       commit = "dendro/gpt-6-luna:low";
       tiny = "dendro/gpt-6-luna:low";
     };

@@ -6,9 +6,9 @@
     task = "github-copilot/gpt-6.1-sol:medium";
     slow = "github-copilot/gpt-6-astra:xhigh";
     plan = "github-copilot/gpt-6-astra:medium";
-    advisor = "github-copilot/grok-4.7:high";
-    vision = "github-copilot/gemini-3.8-flash:high";
-    designer = "github-copilot/gemini-3.8-flash:high";
+    advisor = "github-copilot/gpt-6-astra:high";
+    vision = "github-copilot/gpt-6.1-terra:medium";
+    designer = "github-copilot/gpt-6.1-sol:high";
     commit = "github-copilot/gpt-6-luna:low";
     tiny = "github-copilot/gpt-6-luna:low";
   };
