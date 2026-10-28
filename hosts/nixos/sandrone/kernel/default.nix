@@ -39,6 +39,10 @@ let
       USB_CDNS_SUPPORT = yes;
       USB_CDNSP = yes;
       USB_CDNSP_HOST = yes;
+      # CIX's 00059 declares this bool without `default ARCH_CIX`. Sky1 USB
+      # requires its reset lines; without the provider, every controller
+      # defers probe and initrd has no USB keyboard.
+      RESET_SKY1 = yes;
       # CIX's 00063 backports the v7.1 reset core, which drops the `of_args`
       # field 6.18's reset-gpio still uses. Sky1 boots via ACPI and has no
       # DT GPIO resets, so leave the driver out instead of patching it.
