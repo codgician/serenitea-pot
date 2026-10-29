@@ -35,7 +35,7 @@
     kernelModules = [
       "kvm-amd"
     ];
-    kernelPackages = pkgs.linuxPackages_6_18;
+    kernelPackages = pkgs.unstable.linuxPackages_6_18;
 
     kernelParams = [
       "video=VGA-1:1600x900@60"
@@ -51,6 +51,7 @@
       "iommu.passthrough=0"
       "amd_iommu=force_isolation"
       "amd_iommu_intr=vapic"
+      "iomem=relaxed" # todo: remove after nvidia experiment is done
     ];
 
     extraModulePackages = with config.boot.kernelPackages; [ mstflint_access ];
@@ -139,7 +140,7 @@
     open = true;
     nvidiaSettings = true;
     # Keep this selection in sync with hosts/nixos/nahida/hardware.nix.
-    package = config.boot.kernelPackages.nvidiaPackages.production;
+    package = config.boot.kernelPackages.nvidiaPackages.new_feature;
   };
 
   # Only the host's modified 48GB RTX 4090 D; leave the VFIO GPUs untouched.

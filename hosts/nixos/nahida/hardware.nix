@@ -13,7 +13,7 @@
 
   # Keep this selection in sync with Paimon's hardware.nvidia.package.
   environment.systemPackages = [
-    pkgs.linuxPackages_6_18.nvidiaPackages.production.bin
+    pkgs.unstable.linuxPackages_6_18.nvidiaPackages.new_feature.bin
   ];
 
   services.resolved.enable = true;
