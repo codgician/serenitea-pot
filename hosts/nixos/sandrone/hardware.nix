@@ -8,7 +8,12 @@
 {
   boot = {
     initrd = {
-      availableKernelModules = [ ];
+      # With the firmware TPM, systemd-boot reports a TPM and initrd waits for
+      # /dev/tpmrm0 before unlocking LUKS, so the fTPM driver must be here.
+      availableKernelModules = [
+        "optee"
+        "tpm_ftpm_tee"
+      ];
       kernelModules = [ ];
     };
 

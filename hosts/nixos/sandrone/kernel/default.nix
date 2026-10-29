@@ -39,6 +39,9 @@ let
       USB_CDNS_SUPPORT = yes;
       USB_CDNSP = yes;
       USB_CDNSP_HOST = yes;
+      # The two rear USB3-A controllers share CIXH2034's PHY. Without this
+      # provider, the Sky1 wrapper's PHY dependency check defers forever.
+      PHY_CIX_USB3 = yes;
       # CIX's 00059 declares this bool without `default ARCH_CIX`. Sky1 USB
       # requires its reset lines; without the provider, every controller
       # defers probe and initrd has no USB keyboard.
