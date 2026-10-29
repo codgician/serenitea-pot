@@ -155,6 +155,37 @@
   # Same kernel and driver, without the experimental pre-driver transaction.
   specialisation.without-gpu-unlock.configuration.hardware.gpu-unlock.enable = lib.mkForce false;
 
+  # Restore the 4090 D's missing P5/P3/P2 levels: GSP loads the board's own
+  # VBIOS with those level bytes re-enabled, relocated by Vix Editor. NUR
+  # supplies the module and the driver patch.
+  hardware.nvidia-vbios-override = {
+    enable = true;
+    images."0000:81:00.0" = ./vbios.bin;
+  };
+
+  # Stock driver and VBIOS. That table only has P0 and P8, and the driver never
+  # leaves P0 on its own, so the idle quirk returns here.
+  specialisation.without-vbios-override.configuration = {
+    hardware.nvidia-vbios-override.enable = lib.mkForce false;
+
+    # Quirk: see nvidia-gpu-idle-quirk.py
+    systemd.services.nvidia-gpu-idle-quirk = {
+      description = "Drop idle NVIDIA GPU from P0 to P8";
+      wantedBy = [ "multi-user.target" ];
+      wants = [ "nvidia-gpu-config.service" ];
+      after = [ "nvidia-gpu-config.service" ];
+      serviceConfig = {
+        ExecStart = lib.getExe (
+          pkgs.writers.writePython3Bin "nvidia-gpu-idle-quirk" {
+            libraries = [ pkgs.python3Packages.nvidia-ml-py ];
+          } (builtins.readFile ./nvidia-gpu-idle-quirk.py)
+        );
+        Restart = "on-failure";
+        RestartSec = 10;
+      };
+    };
+  };
+
   # Limit nvidia GPU TDP
   systemd.services.nvidia-gpu-config = {
     description = "Configure NVIDIA GPU";
@@ -166,23 +197,6 @@
       nvidia-smi -rmc
     '';
     serviceConfig.Type = "oneshot";
-  };
-
-  # Quirk: this GPU never leaves P0 on its own; see nvidia-gpu-idle-quirk.py
-  systemd.services.nvidia-gpu-idle-quirk = {
-    description = "Drop idle NVIDIA GPU from P0 to P8";
-    wantedBy = [ "multi-user.target" ];
-    wants = [ "nvidia-gpu-config.service" ];
-    after = [ "nvidia-gpu-config.service" ];
-    serviceConfig = {
-      ExecStart = lib.getExe (
-        pkgs.writers.writePython3Bin "nvidia-gpu-idle-quirk" {
-          libraries = [ pkgs.python3Packages.nvidia-ml-py ];
-        } (builtins.readFile ./nvidia-gpu-idle-quirk.py)
-      );
-      Restart = "on-failure";
-      RestartSec = 10;
-    };
   };
 
   # Start ollama after configuring GPU
