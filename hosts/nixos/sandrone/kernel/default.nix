@@ -50,6 +50,13 @@ let
       # field 6.18's reset-gpio still uses. Sky1 boots via ACPI and has no
       # DT GPIO resets, so leave the driver out instead of patching it.
       RESET_GPIO = no;
+      # CIX's 0045 GPT driver becomes the tick-broadcast device for the
+      # timer-stopping LPI idle states. Its 64-bit equality comparator is
+      # programmed with a one-tick minimum delta that is shorter than the
+      # MMIO sequence writing it; one missed compare leaves every CPU polling
+      # for a broadcast that never fires, and the machine stalls. The GPT
+      # serves no other purpose, so use the arch timer's hrtimer broadcast.
+      SKY1_GPT_TIMER = no;
     };
   };
 
