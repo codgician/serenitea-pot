@@ -26,6 +26,11 @@ in
     };
 
     kernelModules = [ "kvm-intel" ];
+    # cros_peripheral_charger (cros-ec-pchg) exposes the pen garage charger as
+    # a 0% "Battery" power supply; UPower/Solid then treat it as a second
+    # primary battery and Plasma averages it with BAT0. The EC charges the pen
+    # without it.
+    blacklistedKernelModules = [ "cros_peripheral_charger" ];
     kernelParams = [
       "iommu.passthrough=0"
       "intel_iommu=on"
