@@ -100,11 +100,12 @@ let
       callbacks = [ "claude_oauth_hook.proxy_handler_instance" ];
       drop_params = true;
       modify_params = true;
-      model_alias_map = aliasMap;
       request_timeout = requestTimeout;
       stream = true;
     };
     router_settings = {
+      model_group_alias = aliasMap;
+      fallback_on_unsupported_params = false;
       num_retries = 1;
       retry_policy = retryPolicy;
       model_group_retry_policy = modelGroupRetryPolicies;
