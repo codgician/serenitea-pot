@@ -39,6 +39,12 @@ let
       USB_CDNS_SUPPORT = yes;
       USB_CDNSP = yes;
       USB_CDNSP_HOST = yes;
+      # The rear USB-C controllers (\_SB.SUB0/SUB2) are dual-role: their
+      # cores set dr_mode "otg", and cdns_core_init_role() then requires
+      # both host and device support. Without device support the core fails
+      # with -ENXIO, registers no USB role switch, and the rts5453 PD driver
+      # defers forever. The USB-A cores are host-only and are unaffected.
+      USB_CDNSP_GADGET = yes;
       # The two rear USB3-A controllers share CIXH2034's PHY. Without this
       # provider, the Sky1 wrapper's PHY dependency check defers forever.
       PHY_CIX_USB3 = yes;
