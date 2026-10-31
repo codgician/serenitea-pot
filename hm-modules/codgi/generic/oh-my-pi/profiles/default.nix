@@ -63,7 +63,10 @@ let
     };
   };
 
-  dendroProfile = import ./dendro.nix { inherit osConfig; };
+  dendroProfile = import ./dendro.nix {
+    inherit (pkgs) lib;
+    inherit osConfig;
+  };
 
   familyProfileOverrides = {
     china = import ./china.nix;
