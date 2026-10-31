@@ -12,5 +12,5 @@
 # nginxMainlineEch for services requiring ECH support.
 
 final: prev: {
-  nginxMainlineEch = prev.nginxMainline.override { openssl = prev.openssl_4_0; };
+  nginxMainlineEch = prev.nginxMainline.override { openssl = prev.openssl_4_1; };
 }
