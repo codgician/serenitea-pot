@@ -24,6 +24,15 @@ in
         enable = true;
         autoStart = false;
         clients.ss-lumidouce.enable = true;
+        tun = {
+          enable = true;
+          outbound = "outbound-ss-lumidouce";
+          stack = "mixed";
+          routedRanges = [
+            "192.168.0.0/24"
+            "fd00:c0d9:1c00::/48"
+          ];
+        };
       };
     };
 

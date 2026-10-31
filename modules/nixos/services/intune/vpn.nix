@@ -10,10 +10,43 @@ let
   edge = pkgs.writeShellScript "msftvpn-edge" ''
     exec ${pkgs.microsoft-edge}/bin/microsoft-edge-stable --profile-directory='Profile 1' "$@"
   '';
+  # External gateways offered by the msftvpn-alt portal, in portal order.
+  gateways = [
+    "Redmond-WA"
+    "Beijing-CN"
+    "London-GB"
+    "Hyderabad-IN"
+    "Sydney-AU"
+    "Singapore-SG"
+    "Cheyenne-WY"
+    "Shanghai-CN"
+    "Herzelia-IS"
+    "Munich-DE"
+    "Dublin-IR"
+    "Irving-TX"
+    "Bay-CA"
+    "SaoPaulo-BR"
+    "Tokyo-JP"
+    "Boydton-VA"
+  ];
+  # Entry format the plugin caches: "<name> (<address>)".
+  gatewayEntry =
+    name:
+    let
+      city = lib.toLower (lib.head (lib.splitString "-" name));
+    in
+    "${name} (${city}.msftvpn-alt.ras.microsoft.com)";
 in
 {
-  options.codgician.services.intune.vpn.enable =
-    lib.mkEnableOption "NetworkManager GlobalProtect VPN with Microsoft Edge authentication";
+  options.codgician.services.intune.vpn = {
+    enable = lib.mkEnableOption "NetworkManager GlobalProtect VPN with Microsoft Edge authentication";
+
+    gateway = lib.mkOption {
+      type = lib.types.enum gateways;
+      default = "Shanghai-CN";
+      description = "GlobalProtect gateway to connect through.";
+    };
+  };
 
   config = lib.mkIf (cfg.enable && cfg.vpn.enable) {
     networking.networkmanager = {
@@ -33,6 +66,11 @@ in
           browser = toString edge;
           fix-openssl = "true";
           hip = "false";
+          # A declared list lets the plugin pass --gateway directly instead of
+          # answering gpclient's gateway prompt, and feeds the editor drop-down.
+          preferred-gateway = gatewayEntry cfg.vpn.gateway;
+          gateway-list = lib.concatMapStringsSep ";" gatewayEntry gateways;
+          gateway-list-count = toString (lib.length gateways);
         };
         ipv4.method = "auto";
         ipv6.method = "auto";
