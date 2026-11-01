@@ -88,7 +88,7 @@ let
     lib.all (entry: policyOf entry.secret == expected) entries
   ) (builtins.attrNames dataFiles);
   availableEntries = builtins.filter (
-    entry: lib.any (host: host.name == config.networking.hostName) entry.secret.hosts
+    entry: lib.all (name: lib.any (host: host.name == name) entry.secret.hosts) cfg.hosts
   ) sourceEntries;
   availableSources = builtins.listToAttrs (
     map (entry: {
@@ -162,6 +162,16 @@ in
   options.codgician.secrets = {
     enable = lib.mkEnableOption "codgician sops-nix secrets" // {
       default = true;
+    };
+    hosts = lib.mkOption {
+      type = lib.types.nonEmptyListOf lib.types.str;
+      default = [ config.networking.hostName ];
+      defaultText = lib.literalExpression "[ config.networking.hostName ]";
+      description = ''
+        Host identities whose SSH host key may decrypt secrets on this system.
+        Only secrets granted to every listed host are deployed, so activation
+        succeeds with whichever of those keys is present.
+      '';
     };
     files = lib.mkOption {
       type = lib.types.attrsOf fileType;

@@ -57,6 +57,12 @@ generations on its ramfs under `/run/secrets.d`; `/run/secrets` points to the
 active generation. Darwin uses the sops-nix RAM-backed volume. Plaintext does
 not enter the Nix store.
 
+A system may hold more than one identity. `codgician.secrets.hosts` lists them
+and defaults to the system's own host name; only secrets granted to every listed
+host are deployed. The installer ISO lists every host it can boot and starts
+activation only after `rescue unlock` links one of their host keys (see
+[NixOS Recovery](./nixos-recovery.md)).
+
 ## Templates
 
 Composed files remain individually managed under `secrets/templates/`. Each

@@ -32,9 +32,7 @@ let
         text = ''
           # Environment
 
-          This system is managed by Nix on `${pkgs.stdenv.hostPlatform.system}`.
-          Prefer an existing project development environment. For a new persistent project environment, use a flake dev shell with direnv only when the user requests it.
-        '';
+          ${cfg.context}'';
         force = true;
       };
       "${agentDir}/RULES.md" = {
@@ -74,9 +72,21 @@ in
       '';
     };
 
+    context = lib.mkOption {
+      type = types.lines;
+      description = ''
+        Facts about this machine for the Environment section of the generated
+        AGENTS.md. The Nix baseline is always present; other modules append
+        machine-specific context.
+      '';
+    };
   };
 
   config = lib.mkIf cfg.enable {
+    codgician.codgi.oh-my-pi.context = lib.mkBefore ''
+      This system is managed by Nix on `${pkgs.stdenv.hostPlatform.system}`.
+      Prefer an existing project development environment. For a new persistent project environment, use a flake dev shell with direnv only when the user requests it.
+    '';
 
     home.packages = [ cfg.package ];
     home.file = {

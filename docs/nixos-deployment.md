@@ -2,7 +2,7 @@
 
 This breif guide only covers NixOS hosts (excluding LXC containers).
 
-First boot into NixOS Live CD and clone this repository.
+First boot into the installer ISO (`nix build .#installer-iso`, or `.#installer-iso-gui` for GNOME). The flake it was built from is at `~/serenitea-pot`; clone this repository to edit it.
 
 ## Apply disk layout
 

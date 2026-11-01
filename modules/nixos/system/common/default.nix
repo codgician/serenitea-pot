@@ -43,6 +43,8 @@ in
     # SSH in initrd for emergency remote access (e.g., disk unlock)
     # Usage: ssh -p 2222 root@<host> "zfs load-key <pool> && exit"
     # Enable per-host with: boot.initrd.network.ssh.enable = true;
+    # The host key is deliberately public so any host can enable initrd SSH
+    # without host-local setup; access is gated by authorizedKeys alone.
     boot.initrd.network.ssh = {
       port = lib.mkDefault 2222;
       hostKeys = [ ./initrd_ssh_host_ed25519_key ];

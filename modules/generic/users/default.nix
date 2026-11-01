@@ -12,7 +12,6 @@ let
   types = lib.types;
   isLinux = lib.hasSuffix "-linux" system;
   hmModules = import lib.codgician.hmModulesDir { inherit lib; };
-  invalidHashedPasswordFile = pkgs.writeText "hashed-password" "!";
 
   # Use list of sub-folder names as list of available users
   dirs = builtins.readDir ./.;
@@ -86,9 +85,14 @@ let
     name:
     lib.mkIf cfg.${name}.enable [
       {
+        # Users without a hashed-password secret are locked by default; a
+        # host may still give them a password, which overrides the lock.
         assertion =
-          !isLinux || config.users.users.${name}.isSystemUser || cfg.${name}.hashedPasswordAgeFile != null;
-        message = ''User "${name}" must have `hashedPasswordAgeFile` specified.'';
+          !isLinux
+          || config.users.users.${name}.isSystemUser
+          || cfg.${name}.hashedPasswordAgeFile != null
+          || config.users.users.${name}.hashedPassword != "!";
+        message = ''User "${name}" would be locked: set `hashedPasswordAgeFile` or a password.'';
       }
     ];
 
@@ -151,15 +155,17 @@ let
           // lib.optionalAttrs (cfg.${name} ? extraGroups) {
             inherit (cfg.${name}) extraGroups;
           }
-          // lib.optionalAttrs isLinux {
-            hashedPasswordFile =
-              if cfg.${name}.hashedPasswordAgeFile == null then
-                invalidHashedPasswordFile.outPath
-              else
-                config.codgician.secrets.files."${lib.codgician.getAgeSecretNameFromPath
-                  cfg.${name}.hashedPasswordAgeFile
-                }".path;
-          };
+          // lib.optionalAttrs isLinux (
+            if cfg.${name}.hashedPasswordAgeFile != null then
+              {
+                hashedPasswordFile =
+                  config.codgician.secrets.files."${lib.codgician.getAgeSecretNameFromPath
+                    cfg.${name}.hashedPasswordAgeFile
+                  }".path;
+              }
+            else
+              { hashedPassword = lib.mkDefault "!"; }
+          );
         }
 
         # Mark as known users in nix-darwin
