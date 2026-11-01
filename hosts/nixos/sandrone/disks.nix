@@ -15,7 +15,7 @@
             type = "EF02";
           };
           esp = {
-            size = "512M";
+            size = "1G";
             type = "EF00";
             content = {
               type = "filesystem";
@@ -25,11 +25,20 @@
             };
           };
           swap = {
-            size = "66G";
+            size = "72G";
             content = {
-              type = "swap";
-              discardPolicy = "both";
-              resumeDevice = true;
+              type = "luks";
+              name = "cryptswap";
+              extraFormatArgs = [
+                "--cipher"
+                "aes-xts-plain64"
+              ];
+              settings.allowDiscards = true;
+              content = {
+                type = "swap";
+                discardPolicy = "both";
+                resumeDevice = true;
+              };
             };
           };
           root = {
