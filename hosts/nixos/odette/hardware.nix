@@ -40,18 +40,26 @@ in
     ];
     kernelPackages = pkgs.linuxPackages_latest;
     kernelPatches = [
+      # Upstream v3: https://lore.kernel.org/all/20261028090932.27053-1-akuchynski@chromium.org/
       {
         name = "cros-ec-typec-priority-mode-selection";
         patch = pkgs.fetchpatch {
-          url = "https://lore-kernel.gnuweeb.org/lkml/20260129131928.794768-1-akuchynski@chromium.org/raw";
-          hash = "sha256-LO2jdGHfeDN+9ys7IE7DTV8DBHdizqxLhDXXMd0Nv0k=";
+          url = "https://lore-kernel.gnuweeb.org/chrome-platform/20261028090932.27053-2-akuchynski@chromium.org/raw";
+          hash = "sha256-Cpj6JMNXCYAWQyWVBpLVkOd2KKwQSf8VYsiLUfRdmh8=";
         };
       }
       {
         name = "cros-ec-typec-altmode-priority";
         patch = pkgs.fetchpatch {
-          url = "https://lore-kernel.gnuweeb.org/lkml/20260129131928.794768-2-akuchynski@chromium.org/raw";
-          hash = "sha256-rPJSuit8gm8LU1FTCf7NXYCKYaID8XfFRm7QH/XHEts=";
+          url = "https://lore-kernel.gnuweeb.org/chrome-platform/20261028090932.27053-3-akuchynski@chromium.org/raw";
+          hash = "sha256-CnsizMGXmT6xAziWbA+tOY7bxsz/3hx2pqQLVEFjckI=";
+        };
+      }
+      {
+        name = "cros-ec-typec-stop-altmode-work";
+        patch = pkgs.fetchpatch {
+          url = "https://lore-kernel.gnuweeb.org/chrome-platform/20261018023438.3902617-1-mhun512@gmail.com/raw";
+          hash = "sha256-MK1OiHww1L8xbE13FwNbwJi0jVgzifnBtvo1a7vWg68=";
         };
       }
       {
