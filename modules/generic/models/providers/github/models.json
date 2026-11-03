@@ -476,6 +476,36 @@
       "reasoning"
     ]
   },
+  "mai-code-2": {
+    "contextWindow": 1050000,
+    "cost": {
+      "cacheRead": 0.05,
+      "cacheWrite": 0,
+      "input": 1,
+      "output": 5
+    },
+    "maxInputTokens": 922000,
+    "maxOutputTokens": 128000,
+    "mode": "chat",
+    "reasoningEfforts": [
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max"
+    ],
+    "supportedEndpoints": [
+      "/v1/chat/completions",
+      "/v1/responses"
+    ],
+    "supports": [
+      "toolCalls",
+      "parallelToolCalls",
+      "structuredOutputs",
+      "vision",
+      "reasoning"
+    ]
+  },
   "mai-code-2-flash": {
     "contextWindow": 1050000,
     "maxInputTokens": 922000,
