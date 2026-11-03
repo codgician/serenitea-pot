@@ -28,6 +28,14 @@ let
       name = "cix-acpi-power-state";
       patch = ./acpi-power-state.patch;
     }
+    # EFI variables are StandaloneMM inside OP-TEE, reached by the firmware's
+    # runtime MM driver as a second OP-TEE client. Keep it from running while
+    # an optee driver call is in flight, or OP-TEE can wake one client's
+    # waiter through the other and the fTPM probe hangs forever.
+    {
+      name = "efi-optee-serialize";
+      patch = ./efi-optee-serialize.patch;
+    }
   ];
 
   # Kconfig settings the CIX patches need but which aren't yet picked up

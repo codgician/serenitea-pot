@@ -1,0 +1,172 @@
+From: serenitea-pot <noreply@localhost>
+Subject: [PATCH] efi, optee: serialize EFI runtime calls with OP-TEE calls
+
+On CIX Sky1 the EFI variable services are StandaloneMM inside OP-TEE, so
+after ExitBootServices the firmware's runtime MM driver is a second
+normal-world OP-TEE client next to the optee driver. When a thread of one
+client waits on an OP-TEE lock held by a thread of the other, OP-TEE sends
+the RPC notification that should wake the waiter through the releasing
+thread's caller. If that caller is the firmware, which resumes every RPC
+unhandled, the wake-up is dropped and the waiter, for example the fTPM
+probe in optee_notif_wait(), sleeps forever. A wake-up for a firmware
+waiter delivered to Linux is likewise orphaned.
+
+Hold a rw_semaphore shared around every optee std call loop and the SHM
+cache calls, and exclusively around queued EFI runtime calls, so no Linux
+OP-TEE call is in flight while runtime firmware runs and the secure world
+never sees both clients at once. The non-blocking EFI paths used from
+atomic context cannot sleep and stay as they are.
+
+---
+diff --git a/drivers/firmware/efi/runtime-wrappers.c b/drivers/firmware/efi/runtime-wrappers.c
+index 708b777..ca82c0a 100644
+--- a/drivers/firmware/efi/runtime-wrappers.c
++++ b/drivers/firmware/efi/runtime-wrappers.c
+@@ -28,6 +28,7 @@
+ #include <linux/efi.h>
+ #include <linux/irqflags.h>
+ #include <linux/mutex.h>
++#include <linux/rwsem.h>
+ #include <linux/semaphore.h>
+ #include <linux/stringify.h>
+ #include <linux/workqueue.h>
+@@ -209,6 +210,20 @@ static DEFINE_SEMAPHORE(efi_runtime_lock, 1);
+ extern struct semaphore __efi_uv_runtime_lock __alias(efi_runtime_lock);
+ #endif
+ 
++static DECLARE_RWSEM(efi_runtime_tee_rwsem);
++
++void efi_runtime_tee_lock_shared(void)
++{
++	down_read(&efi_runtime_tee_rwsem);
++}
++EXPORT_SYMBOL_GPL(efi_runtime_tee_lock_shared);
++
++void efi_runtime_tee_unlock_shared(void)
++{
++	up_read(&efi_runtime_tee_rwsem);
++}
++EXPORT_SYMBOL_GPL(efi_runtime_tee_unlock_shared);
++
+ /*
+  * Calls the appropriate efi_runtime_service() with the appropriate
+  * arguments.
+@@ -329,6 +344,13 @@ static efi_status_t __efi_queue_work(enum efi_rts_ids id,
+ 	init_completion(&efi_rts_work.efi_rts_comp);
+ 	INIT_WORK(&efi_rts_work.work, efi_call_rts);
+ 
++	/*
++	 * Exclude TEE driver calls for the whole runtime call; see
++	 * efi_runtime_tee_lock_shared(). The non-blocking variants used from
++	 * atomic context cannot sleep here and are left unserialized.
++	 */
++	down_write(&efi_runtime_tee_rwsem);
++
+ 	/*
+ 	 * queue_work() returns 0 if work was already on queue,
+ 	 * _ideally_ this should never happen.
+@@ -338,6 +360,7 @@ static efi_status_t __efi_queue_work(enum efi_rts_ids id,
+ 	else
+ 		pr_err("Failed to queue work to efi_rts_wq.\n");
+ 
++	up_write(&efi_runtime_tee_rwsem);
+ 	WARN_ON_ONCE(efi_rts_work.status == EFI_ABORTED);
+ exit:
+ 	efi_rts_work.efi_rts_id = EFI_NONE;
+diff --git a/drivers/tee/optee/smc_abi.c b/drivers/tee/optee/smc_abi.c
+index e0cac7c..e11ad91 100644
+--- a/drivers/tee/optee/smc_abi.c
++++ b/drivers/tee/optee/smc_abi.c
+@@ -8,6 +8,7 @@
+ 
+ #include <linux/arm-smccc.h>
+ #include <linux/cpuhotplug.h>
++#include <linux/efi.h>
+ #include <linux/errno.h>
+ #include <linux/firmware.h>
+ #include <linux/interrupt.h>
+@@ -284,6 +285,7 @@ static void optee_enable_shm_cache(struct optee *optee)
+ 	struct optee_call_waiter w;
+ 
+ 	/* We need to retry until secure world isn't busy. */
++	efi_runtime_tee_lock_shared();
+ 	optee_cq_wait_init(&optee->call_queue, &w, false);
+ 	while (true) {
+ 		struct arm_smccc_res res;
+@@ -295,6 +297,7 @@ static void optee_enable_shm_cache(struct optee *optee)
+ 		optee_cq_wait_for_completion(&optee->call_queue, &w);
+ 	}
+ 	optee_cq_wait_final(&optee->call_queue, &w);
++	efi_runtime_tee_unlock_shared();
+ }
+ 
+ /**
+@@ -308,7 +311,11 @@ static void __optee_disable_shm_cache(struct optee *optee, bool is_mapped)
+ {
+ 	struct optee_call_waiter w;
+ 
+-	/* We need to retry until secure world isn't busy. */
++	/*
++	 * We need to retry until secure world isn't busy. Its threads must not
++	 * be serving EFI runtime firmware meanwhile, or this never succeeds.
++	 */
++	efi_runtime_tee_lock_shared();
+ 	optee_cq_wait_init(&optee->call_queue, &w, false);
+ 	while (true) {
+ 		union {
+@@ -338,6 +345,7 @@ static void __optee_disable_shm_cache(struct optee *optee, bool is_mapped)
+ 		}
+ 	}
+ 	optee_cq_wait_final(&optee->call_queue, &w);
++	efi_runtime_tee_unlock_shared();
+ }
+ 
+ /**
+@@ -925,6 +933,12 @@ static int optee_smc_do_call_with_arg(struct tee_context *ctx,
+ 			param.a0 = OPTEE_SMC_CALL_WITH_ARG;
+ 		reg_pair_from_64(&param.a1, &param.a2, parg);
+ 	}
++	/*
++	 * The secure thread backing this call, and any OP-TEE lock it holds,
++	 * live until the final return, so keep EFI runtime firmware out for
++	 * the whole loop, RPCs and notification waits included.
++	 */
++	efi_runtime_tee_lock_shared();
+ 	/* Initialize waiter */
+ 	optee_cq_wait_init(&optee->call_queue, &w, system_thread);
+ 	while (true) {
+@@ -961,6 +975,7 @@ static int optee_smc_do_call_with_arg(struct tee_context *ctx,
+ 	 * thread waiters wake up one.
+ 	 */
+ 	optee_cq_wait_final(&optee->call_queue, &w);
++	efi_runtime_tee_unlock_shared();
+ 
+ 	return rc;
+ }
+diff --git a/include/linux/efi.h b/include/linux/efi.h
+index 0ec9f3d..655322a 100644
+--- a/include/linux/efi.h
++++ b/include/linux/efi.h
+@@ -1272,6 +1272,22 @@ extern struct efi_runtime_work efi_rts_work;
+ /* Workqueue to queue EFI Runtime Services */
+ extern struct workqueue_struct *efi_rts_wq;
+ 
++#if defined(CONFIG_EFI) && defined(CONFIG_EFI_RUNTIME_WRAPPERS)
++/*
++ * Runtime firmware that is itself a normal-world client of a secure-world
++ * OS (e.g. EFI variables served by StandaloneMM inside OP-TEE) must not run
++ * while the kernel's own TEE driver has a call in flight: wake-ups that the
++ * secure OS addresses to one client can be delivered through the other and
++ * get lost. TEE drivers hold this shared around each call; EFI runtime calls
++ * from the workqueue hold it exclusively.
++ */
++void efi_runtime_tee_lock_shared(void);
++void efi_runtime_tee_unlock_shared(void);
++#else
++static inline void efi_runtime_tee_lock_shared(void) { }
++static inline void efi_runtime_tee_unlock_shared(void) { }
++#endif
++
+ struct linux_efi_memreserve {
+ 	int		size;			// allocated size of the array
+ 	atomic_t	count;			// number of entries used
