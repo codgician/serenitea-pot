@@ -131,6 +131,14 @@ def _strip_claude_code_beta(headers: dict[str, str]) -> dict[str, str]:
     return filtered
 
 
+def _strip_scoped_claude_code_beta(carrier: dict[str, Any]) -> dict[str, Any]:
+    headers = carrier.get("extra_headers")
+    if not headers:
+        return carrier
+    filtered = _strip_claude_code_beta(headers)
+    return carrier if filtered is headers else {**carrier, "extra_headers": filtered}
+
+
 class ClaudeOAuthIdentityHook(CustomLogger):
     """Apply credential-specific identity and beta handling after selection.
 
@@ -162,17 +170,35 @@ class ClaudeOAuthIdentityHook(CustomLogger):
                 else:
                     data.pop(field)
 
-            # SDK and proxy requests use different header carriers.
-            provider = kwargs.get("provider_specific_header")
-            for field, carrier in (("extra_headers", kwargs), ("provider_specific_header", provider)):
-                if not carrier or not (headers := carrier.get("extra_headers")):
-                    continue
+            if headers := kwargs.get("extra_headers"):
                 filtered = _strip_claude_code_beta(headers)
-                if filtered is headers:
-                    continue
-                if data is kwargs:
-                    data = kwargs.copy()
-                data[field] = filtered if carrier is kwargs else {**carrier, "extra_headers": filtered}
+                if filtered is not headers:
+                    if data is kwargs:
+                        data = kwargs.copy()
+                    data["extra_headers"] = filtered
+
+            provider = kwargs.get("provider_specific_header")
+            if isinstance(provider, (list, tuple)):
+                filtered_provider = None
+                for index, carrier in enumerate(provider):
+                    filtered = _strip_scoped_claude_code_beta(carrier)
+                    if filtered is carrier:
+                        continue
+                    if filtered_provider is None:
+                        filtered_provider = list(provider)
+                    filtered_provider[index] = filtered
+                if filtered_provider is not None:
+                    if data is kwargs:
+                        data = kwargs.copy()
+                    data["provider_specific_header"] = (
+                        tuple(filtered_provider) if isinstance(provider, tuple) else filtered_provider
+                    )
+            elif provider:
+                filtered = _strip_scoped_claude_code_beta(provider)
+                if filtered is not provider:
+                    if data is kwargs:
+                        data = kwargs.copy()
+                    data["provider_specific_header"] = filtered
             return None if data is kwargs else data
 
         token = os.environ.get("CLAUDE_CODE_OAUTH_TOKEN")
