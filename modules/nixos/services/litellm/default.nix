@@ -23,11 +23,16 @@ let
     litellm_params = m.litellmParams;
   };
 
-  # Keep one public model/alias while preferring subscription quota over API spend.
+  claudeModelsByDeployment = lib.mapAttrs' (
+    name: model: lib.nameValuePair (lib.removePrefix "anthropic/" model.litellmParams.model) name
+  ) config.codgician.models.byProvider.claude;
+
+  # Keep one public model/alias: subscription quota, direct API, then Azure.
   allModels = lib.concatMap (
     m:
     let
       model = mkLiteLLMModel m;
+      claudeModel = claudeModelsByDeployment.${m.model} or null;
     in
     if m.provider == "claude" then
       [
@@ -45,6 +50,18 @@ let
             litellm_params = model.litellm_params // {
               api_key = "os.environ/ANTHROPIC_API_KEY";
               order = 2;
+            };
+          }
+        )
+      ]
+    else if m.provider == "azure" && claudeModel != null then
+      [
+        (
+          model
+          // {
+            model_name = claudeModel;
+            litellm_params = model.litellm_params // {
+              order = 3;
             };
           }
         )
@@ -105,7 +122,8 @@ let
     };
     router_settings = {
       model_group_alias = aliasMap;
-      fallback_on_unsupported_params = false;
+      # Anthropic reports exhausted credits as HTTP 400; allow the next order.
+      fallback_on_unsupported_params = true;
       num_retries = 1;
       retry_policy = retryPolicy;
       model_group_retry_policy = modelGroupRetryPolicies;

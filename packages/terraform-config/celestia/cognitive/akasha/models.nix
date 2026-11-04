@@ -5,6 +5,45 @@
   };
 
   deployments = {
+    "claude-opus-5-5" = {
+      registry.provider = "azure_ai";
+      model = {
+        format = "Anthropic";
+        name = "claude-opus-5-5";
+        version = "2";
+      };
+      sku = {
+        name = "GlobalStandard";
+        capacity = 40;
+      };
+    };
+
+    "claude-haiku-5-5" = {
+      registry.provider = "azure_ai";
+      model = {
+        format = "Anthropic";
+        name = "claude-haiku-5-5";
+        version = "2";
+      };
+      sku = {
+        name = "GlobalStandard";
+        capacity = 80;
+      };
+    };
+
+    "claude-sonnet-5-5" = {
+      registry.provider = "azure_ai";
+      model = {
+        format = "Anthropic";
+        name = "claude-sonnet-5-5";
+        version = "2";
+      };
+      sku = {
+        name = "GlobalStandard";
+        capacity = 80;
+      };
+    };
+
     "gpt-image-2" = {
       registry = {
         mode = "image_generation";

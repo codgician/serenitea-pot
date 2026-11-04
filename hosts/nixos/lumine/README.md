@@ -2,6 +2,16 @@
 
 Azure VM (Gen 2) running NixOS, being the reverse proxy to almost every self-hosted service.
 
+## LiteLLM
+
+Claude Opus, Sonnet, and Haiku 5.5 share their existing public model names and
+aliases across three deployment priorities: Claude OAuth first, the Anthropic
+API key second, and Azure Akasha last. Azure is used only when the higher-priority
+deployments fail or are unavailable, not for normal load balancing.
+
+Provider HTTP 400 errors, including exhausted credits and invalid parameters,
+also permit fallback. This policy applies globally to LiteLLM's model groups.
+
 ## Build VHD
 
 To build system disk `.vhd` for uploading, run:
