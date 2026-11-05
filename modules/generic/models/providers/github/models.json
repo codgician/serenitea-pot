@@ -508,6 +508,12 @@
   },
   "mai-code-2-flash": {
     "contextWindow": 1050000,
+    "cost": {
+      "cacheRead": 0.01,
+      "cacheWrite": 0,
+      "input": 0.1,
+      "output": 0.5
+    },
     "maxInputTokens": 922000,
     "maxOutputTokens": 128000,
     "mode": "chat",
