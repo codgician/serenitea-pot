@@ -1,5 +1,4 @@
 {
-  config,
   lib,
   pkgs,
   ...
@@ -187,13 +186,13 @@ in
         systemctl set-property --runtime -- init.scope AllowedCPUs=0-63
       '';
     };
-    # Quirk script to prevent flooding offload failure message
-    "pve-snippets/snippets/hookscript-tapnet.sh".source = mkHookScript {
-      runtimeInputs = [ config.virtualisation.vswitch.package ];
-      postStartCmds = ''
-        tap_name="tap''${vmid}i0"
-        ovs-vsctl set Interface "$tap_name" type=internal
-        ovs-vsctl set Interface "$tap_name" type=system
+    # vhost-vdpa pins all guest RAM against RLIMIT_MEMLOCK (8 MiB here). VFIO is
+    # exempt through CAP_IPC_LOCK, vhost-vdpa is not. PVE spawns QEMU from the
+    # process that runs this hook, so raise that process's limit first.
+    "pve-snippets/snippets/hookscript-vdpa.sh".source = mkHookScript {
+      runtimeInputs = with pkgs; [ util-linux ];
+      preStartCmds = ''
+        prlimit --pid "$PPID" --memlock=unlimited
       '';
     };
   };

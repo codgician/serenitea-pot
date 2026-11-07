@@ -57,7 +57,6 @@ in
   sops = {
     useSystemdActivation = true;
     age.sshKeyPaths = lib.mkForce [ "/run/rescue/ssh_host_ed25519_key" ];
-    gnupg.sshKeyPaths = lib.mkForce [ ];
   };
   systemd.services.sops-install-secrets = lib.mkIf (config.sops.secrets != { }) {
     wantedBy = lib.mkForce [ ];

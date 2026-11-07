@@ -14,15 +14,25 @@ let
 
   # VF configuration: index -> MAC address
   vfMacs = [
-    "ac:79:86:9a:13:02"
-    "ac:79:86:2a:81:da"
-    "ac:79:86:28:02:91"
-    "ac:79:86:92:0b:af"
-    "ac:79:86:32:a1:21"
-    "ac:79:86:12:ef:fa"
+    "ac:79:86:9a:13:02" # host
+    "ac:79:86:2a:81:da" # nahida
+    "ac:79:86:28:02:91" # zhongli (passthrough)
+    "ac:79:86:92:0b:af" # guoba (passthrough)
+    "ac:79:86:5a:1d:e2" # raiden-ei (vDPA)
+    "ac:79:86:12:ef:fa" # ineffa
   ];
   numVfs = builtins.length vfMacs;
   hostVfs = 2; # Number of VFs to keep bound for host use
+  vfPciAddr = i: "${pciBase}.${toString (i + 2)}";
+
+  # macOS has no driver for the VF, so raiden-ei gets it as a virtio-net device
+  # through hardware vDPA. Its PVE args must pass the same MAC (QEMU mac=):
+  # QEMU programs that MAC into the device when the VM starts. The VM also
+  # needs hookscript-vdpa.sh (proxmox.nix) to lift QEMU's memlock limit.
+  vdpa = {
+    name = "raiden-ei";
+    vf = 4;
+  };
 in
 {
   systemd.services.mlx5-sriov =
@@ -54,58 +64,43 @@ in
         RemainAfterExit = true;
       };
 
-      # Multiport eSwitch setup sequence (per Mellanox ovs-tests reference):
-      # https://github.com/Mellanox/ovs-tests/blob/master/test-ovs-multiport-esw-mode.sh
+      # Multiport eSwitch setup sequence (inbox mlx5, esw_multiport devlink param):
+      # https://docs.kernel.org/networking/devlink/mlx5.html
       #
       # Prerequisites:
       #   - LAG_RESOURCE_ALLOCATION=1 in firmware (mlxconfig)
       #   - Both PFs start in legacy mode
       #
       # Order:
-      #   1. Set lag_port_select_mode=multiport_esw on BOTH PFs (legacy mode)
-      #   2. Switch BOTH PFs to switchdev mode
-      #   3. Enable esw_multiport (activates LAG with shared FDB)
-      #   4. Create VFs
+      #   1. Switch BOTH PFs to switchdev mode
+      #   2. Enable esw_multiport (activates LAG with shared FDB)
+      #   3. Create VFs
       script =
         let
           pf0 = getPfName 0;
-          pf1 = getPfName 1;
           pci0 = "${pciBase}.0";
           pci1 = "${pciBase}.1";
-          vfPciAddrs = map (i: "${pciBase}.${toString (i + 2)}") (lib.range 0 (numVfs - 1));
+          vfPciAddrs = map vfPciAddr (lib.range 0 (numVfs - 1));
           hostVfPciAddrs = lib.take hostVfs vfPciAddrs;
-          passthruVfPciAddrs = lib.drop hostVfs vfPciAddrs;
+          passthruVfPciAddrs = lib.remove (vfPciAddr vdpa.vf) (lib.drop hostVfs vfPciAddrs);
         in
         ''
           set -euo pipefail
 
-          # Helper: set lag_port_select_mode via sysfs (preferred) or devlink
-          set_lag_mode() {
-            local dev=$1 pci=$2
-            echo multiport_esw > "/sys/class/net/$dev/compat/devlink/lag_port_select_mode" 2>/dev/null ||
-              devlink dev param set "pci/$pci" name lag_port_select_mode value multiport_esw cmode runtime 2>/dev/null ||
-              echo "WARNING: Failed to set lag_port_select_mode on $dev"
-          }
-
           # Safe to re-run: same-value writes are kernel no-ops and re-binding a
-          # bound VF fails harmlessly (-EBUSY). VF count change (step 4) is guarded.
+          # bound VF fails harmlessly (-EBUSY). VF count change (step 3) is guarded.
 
-          # 1. Set lag_port_select_mode on BOTH PFs (must match for LAG)
-          echo "Setting lag_port_select_mode=multiport_esw on both PFs..."
-          set_lag_mode ${pf0} ${pci0}
-          set_lag_mode ${pf1} ${pci1}
-
-          # 2. Switch both PFs to switchdev mode (no-op if already switchdev)
+          # 1. Switch both PFs to switchdev mode (no-op if already switchdev)
           echo "Switching to switchdev mode..."
           devlink dev eswitch set pci/${pci0} mode switchdev 2>/dev/null || echo "pci/${pci0}: already switchdev or unchanged"
           devlink dev eswitch set pci/${pci1} mode switchdev 2>/dev/null || echo "pci/${pci1}: already switchdev or unchanged"
 
-          # 3. Enable multiport eSwitch (no-op if already enabled)
+          # 2. Enable multiport eSwitch (no-op if already enabled)
           echo "Enabling esw_multiport..."
           devlink dev param set pci/${pci0} name esw_multiport value true cmode runtime 2>/dev/null ||
             echo "esw_multiport: already enabled or unchanged"
 
-          # 4. Create VFs on PF0 (skip if already created)
+          # 3. Create VFs on PF0 (skip if already created)
           current_vfs=$(cat /sys/class/net/${pf0}/device/sriov_numvfs)
           if [ "$current_vfs" -eq ${toString numVfs} ]; then
             echo "Already have ${toString numVfs} VFs, skipping creation"
@@ -116,20 +111,20 @@ in
             echo ${toString numVfs} > /sys/class/net/${pf0}/device/sriov_numvfs
           fi
 
-          # 5. Set PF-side admin (eSwitch) MAC per VF. The host VF netdev MAC is set
+          # 4. Set PF-side admin (eSwitch) MAC per VF. The host VF netdev MAC is set
           #    by the .link files below; this is only for eSwitch consistency.
           echo "Configuring VF MAC addresses..."
           ${lib.concatStringsSep "\n" (
             lib.imap0 (i: mac: "ip link set ${pf0} vf ${toString i} mac ${mac}") vfMacs
           )}
 
-          # 6. Unbind passthrough VFs (for VM/container vfio assignment).
+          # 5. Unbind passthrough VFs (for VM/container vfio assignment).
           echo "Unbinding passthrough VFs..."
           ${lib.concatMapStringsSep "\n" (
             addr: "echo ${addr} > /sys/bus/pci/drivers/mlx5_core/unbind 2>/dev/null || true"
           ) passthruVfPciAddrs}
 
-          # 7. Ensure host VFs are bound (harmless -EBUSY if already bound).
+          # 6. Ensure host VFs are bound (harmless -EBUSY if already bound).
           echo "Binding host VFs..."
           ${lib.concatMapStringsSep "\n" (
             addr: "echo ${addr} > /sys/bus/pci/drivers/mlx5_core/bind 2>/dev/null || true"
@@ -137,6 +132,90 @@ in
 
           echo "=== Configuration Complete ==="
         '';
+    };
+
+  systemd.services."vdpa-${vdpa.name}" =
+    let
+      pci = vfPciAddr vdpa.vf;
+      mac = builtins.elemAt vfMacs vdpa.vf;
+    in
+    {
+      description = "Hardware vDPA virtio-net device for ${vdpa.name}";
+      wantedBy = [ "multi-user.target" ];
+      requires = [ "mlx5-sriov.service" ];
+      after = [ "mlx5-sriov.service" ];
+      before = [ "pve-guests.service" ];
+      path = with pkgs; [
+        iproute2
+        kmod
+        coreutils
+      ];
+
+      # Deleting the device blocks while the VM holds it open. Changes apply on
+      # next boot, or by restarting this unit while the VM is stopped.
+      restartIfChanged = false;
+
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+
+      script = ''
+        set -euo pipefail
+
+        wait_for() {
+          for _ in $(seq 100); do
+            "$@" >/dev/null 2>&1 && return 0
+            sleep 0.1
+          done
+          echo "Timed out waiting for: $*" >&2
+          return 1
+        }
+
+        if ! vdpa dev show ${vdpa.name} >/dev/null 2>&1; then
+          vf=/sys/bus/pci/devices/${pci}
+          ip link set ${getPfName 0} vf ${toString vdpa.vf} mac ${mac}
+
+          # PVE registers this VF model with vfio-pci (new_id) whenever it starts
+          # a VM with a passthrough VF, so pin this one to mlx5_core.
+          echo mlx5_core > $vf/driver_override
+          if [ -e $vf/driver ] && [ "$(basename "$(readlink $vf/driver)")" != mlx5_core ]; then
+            echo ${pci} > $vf/driver/unbind
+          fi
+          [ -e $vf/driver ] || echo ${pci} > /sys/bus/pci/drivers_probe
+
+          # Keep only the vnet (vDPA) function: no host netdev or RDMA device
+          wait_for devlink dev show pci/${pci}
+          devlink dev param set pci/${pci} name enable_eth value false cmode driverinit
+          devlink dev param set pci/${pci} name enable_rdma value false cmode driverinit
+          devlink dev reload pci/${pci}
+
+          # Load vhost_vdpa first so the device binds to it on creation. macOS
+          # does not negotiate multiqueue, so one queue pair is enough.
+          modprobe vhost_vdpa
+          wait_for vdpa mgmtdev show pci/${pci}
+          vdpa dev add name ${vdpa.name} mgmtdev pci/${pci} mac ${mac} max_vqp 1
+        fi
+
+        dev=/sys/bus/vdpa/devices/${vdpa.name}
+        wait_for test -e $dev/driver
+        drv=$(basename "$(readlink $dev/driver)")
+        if [ "$drv" != vhost_vdpa ]; then
+          echo "${vdpa.name} is bound to $drv, expected vhost_vdpa" >&2
+          exit 1
+        fi
+
+        # Stable path for the PVE args: the vhost-vdpa-N index follows creation order
+        chardev=/dev/$(basename $dev/vhost-vdpa-*)
+        wait_for test -c $chardev
+        mkdir -p /run/vdpa
+        ln -sfn $chardev /run/vdpa/${vdpa.name}
+      '';
+
+      preStop = ''
+        rm -f /run/vdpa/${vdpa.name}
+        vdpa dev del ${vdpa.name}
+      '';
     };
 
   # Set route metric
@@ -150,7 +229,7 @@ in
       lib.genList (i: {
         name = "10-${getVfName 0 i}";
         value = {
-          matchConfig.Path = "pci-${pciBase}.${toString (i + 2)}";
+          matchConfig.Path = "pci-${vfPciAddr i}";
           linkConfig = {
             MACAddress = builtins.elemAt vfMacs i;
             NamePolicy = "keep kernel database onboard slot path";
@@ -179,6 +258,12 @@ in
       # Leave second VF unconfigured for container
       "11-${getVfName 0 1}" = {
         name = getVfName 0 1;
+        linkConfig.Unmanaged = "yes";
+      };
+
+      # vDPA VF: its netdev only lives until the vdpa unit disables it
+      "11-${getVfName 0 vdpa.vf}" = {
+        matchConfig.Path = "pci-${vfPciAddr vdpa.vf}";
         linkConfig.Unmanaged = "yes";
       };
 

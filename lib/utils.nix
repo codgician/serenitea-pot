@@ -25,7 +25,6 @@ rec {
     [
       inputs.nur.overlays.default
       inputs.nix-vscode-extensions.overlays.default
-      inputs.mlnx-ofed-nixos.overlays.default
     ]
     ++ (lib.optional (isLinuxSystem system) inputs.proxmox-nixos.overlays.${system})
     ++ [
@@ -142,7 +141,6 @@ rec {
       nixos-generators.nixosModules.all-formats
       nixos-wsl.nixosModules.wsl
       nixvirt.nixosModules.default
-      mlnx-ofed-nixos.nixosModules.default
       vscode-server.nixosModules.default
       proxmox-nixos.nixosModules.proxmox-ve
     ]

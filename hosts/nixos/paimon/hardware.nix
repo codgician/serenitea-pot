@@ -35,7 +35,19 @@
     kernelModules = [
       "kvm-amd"
     ];
-    kernelPackages = pkgs.unstable.linuxPackages_6_18;
+    # nixpkgs leaves NET_TC_SKB_EXT off, which compiles TC flower offload
+    # (MLX5_CLS_ACT) out of the inbox mlx5 driver, so OVS hw-offload never
+    # reaches the eSwitch. Listing MLX5_CLS_ACT fails the build if it drops
+    # out again. MLX5_SF adds scalable functions.
+    kernelPackages = pkgs.unstable.linuxPackagesFor (
+      pkgs.unstable.linux_6_18.override {
+        structuredExtraConfig = with lib.kernel; {
+          NET_TC_SKB_EXT = yes;
+          MLX5_CLS_ACT = yes;
+          MLX5_SF = yes;
+        };
+      }
+    );
 
     kernelParams = [
       "video=VGA-1:1600x900@60"
@@ -75,9 +87,6 @@
 
   # ZFS load keys
   systemd.services."zfs-mount".preStart = "${lib.getExe config.boot.zfs.package} load-key -a";
-
-  # Selfhost mlnx-ofed-nixos
-  hardware.mlnx-ofed.enable = true;
 
   # Specify boot-0 as the primary ESP partition
   boot.loader.efi.efiSysMountPoint = "/boot-0";

@@ -227,6 +227,9 @@ in
 
     sops = {
       age.sshKeyPaths = lib.mkIf isDarwin [ "/etc/ssh/ssh_host_ed25519_key" ];
+      # Every recipient is age; importing the RSA host key as a GPG key only
+      # adds a missing-key error wherever that key is not in place yet.
+      gnupg.sshKeyPaths = [ ];
 
       secrets = lib.mapAttrs (_: file: {
         inherit (file)
