@@ -19,7 +19,7 @@ let
     "ac:79:86:28:02:91"
     "ac:79:86:92:0b:af"
     "ac:79:86:32:a1:21"
-    "ac:79:86:7e:27:1f"
+    "ac:79:86:12:ef:fa"
   ];
   numVfs = builtins.length vfMacs;
   hostVfs = 2; # Number of VFs to keep bound for host use

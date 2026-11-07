@@ -7,6 +7,7 @@
 let
   cfg = config.codgician.services.intune;
   connectionUuid = "b77a07c7-41b1-4932-b47e-c0d8fdd84c1e";
+  plugin = pkgs.nur.repos.codgician.networkmanager-gpclient;
   edge = pkgs.writeShellScript "msftvpn-edge" ''
     exec ${pkgs.microsoft-edge}/bin/microsoft-edge-stable --profile-directory='Profile 1' "$@"
   '';
@@ -51,7 +52,7 @@ in
   config = lib.mkIf (cfg.enable && cfg.vpn.enable) {
     networking.networkmanager = {
       enable = true;
-      plugins = [ pkgs.nur.repos.codgician.networkmanager-gpclient ];
+      plugins = [ plugin ];
       ensureProfiles.profiles.msftvpn = {
         connection = {
           id = "msftvpn";
@@ -81,13 +82,17 @@ in
     # home namespace: Edge must use the existing signed-in work profile.
     systemd.services.nm-gpclient.wantedBy = [ "multi-user.target" ];
 
-    environment.etc."vpnc/connect.d/90-gpclient-routing".source =
-      "${pkgs.nur.repos.codgician.networkmanager-gpclient}/libexec/gpclient/90-gpclient-routing";
+    # vpnc-script hooks: routing edits the split lists on connect and disconnect;
+    # notify reports the configured tunnel to the plugin, which tells NetworkManager.
+    environment.etc = {
+      "vpnc/connect.d/90-gpclient-routing".source = "${plugin}/${plugin.routingHook}";
+      "vpnc/disconnect.d/90-gpclient-routing".source = "${plugin}/${plugin.routingHook}";
+      "vpnc/post-connect.d/90-gpclient-notify".source = "${plugin}/${plugin.notifyHook}";
+      "vpnc/reconnect.d/90-gpclient-notify".source = "${plugin}/${plugin.notifyHook}";
+    };
 
-    # gpclient supplies the existing globalprotectcallback desktop handler.
-    environment.systemPackages = [
-      pkgs.gpclient
-    ];
+    # The plugin's gpclient supplies the globalprotectcallback desktop handler.
+    environment.systemPackages = [ plugin.gpclient ];
     # Connection profiles and the user's existing Edge profile are already
     # persisted by the common impermanence configuration. VPN state is ephemeral.
   };
