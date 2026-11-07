@@ -26,21 +26,37 @@ in
   };
 
   config = lib.mkIf clientCfg.enable {
-    services.sing-box.settings.outbounds = [
-      {
-        type = "shadowsocks";
-        tag = clientCfg.tag;
-        server = "sz.codgician.me";
-        server_port = 3391;
-        method = "2022-blake3-aes-256-gcm";
-        password._secret = config.codgician.secrets.files.${secretName}.path;
-        bind_interface = lib.mkIf (clientCfg.bindInterface != null) clientCfg.bindInterface;
-        multiplex = {
-          enabled = true;
-          protocol = "h2mux";
-        };
-      }
-    ];
+    services.sing-box.settings = {
+      outbounds = [
+        {
+          type = "shadowsocks";
+          tag = clientCfg.tag;
+          server = "sz.codgician.me";
+          server_port = 3391;
+          method = "2022-blake3-aes-256-gcm";
+          password._secret = config.codgician.secrets.files.${secretName}.path;
+          bind_interface = lib.mkIf (clientCfg.bindInterface != null) clientCfg.bindInterface;
+          multiplex = {
+            enabled = true;
+            protocol = "h2mux";
+          };
+        }
+      ];
+
+      # The lumidouce router, reached through this outbound. DNS queries that
+      # enter a TUN routed through lumidouce resolve there as well.
+      dns = {
+        servers = [
+          {
+            type = "udp";
+            tag = "dns-${profileName}";
+            server = "192.168.0.1";
+            detour = clientCfg.tag;
+          }
+        ];
+        final = lib.mkIf (cfg.tun.enable && cfg.tun.outbound == clientCfg.tag) "dns-${profileName}";
+      };
+    };
 
     codgician.secrets.files.${secretName} = {
       owner = serviceName;

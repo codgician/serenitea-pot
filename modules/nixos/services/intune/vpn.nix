@@ -8,6 +8,7 @@ let
   cfg = config.codgician.services.intune;
   connectionUuid = "b77a07c7-41b1-4932-b47e-c0d8fdd84c1e";
   plugin = pkgs.nur.repos.codgician.networkmanager-gpclient;
+  singBoxTun = config.codgician.services.sing-box.tun;
   edge = pkgs.writeShellScript "msftvpn-edge" ''
     exec ${pkgs.microsoft-edge}/bin/microsoft-edge-stable --profile-directory='Profile 1' "$@"
   '';
@@ -75,6 +76,39 @@ in
         };
         ipv4.method = "auto";
         ipv6.method = "auto";
+      };
+
+      # The VPN is a full tunnel, but sing-box's TUN policy rules take precedence
+      # over its default route and DNS. Stop sing-box while the VPN is up, and
+      # restart it afterwards only if it was running.
+      dispatcherScripts = lib.optional singBoxTun.enable {
+        source = lib.getExe (
+          pkgs.writeShellApplication {
+            name = "msftvpn-sing-box";
+            runtimeInputs = [
+              pkgs.coreutils
+              config.systemd.package
+            ];
+            text = ''
+              [ "''${CONNECTION_UUID:-}" = ${connectionUuid} ] || exit 0
+              marker=/run/msftvpn-stopped-sing-box
+              case "$2" in
+                vpn-up)
+                  if systemctl is-active --quiet sing-box.service; then
+                    touch "$marker"
+                    systemctl stop sing-box.service
+                  fi
+                  ;;
+                vpn-down)
+                  if [ -e "$marker" ]; then
+                    rm "$marker"
+                    systemctl start sing-box.service
+                  fi
+                  ;;
+              esac
+            '';
+          }
+        );
       };
     };
 
