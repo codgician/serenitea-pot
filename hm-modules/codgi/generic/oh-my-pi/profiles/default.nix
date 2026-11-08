@@ -5,7 +5,6 @@
 }:
 let
   commonProfile = {
-    setupVersion = 2;
     composer.shape = "box";
     personality = "pragmatic";
 

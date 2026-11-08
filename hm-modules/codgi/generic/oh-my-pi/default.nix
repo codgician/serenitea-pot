@@ -18,6 +18,26 @@ let
     ];
   };
 
+  # Initial values omp owns afterwards: the setup wizard advances
+  # setupVersion itself, so it is seeded once and never reasserted.
+  initialSettings = yamlFormat.generate "omp-initial-config.yml" { setupVersion = 3; };
+
+  # omp persists state (setup progress, model picks, /settings) into
+  # config.yml, so it must be a mutable file rather than a store symlink.
+  # Each activation deep-merges: initial values < omp's writes < Nix settings.
+  mkConfigActivation = name: agentDir: ''
+    ompConfig=${lib.escapeShellArg "${config.home.homeDirectory}/${agentDir}/config.yml"}
+    ompInputs=(${initialSettings})
+    if [[ -L "$ompConfig" ]]; then
+      run rm -f "$ompConfig"
+    elif [[ -s "$ompConfig" ]]; then
+      ompInputs+=("$ompConfig")
+    fi
+    ompInputs+=(${yamlFormat.generate "omp-${name}-config.yml" profiles.${name}."config.yml"})
+    ompMerged=$(${lib.getExe pkgs.yq-go} eval-all '. as $item ireduce ({}; . * $item)' "''${ompInputs[@]}")
+    run ${pkgs.coreutils}/bin/install -D -m 644 <(printf '%s\n' "$ompMerged") "$ompConfig"
+  '';
+
   mkProfileFiles =
     name: agentDir:
     lib.mapAttrs' (
@@ -26,7 +46,7 @@ let
         source = yamlFormat.generate "omp-${name}-${file}" settings;
         force = true;
       }
-    ) profiles.${name}
+    ) (removeAttrs profiles.${name} [ "config.yml" ])
     // {
       "${agentDir}/AGENTS.md" = {
         text = ''
@@ -97,5 +117,12 @@ in
     }
     // mkProfileFiles cfg.defaultProfile ".omp/agent"
     // lib.concatMapAttrs (name: _profile: mkProfileFiles name ".omp/profiles/${name}/agent") profiles;
+
+    home.activation.ompConfig = lib.hm.dag.entryAfter [ "linkGeneration" ] (
+      mkConfigActivation cfg.defaultProfile ".omp/agent"
+      + lib.concatMapStrings (name: mkConfigActivation name ".omp/profiles/${name}/agent") (
+        builtins.attrNames profiles
+      )
+    );
   };
 }
