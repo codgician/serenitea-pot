@@ -74,10 +74,19 @@ in
         name = "cros-ec-typec-usb4-mode-entry";
         patch = ./kernel/cros-ec-typec-usb4-mode-entry.patch;
       }
+      # The touchpad misses lid/tablet state; force its firmware to
+      # recalibrate when either clears instead of reporting fingers as palms.
+      {
+        name = "hid-multitouch-redrix-recalibrate";
+        patch = ./kernel/hid-multitouch-redrix-recalibrate.patch;
+      }
     ];
     zfs.package = pkgs.zfs_unstable;
     supportedFilesystems = [ "vfat" ];
   };
+
+  # flashrom's PCI ECAM access needs relaxed /dev/mem checks, only for updates.
+  specialisation.firmware-update.configuration.boot.kernelParams = [ "iomem=relaxed" ];
 
   services = {
     # Keep the Bluetooth pen independent of keyd's tablet-mode-disabled keyboard.

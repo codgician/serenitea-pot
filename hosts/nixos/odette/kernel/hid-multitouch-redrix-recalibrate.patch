@@ -1,0 +1,274 @@
+HID: multitouch: Recalibrate Redrix touchpad after lid or tablet changes
+
+The ELAN 04f3:323b touchpad in the HP Elite Dragonfly Chromebook (Redrix)
+does not receive the lid or tablet state. With the lid closed or the
+display folded behind the base, the panel interferes with the touch
+surface and the firmware adapts its baseline to that noise. Once the
+panel moves away, fingers are reported with Confidence cleared, so they
+reach userspace as MT_TOOL_PALM and the pointer stays dead until the
+firmware drifts back, which can take minutes.
+
+The firmware recalibrates when the touch surface is switched back on.
+hid_hw_close() would already do that, but only when the last evdev user
+closes the device; on a typical desktop another reader keeps it open.
+
+On this board only, observe SW_LID and SW_TABLET_MODE. When either clears,
+coalesce the events over one second and cycle the surface report mode
+off and on under ll_open_lock, skipping the cycle if the device is
+closed. Work is queued on a freezable workqueue, so a cycle pending at
+suspend runs after resume. The input handler is registered only when the
+DMI matches.
+
+This follows the same approach as earlier proposals for this board:
+Link: https://lore.kernel.org/linux-input/20221007182945.1654046-18-acz@semihalf.com/
+Link: https://lore.kernel.org/linux-input/20251111-lid-switch-notifier-v2-0-789723d78d89@google.com/
+
+
+---
+diff --git a/drivers/hid/hid-multitouch.c b/drivers/hid/hid-multitouch.c
+index 4e19a0c..3a15d63 100644
+--- a/drivers/hid/hid-multitouch.c
++++ b/drivers/hid/hid-multitouch.c
+@@ -33,14 +33,18 @@
+ 
+ #include <linux/bitmap.h>
+ #include <linux/bits.h>
++#include <linux/delay.h>
+ #include <linux/device.h>
++#include <linux/dmi.h>
+ #include <linux/hid.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
++#include <linux/spinlock.h>
+ #include <linux/input/mt.h>
+ #include <linux/jiffies.h>
+ #include <linux/string.h>
+ #include <linux/timer.h>
++#include <linux/workqueue.h>
+ 
+ 
+ MODULE_AUTHOR("Stephane Chatty <chatty@enac.fr>");
+@@ -188,6 +192,9 @@ struct mt_device {
+ 
+ 	struct list_head applications;
+ 	struct list_head reports;
++
++	struct list_head recalibrate_node;	/* in mt_recalibrate_devices */
++	struct delayed_work recalibrate_work;	/* surface off/on cycle */
+ };
+ 
+ static void mt_post_parse_default_settings(struct mt_device *td,
+@@ -2114,6 +2121,154 @@ static void mt_expired_timeout(struct timer_list *t)
+ 	clear_bit_unlock(MT_IO_FLAGS_RUNNING, &td->mt_io_flags);
+ }
+ 
++/*
++ * Redrix (HP Elite Dragonfly Chromebook) does not route the lid or tablet
++ * state to its ELAN 04f3:323b touchpad. With the lid closed or folded over,
++ * the panel sits on the touch surface and the firmware adapts its baseline
++ * to that noise. Once the panel moves away, the firmware reports fingers as
++ * low-confidence contacts (palms) until its baseline adapts back, which can
++ * take minutes. The firmware recalibrates when the touch surface is switched
++ * back on, so cycle the surface whenever the lid opens or tablet mode ends.
++ *
++ * hid_hw_close() would already do this, but only when the last user closes
++ * the input device; another evdev reader keeps the surface on.
++ */
++#define MT_RECALIBRATE_SETTLE_MS	1000
++#define MT_RECALIBRATE_SURFACE_OFF_MS	50
++
++static const struct dmi_system_id mt_recalibrate_dmi_table[] = {
++	{
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Google"),
++			DMI_EXACT_MATCH(DMI_PRODUCT_NAME, "Redrix"),
++		},
++	},
++	{ }
++};
++
++static LIST_HEAD(mt_recalibrate_devices);
++static DEFINE_SPINLOCK(mt_recalibrate_lock);
++static bool mt_recalibrate_registered;
++
++static void mt_recalibrate_work(struct work_struct *work)
++{
++	struct mt_device *td = container_of(to_delayed_work(work),
++					    struct mt_device, recalibrate_work);
++	struct hid_device *hdev = td->hdev;
++
++	/* hid_hw_open()/hid_hw_close() also set the report mode. */
++	guard(mutex)(&hdev->ll_open_lock);
++
++	if (!hdev->ll_open_count)
++		return;
++
++	hid_dbg(hdev, "cycling touch surface for recalibration\n");
++	mt_set_modes(hdev, HID_LATENCY_NORMAL, TOUCHPAD_REPORT_NONE);
++	msleep(MT_RECALIBRATE_SURFACE_OFF_MS);
++	mt_set_modes(hdev, HID_LATENCY_NORMAL, TOUCHPAD_REPORT_ALL);
++}
++
++static void mt_recalibrate_switch_event(struct input_handle *handle,
++					unsigned int type, unsigned int code,
++					int value)
++{
++	struct mt_device *td;
++
++	if (type != EV_SW || value ||
++	    (code != SW_LID && code != SW_TABLET_MODE))
++		return;
++
++	/*
++	 * Events can repeat across lid and tablet switch devices. Let the
++	 * panel settle and coalesce them into one cycle; the freezable
++	 * workqueue defers a pending cycle across system sleep.
++	 */
++	guard(spinlock_irqsave)(&mt_recalibrate_lock);
++	list_for_each_entry(td, &mt_recalibrate_devices, recalibrate_node)
++		mod_delayed_work(system_freezable_wq, &td->recalibrate_work,
++				 msecs_to_jiffies(MT_RECALIBRATE_SETTLE_MS));
++}
++
++static int mt_recalibrate_switch_connect(struct input_handler *handler,
++					 struct input_dev *dev,
++					 const struct input_device_id *id)
++{
++	struct input_handle *handle;
++	int error;
++
++	handle = kzalloc_obj(*handle);
++	if (!handle)
++		return -ENOMEM;
++
++	handle->dev = dev;
++	handle->handler = handler;
++	handle->name = "hid-mt-recalibrate";
++
++	error = input_register_handle(handle);
++	if (error)
++		goto err_free_handle;
++
++	error = input_open_device(handle);
++	if (error)
++		goto err_unregister_handle;
++
++	return 0;
++
++err_unregister_handle:
++	input_unregister_handle(handle);
++err_free_handle:
++	kfree(handle);
++	return error;
++}
++
++static void mt_recalibrate_switch_disconnect(struct input_handle *handle)
++{
++	input_close_device(handle);
++	input_unregister_handle(handle);
++	kfree(handle);
++}
++
++static const struct input_device_id mt_recalibrate_switch_ids[] = {
++	{
++		.flags = INPUT_DEVICE_ID_MATCH_EVBIT | INPUT_DEVICE_ID_MATCH_SWBIT,
++		.evbit = { BIT_MASK(EV_SW) },
++		.swbit = { [BIT_WORD(SW_LID)] = BIT_MASK(SW_LID) },
++	},
++	{
++		.flags = INPUT_DEVICE_ID_MATCH_EVBIT | INPUT_DEVICE_ID_MATCH_SWBIT,
++		.evbit = { BIT_MASK(EV_SW) },
++		.swbit = { [BIT_WORD(SW_TABLET_MODE)] = BIT_MASK(SW_TABLET_MODE) },
++	},
++	{ }
++};
++
++static struct input_handler mt_recalibrate_switch_handler = {
++	.event = mt_recalibrate_switch_event,
++	.connect = mt_recalibrate_switch_connect,
++	.disconnect = mt_recalibrate_switch_disconnect,
++	.name = "hid-mt-recalibrate",
++	.id_table = mt_recalibrate_switch_ids,
++};
++
++static void mt_add_recalibration(struct mt_device *td)
++{
++	struct hid_device *hdev = td->hdev;
++
++	if (!mt_recalibrate_registered || hdev->bus != BUS_I2C ||
++	    hdev->vendor != USB_VENDOR_ID_ELAN || hdev->product != 0x323b)
++		return;
++
++	guard(spinlock_irqsave)(&mt_recalibrate_lock);
++	list_add_tail(&td->recalibrate_node, &mt_recalibrate_devices);
++}
++
++static void mt_remove_recalibration(struct mt_device *td)
++{
++	scoped_guard(spinlock_irqsave, &mt_recalibrate_lock)
++		list_del_init(&td->recalibrate_node);
++	disable_delayed_work_sync(&td->recalibrate_work);
++}
++
+ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
+ {
+ 	int ret, i;
+@@ -2144,6 +2299,8 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
+ 
+ 	INIT_LIST_HEAD(&td->applications);
+ 	INIT_LIST_HEAD(&td->reports);
++	INIT_LIST_HEAD(&td->recalibrate_node);
++	INIT_DELAYED_WORK(&td->recalibrate_work, mt_recalibrate_work);
+ 
+ 	if (id->vendor == HID_ANY_ID && id->product == HID_ANY_ID)
+ 		td->serial_maybe = true;
+@@ -2204,6 +2361,7 @@ static int mt_probe(struct hid_device *hdev, const struct hid_device_id *id)
+ 				hdev->name);
+ 
+ 	mt_set_modes(hdev, HID_LATENCY_NORMAL, TOUCHPAD_REPORT_ALL);
++	mt_add_recalibration(td);
+ 
+ 	if (!td->is_haptic_touchpad)
+ 		devm_kfree(&hdev->dev, td->haptic);
+@@ -2249,6 +2407,7 @@ static void mt_remove(struct hid_device *hdev)
+ {
+ 	struct mt_device *td = hid_get_drvdata(hdev);
+ 
++	mt_remove_recalibration(td);
+ 	timer_shutdown_sync(&td->release_timer);
+ 
+ 	sysfs_remove_group(&hdev->dev.kobj, &mt_attribute_group);
+@@ -2775,4 +2934,30 @@ static struct hid_driver mt_driver = {
+ 	.on_hid_hw_open = mt_on_hid_hw_open,
+ 	.on_hid_hw_close = mt_on_hid_hw_close,
+ };
+-module_hid_driver(mt_driver);
++
++static int __init mt_driver_init(void)
++{
++	int ret;
++
++	if (dmi_check_system(mt_recalibrate_dmi_table)) {
++		ret = input_register_handler(&mt_recalibrate_switch_handler);
++		if (ret)
++			return ret;
++		mt_recalibrate_registered = true;
++	}
++
++	ret = hid_register_driver(&mt_driver);
++	if (ret && mt_recalibrate_registered)
++		input_unregister_handler(&mt_recalibrate_switch_handler);
++
++	return ret;
++}
++module_init(mt_driver_init);
++
++static void __exit mt_driver_exit(void)
++{
++	hid_unregister_driver(&mt_driver);
++	if (mt_recalibrate_registered)
++		input_unregister_handler(&mt_recalibrate_switch_handler);
++}
++module_exit(mt_driver_exit);
+-- 
+2.54.0
