@@ -88,6 +88,14 @@
       proxyPass = "https://192.168.0.22";
     };
 
+    ovis-relay = {
+      enable = true;
+      reverseProxy = {
+        enable = true;
+        domains = [ "euthymia.codgician.me" ];
+      };
+    };
+
     nginx = {
       enable = true;
       openFirewall = true;

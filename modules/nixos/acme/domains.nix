@@ -8,6 +8,7 @@
   "bubbles.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "dendro.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "dragonspine.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
+  "euthymia.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "fin.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "fragments.codgician.me".challengeProfile = ./profiles/codgician-me.nix;
   "git.codgician.me".challengeProfile = ./profiles/codgician-me.nix;

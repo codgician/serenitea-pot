@@ -11,6 +11,7 @@ let
     "bubbles"
     "dendro"
     "dragonspine"
+    "euthymia"
     "fin"
     "fragments"
     "git"
