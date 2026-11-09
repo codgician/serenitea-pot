@@ -144,7 +144,15 @@ in
             "~/GitHub/" = "personal";
           };
         };
-        herdr.enable = true;
+        herdr = {
+          enable = true;
+          desktop.enable = true;
+          ovis = {
+            enable = true;
+            lanHttpsPort = 7318;
+            relayDomain = "euthymia.codgician.me";
+          };
+        };
 
         plasma = {
           inherit wallpaper;
@@ -355,7 +363,10 @@ in
   # Firewall
   networking.firewall = {
     enable = false;
-    allowedTCPPorts = [ 3389 ];
+    allowedTCPPorts = [
+      3389
+      7318
+    ];
   };
 
   # This value determines the NixOS release from which the default
