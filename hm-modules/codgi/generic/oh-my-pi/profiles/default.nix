@@ -8,21 +8,20 @@ let
     composer.shape = "box";
     personality = "pragmatic";
 
-    providers.webSearch = "exa";
+    modelRoles.web = "web/exa";
 
     statusLine.preset = "full";
-    tools = {
-      approvalMode = "yolo";
-      discoveryMode = "auto";
-    };
+    tools.approvalMode = "yolo";
+    isolation.backend = "auto";
     secrets.enabled = true;
     task = {
       batch = true;
       maxConcurrency = 8;
       isolation = {
-        mode = "auto";
+        enabled = true;
         merge = "patch";
       };
+      agentAdvisor.task = "off";
       showResolvedModelBadge = true;
     };
     async.enabled = true;
@@ -43,7 +42,6 @@ let
     };
     advisor = {
       enabled = false;
-      subagents = false;
       syncBacklog = "off";
     };
     memory.backend = "off";
@@ -55,9 +53,12 @@ let
     share.store = "gist";
     compaction = {
       enabled = true;
-      strategy = "snapcompact";
+      methodOrder = [
+        "snapcompact"
+        "remote"
+        "soft"
+      ];
       midTurnEnabled = true;
-      remoteEnabled = true;
       autoContinue = true;
     };
   };
@@ -77,7 +78,8 @@ builtins.mapAttrs
     _name: profile:
     profile
     // {
-      "config.yml" = commonProfile // profile."config.yml";
+      # Deep merge so profile model roles add to the shared web role.
+      "config.yml" = pkgs.lib.recursiveUpdate commonProfile profile."config.yml";
     }
   )
   (
