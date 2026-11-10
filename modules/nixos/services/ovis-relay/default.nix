@@ -9,7 +9,8 @@ let
   cfg = config.codgician.services.${serviceName};
   types = lib.types;
 
-  ovis = pkgs.llm-agents.ovis;
+  # The CLI is only a wrapper; source, dependencies, and build hooks live here.
+  ovis = pkgs.llm-agents.ovis.unwrapped;
 
   # The relay ships in Ovis' source but not in its package; its dependencies resolve
   # through the packaged node_modules.
