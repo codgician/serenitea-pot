@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  osConfig,
   pkgs,
   ...
 }:
@@ -8,6 +9,12 @@ let
   cfg = config.codgician.codgi.git;
   pubKeys = import (lib.codgician.secretsDir + "/pubkeys.nix");
   isDarwin = pkgs.stdenvNoCC.isDarwin;
+  useIntune = osConfig.codgician.services.intune.enable or false;
+  credentialManager =
+    if useIntune then
+      pkgs.unstable.git-credential-manager.override { withMsalBrokerSupport = true; }
+    else
+      pkgs.git-credential-manager;
 
   # Platform keyring for GCM: macOS Keychain, or Secret Service on Linux.
   credentialStore = if isDarwin then "keychain" else "secretservice";
@@ -115,14 +122,16 @@ in
       includes = directoryIncludes;
 
       settings = rec {
-        # GCM is the credential helper for non-GitHub HTTPS hosts (GitHub uses
-        # gh below). OAuth via the browser flow; Azure DevOps thus needs an
-        # interactive desktop session (its tenant bans device-code).
+        # GitHub uses gh below; enrolled hosts reuse their Intune account via GCM.
         credential = {
-          helper = lib.getExe pkgs.git-credential-manager;
+          helper = lib.getExe credentialManager;
           inherit credentialStore;
           # Prefer OAuth over PATs for Azure Repos (GCM).
           azreposCredentialType = "oauth";
+        }
+        // lib.optionalAttrs useIntune {
+          msauthUseBroker = true;
+          msauthUseDefaultAccount = true;
         };
 
         # Azure DevOps requires useHttpPath to determine organization from URL
@@ -163,6 +172,17 @@ in
     };
 
     home.packages = lib.optional cfg."send-email".enable pkgs.git-credential-email;
+
+    # GCM writes organization/account bindings to Git's global config. Keep
+    # that mutable state outside Home Manager's immutable XDG Git config.
+    home.activation.gitInitializeState = lib.mkIf useIntune (
+      lib.hm.dag.entryAfter [ "linkGeneration" ] ''
+        gitConfig=${lib.escapeShellArg "${config.home.homeDirectory}/.gitconfig"}
+        if [[ ! -e "$gitConfig" && ! -L "$gitConfig" ]]; then
+          run ${pkgs.coreutils}/bin/install -m 600 /dev/null "$gitConfig"
+        fi
+      ''
+    );
 
     programs.gh = {
       enable = true;
