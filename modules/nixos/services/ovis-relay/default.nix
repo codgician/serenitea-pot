@@ -65,7 +65,7 @@ let
 
   root = "${shell}/share/ovis-shell";
   include = name: "include ${shell}/share/ovis-shell-nginx/${name}.conf;";
-  scope = "^/s/[0-9a-f]{32}";
+  scope = "/s/[0-9a-f]{32}";
 
   # Static location of the hosted app: rewrites and headers mirror upstream's
   # `_redirects` and `_headers` (scripts/shell-build.ts).
@@ -170,16 +170,20 @@ in
           };
           "/assets/" = staticLocation { cache = "cache-immutable"; };
           "/.well-known/" = staticLocation { extraConfig = "default_type application/json;"; };
-          "~ ${scope}$" = staticLocation { extraConfig = "return 301 $uri/;"; };
-          "~ ${scope}/manifest\\.webmanifest$" = staticLocation {
+          # Quote regexes containing braces so nginx does not parse them as blocks.
+          "~ \"^(${scope})$\"" = staticLocation {
+            # Redirect from the validated capture, not the decoded and untrusted $uri.
+            extraConfig = "return 301 $1/;";
+          };
+          "~ \"^${scope}/manifest\\.webmanifest$\"" = staticLocation {
             tryFiles = "/manifest.webmanifest =404";
             cache = "cache-revalidate";
           };
-          "~ ${scope}/sw\\.js$" = staticLocation {
+          "~ \"^${scope}/sw\\.js$\"" = staticLocation {
             tryFiles = "/sw.js =404";
             cache = "cache-revalidate";
           };
-          "~ ${scope}/~render$" = staticLocation {
+          "~ \"^${scope}/~render$\"" = staticLocation {
             tryFiles = "/render.html =404";
             csp = "csp-render";
             cache = "cache-revalidate";
