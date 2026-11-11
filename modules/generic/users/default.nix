@@ -139,7 +139,7 @@ let
                 type = "directory";
                 path = cfg.${name}.home;
                 user = name;
-                group = "users";
+                group = config.users.users.${name}.group;
                 mode = "700";
               }
             ];

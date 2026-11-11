@@ -13,6 +13,16 @@ let
   types = lib.types;
   defaultStateDir = "/var/lib/${serviceName}";
   claudeOAuthHook = ./hooks;
+  containerHome = "/var/lib/${serviceName}-podman";
+  containerStorageConfig = (pkgs.formats.toml { }).generate "litellm-storage.conf" {
+    storage = {
+      driver = "overlay";
+      graphroot = "${containerHome}/.local/share/containers/storage";
+      runroot = "/run/user/${builtins.toString uid}/containers";
+      # Shift image ownership at mount time instead of copying it up on ZFS.
+      options.overlay.mount_program = lib.getExe pkgs.fuse-overlayfs;
+    };
+  };
 
   # Transform registry models to LiteLLM model_list format
   mkLiteLLMModel = m: {
@@ -319,21 +329,59 @@ in
 
     # Container backend
     (lib.mkIf (cfg.enable && cfg.backend == "container") {
+      sops.templates."litellm-env" = {
+        owner = user;
+        inherit group;
+        mode = "0400";
+      };
+
+      codgician.users.${user}.home = containerHome;
+      users.users.${user} = {
+        autoSubUidGidRange = true;
+        linger = true;
+      };
+
+      systemd.tmpfiles.rules = [
+        "d ${containerHome} 0700 ${user} ${group} -"
+        "d ${containerHome}/.config 0700 ${user} ${group} -"
+        "d ${containerHome}/.config/containers 0700 ${user} ${group} -"
+        "L+ ${containerHome}/.config/containers/storage.conf - - - - ${containerStorageConfig}"
+      ];
+
+      systemd.services."podman-${serviceName}" = {
+        environment.XDG_RUNTIME_DIR = "/run/user/${builtins.toString uid}";
+        requires = [
+          "user@${builtins.toString uid}.service"
+          "redis-${serviceName}.service"
+        ]
+        ++ lib.optional cfg.adminUi.enable "postgresql.service";
+        after = [
+          "user@${builtins.toString uid}.service"
+          "redis-${serviceName}.service"
+        ]
+        ++ lib.optional cfg.adminUi.enable "postgresql.service";
+      };
+
       virtualisation.oci-containers.containers.${serviceName} = {
         autoStart = true;
         image = cfg.image;
+        podman.user = user;
+        pull = "newer";
+        capabilities.ALL = false;
+        # Match the image's non-root application user, not its mutable default.
+        user = "65532:65532";
         volumes = [
           "${(pkgs.formats.yaml { }).generate "config.yaml" settings}:/config.yaml:ro"
           "${claudeOAuthHook}/claude_oauth_hook.py:/claude_oauth_hook.py:ro"
-          "${cfg.stateDir}:/config:U"
-          "/run/postgresql:/run/postgresql"
-          "/run/redis-${serviceName}:/run/redis-${serviceName}"
-        ];
+          "${cfg.stateDir}:/config"
+          "/run/redis-${serviceName}:/run/redis-${serviceName}:ro"
+        ]
+        ++ lib.optional cfg.adminUi.enable "${cfg.adminUi.dbHost}:${cfg.adminUi.dbHost}:ro";
         extraOptions = [
-          "--pull=newer"
           "--net=host"
-          "--uidmap=0:${builtins.toString uid}:1"
-          "--gidmap=0:${builtins.toString uid}:1"
+          # Keep the host identity for state and Unix-socket peer credentials.
+          "--userns=keep-id:uid=65532,gid=65532"
+          "--security-opt=no-new-privileges"
         ];
         cmd = with cfg; [
           "--port=${builtins.toString port}"

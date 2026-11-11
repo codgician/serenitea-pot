@@ -12,6 +12,22 @@ deployments fail or are unavailable, not for normal load balancing.
 Provider HTTP 400 errors, including exhausted credits and invalid parameters,
 also permit fallback. This policy applies globally to LiteLLM's model groups.
 
+The container runs rootless under the host's `litellm` account. Podman's
+`keep-id` mapping runs the application as container UID/GID `65532:65532` while
+preserving host UID/GID `2025:2025`, including Redis socket permissions and
+PostgreSQL peer authentication. Application state remains in `/var/lib/litellm`
+without an ownership migration. Rootless container storage is persisted
+separately in `/var/lib/litellm-podman`. Its user-specific `fuse-overlayfs`
+configuration shifts image ownership at mount time, avoiding full-image copy-up
+on ZFS when using `keep-id`.
+
+Manage the container through `podman-litellm.service`. To inspect its rootless
+Podman storage directly:
+
+```bash
+sudo -iu litellm env XDG_RUNTIME_DIR=/run/user/2025 podman ps
+```
+
 ## Build VHD
 
 To build system disk `.vhd` for uploading, run:
