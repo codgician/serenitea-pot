@@ -77,5 +77,6 @@
     "gimp"
     "blender"
     "gns3"
+    "sfm"
   ];
 }
