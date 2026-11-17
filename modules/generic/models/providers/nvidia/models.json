@@ -2,7 +2,6 @@
   "minimaxai/minimax-m3.1-flash": {},
   "nvidia/nemotron-3-embed-1b": {},
   "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning": {},
-  "nvidia/nemotron-3-super-120b-a12b": {},
   "nvidia/nemotron-3-ultra-550b-a55b": {},
   "nvidia/nemotron-3.5-bolt-e4b": {},
   "nvidia/nemotron-3.5-content-safety": {},
@@ -10,10 +9,5 @@
   "nvidia/nemotron-3.5-embed-8b": {},
   "nvidia/nemotron-3.5-lightning-30b-a3b": {},
   "nvidia/nemotron-3.5-super-vl-120b-a12b": {},
-  "nvidia/nemotron-4-340b-instruct": {},
-  "nvidia/nemotron-4-340b-reward": {},
-  "nvidia/nemotron-nano-3-30b-a3b": {},
-  "nvidia/nemotron-parse": {},
-  "nvidia/nemotron-parse-2.0": {},
   "z-ai/glm-5.3-flash": {}
 }
