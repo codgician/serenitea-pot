@@ -132,21 +132,7 @@ let
 in
 {
   options.codgician.codgi.plasma = {
-    krdp = {
-      enable = lib.mkEnableOption "the KRDP server for this Plasma session";
-
-      port = lib.mkOption {
-        type = types.port;
-        default = 3389;
-        description = "TCP port on which KRDP listens.";
-      };
-
-      quality = lib.mkOption {
-        type = types.ints.between 0 100;
-        default = 75;
-        description = "Video encoding quality from 0 (lowest) to 100 (highest).";
-      };
-    };
+    krdp.enable = lib.mkEnableOption "the KRDP server for this Plasma session";
 
     launchers = lib.mkOption {
       type = with types; listOf str;
@@ -398,8 +384,8 @@ in
         ) cfg.wallpaper;
         krdpserverrc.General = {
           Autostart = cfg.krdp.enable;
-          ListenPort = cfg.krdp.port;
-          Quality = cfg.krdp.quality;
+          ListenPort = 3389;
+          Quality = 75;
           SystemUserEnabled = cfg.krdp.enable;
         };
 
