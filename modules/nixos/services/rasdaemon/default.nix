@@ -4,19 +4,11 @@
   ...
 }:
 let
-  serviceName = "rasdaemon";
-  cfg = config.codgician.services.${serviceName};
+  cfg = config.codgician.services.rasdaemon;
 in
 {
-  options.codgician.services.${serviceName} = {
-    enable = lib.mkEnableOption "rasdaemon RAS (Reliability, Availability, Serviceability) error logging";
-
-    prometheus = {
-      enable = lib.mkEnableOption "Prometheus exporter for rasdaemon RAS events";
-
-      scrapeConfig = lib.mkEnableOption "Prometheus scrape config for the rasdaemon exporter";
-    };
-  };
+  options.codgician.services.rasdaemon.enable =
+    lib.mkEnableOption "rasdaemon RAS (Reliability, Availability, Serviceability) error logging";
 
   config = lib.mkIf cfg.enable (
     lib.mkMerge [
@@ -39,11 +31,10 @@ in
         ];
       }
 
-      (lib.mkIf cfg.prometheus.enable {
+      # Export the events where a Prometheus runs to scrape them.
+      (lib.mkIf config.codgician.services.prometheus.enable {
         services.prometheus.exporters.rasdaemon = {
           enable = true;
-          # Bind to localhost only; scrape locally or over an already-trusted
-          # network boundary (e.g. Prometheus running on the same host).
           listenAddress = "127.0.0.1";
           enabledCollectors = [
             "aer" # PCIe Advanced Error Reporting (e.g. PCI SERR)
@@ -51,9 +42,7 @@ in
             "mc" # EDAC Memory Controller / DIMM ECC errors
           ];
         };
-      })
 
-      (lib.mkIf cfg.prometheus.scrapeConfig {
         codgician.services.prometheus.scrapeConfigs.extraConfigs = [
           {
             job_name = "rasdaemon";

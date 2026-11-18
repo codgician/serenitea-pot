@@ -35,14 +35,12 @@
 
       sglang = {
         enable = true;
-        monitoring.enable = true;
         cacheDir = "/xpool/llm/llm-cache";
         instances.qwen-chat = {
           model = "RadixArk/Qwen3.8-27B-NVFP4";
           host = "0.0.0.0";
           port = 8000;
           memFractionStatic = 0.95;
-          image = "lmsysorg/sglang:latest";
           environmentVariables = {
             SGLANG_DISABLE_SILU_FP4_QUANT_FUSION = "1";
             # Drop one mamba slot per running request (lazy: 4 -> 3).

@@ -25,17 +25,10 @@ in
   # EDAC (DIMM ECC), PCIe AER (SERR), and CPU MCE events via rasdaemon.
   codgician.services.rasdaemon = {
     enable = true;
-    prometheus = {
-      enable = true;
-      scrapeConfig = true;
-    };
   };
 
   # Prometheus scrape configuration
   codgician.services.prometheus.scrapeConfigs = {
-    prometheus = true;
-    nginx = true;
-    nginxlog = true;
     extraConfigs = [
       {
         job_name = "nvidia-gpu";
@@ -82,15 +75,6 @@ in
   systemd.services.prometheus-nvidia-gpu-exporter = {
     after = [ "nvidia-gpu-config.service" ];
     wants = [ "nvidia-gpu-config.service" ];
-  };
-
-  # Grafana provisioning
-  codgician.services.grafana.provision = {
-    prometheus.enable = true;
-    dashboards = [
-      ../../../modules/nixos/services/grafana/dashboards/nginx.json
-      ../../../modules/nixos/services/grafana/dashboards/rasdaemon.json
-    ];
   };
 
   services.grafana.provision.datasources.settings.datasources = [
