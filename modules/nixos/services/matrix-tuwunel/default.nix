@@ -59,7 +59,7 @@ in
           # TURN server run by the coturn module
           turn_uris =
             let
-              turn = config.codgician.services.coturn.domain;
+              turn = published.services.coturn.domain;
             in
             [
               "turn:${turn}?transport=udp"

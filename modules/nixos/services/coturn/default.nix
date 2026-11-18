@@ -15,13 +15,6 @@ in
   options.codgician.services.coturn = {
     enable = lib.codgician.mkPublishedEnableOption config "coturn";
 
-    domain = lib.mkOption {
-      type = types.str;
-      default = svc.domain;
-      readOnly = true;
-      description = "TURN realm, for the modules that hand it to their clients.";
-    };
-
     relay-ips = lib.mkOption {
       type = types.listOf types.str;
       default = [ ];

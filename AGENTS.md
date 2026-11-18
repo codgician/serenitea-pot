@@ -94,7 +94,7 @@ A service with an entry in `inventory.nix` `services` (see `jellyfin` for the sm
 - Write raw `.tf` files — use Terranix Nix expressions
 - Use `${...}` interpolation in Terranix — use `config.resource.X.Y "attr"`
 - Bypass `mk*System` builders, or list hosts anywhere but as folders under `hosts/`
-- Type the address of an inventory host, the zone, the mail address, the domain of a published service or a fact about a WireGuard member in new code; read `lib.codgician.inventory` / `lib.codgician.published`. Still literal today: the `ss-lumidouce` sing-box client, `secrets/templates/open-webui-env.nix`, the contact address in `celestia/budget.nix`, the fixture zone in `tests/reverse-proxy` and the cache URL in `flake.nix`, which `nixConfig` cannot compute
+- Type the address of an inventory host, the zone, the mail address, the domain of a published service or a fact about a WireGuard member in new code; read `lib.codgician.inventory` / `lib.codgician.published`. Still literal today: `secrets/templates/open-webui-env.nix`, the contact address in `celestia/budget.nix`, the fixture zone in `tests/reverse-proxy` and the cache URL in `flake.nix`, which `nixConfig` cannot compute
 - Use `config.services.*` when `config.codgician.*` exists
 - Create or edit any `*.md` file unless the user asks for it or a [Documentation](#documentation) exception applies
 
@@ -104,7 +104,7 @@ A service with an entry in `inventory.nix` `services` (see `jellyfin` for the sm
 - Run `nix fmt` before presenting changes
 - Show verification command output when claiming completion
 - For new NixOS services, persist state via `codgician.system.impermanence.extraItems` and create custom dirs via `systemd.tmpfiles.rules` (see `jellyfin`)
-- For a new host: create `hosts/<class>/<name>/default.nix` (manifest) and its modules; do not repeat what its roles set. Add it to `inventory.nix` `hosts` only when a service runs on it
+- For a new host: create `hosts/<class>/<name>/default.nix` (manifest) and its modules; do not repeat what its roles set. Add it to `inventory.nix` `hosts` only when another machine refers to it: a service runs on it, it has a public name, or it joins the WireGuard mesh
 - To publish a service: add one entry to `inventory.nix` `services` and write its module as under [Published services](#published-services). The edge's vhost, both certificates, the CNAME and the Authelia rule follow
 - To move a published service: change its `host` (the new host needs the address the edge connects to) and move the host-specific options (data dirs) between the two host files
 - Request approval for: deploy, `terraform apply`, `nix run .#secrets -- rekey`
