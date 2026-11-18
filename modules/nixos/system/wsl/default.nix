@@ -6,7 +6,6 @@
 }:
 let
   cfg = config.codgician.system.wsl;
-  types = lib.types;
   ldLibraryPath = lib.makeLibraryPath [ pkgs.addDriverRunpath.driverLink ];
 
   # See: https://github.com/nix-community/NixOS-WSL/issues/454
@@ -17,20 +16,13 @@ let
   };
 in
 {
-  options.codgician.system.wsl = {
-    enable = lib.mkEnableOption "NixOS WSL";
-
-    defaultUser = lib.mkOption {
-      type = types.str;
-      description = "Default user when launching NixOS WSL.";
-    };
-
-    docker-desktop.enable = lib.mkEnableOption "Docker Desktop";
-  };
+  options.codgician.system.wsl.enable = lib.mkEnableOption "NixOS WSL";
 
   config = lib.mkIf cfg.enable {
     wsl = {
-      inherit (cfg) enable defaultUser docker-desktop;
+      enable = true;
+      defaultUser = "codgi";
+      docker-desktop.enable = true;
       ssh-agent.enable = true;
       interop.register = true;
       usbip.enable = true;
