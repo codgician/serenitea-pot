@@ -1,6 +1,7 @@
 {
   system = "x86_64-linux";
   cudaSupport = true;
+  roles = [ "server" ];
   modules = [
     ./system.nix
     (import ./disks.nix { })

@@ -1,16 +1,5 @@
+{ pkgs, ... }:
 {
-  config,
-  lib,
-  pkgs,
-  ...
-}:
-{
-  # TPM2-based ZFS root unlock
-  # Generate credential: nix run .#mkzfscreds -- zroot > zroot.cred
-  codgician.system.zfs-unlock = {
-    devices.zroot.credentialFile = ./zroot.cred;
-  };
-
   boot = {
     initrd = {
       availableKernelModules = [
@@ -35,14 +24,8 @@
       themePackages = [ pkgs.nixos-bgrt-plymouth ];
     };
 
-    zfs = {
-      extraPools = [ "dpool" ];
-      forceImportAll = true;
-    };
+    zfs.extraPools = [ "dpool" ];
   };
-
-  # ZFS load keys
-  systemd.services."zfs-mount".preStart = "${lib.getExe config.boot.zfs.package} load-key -a";
 
   powerManagement = {
     cpuFreqGovernor = "schedutil"; # No HWP support for Haswell
@@ -61,17 +44,10 @@
     };
   };
 
-  # Boot loader - using systemd-boot
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-
   # USB WiFi adapter mode switching (CD-ROM -> WiFi)
   hardware.usb-modeswitch.enable = true;
 
-  hardware.graphics = {
-    enable = true;
-    extraPackages = with pkgs; [ intel-vaapi-driver ];
-  };
+  hardware.graphics.extraPackages = with pkgs; [ intel-vaapi-driver ];
 
   environment.systemPackages = with pkgs; [
     lm_sensors
@@ -85,15 +61,5 @@
     nvtopPackages.intel
   ];
 
-  # TPM
-  security.tpm2 = {
-    enable = true;
-    abrmd.enable = true;
-    pkcs11.enable = true;
-  };
-
-  hardware = {
-    enableRedistributableFirmware = true;
-    cpu.intel.updateMicrocode = true;
-  };
+  hardware.cpu.intel.updateMicrocode = true;
 }

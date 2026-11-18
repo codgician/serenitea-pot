@@ -5,12 +5,6 @@
   ...
 }:
 {
-  # TPM2-based ZFS root unlock
-  # Generate credential: nix run .#mkzfscreds -- zroot > zroot.cred
-  codgician.system.zfs-unlock = {
-    devices.zroot.credentialFile = ./zroot.cred;
-  };
-
   boot = {
     initrd = {
       availableKernelModules = [
@@ -67,19 +61,12 @@
 
     extraModulePackages = with config.boot.kernelPackages; [ mstflint_access ];
 
-    zfs = {
-      extraPools = [
-        "fpool"
-        "opool"
-        "xpool"
-      ];
-      forceImportAll = true;
-      # requestEncryptionCredentials handled by zfs-unlock module; other pools by zfs-mount preStart
-    };
+    zfs.extraPools = [
+      "fpool"
+      "opool"
+      "xpool"
+    ];
   };
-
-  # ZFS load keys
-  systemd.services."zfs-mount".preStart = "${lib.getExe config.boot.zfs.package} load-key -a";
 
   # Specify boot-0 as the primary ESP partition
   boot.loader.efi.efiSysMountPoint = "/boot-0";
@@ -116,16 +103,6 @@
     nvtopPackages.nvidia
     mstflint
   ];
-
-  # TPM
-  security.tpm2 = {
-    enable = true;
-    abrmd.enable = true;
-    pkcs11.enable = true;
-  };
-
-  # Enable OpenGL
-  hardware.graphics.enable = true;
 
   # Load nvidia driver for Xorg and Wayland
   services.xserver.videoDrivers = [ "nvidia" ];
@@ -205,15 +182,9 @@
     batteryLow = 20;
   };
 
-  hardware = {
-    enableRedistributableFirmware = true;
-    cpu.amd.updateMicrocode = true;
-  };
+  hardware.cpu.amd.updateMicrocode = true;
 
-  powerManagement = {
-    cpuFreqGovernor = "powersave";
-    powertop.enable = true;
-  };
+  powerManagement.powertop.enable = true;
 
   # Configure energy_performance_preference and lower scaling_min_freq floor.
   # The amd-pstate driver defaults scaling_min_freq to lowest_nonlinear_freq (1523 MHz),

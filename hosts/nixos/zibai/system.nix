@@ -18,16 +18,9 @@
           };
         };
       };
-
-      # RAS hardware error monitoring (EDAC/DIMM ECC, PCIe AER, CPU MCE)
-      rasdaemon.enable = true;
     };
 
-    system = {
-      common.inChina = true;
-      impermanence.wipeOnShutdown.zfs.enable = true;
-      secure-boot.enable = true;
-    };
+    system.common.inChina = true;
 
     users.smb = {
       enable = true;

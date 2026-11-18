@@ -167,11 +167,7 @@
       gns3-server.dataDir = "/xpool/appdata/gns3";
     };
 
-    system = {
-      common.inChina = true;
-      impermanence.wipeOnShutdown.zfs.enable = true;
-      secure-boot.enable = true;
-    };
+    system.common.inChina = true;
 
     virtualization.podman.enable = true;
 
@@ -199,10 +195,6 @@
       nur.repos.codgician.gddr6
     ];
   };
-
-  # Use systemd-boot boot loader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
 
   # Allow RAID-1 esp boot
   boot.swraid = {

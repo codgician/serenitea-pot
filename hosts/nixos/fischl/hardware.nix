@@ -4,12 +4,6 @@
   ...
 }:
 {
-  # TPM2-based ZFS root unlock
-  # Generate credential: nix run .#mkzfscreds -- zroot > zroot.cred
-  codgician.system.zfs-unlock = {
-    devices.zroot.credentialFile = ./zroot.cred;
-  };
-
   boot = {
     initrd = {
       availableKernelModules = [
@@ -66,9 +60,6 @@
     '';
   };
 
-  # Enable graphics
-  hardware.graphics.enable = true;
-
   # Global packages
   environment.systemPackages = with pkgs; [
     lm_sensors
@@ -80,12 +71,9 @@
     nvtopPackages.intel
   ];
 
-  hardware = {
-    enableRedistributableFirmware = true;
-    cpu.intel.updateMicrocode = true;
-  };
+  hardware.cpu.intel.updateMicrocode = true;
 
   services.thermald.enable = true;
 
-  powerManagement.cpuFreqGovernor = "powersave";
+  security.tpm2.enable = false;
 }

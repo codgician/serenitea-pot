@@ -1,23 +1,9 @@
 { pkgs, ... }:
 {
   codgician = {
-    services = {
-      postfix.enable = true;
-
-      # RAS hardware error monitoring (EDAC/DIMM ECC, PCIe AER, CPU MCE)
-      rasdaemon.enable = true;
-    };
-
-    system = {
-      common.inChina = true;
-      impermanence.wipeOnShutdown.zfs.enable = true;
-      secure-boot.enable = true;
-    };
+    services.postfix.enable = true;
+    system.common.inChina = true;
   };
-
-  # Use systemd-boot boot loader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
 
   # Allow RAID-1 esp boot
   boot.swraid = {
