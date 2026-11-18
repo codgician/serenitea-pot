@@ -1,22 +1,9 @@
 { pkgs, ... }:
 {
-  # My settings
-  codgician = {
-    system = {
-      brew = {
-        enable = true;
-        casks = [
-          "bluebubbles"
-          "opencore-configurator"
-        ];
-        masApps = { };
-      };
-      common.enable = true;
-      common.inChina = true;
-    };
-
-    users.codgi.enable = true;
-  };
+  codgician.system.brew.casks = [
+    "bluebubbles"
+    "opencore-configurator"
+  ];
 
   # Avoid uncached Haskell closures on legacy x86_64-darwin. nix-darwin only
   # needs the ShellCheck executable, and nix-fast-build can run without its
@@ -48,22 +35,9 @@
   # the ShellCheck override above, so do not include it on this host.
   system.tools.darwin-uninstaller.enable = false;
 
-  system.primaryUser = "codgi";
-
-  # Home manager
   home-manager.users.codgi =
     { pkgs, ... }:
     {
-      codgician.codgi = {
-        dev.nix.enable = true;
-        git.enable = true;
-        pwsh.enable = true;
-        ssh.enable = true;
-        tmux.enable = true;
-        zsh.enable = true;
-      };
-
-      home.stateVersion = "26.05";
       home.packages = with pkgs; [
         iperf3
         htop
@@ -76,11 +50,9 @@
     openssl
   ];
 
-  # zsh
-  programs.zsh = {
-    enable = true;
-    promptInit = "";
-  };
+  # The darwin common module sets the same empty prompt; the second
+  # definition adds one line to /etc/zshrc.
+  programs.zsh.promptInit = "";
 
   system.defaults = {
     dock = {
@@ -107,16 +79,9 @@
     };
 
     NSGlobalDomain = {
-      AppleInterfaceStyle = "Dark";
-      AppleInterfaceStyleSwitchesAutomatically = false;
-      AppleTemperatureUnit = "Celsius";
-      AppleMeasurementUnits = "Centimeters";
-      AppleMetricUnits = 1;
       NSAutomaticWindowAnimationsEnabled = false;
       NSScrollAnimationEnabled = false;
     };
-
-    SoftwareUpdate.AutomaticallyInstallMacOSUpdates = true;
 
     universalaccess = {
       reduceMotion = true;

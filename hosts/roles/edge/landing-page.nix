@@ -1,4 +1,8 @@
-{ pkgs }:
+{
+  pkgs,
+  name,
+  message,
+}:
 let
   index = pkgs.writeText "index.html" ''
     <html lang="en" style="text-align:center;">
@@ -41,12 +45,12 @@ let
     ⠀⠀⠀⠀⠀⠀⢀⣾⠁⠀⠀⣸⠁⠀⠀⠀⢀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢷⡄⠀⠀⠀⠀⠀⢸⠆⠀⠀⠀⢸⡷⠀⠀⠀⠀⠀⠀⠀⠀
         </pre>
         <hr>
-        Our paths will surely cross
+        ${message}
       </body>
     </html>
   '';
 in
-pkgs.runCommand "lumine-web" { } ''
+pkgs.runCommand "${name}-web" { } ''
   mkdir -p $out
   cp ${index} $out/index.html
 ''

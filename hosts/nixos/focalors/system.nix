@@ -1,104 +1,35 @@
-{ lib, pkgs, ... }:
-let
-  wallpaper =
-    (pkgs.fetchurl {
-      url = "https://web.archive.org/web/20240727142306if_/https://cdn.dynamicwallpaper.club/wallpapers/zt6aeujg1pn/Furina.heic";
-      sha256 = "1n8ckyhkbsadilwx171kyw44ivp0z7dhz837p1f5jy3zh811bab6";
-    }).outPath;
-in
+{ pkgs, ... }:
 {
-  # My settings
   codgician = {
-    services = {
-      fcitx5.enable = true;
-      nixos-vscode-server.enable = true;
-      plasma.enable = true;
-    };
+    services.plasma.wallpaper =
+      (pkgs.fetchurl {
+        url = "https://web.archive.org/web/20240727142306if_/https://cdn.dynamicwallpaper.club/wallpapers/zt6aeujg1pn/Furina.heic";
+        sha256 = "1n8ckyhkbsadilwx171kyw44ivp0z7dhz837p1f5jy3zh811bab6";
+      }).outPath;
 
     system = {
-      auto-upgrade.enable = true;
       common.inChina = true;
-      impermanence.enable = true;
       secure-boot.enable = true;
     };
-
-    users.codgi = with lib.codgician; {
-      enable = true;
-      hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
-    };
   };
 
-  # Home manager
-  home-manager.users.codgi =
-    { ... }:
-    {
-      codgician.codgi = {
-        dev = {
-          haskell.enable = true;
-          nix.enable = true;
-          rust.enable = true;
-        };
-
-        git.enable = true;
-        mcp.enable = true;
-        oh-my-pi.enable = true;
-        plasma = {
-          inherit wallpaper;
-          scale = 2;
-        };
-        pwsh.enable = true;
-        ssh.enable = true;
-        tmux.enable = true;
-        vscode.enable = true;
-        zsh.enable = true;
+  home-manager.users.codgi = {
+    codgician.codgi = {
+      dev = {
+        haskell.enable = true;
+        rust.enable = true;
       };
-
-      home.stateVersion = "26.05";
-      home.packages = with pkgs; [
-        screen
-        binwalk
-      ];
+      plasma.scale = 2;
     };
 
-  # Enable Network Manager
-  networking.networkmanager.enable = true;
-  networking.hostId = "41182c40";
-
-  # Plasma Login Manager currently reads wallpaper configuration from the main file.
-  environment.etc."plasmalogin.conf".text = ''
-    [Greeter][Wallpaper][org.kde.image][General]
-    Image=file://${wallpaper}
-  '';
-
-  # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.plymouth = {
-    enable = true;
-    theme = "nixos-bgrt";
-    themePackages = [ pkgs.nixos-bgrt-plymouth ];
-  };
-
-  # Select internationalisation properties.
-  i18n = {
-    defaultLocale = "en_US.UTF-8";
-    supportedLocales = [
-      "en_US.UTF-8/UTF-8"
-      "zh_CN.UTF-8/UTF-8"
+    home.packages = with pkgs; [
+      screen
+      binwalk
     ];
   };
 
-  codgician.system.common.audio.enable = true;
+  networking.hostId = "41182c40";
 
-  # Security
-  users.mutableUsers = false;
-  users.users.root.hashedPassword = "!";
-  nix.settings.trusted-users = [
-    "root"
-    "@wheel"
-  ];
-
-  # Global packages
   environment.systemPackages = with pkgs; [
     firefox-bin
     google-chrome
@@ -106,17 +37,5 @@ in
     kitty
   ];
 
-  # Enable zram swap
-  zramSwap.enable = true;
-
-  # Firewall
-  networking.firewall.enable = false;
-
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It's perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "26.05"; # Did you read the comment?
+  system.stateVersion = "26.05";
 }

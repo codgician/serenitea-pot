@@ -1,29 +1,5 @@
 { pkgs, ... }:
 {
-  # My settings
-  codgician = {
-    services = {
-      litellm.enable = false; # disable before pyarrow build is fixed
-    };
-    system = {
-      brew = {
-        enable = true;
-        taps = [
-          # "playcover/playcover"
-        ];
-        casks = (import ./brew.nix).casks;
-        #masApps = (import ./brew.nix).masApps;
-      };
-      common.enable = true;
-      common.inChina = true;
-    };
-
-    users.codgi.enable = true;
-  };
-
-  system.primaryUser = "codgi";
-
-  # Home manager
   home-manager.users.codgi =
     { pkgs, ... }:
     {
@@ -35,7 +11,6 @@
         };
         dev = {
           haskell.enable = true;
-          nix.enable = true;
           rust.enable = true;
         };
         dsh.enable = true;
@@ -44,20 +19,14 @@
           package = pkgs.droid-wrapped;
         };
         github-copilot-cli.enable = true;
-        git.enable = true;
         herdr.enable = true;
         mcp.enable = true;
         oh-my-pi.enable = true;
         pi-coding-agent.enable = true;
-        pwsh.enable = true;
-        ssh.enable = true;
-        tmux.enable = true;
         vscode.enable = true;
-        zsh.enable = true;
       };
 
       home = {
-        stateVersion = "26.05";
         packages =
           with pkgs;
           [
@@ -137,17 +106,6 @@
         "/System/Applications/iPhone Mirroring.app"
       ];
     };
-
-    NSGlobalDomain = {
-      AppleInterfaceStyle = "Dark";
-      AppleInterfaceStyleSwitchesAutomatically = false;
-      AppleTemperatureUnit = "Celsius";
-      AppleMeasurementUnits = "Centimeters";
-      AppleMetricUnits = 1;
-    };
-
-    SoftwareUpdate.AutomaticallyInstallMacOSUpdates = true;
-
     trackpad.Clicking = true;
   };
 

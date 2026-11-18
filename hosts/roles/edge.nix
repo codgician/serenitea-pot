@@ -1,0 +1,45 @@
+{ config, lib, ... }:
+{
+  codgician = {
+    services = {
+      nginx = {
+        enable = true;
+        openFirewall = true;
+      };
+
+      sing-box = {
+        enable = true;
+        domain = "${config.networking.hostName}.${lib.codgician.inventory.zone}";
+        servers.hysteria2.enable = true;
+      };
+
+      wireguard.enable = true;
+    };
+
+    system.impermanence.wipeOnShutdown.zfs.enable = true;
+  };
+
+  services.zfs.autoSnapshot = {
+    frequent = 4;
+    hourly = 24;
+    daily = 7;
+    weekly = 0;
+    monthly = 0;
+    flags = "-k -p --utc";
+  };
+
+  zramSwap.enable = true;
+
+  networking.useNetworkd = true;
+
+  boot.kernel.sysctl = {
+    "net.core.default_qdisc" = "fq_pie";
+    "net.ipv4.tcp_congestion_control" = "bbr";
+
+    # Enable forwarding for WireGuard
+    "net.ipv4.conf.all.forwarding" = "1";
+    "net.ipv4.conf.all.proxy_arp" = "1";
+    "net.ipv6.conf.all.forwarding" = "1";
+    "net.ipv6.conf.all.proxy_ndp" = "1";
+  };
+}

@@ -152,7 +152,11 @@
             "*.codgician.me"
           ];
           # Note: Anubis not enabled for static sites (no backend to protect)
-          locations."/".passthru.root = import ./lumine-web.nix { inherit pkgs; };
+          locations."/".passthru.root = import ../../roles/edge/landing-page.nix {
+            inherit pkgs;
+            name = "lumine";
+            message = "Our paths will surely cross";
+          };
         };
 
         "moongazer.codgician.me" = {

@@ -1,16 +1,9 @@
+{ pkgs, ... }:
 {
-  lib,
-  pkgs,
-  ...
-}:
-{
-
-  # My settings
   codgician = {
     services = {
       meshcentral = {
         enable = true;
-        port = 3001;
         reverseProxy = {
           enable = true;
           domains = [ "amt.codgician.me" ];
@@ -22,8 +15,6 @@
         openFirewall = true;
       };
 
-      nixos-vscode-server.enable = true;
-
       postfix.enable = true;
 
       # RAS hardware error monitoring (EDAC/DIMM ECC, PCIe AER, CPU MCE)
@@ -31,40 +22,11 @@
     };
 
     system = {
-      auto-upgrade.enable = true;
       common.inChina = true;
-      impermanence = {
-        enable = true;
-        wipeOnShutdown.zfs = {
-          enable = true;
-          datasets = [ "zroot/root" ];
-        };
-      };
+      impermanence.wipeOnShutdown.zfs.enable = true;
       secure-boot.enable = true;
     };
-
-    users.codgi = with lib.codgician; {
-      enable = true;
-      hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
-    };
   };
-
-  # Home manager
-  home-manager.users.codgi =
-    { ... }:
-    {
-      codgician.codgi = {
-        dev.nix.enable = true;
-        git.enable = true;
-        pwsh.enable = true;
-        ssh.enable = true;
-        tmux.enable = true;
-        zsh.enable = true;
-      };
-
-      home.stateVersion = "26.05";
-      home.packages = [ ];
-    };
 
   # Use systemd-boot boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -85,8 +47,6 @@
     monthly = 0;
     flags = "-k -p --utc";
   };
-
-  boot.plymouth.enable = false;
 
   networking.hostId = "4b6c6565";
 
@@ -111,14 +71,5 @@
   # Use networkd
   networking.useNetworkd = true;
 
-  # Firewall
-  networking.firewall.enable = true;
-
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It's perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "26.05"; # Did you read the comment?
+  system.stateVersion = "26.05";
 }

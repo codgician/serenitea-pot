@@ -4,8 +4,6 @@
   ...
 }:
 {
-
-  # My settings
   codgician = {
     services = {
       nats = {
@@ -62,8 +60,6 @@
       };
 
       redis.rootDir = "/opool/redis";
-
-      nixos-vscode-server.enable = true;
 
       # Chat
       matrix-tuwunel = {
@@ -284,26 +280,15 @@
     };
 
     system = {
-      auto-upgrade.enable = true;
       common.inChina = true;
-      impermanence = {
-        enable = true;
-        wipeOnShutdown.zfs = {
-          enable = true;
-          datasets = [ "zroot/root" ];
-        };
-      };
+      impermanence.wipeOnShutdown.zfs.enable = true;
       secure-boot.enable = true;
     };
 
     virtualization.podman.enable = true;
 
     users = with lib.codgician; {
-      codgi = {
-        enable = true;
-        hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
-        passwordAgeFile = getAgeSecretPathFromName "codgi-password";
-      };
+      codgi.passwordAgeFile = getAgeSecretPathFromName "codgi-password";
 
       smb = {
         enable = true;
@@ -313,32 +298,22 @@
     };
   };
 
-  # Home manager
-  home-manager.users.codgi =
-    { ... }:
-    {
-      codgician.codgi = {
-        dev.nix.enable = true;
-        codex = {
-          enable = true;
-          package = pkgs.codex-wrapped;
-        };
-        git.enable = true;
-        herdr.enable = true;
-        mcp.enable = true;
-        pi-coding-agent.enable = true;
-        oh-my-pi.enable = true;
-        pwsh.enable = true;
-        ssh.enable = true;
-        tmux.enable = true;
-        zsh.enable = true;
+  home-manager.users.codgi = {
+    codgician.codgi = {
+      codex = {
+        enable = true;
+        package = pkgs.codex-wrapped;
       };
-
-      home.stateVersion = "26.05";
-      home.packages = with pkgs; [
-        nur.repos.codgician.gddr6
-      ];
+      herdr.enable = true;
+      mcp.enable = true;
+      pi-coding-agent.enable = true;
+      oh-my-pi.enable = true;
     };
+
+    home.packages = with pkgs; [
+      nur.repos.codgician.gddr6
+    ];
+  };
 
   # Use systemd-boot boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -364,14 +339,5 @@
   # Use networkd
   networking.useNetworkd = true;
 
-  # Firewall
-  networking.firewall.enable = true;
-
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It's perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "26.05"; # Did you read the comment?
+  system.stateVersion = "26.05";
 }

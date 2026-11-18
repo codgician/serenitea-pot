@@ -1,0 +1,4 @@
+{ ... }:
+{
+  inventory = import ../inventory.nix;
+}

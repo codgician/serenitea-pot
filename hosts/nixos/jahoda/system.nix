@@ -1,21 +1,14 @@
 { lib, pkgs, ... }:
-let
-  wallpaper =
-    (pkgs.fetchurl {
-      url = "https://media.githubusercontent.com/media/codgician/assets/refs/heads/main/images/wallpapers/genshin-luna-viii.jpg";
-      sha256 = "sha256-VjoCRP8AENaUlItKCn2751GY+WtF0ncwcBWYuJHmCWE=";
-    }).outPath;
-in
 {
-
-  # My settings
   codgician = {
     secrets.files.nats-controller-seed.owner = "codgi";
 
     services = {
-      fcitx5.enable = true;
-      nixos-vscode-server.enable = true;
-      plasma.enable = true;
+      plasma.wallpaper =
+        (pkgs.fetchurl {
+          url = "https://media.githubusercontent.com/media/codgician/assets/refs/heads/main/images/wallpapers/genshin-luna-viii.jpg";
+          sha256 = "sha256-VjoCRP8AENaUlItKCn2751GY+WtF0ncwcBWYuJHmCWE=";
+        }).outPath;
 
       sing-box = {
         enable = true;
@@ -89,24 +82,14 @@ in
       };
     };
 
-    system = {
-      auto-upgrade.enable = true;
-      impermanence.enable = true;
-      secure-boot.enable = true;
-    };
+    system.secure-boot.enable = true;
 
     virtualization.podman.enable = true;
 
-    users.codgi = with lib.codgician; {
-      enable = true;
-      hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
-      passwordAgeFile = getAgeSecretPathFromName "codgi-password";
-    };
+    users.codgi.passwordAgeFile = lib.codgician.getAgeSecretPathFromName "codgi-password";
   };
 
-  # Home manager
   home-manager.users.codgi =
-    { ... }:
     let
       # Native Wayland rendering can interleave pointer-surface commits with NVIDIA
       # explicit-sync commits. Use XWayland to avoid syncobj protocol crashes.
@@ -130,22 +113,12 @@ in
           package = pkgs.codex-wrapped;
         };
         claude-code.enable = true;
-        dev = {
-          dotnet.enable = true;
-          nix.enable = true;
-        };
-        mcp.enable = true;
-        oh-my-pi = {
-          enable = true;
-          defaultProfile = "github-copilot";
-        };
+        dev.dotnet.enable = true;
+        oh-my-pi.defaultProfile = "github-copilot";
         github-copilot-cli.enable = true;
-        git = {
-          enable = true;
-          directoryIdentities = {
-            "/code/" = "work";
-            "~/GitHub/" = "personal";
-          };
+        git.directoryIdentities = {
+          "/code/" = "work";
+          "~/GitHub/" = "personal";
         };
         herdr = {
           enable = true;
@@ -158,13 +131,8 @@ in
         };
 
         plasma = {
-          inherit wallpaper;
           scale = 1.5;
-          krdp = {
-            enable = true;
-            port = 3389;
-            quality = 75;
-          };
+          krdp.enable = true;
           launchers = [
             "applications:org.kde.dolphin.desktop"
             "applications:microsoft-edge.desktop"
@@ -176,11 +144,6 @@ in
 
         easyeffects.enable = true;
         teams-for-linux.enable = true;
-        pwsh.enable = true;
-        ssh.enable = true;
-        tmux.enable = true;
-        vscode.enable = true;
-        zsh.enable = true;
       };
 
       # Set Microsoft Edge as default browser
@@ -195,8 +158,6 @@ in
         };
       };
       xdg.configFile."mimeapps.list".force = true;
-
-      home.stateVersion = "26.05";
 
       home.packages =
         with pkgs;
@@ -226,7 +187,6 @@ in
 
   # Enable Network Manager (leave thunderbolt0 to systemd-networkd)
   networking.networkmanager = {
-    enable = true;
     unmanaged = [ "thunderbolt0" ];
 
     ensureProfiles.profiles = {
@@ -282,12 +242,6 @@ in
   };
   networking.hostId = "357a80da";
 
-  # Plasma Login Manager currently reads wallpaper configuration from the main file.
-  environment.etc."plasmalogin.conf".text = ''
-    [Greeter][Wallpaper][org.kde.image][General]
-    Image=file://${wallpaper}
-  '';
-
   # DNS for sing-box TUN (matchConfig supplied by the sing-box module)
   systemd.network = {
     wait-online.enable = false;
@@ -301,44 +255,12 @@ in
     };
   };
 
-  # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.consoleMode = "max";
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.plymouth = {
-    enable = true;
-    theme = "nixos-bgrt";
-    themePackages = [ pkgs.nixos-bgrt-plymouth ];
-  };
-
-  # Select internationalisation properties.
-  i18n = {
-    defaultLocale = "en_US.UTF-8";
-    supportedLocales = [
-      "en_US.UTF-8/UTF-8"
-      "zh_CN.UTF-8/UTF-8"
-    ];
-  };
-
-  codgician.system.common.audio.enable = true;
-
-  services.fwupd.enable = true;
-
-  # Security
-  users.mutableUsers = false;
-  users.users.root.hashedPassword = "!";
-  nix.settings.trusted-users = [
-    "root"
-    "@wheel"
-  ];
 
   # Global packages
   environment.systemPackages = with pkgs; [
     google-chrome
   ];
-
-  # Enable zram swap
-  zramSwap.enable = true;
 
   # Disable auto-suspend: NVIDIA s2idle resume deadlocks the host.
   services.logind.settings.Login = {
@@ -363,20 +285,5 @@ in
   # Enable nix-ld
   programs.nix-ld.enable = true;
 
-  # Firewall
-  networking.firewall = {
-    enable = false;
-    allowedTCPPorts = [
-      3389
-      7318
-    ];
-  };
-
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It's perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "26.05"; # Did you read the comment?
+  system.stateVersion = "26.05";
 }

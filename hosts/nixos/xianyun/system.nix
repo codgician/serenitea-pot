@@ -1,6 +1,5 @@
 {
   config,
-  lib,
   pkgs,
   outputs,
   ...
@@ -12,13 +11,10 @@ let
   privateIPv4 = "10.6.4.16";
 in
 {
-  # My settings
   codgician = {
     services = {
-      nixos-vscode-server.enable = true;
       coturn = {
         enable = true;
-        domain = "turn.codgician.me";
         openFirewall = true;
         listening-ips = [
           "0.0.0.0"
@@ -31,95 +27,41 @@ in
         external-ips = [ "${dnsRecords."${config.networking.hostName}-a".content}/${privateIPv4}" ];
       };
 
-      nginx = {
+      nginx.reverseProxies."codgi.cn" = {
         enable = true;
-        openFirewall = true;
-        reverseProxies."codgi.cn" = {
-          enable = true;
-          https = true;
-          domains = [
-            "codgi.cn"
-            "*.codgi.cn"
-          ];
-          locations."/".passthru.root = import ./xianyun-web.nix { inherit pkgs; };
+        https = true;
+        domains = [
+          "codgi.cn"
+          "*.codgi.cn"
+        ];
+        locations."/".passthru.root = import ../../roles/edge/landing-page.nix {
+          inherit pkgs;
+          name = "xianyun";
+          message = ''
+            Coming Soon...
+                <footer>
+                  <a href="https://beian.miit.gov.cn/">蜀ICP备2026006850号</a>
+                </footer>'';
         };
       };
 
       sing-box = {
-        enable = true;
-        domain = "xianyun.codgician.me";
         users = [
           "codgi"
           "lxm75"
           "itscd"
         ];
-        servers.hysteria2.enable = true;
         servers.shadowsocks = {
           enable = true;
           port = 8444;
         };
       };
-
-      wireguard = {
-        enable = true;
-        openFirewall = true;
-        interfaces.wg0 = {
-          host = "xianyun";
-          peers = [
-            "furina"
-            "lumidouce"
-            "lumine"
-            "qiaoying"
-          ];
-          allowedIPsAsRoutes = true;
-        };
-      };
     };
 
-    system = {
-      auto-upgrade.enable = true;
-      common.inChina = true;
-      impermanence = {
-        enable = true;
-        wipeOnShutdown.zfs = {
-          enable = true;
-          datasets = [ "zroot/root" ];
-        };
-      };
-    };
-
-    users.codgi = with lib.codgician; {
-      enable = true;
-      hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
-    };
+    system.common.inChina = true;
   };
 
-  # Home manager
-  home-manager.users.codgi =
-    { ... }:
-    {
-      codgician.codgi = {
-        dev.nix.enable = true;
-        git.enable = true;
-        oh-my-pi.enable = true;
-        pwsh.enable = true;
-        ssh.enable = true;
-        tmux.enable = true;
-        zsh.enable = true;
-      };
-
-      home.stateVersion = "26.05";
-    };
-
-  # Customize zfs auto snapshot cadence
-  services.zfs.autoSnapshot = {
-    frequent = 4;
-    hourly = 24;
-    daily = 7;
-    weekly = 0;
-    monthly = 0;
-    flags = "-k -p --utc";
-  };
+  home-manager.users.codgi.codgician.codgi.oh-my-pi.enable = true;
 
   networking.hostId = "f52ce96f";
 
@@ -130,31 +72,5 @@ in
     zfsSupport = true;
   };
 
-  # Enable zram swap
-  zramSwap.enable = true;
-
-  # Use networkd
-  networking.useNetworkd = true;
-
-  # Firewall
-  networking.firewall.enable = true;
-
-  boot.kernel.sysctl = {
-    "net.core.default_qdisc" = "fq_pie";
-    "net.ipv4.tcp_congestion_control" = "bbr";
-
-    # Enable forwarding for WireGuard
-    "net.ipv4.conf.all.forwarding" = "1";
-    "net.ipv4.conf.all.proxy_arp" = "1";
-    "net.ipv6.conf.all.forwarding" = "1";
-    "net.ipv6.conf.all.proxy_ndp" = "1";
-  };
-
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It's perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "26.05"; # Did you read the comment?
+  system.stateVersion = "26.05";
 }

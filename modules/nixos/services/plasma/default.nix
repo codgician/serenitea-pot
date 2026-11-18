@@ -20,6 +20,12 @@ in
       default = null;
       description = "Specify an auto-login user if you want to enable auto login.";
     };
+
+    wallpaper = lib.mkOption {
+      type = types.nullOr types.path;
+      default = null;
+      description = "Wallpaper of the login greeter; desktop sessions default to it as well.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -67,6 +73,14 @@ in
     ++ lib.mapAttrsToList (
       name: user: "L+ /var/lib/AccountsService/icons/${name} - - - - ${user.avatar}"
     ) usersWithAvatars;
+
+    # Plasma Login Manager currently reads wallpaper configuration from the main file.
+    environment.etc."plasmalogin.conf" = lib.mkIf (cfg.wallpaper != null) {
+      text = ''
+        [Greeter][Wallpaper][org.kde.image][General]
+        Image=file://${cfg.wallpaper}
+      '';
+    };
 
     xdg.portal = {
       enable = true;

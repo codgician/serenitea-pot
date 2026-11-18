@@ -6,107 +6,52 @@
 }:
 let
   cfg = config.codgician.services.wireguard;
-  types = lib.types;
-  hosts = lib.codgician.getNixFileNamesWithoutExt ./peers;
+  inherit (config.networking) hostName;
 
-  # Get wireguard secret file names without extension
   getPresharedKeyName = x: y: "wg-preshared-key-${if x < y then "${x}-${y}" else "${y}-${x}"}";
 
-  # All host options
-  hostOptions = lib.pipe hosts [
-    (builtins.map (name: {
-      inherit name;
-      value = import (./peers + "/${name}.nix") { inherit config; };
-    }))
-    builtins.listToAttrs
-  ];
-
-  # Ports of all wireguard interfaces
-  ports = lib.pipe cfg.interfaces [
-    builtins.attrValues
-    (builtins.map (intCfg: hostOptions.${intCfg.host}.port))
-    lib.unique
-  ];
+  # Every file under ./peers is a mesh member; this host is the one named
+  # after it and peers with all the others.
+  members = lib.genAttrs (lib.codgician.getNixFileNamesWithoutExt ./peers) (
+    name: import (./peers + "/${name}.nix") { inherit config; }
+  );
+  self = members.${hostName};
 in
 {
-  options.codgician.services.wireguard = {
-    enable = lib.mkEnableOption "WireGuard.";
+  options.codgician.services.wireguard.enable = lib.mkEnableOption "WireGuard mesh membership.";
 
-    openFirewall = lib.mkEnableOption "Open firewall for WireGuard ports.";
+  config = lib.mkIf cfg.enable {
+    environment.systemPackages = with pkgs; [
+      wireguard-tools
+    ];
 
-    interfaces = lib.mkOption {
-      type =
-        with types;
-        attrsOf (submodule {
-          options = {
-            host = lib.mkOption {
-              type = types.enum hosts;
-              description = "Name of host configuration file to use.";
-            };
+    networking = {
+      wireguard = {
+        interfaces.wg0 = {
+          inherit (self) privateKeyFile ips;
+          mtu = 1380;
+          allowedIPsAsRoutes = true;
+          listenPort = self.port;
+          peers = lib.mapAttrsToList (name: peer: {
+            inherit (peer)
+              name
+              publicKey
+              allowedIPs
+              persistentKeepalive
+              ;
+            endpoint =
+              if (peer.domain == null || peer.port == null) then
+                null
+              else
+                "${peer.domain}:${builtins.toString peer.port}";
+            presharedKeyFile = config.codgician.secrets.files.${getPresharedKeyName hostName name}.path;
+            dynamicEndpointRefreshSeconds = 5;
+          }) (removeAttrs members [ hostName ]);
+        };
+        useNetworkd = false; # See: https://github.com/systemd/systemd/issues/9911
+      };
 
-            peers = lib.mkOption {
-              type = with types; listOf (enum hosts);
-              description = "List of enabled peer configuration names.";
-            };
-
-            mtu = lib.mkOption {
-              type = types.int;
-              default = 1380;
-              description = "MTU for the interface.";
-            };
-
-            allowedIPsAsRoutes = lib.mkEnableOption ''
-              Whether to add allowed IPs as routes or not.
-            '';
-          };
-        });
-      default = { };
-      description = "WireGuard interface configurations.";
+      firewall.allowedUDPPorts = [ self.port ];
     };
   };
-
-  config = lib.mkIf cfg.enable (
-    lib.mkMerge [
-      # WireGuard configuration
-      {
-        environment.systemPackages = with pkgs; [
-          wireguard-tools
-        ];
-
-        networking = {
-          wireguard = {
-            interfaces = builtins.mapAttrs (_: intCfg: {
-              inherit (hostOptions.${intCfg.host}) privateKeyFile ips;
-              inherit (intCfg) mtu allowedIPsAsRoutes;
-              listenPort = hostOptions.${intCfg.host}.port;
-              peers = builtins.map (peer: {
-                inherit (hostOptions.${peer})
-                  name
-                  publicKey
-                  allowedIPs
-                  persistentKeepalive
-                  ;
-                endpoint =
-                  with hostOptions.${peer};
-                  if (domain == null || port == null) then null else "${domain}:${builtins.toString port}";
-                presharedKeyFile = config.codgician.secrets.files.${getPresharedKeyName intCfg.host peer}.path;
-                dynamicEndpointRefreshSeconds = 5;
-              }) intCfg.peers;
-            }) cfg.interfaces;
-          }
-          // (lib.optionalAttrs (lib.versionAtLeast lib.version "25.05") {
-            useNetworkd = false; # See: https://github.com/systemd/systemd/issues/9911
-          });
-
-          # Open firewall
-          firewall.allowedUDPPorts = lib.mkIf cfg.openFirewall ports;
-        };
-
-        assertions = builtins.map (intCfg: {
-          assertion = lib.all (x: x != intCfg.host) (intCfg.peers);
-          message = "WireGuard: Host ${intCfg.host} should not be in peers list.";
-        }) (builtins.attrValues cfg.interfaces);
-      }
-    ]
-  );
 }

@@ -17,6 +17,7 @@ let
       builtins.map (x: import x (args // { inherit lib nixpkgs; })) [
         ./consts.nix
         ./image.nix
+        ./inventory.nix
         ./io.nix
         ./reverse-proxy.nix
         ./secrets.nix
