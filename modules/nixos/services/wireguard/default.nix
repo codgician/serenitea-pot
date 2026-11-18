@@ -7,14 +7,12 @@
 let
   cfg = config.codgician.services.wireguard;
   inherit (config.networking) hostName;
+  secret = name: config.codgician.secrets.files.${name}.path;
+  # The key a pair shares is named after both, in alphabetical order.
+  pair = a: b: if a < b then "${a}-${b}" else "${b}-${a}";
 
-  getPresharedKeyName = x: y: "wg-preshared-key-${if x < y then "${x}-${y}" else "${y}-${x}"}";
-
-  # Every file under ./peers is a mesh member; this host is the one named
-  # after it and peers with all the others.
-  members = lib.genAttrs (lib.codgician.getNixFileNamesWithoutExt ./peers) (
-    name: import (./peers + "/${name}.nix") { inherit config; }
-  );
+  # This host is the member named after it and peers with all the others.
+  members = lib.codgician.published.wireguard;
   self = members.${hostName};
 in
 {
@@ -28,23 +26,26 @@ in
     networking = {
       wireguard = {
         interfaces.wg0 = {
-          inherit (self) privateKeyFile ips;
+          privateKeyFile = secret "wg-private-key-${hostName}";
+          ips = [
+            "${self.ipv4}/23"
+            "${self.ipv6}/48"
+          ];
           mtu = 1380;
           allowedIPsAsRoutes = true;
           listenPort = self.port;
           peers = lib.mapAttrsToList (name: peer: {
-            inherit (peer)
-              name
-              publicKey
-              allowedIPs
-              persistentKeepalive
-              ;
+            inherit name;
+            inherit (peer) publicKey;
+            allowedIPs = [
+              "${peer.ipv4}/32"
+              "${peer.ipv6}/128"
+            ]
+            ++ peer.routes;
             endpoint =
-              if (peer.domain == null || peer.port == null) then
-                null
-              else
-                "${peer.domain}:${builtins.toString peer.port}";
-            presharedKeyFile = config.codgician.secrets.files.${getPresharedKeyName hostName name}.path;
+              if peer.domain == null || peer.port == null then null else "${peer.domain}:${toString peer.port}";
+            presharedKeyFile = secret "wg-preshared-key-${pair hostName name}";
+            persistentKeepalive = 25;
             dynamicEndpointRefreshSeconds = 5;
           }) (removeAttrs members [ hostName ]);
         };

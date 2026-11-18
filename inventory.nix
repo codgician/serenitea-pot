@@ -12,14 +12,75 @@ rec {
   # Service that is the Authelia portal
   authelia = "authelia-main";
 
-  # Hosts that services run on, with the addresses other hosts reach them at
+  # Hosts of this flake that other machines refer to, with the addresses they
+  # are reached at and their place in the WireGuard mesh
   hosts = {
     fischl = { };
-    lumine = { };
+    furina.wireguard = {
+      ipv4 = "192.168.254.254";
+      ipv6 = "fd00:c0d9:1cff::254";
+      publicKey = "90o8pyE8uvb+MAjCvHzxgQKu+yMtbie5cXtSnldoJSk=";
+    };
+    lumine = {
+      public = true;
+      wireguard = {
+        ipv4 = "192.168.254.64";
+        ipv6 = "fd00:c0d9:1cff::64";
+        publicKey = "bbtSDKEOb2Odofwwv215lllLckAOkdI0Mh9ZxuiQQUw=";
+        port = 51820;
+        routes = [
+          "192.168.64.0/24"
+          "fd00:c0d9:1c64::/48"
+        ];
+      };
+    };
     nahida.lan = "192.168.0.23";
     paimon = {
       lan = "192.168.0.22";
       pve = "192.168.0.21";
+    };
+    xianyun = {
+      public = true;
+      wireguard = {
+        ipv4 = "192.168.254.72";
+        ipv6 = "fd00:c0d9:1cff::72";
+        publicKey = "Uw99L+A6C9/cEzPmowLT8vC+cELdhcXAs61rjHb1hyY=";
+        port = 51820;
+        routes = [
+          "192.168.72.0/24"
+          "fd00:c0d9:1c72::/48"
+        ];
+      };
+    };
+  };
+
+  # Machines this flake does not build that its hosts connect to
+  peers = {
+    lumidouce = {
+      subdomain = "sz";
+      wireguard = {
+        ipv4 = "192.168.254.1";
+        ipv6 = "fd00:c0d9:1cff::1";
+        publicKey = "1QYPFw1YL0Px4+41YvBLX4qgXH4KTz9JOqzNbMnlgR8=";
+        port = 51821;
+        routes = [
+          "192.168.0.0/24"
+          "fd00:c0d9:1c00::/48"
+        ];
+      };
+    };
+    qiaoying = {
+      subdomain = "cd";
+      wireguard = {
+        ipv4 = "192.168.254.6";
+        ipv6 = "fd00:c0d9:1cff::6";
+        publicKey = "suqw1v+IDCnupiBU0pHex25qQtb1En2DwofDKoZQrU0=";
+        port = 51821;
+        routes = [
+          "192.168.6.0/24"
+          "fd00:c0d9:1c06::/48"
+        ];
+      };
     };
   };
 
