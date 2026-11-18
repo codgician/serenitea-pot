@@ -5,23 +5,31 @@ let
   mkPublished =
     inventory:
     let
+      defaults = name: {
+        subdomain = name;
+        host = null;
+        port = null;
+        address = "lan";
+        upstream = null;
+        edge = null;
+        edgeVhost = name;
+        lanOnly = false;
+        authelia = null;
+        anubis = false;
+      };
+
       services = lib.mapAttrs (
         name: service:
         let
-          s = {
-            subdomain = name;
-            host = null;
-            port = null;
-            address = "lan";
-            upstream = null;
-            edge = null;
-            edgeVhost = name;
-            lanOnly = false;
-            authelia = null;
-            anubis = false;
-          }
-          // service;
+          s = defaults name // service;
+          unknown = lib.attrNames (removeAttrs service (lib.attrNames (defaults name)));
         in
+        assert lib.assertMsg (
+          unknown == [ ]
+        ) "inventory: service ${name} has unknown attributes: ${toString unknown}";
+        assert lib.assertMsg (
+          s.host == null || inventory.hosts ? ${s.host}
+        ) "inventory: service ${name} runs on unknown host ${toString s.host}";
         s // { domain = "${s.subdomain}.${inventory.zone}"; }
       ) inventory.services;
 
