@@ -125,6 +125,12 @@ let
         ttl = "60";
       };
       callbacks = [ "claude_oauth_hook.proxy_handler_instance" ];
+      custom_provider_map = [
+        {
+          provider = "antigravity";
+          custom_handler = "antigravity_provider.handler";
+        }
+      ];
       drop_params = true;
       modify_params = true;
       request_timeout = requestTimeout;
@@ -166,6 +172,8 @@ let
     "CHATGPT_TOKEN_DIR" =
       if cfg.backend == "nixpkgs" then "${cfg.stateDir}/chatgpt" else "/config/chatgpt";
     "XAI_OAUTH_TOKEN_DIR" = if cfg.backend == "nixpkgs" then "${cfg.stateDir}/xai" else "/config/xai";
+    "ANTIGRAVITY_TOKEN_DIR" =
+      if cfg.backend == "nixpkgs" then "${cfg.stateDir}/antigravity" else "/config/antigravity";
     "REDIS_URL" = "unix://${redisSocketPath}";
   }
   // (lib.optionalAttrs (cfg.adminUi.enable) {
@@ -373,6 +381,7 @@ in
         volumes = [
           "${(pkgs.formats.yaml { }).generate "config.yaml" settings}:/config.yaml:ro"
           "${claudeOAuthHook}/claude_oauth_hook.py:/claude_oauth_hook.py:ro"
+          "${claudeOAuthHook}/antigravity_provider.py:/antigravity_provider.py:ro"
           "${cfg.stateDir}:/config"
           "/run/redis-${serviceName}:/run/redis-${serviceName}:ro"
         ]

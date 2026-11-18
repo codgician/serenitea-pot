@@ -28,6 +28,69 @@ Podman storage directly:
 sudo -iu litellm env XDG_RUNTIME_DIR=/run/user/2025 podman ps
 ```
 
+### Antigravity Gemini subscription
+
+Gemini subscription requests use an external `CustomLLM` handler loaded through
+`custom_provider_map`; LiteLLM itself is not patched. The registry exposes
+`gemini-4-argon`, `gemini-4-carbon`, `gemini-3.8-flash`, and
+`gemini-3.1-flash-lite`, matching the account's model roster. Reasoning effort
+selects the corresponding SKU;
+a SKU absent from the account's catalog returns an error, not another model.
+Image-generation models continue using the Gemini API key.
+
+Google has suspended Antigravity access for third-party OAuth use
+([upstream report](https://github.com/can1357/oh-my-pi/issues/18341)). Connecting
+an account accepts that risk; this is not a supported Google API integration.
+Antigravity also answers `429 RESOURCE_EXHAUSTED` ("check quota") whenever the
+system prompt contains a known third-party agent identity, such as omp's,
+opencode's, or Claude Code's, while quota remains. Those clients cannot use
+these models through the gateway; the same text in user turns is accepted.
+
+The handler signs in as the native Antigravity client. Its OAuth client ID and
+secret are not committed; the `antigravity-oauth-client-id` and
+`antigravity-oauth-client-secret` SOPS secrets hold the values, injected through
+the `litellm-env` template.
+
+After deploying the handler, connect from an interactive terminal:
+
+```bash
+sudo -iu litellm env XDG_RUNTIME_DIR=/run/user/2025 \
+  podman exec -it litellm python /antigravity_provider.py login
+```
+
+Open the printed authorization URL, then paste the full loopback redirect URL
+back into the command; the loopback page need not load. The refresh token,
+project, and account model catalog are written to
+`/var/lib/litellm/antigravity/credentials.json` with mode `0600`, under the
+existing persisted state directory. Workers share a file lock when refreshing
+and atomically replace rotated tokens. Repeat login if Google revokes access.
+
+For an unreliable SSH connection, run `login --start` first and later run
+`login --finish` with the same command prefix. PKCE state is stored as a `0600`
+file beside the credentials and removed after successful login; the callback
+can therefore be submitted through a new SSH session.
+
+If project provisioning or catalog discovery fails after authorization, tokens
+remain in that private pending-login file. Resolve the Google account's access
+or regional eligibility, then retry `login --finish` without reusing the
+single-use authorization code. Existing working credentials are replaced only
+after provisioning succeeds.
+
+An active current tier takes precedence over an unrelated `free-tier` entry in
+`ineligibleTiers`; paid accounts need not be eligible for free-tier onboarding.
+Successful login and catalog discovery do not guarantee inference access.
+Gemini generation is rejected with `FAILED_PRECONDITION` and `User location is not supported for the API use.` from lumine's Azure IPv6 egress, even though
+the same request succeeds from its IPv4 egress in the same region. The handler
+therefore binds all Google requests to IPv4. Other location rejections are
+propagated rather than silently switching providers or models.
+
+The handler reuses LiteLLM's Gemini message/tool/signature conversion. Streaming
+ends with a generic usage chunk so cached and reasoning tokens survive all
+three client protocols. Spend is API-equivalent pricing, not a subscription
+invoice. The native-client model profile determines output limits; a smaller
+client `max_tokens` is not guaranteed to be honored. Home Manager client model
+allowlists are unchanged.
+
 ## Build VHD
 
 To build system disk `.vhd` for uploading, run:

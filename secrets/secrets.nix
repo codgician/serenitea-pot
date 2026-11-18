@@ -22,6 +22,24 @@ let
       ];
       users = with users; [ codgi ];
     };
+    antigravity-oauth-client-id = {
+      hosts = with hosts; [
+        furina
+        lumine
+        paimon
+        wanderer
+      ];
+      users = with users; [ codgi ];
+    };
+    antigravity-oauth-client-secret = {
+      hosts = with hosts; [
+        furina
+        lumine
+        paimon
+        wanderer
+      ];
+      users = with users; [ codgi ];
+    };
     anubis-ed25519-private-key-hex = {
       hosts = with hosts; [ lumine ];
       users = with users; [ codgi ];
