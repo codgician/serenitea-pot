@@ -1,6 +1,5 @@
 {
   codgician.system = {
-    brew.enable = true;
     common.inChina = true;
   };
 
