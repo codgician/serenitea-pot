@@ -1,6 +1,7 @@
 { pkgs, lib, ... }:
 {
   boot.isContainer = true;
+  zramSwap.enable = false;
 
   networking = {
     interfaces.enp193s0f0v1.useDHCP = true;

@@ -221,8 +221,7 @@
     libhugetlbfs
   ];
 
-  # Use networkd
-  networking.useNetworkd = true;
+  zramSwap.enable = false;
 
   system.stateVersion = "26.05";
 }

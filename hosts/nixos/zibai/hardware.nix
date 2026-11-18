@@ -65,9 +65,6 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # Use systemd-networkd for network management
-  networking.useNetworkd = true;
-
   # USB WiFi adapter mode switching (CD-ROM -> WiFi)
   hardware.usb-modeswitch.enable = true;
 

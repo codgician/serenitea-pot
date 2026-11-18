@@ -99,9 +99,6 @@
 
   networking.hostId = "02821ba1";
 
-  # Enable zram swap
-  zramSwap.enable = true;
-
   # Always-on server: disable all sleep states
   systemd.sleep.settings.Sleep = {
     AllowSuspend = false;

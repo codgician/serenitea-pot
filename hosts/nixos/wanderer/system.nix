@@ -1,4 +1,3 @@
-{ pkgs, ... }:
 {
   codgician.system = {
     impermanence.enable = false;
@@ -13,8 +12,6 @@
     oh-my-pi.enable = true;
     mcp.enable = true;
   };
-
-  zramSwap.enable = true;
 
   networking.firewall.enable = false;
 

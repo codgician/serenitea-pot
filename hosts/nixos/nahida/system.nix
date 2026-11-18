@@ -45,9 +45,6 @@ in
     ];
   };
 
-  # Use networkd
-  networking.useNetworkd = true;
-
   # Enable nix-ld for lab environment
   programs.nix-ld.enable = true;
 

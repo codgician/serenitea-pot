@@ -41,6 +41,7 @@ in
     ];
   };
 
+  networking.useNetworkd = false;
   networking.networkmanager.enable = true;
   networking.firewall.enable = false;
 
@@ -50,6 +51,4 @@ in
     "root"
     "@wheel"
   ];
-
-  zramSwap.enable = true;
 }

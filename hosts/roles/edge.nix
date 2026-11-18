@@ -22,10 +22,6 @@
     flags = "-k -p --utc";
   };
 
-  zramSwap.enable = true;
-
-  networking.useNetworkd = true;
-
   boot.kernel.sysctl = {
     "net.core.default_qdisc" = "fq_pie";
     "net.ipv4.tcp_congestion_control" = "bbr";

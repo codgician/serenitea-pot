@@ -24,4 +24,8 @@
   fileSystems = lib.mkIf (config.codgician.system.impermanence.enable && !config.boot.isContainer) {
     "/persist".neededForBoot = true;
   };
+
+  networking.useNetworkd = lib.mkDefault true;
+
+  zramSwap.enable = lib.mkDefault true;
 }
