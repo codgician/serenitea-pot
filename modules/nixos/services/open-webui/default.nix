@@ -9,8 +9,6 @@ let
   cfg = config.codgician.services.open-webui;
   inherit (lib.codgician) published;
   svc = published.services.open-webui;
-  enabled = svc.host == config.networking.hostName;
-  vhost = config.codgician.services.nginx.reverseProxies.open-webui;
   defaultStateDir = "/var/lib/${serviceName}";
   # Kept in its own directory: nginx serves the manifest's parent directory.
   pwaManifest = ./static/pwa-manifest.json;
@@ -248,14 +246,20 @@ let
   });
 in
 {
-  options.codgician.services.open-webui.stateDir = lib.mkOption {
-    type = lib.types.path;
-    default = defaultStateDir;
-    description = "Directory to store open-webui data.";
+  options.codgician.services.open-webui = {
+    enable = lib.codgician.mkPublishedEnableOption config serviceName;
+
+    stateDir = lib.mkOption {
+      type = lib.types.path;
+      default = defaultStateDir;
+      description = "Directory to store open-webui data.";
+    };
   };
 
   config = lib.mkMerge [
-    (lib.mkIf enabled {
+    (lib.mkIf cfg.enable {
+      codgician.services.nginx.reverseProxies.open-webui.proxyPass = svc.localUpstream;
+
       services.open-webui = {
         enable = true;
         host = "127.0.0.1";
@@ -324,16 +328,16 @@ in
       };
     })
 
-    (lib.mkIf enabled (
+    (lib.mkIf cfg.enable (
       lib.codgician.mkServiceUserGroupLinux serviceName {
         uid = 2026;
         gid = 2026;
       }
     ))
 
-    # Locations of the vhost, on the backend host and on the edge alike;
-    # the icons are only served next to the backend.
-    {
+    # Locations of the vhost, next to the backend and on the edge alike; the
+    # icons are only served next to the backend.
+    (lib.mkIf (cfg.enable || published.fronts config.networking.hostName serviceName) {
       codgician.services.nginx.reverseProxies.open-webui.locations =
         let
           inherit (lib.codgician) mkNginxLocationForStaticFile;
@@ -355,7 +359,7 @@ in
         {
           "= /static/pwa-manifest.json" = mkNginxLocationForStaticFile pwaManifest;
         }
-        // (lib.optionalAttrs enabled {
+        // (lib.optionalAttrs cfg.enable {
           "= /favicon.png" = mkNginxLocationForStaticFile favicon512;
           "= /static/favicon.png" = mkNginxLocationForStaticFile favicon512;
           "= /static/favicon-dark.png" = mkNginxLocationForStaticFile favicon512;
@@ -376,22 +380,16 @@ in
           "= /static/splash-dark.png" = mkNginxLocationForStaticFile splash;
         })
         // {
-          "/_app/immutable/" = {
-            inherit (vhost) proxyPass;
-            extraConfig = ''
-              add_header Cache-Control "public, max-age=31536000, immutable";
-            '';
-          };
-          "/api/v1/files" = {
-            inherit (vhost) proxyPass;
-            extraConfig = ''
-              client_max_body_size 128M;
-              proxy_connect_timeout 1800;
-              proxy_send_timeout 1800;
-              proxy_read_timeout 1800;
-              send_timeout 1800;
-            '';
-          };
+          "/_app/immutable/".extraConfig = ''
+            add_header Cache-Control "public, max-age=31536000, immutable";
+          '';
+          "/api/v1/files".extraConfig = ''
+            client_max_body_size 128M;
+            proxy_connect_timeout 1800;
+            proxy_send_timeout 1800;
+            proxy_read_timeout 1800;
+            send_timeout 1800;
+          '';
           "/".extraConfig = ''
             client_max_body_size 128M;
             proxy_buffering off;
@@ -403,6 +401,6 @@ in
             add_header Cache-Control "no-store, no-cache, must-revalidate" always;
           '';
         };
-    }
+    })
   ];
 }

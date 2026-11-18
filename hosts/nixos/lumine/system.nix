@@ -1,9 +1,4 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ config, lib, ... }:
 {
   codgician = {
     secrets.files.saw-basic-auth.owner = "nginx";
@@ -13,30 +8,23 @@
       postgresql.zfsOptimizations = true;
       sing-box.users = [ "codgi" ];
 
-      nginx.reverseProxies = {
-        saw.locations."/".extraConfig = ''
-          client_max_body_size 128M;
-          proxy_buffering off;
-          include ${config.codgician.secrets.files.saw-basic-auth.path};
-        '';
+      nginx = {
+        landingPage = {
+          domain = lib.codgician.inventory.zone;
+          footer = "Our paths will surely cross";
+        };
 
-        ${lib.codgician.published.services.dsh-web.edgeVhost}.locations."/".extraConfig = ''
-          access_log off;
-          proxy_buffering off;
-        '';
+        reverseProxies = {
+          saw.locations."/".extraConfig = ''
+            client_max_body_size 128M;
+            proxy_buffering off;
+            include ${config.codgician.secrets.files.saw-basic-auth.path};
+          '';
 
-        # Everything in the zone without a vhost of its own.
-        ${lib.codgician.inventory.zone} = {
-          enable = true;
-          domains = with lib.codgician.inventory; [
-            zone
-            "*.${zone}"
-          ];
-          locations."/".root = import ../../roles/edge/landing-page.nix {
-            inherit pkgs;
-            name = "lumine";
-            message = "Our paths will surely cross";
-          };
+          ${lib.codgician.published.services.dsh-web.edgeVhost}.locations."/".extraConfig = ''
+            access_log off;
+            proxy_buffering off;
+          '';
         };
       };
     };

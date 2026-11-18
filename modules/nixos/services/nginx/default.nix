@@ -7,53 +7,62 @@
 let
   cfg = config.codgician.services.nginx;
   types = lib.types;
-  inherit (lib.codgician) published;
+  inherit (lib.codgician) inventory published;
+  inherit (config.networking) hostName;
   autheliaApiPath = "/internal/authelia/authz";
-  vhosts = lib.filterAttrs (_: vhost: vhost.enable) cfg.reverseProxies;
 
   anubisSocket =
     name: "http://unix:/run/anubis/anubis-${builtins.replaceStrings [ "." ] [ "-" ] name}/anubis.sock";
 
+  # A location that says what it serves keeps that; any other one goes to
+  # the vhost's upstream.
+  servesItself =
+    location: location ? proxyPass || location ? root || location ? alias || location ? return;
+  locationsOf = vhost: { "/" = { }; } // vhost.locations;
+
+  # A vhost without a domain or without anything to serve at `/` is reported
+  # by an assertion below instead of failing somewhere in its consumers.
+  hasRoot = vhost: vhost.proxyPass != null || servesItself (vhost.locations."/" or { });
+  vhosts = lib.filterAttrs (_: vhost: vhost.domains != [ ] && hasRoot vhost) cfg.reverseProxies;
+
   vhostModule =
-    { config, ... }:
+    { name, ... }:
+    let
+      service = published.services.${name} or null;
+    in
     {
       options = {
-        enable = lib.mkEnableOption "this virtual host";
-
         domains = lib.mkOption {
           type = types.listOf types.str;
+          default = lib.optional (published.domainOf name != null) (published.domainOf name);
+          defaultText = lib.literalMD "the domain of the service called `<name>` in `inventory.nix`";
           example = [
             "example.com"
             "example.org"
           ];
-          description = "Domains served; the first one names the certificate.";
-        };
-
-        https = lib.mkOption {
-          type = types.bool;
-          default = true;
-          description = "Use https and auto-renew certificates.";
+          description = "Server names; the first one names the certificate.";
         };
 
         proxyPass = lib.mkOption {
           type = types.nullOr types.str;
           default = null;
           example = "http://127.0.0.1:8000";
-          description = "Upstream of the root location; other locations may refer to it.";
+          description = "Upstream of every location that does not say what else it serves.";
         };
 
-        authelia = {
-          enable = lib.mkEnableOption "an Authelia session check on every location";
-
-          url = lib.mkOption {
-            type = types.str;
-            default = published.autheliaUrl;
-            defaultText = lib.literalExpression "lib.codgician.published.autheliaUrl";
-            description = "The URL of the Authelia.";
-          };
+        authelia = lib.mkOption {
+          type = types.bool;
+          default = service != null && service.authelia != null;
+          defaultText = lib.literalMD "whether service `<name>` in `inventory.nix` sets `authelia`";
+          description = "Ask Authelia for a session before every location.";
         };
 
-        anubis.enable = lib.mkEnableOption "Anubis bot protection in front of every location";
+        anubis = lib.mkOption {
+          type = types.bool;
+          default = service != null && service.anubis && service.host == inventory.edge;
+          defaultText = lib.literalMD "whether service `<name>` runs on the edge and sets `anubis`";
+          description = "Put Anubis in front of the upstream.";
+        };
 
         locations = lib.mkOption {
           type = with types; attrsOf (attrsOf anything);
@@ -61,21 +70,28 @@ let
           example = lib.literalExpression ''
             {
               "/api/".extraConfig = "proxy_buffering off;";
+              "= /favicon.ico".root = ./static;
             }
           '';
-          description = "Passed to `services.nginx.virtualHosts.<name>.locations`.";
+          description = ''
+            Settings of `services.nginx.virtualHosts.<name>.locations`. A
+            location goes to `proxyPass` above unless it sets `proxyPass`
+            (`null` for none), `root`, `alias` or `return`.
+          '';
         };
-      };
-
-      config.locations = lib.mkIf (config.proxyPass != null) {
-        "/".proxyPass = lib.mkDefault config.proxyPass;
       };
     };
 
   mkLocationConfig =
     name: vhost: location:
     let
-      proxyPass = if vhost.anubis.enable then anubisSocket name else location.proxyPass or null;
+      proxyPass =
+        if vhost.anubis then
+          anubisSocket name
+        else if servesItself location then
+          location.proxyPass or null
+        else
+          vhost.proxyPass;
     in
     lib.mkMerge [
       (location // { inherit proxyPass; })
@@ -92,7 +108,7 @@ let
             proxy_ssl_verify_depth 2;
             proxy_ssl_session_reuse off;
           '')
-          + (lib.optionalString vhost.authelia.enable ''
+          + (lib.optionalString vhost.authelia ''
             auth_request ${autheliaApiPath};
 
             ## Save the upstream metadata response headers from Authelia to variables.
@@ -121,19 +137,19 @@ let
     serverAliases = builtins.tail vhost.domains;
     locations = lib.mkMerge (
       [
-        (builtins.mapAttrs (_: mkLocationConfig name vhost) vhost.locations)
+        (builtins.mapAttrs (_: mkLocationConfig name vhost) (locationsOf vhost))
         { "/robots.txt".return = ''200 ""''; }
       ]
       # Anubis static assets - must be proxied to Anubis
-      ++ (lib.optional vhost.anubis.enable {
+      ++ (lib.optional vhost.anubis {
         "/.within.website/" = {
           proxyPass = anubisSocket name;
           proxyWebsockets = true;
         };
       })
-      ++ (lib.optional vhost.authelia.enable {
+      ++ (lib.optional vhost.authelia {
         "${autheliaApiPath}" = {
-          proxyPass = vhost.authelia.url + "/api/authz/auth-request"; # Use auth-request endpoint
+          proxyPass = published.autheliaUrl + "/api/authz/auth-request"; # Use auth-request endpoint
           recommendedProxySettings = false;
           extraConfig = ''
             internal;
@@ -164,16 +180,14 @@ let
             proxy_read_timeout 240;
             proxy_send_timeout 240;
             proxy_connect_timeout 240;
-          ''
-          + (lib.optionalString (lib.hasPrefix "https://" vhost.authelia.url) ''
             proxy_ssl_server_name on;
             proxy_ssl_name $proxy_host;
-          '');
+          '';
         };
       })
     );
-    forceSSL = vhost.https;
-    useACMEHost = lib.mkIf vhost.https serverName;
+    forceSSL = true;
+    useACMEHost = serverName;
     http2 = true;
     http3 = true;
     http3_hq = true;
@@ -190,30 +204,61 @@ in
       description = "Addresses or CIDRs from which NGINX accepts X-Forwarded-For client addresses.";
     };
 
+    landingPage = lib.mkOption {
+      type = types.nullOr (
+        types.submodule {
+          options = {
+            domain = lib.mkOption {
+              type = types.str;
+              description = "Apex domain; the page is also the fallback for its subdomains.";
+            };
+            footer = lib.mkOption {
+              type = types.str;
+              description = "HTML shown below the artwork.";
+            };
+          };
+        }
+      );
+      default = null;
+      description = "Static landing page of a public host.";
+    };
+
     reverseProxies = lib.mkOption {
       type = types.attrsOf (types.submodule vhostModule);
       default = { };
       example = lib.literalExpression ''
-        {
-          "example.org" = {
-            enable = true;
-            domains = [ "example.org" ];
-            proxyPass = "http://127.0.0.1:8000";
-          };
-        }
+        { jellyfin.proxyPass = "http://127.0.0.1:8096"; }
       '';
       description = ''
-        Virtual hosts. The inventory's service table enables one for every
-        service this host runs or fronts; modules and hosts add locations to
-        those, or declare vhosts of their own. NGINX runs when any is enabled.
+        HTTPS virtual hosts, by name; NGINX, its firewall ports, the
+        certificates and Anubis follow from them. A service module declares
+        the one next to its backend. On the edge host the inventory's service
+        table adds one for every service whose backend is elsewhere.
       '';
     };
   };
 
   config = lib.mkMerge [
-    { codgician.services.nginx.reverseProxies = published.vhostsFor config.networking.hostName; }
+    {
+      codgician.services.nginx.reverseProxies = lib.mkMerge [
+        (published.edgeVhostsFor hostName)
+        (lib.mkIf (cfg.landingPage != null) {
+          ${cfg.landingPage.domain} = {
+            domains = [
+              cfg.landingPage.domain
+              "*.${cfg.landingPage.domain}"
+            ];
+            locations."/".root = import ./landing-page.nix {
+              inherit lib pkgs;
+              inherit (cfg.landingPage) footer;
+              name = "${hostName}-web";
+            };
+          };
+        })
+      ];
+    }
 
-    (lib.mkIf (vhosts != { }) {
+    (lib.mkIf (cfg.reverseProxies != { }) {
       services.nginx = {
         enable = true;
         package = pkgs.nginxMainlineEch;
@@ -273,10 +318,27 @@ in
           enable = true;
           extraDomainNames = builtins.tail vhost.domains;
         }
-      ) (lib.filterAttrs (_: vhost: vhost.https) vhosts);
+      ) vhosts;
 
       # Add nginx user to www-data group
       users.groups."www-data".members = [ "nginx" ];
+
+      assertions = lib.concatLists (
+        lib.mapAttrsToList (name: vhost: [
+          {
+            assertion = vhost.domains != [ ];
+            message = ''
+              nginx: reverse proxy "${name}" has no domain. Name it after a service in inventory.nix, or set `domains`.
+            '';
+          }
+          {
+            assertion = hasRoot vhost;
+            message = ''
+              nginx: reverse proxy "${name}" has nothing to serve at "/". Set `proxyPass` (the module of a service does so where the service is enabled) or make the "/" location serve something.
+            '';
+          }
+        ]) cfg.reverseProxies
+      );
     })
   ];
 }

@@ -1,8 +1,8 @@
 { config, lib, ... }:
 let
-  # Vhosts whose inventory entry asks for Anubis; nginx sends their traffic here.
+  # Vhosts that ask for Anubis; nginx sends their traffic here.
   anubisProxies = lib.filterAttrs (
-    _: vhost: vhost.enable && vhost.anubis.enable
+    _: vhost: vhost.anubis
   ) config.codgician.services.nginx.reverseProxies;
 
   # systemd service names cannot contain dots.
@@ -11,7 +11,7 @@ let
   mkInstance =
     name: vhost:
     let
-      target = vhost.locations."/".proxyPass or null;
+      target = vhost.locations."/".proxyPass or vhost.proxyPass;
       socketDir = "/run/anubis/anubis-${sanitizeName name}";
     in
     {
@@ -56,8 +56,8 @@ in
     ) anubisProxies;
 
     assertions = lib.mapAttrsToList (name: vhost: {
-      assertion = vhost.locations."/".proxyPass or null != null;
-      message = ''anubis: virtual host "${name}" has no upstream for Anubis to protect.'';
+      assertion = vhost.locations."/".proxyPass or vhost.proxyPass != null;
+      message = ''anubis: reverse proxy "${name}" has no upstream for Anubis to protect.'';
     }) anubisProxies;
   };
 }

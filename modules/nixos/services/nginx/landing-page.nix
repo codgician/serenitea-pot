@@ -1,7 +1,9 @@
+# Static page served on the apex domain of a public host.
 {
+  lib,
   pkgs,
   name,
-  message,
+  footer,
 }:
 let
   index = pkgs.writeText "index.html" ''
@@ -45,12 +47,12 @@ let
     ⠀⠀⠀⠀⠀⠀⢀⣾⠁⠀⠀⣸⠁⠀⠀⠀⢀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢷⡄⠀⠀⠀⠀⠀⢸⠆⠀⠀⠀⢸⡷⠀⠀⠀⠀⠀⠀⠀⠀
         </pre>
         <hr>
-        ${message}
+    ${lib.concatMapStringsSep "\n" (line: "    ${line}") (lib.splitString "\n" footer)}
       </body>
     </html>
   '';
 in
-pkgs.runCommand "${name}-web" { } ''
+pkgs.runCommand name { } ''
   mkdir -p $out
   cp ${index} $out/index.html
 ''

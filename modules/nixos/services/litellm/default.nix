@@ -9,9 +9,9 @@ let
   user = serviceName;
   group = serviceName;
   uid = config.users.users.${user}.uid;
+  cfg = config.codgician.services.litellm;
   inherit (lib.codgician) published;
   svc = published.services.litellm;
-  enabled = svc.host == config.networking.hostName;
   stateDir = "/var/lib/${serviceName}";
   dbName = "litellm";
   dbHost = "/run/postgresql";
@@ -199,8 +199,13 @@ let
   };
 in
 {
+  options.codgician.services.litellm.enable =
+    lib.codgician.mkPublishedEnableOption config serviceName;
+
   config = lib.mkMerge [
-    (lib.mkIf enabled {
+    (lib.mkIf cfg.enable {
+      codgician.services.nginx.reverseProxies.litellm.proxyPass = svc.localUpstream;
+
       # Ensure litellm user is created
       codgician.users.${serviceName} = {
         enable = true;
@@ -301,7 +306,7 @@ in
       };
     })
 
-    {
+    (lib.mkIf (cfg.enable || published.fronts config.networking.hostName serviceName) {
       codgician.services.nginx.reverseProxies.litellm.locations =
         let
           inherit (lib.codgician) mkNginxLocationForStaticFile;
@@ -320,12 +325,12 @@ in
             proxy_read_timeout ${builtins.toString reverseProxyTimeout}s;
           '';
         }
-        // lib.optionalAttrs enabled {
+        // lib.optionalAttrs cfg.enable {
           "= /favicon.png" = mkNginxLocationForStaticFile favicon;
           "= /swagger/favicon.ico" = mkNginxLocationForStaticFile faviconIco;
           "= /swagger/favicon.png" = mkNginxLocationForStaticFile favicon;
           "= /ui/favicon.ico" = mkNginxLocationForStaticFile faviconIco;
         };
-    }
+    })
   ];
 }

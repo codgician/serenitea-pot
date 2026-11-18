@@ -27,21 +27,13 @@ in
         external-ips = [ "${dnsRecords."${config.networking.hostName}-a".content}/${privateIPv4}" ];
       };
 
-      nginx.reverseProxies."codgi.cn" = {
-        enable = true;
-        domains = [
-          "codgi.cn"
-          "*.codgi.cn"
-        ];
-        locations."/".root = import ../../roles/edge/landing-page.nix {
-          inherit pkgs;
-          name = "xianyun";
-          message = ''
-            Coming Soon...
-                <footer>
-                  <a href="https://beian.miit.gov.cn/">蜀ICP备2026006850号</a>
-                </footer>'';
-        };
+      nginx.landingPage = {
+        domain = "codgi.cn";
+        footer = ''
+          Coming Soon...
+          <footer>
+            <a href="https://beian.miit.gov.cn/">蜀ICP备2026006850号</a>
+          </footer>'';
       };
 
       sing-box = {

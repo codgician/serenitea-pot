@@ -235,8 +235,8 @@ in
           message = "codgician.services.sglang.monitoring requires codgician.services.prometheus.enable.";
         }
         {
-          assertion = !cfg.monitoring.enable || config.services.grafana.enable;
-          message = "codgician.services.sglang.monitoring requires Grafana on this host (inventory service `grafana`).";
+          assertion = !cfg.monitoring.enable || config.codgician.services.grafana.enable;
+          message = "codgician.services.sglang.monitoring requires codgician.services.grafana.enable.";
         }
       ];
 

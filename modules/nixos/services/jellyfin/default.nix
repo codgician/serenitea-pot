@@ -5,13 +5,17 @@ let
   defaultDataDir = "/var/lib/jellyfin";
 in
 {
-  options.codgician.services.jellyfin.dataDir = lib.mkOption {
-    type = lib.types.path;
-    default = defaultDataDir;
-    description = "Data directory for jellyfin";
+  options.codgician.services.jellyfin = {
+    enable = lib.codgician.mkPublishedEnableOption config "jellyfin";
+
+    dataDir = lib.mkOption {
+      type = lib.types.path;
+      default = defaultDataDir;
+      description = "Data directory for jellyfin";
+    };
   };
 
-  config = lib.mkIf (svc.host == config.networking.hostName) {
+  config = lib.mkIf cfg.enable {
     services.jellyfin = {
       enable = true;
       openFirewall = true;
@@ -32,5 +36,7 @@ in
         group = "jellyfin";
       }
     ];
+
+    codgician.services.nginx.reverseProxies.jellyfin.proxyPass = svc.localUpstream;
   };
 }

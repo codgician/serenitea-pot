@@ -6,19 +6,26 @@
 }:
 let
   cfg = config.codgician.services.gns3-server;
-  svc = lib.codgician.published.services.gns3-server;
+  inherit (lib.codgician) published;
+  svc = published.services.gns3-server;
   stateDir = "/var/lib/gns3";
 in
 {
-  options.codgician.services.gns3-server.dataDir = lib.mkOption {
-    type = lib.types.path;
-    default = stateDir;
-    example = "/xpool/appdata/gns3";
-    description = "Directory holding GNS3 images, projects, appliances, configs and symbols.";
+  options.codgician.services.gns3-server = {
+    enable = lib.codgician.mkPublishedEnableOption config "gns3-server";
+
+    dataDir = lib.mkOption {
+      type = lib.types.path;
+      default = stateDir;
+      example = "/xpool/appdata/gns3";
+      description = "Directory holding GNS3 images, projects, appliances, configs and symbols.";
+    };
   };
 
   config = lib.mkMerge [
-    (lib.mkIf (svc.host == config.networking.hostName) {
+    (lib.mkIf cfg.enable {
+      codgician.services.nginx.reverseProxies.gns3-server.proxyPass = svc.localUpstream;
+
       services.gns3-server = {
         enable = true;
         auth = {
@@ -76,7 +83,7 @@ in
       ];
     })
 
-    {
+    (lib.mkIf (cfg.enable || published.fronts config.networking.hostName "gns3-server") {
       codgician.services.nginx.reverseProxies.gns3-server.locations."/".extraConfig = ''
         # Appliance images can be several GB
         client_max_body_size 0;
@@ -88,6 +95,6 @@ in
         proxy_send_timeout 3600s;
         send_timeout 3600s;
       '';
-    }
+    })
   ];
 }

@@ -6,13 +6,19 @@
   ...
 }:
 let
+  cfg = config.codgician.services.meshcentral;
   inherit (lib.codgician) published;
   svc = published.services.meshcentral;
 in
 {
+  options.codgician.services.meshcentral.enable =
+    lib.codgician.mkPublishedEnableOption config "meshcentral";
+
   config = lib.mkMerge [
     # Meshcentral configurations
-    (lib.mkIf (svc.host == config.networking.hostName) {
+    (lib.mkIf cfg.enable {
+      codgician.services.nginx.reverseProxies.meshcentral.proxyPass = svc.localUpstream;
+
       services.meshcentral = {
         enable = true;
         settings = {
@@ -68,10 +74,10 @@ in
       };
     })
 
-    {
+    (lib.mkIf (cfg.enable || published.fronts config.networking.hostName "meshcentral") {
       codgician.services.nginx.reverseProxies.meshcentral.locations."/".extraConfig = ''
         proxy_buffering off;
       '';
-    }
+    })
   ];
 }

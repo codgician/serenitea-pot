@@ -6,6 +6,7 @@
 }:
 let
   serviceName = "ovis-relay";
+  cfg = config.codgician.services.${serviceName};
   svc = lib.codgician.published.services.ovis-relay;
 
   # The CLI is only a wrapper; source, dependencies, and build hooks live here.
@@ -82,16 +83,16 @@ let
         include csp + lib.optionalString (cache != null) "\n${include cache}" + "\n" + extraConfig;
     };
 
-  relayLocation = {
-    inherit (config.codgician.services.nginx.reverseProxies.ovis-relay) proxyPass;
-    extraConfig = ''
-      proxy_read_timeout 300s;
-      proxy_buffering off;
-    '';
-  };
+  relayLocation.extraConfig = ''
+    proxy_read_timeout 300s;
+    proxy_buffering off;
+  '';
 in
 {
-  config = lib.mkIf (svc.host == config.networking.hostName) {
+  options.codgician.services.${serviceName}.enable =
+    lib.codgician.mkPublishedEnableOption config serviceName;
+
+  config = lib.mkIf cfg.enable {
     systemd.services.${serviceName} = {
       description = "Ovis relay";
       wantedBy = [ "multi-user.target" ];
@@ -124,16 +125,15 @@ in
       };
     };
 
-    # The hosted app is served from the store, next to the relay.
+    # The relay is the upstream; the hosted app is served from the store.
+    codgician.services.nginx.reverseProxies.ovis-relay.proxyPass = svc.localUpstream;
     codgician.services.nginx.reverseProxies.ovis-relay.locations = {
       # Relay
       "= /health" = relayLocation;
       "/v1/" = relayLocation;
 
       # Hosted app
-      "/" = staticLocation { tryFiles = "$uri =404"; } // {
-        proxyPass = lib.mkForce null;
-      };
+      "/" = staticLocation { tryFiles = "$uri =404"; };
       "= /" = staticLocation {
         tryFiles = "/index.html =404";
         cache = "cache-revalidate";

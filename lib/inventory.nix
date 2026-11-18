@@ -89,6 +89,7 @@ let
       hosts = lib.mapAttrs (name: conform "hosts.${name}" hostSchema) data.hosts;
 
       services =
+        assert builtins.deepSeq hosts true;
         assert check (hosts ? ${edge}) "edge names unknown host ${edge}";
         assert check (data.services ? ${data.authelia}) "authelia names unknown service ${data.authelia}";
         lib.mapAttrs (
@@ -96,6 +97,7 @@ let
           let
             s = conform "services.${name}" (serviceSchema name) service;
           in
+          assert builtins.deepSeq s true;
           # What the schema cannot say: how entries refer to each other.
           assert check (
             s.host == null || hosts ? ${s.host}
@@ -107,46 +109,49 @@ let
           assert check (
             s.authelia == null || (s.authelia.users ++ s.authelia.groups != [ ]) != s.authelia.anyone
           ) "services.${name}.authelia needs users or groups, or anyone = true, and not both";
-          s // { domain = "${s.subdomain}.${zone}"; }
+          s
+          // {
+            domain = "${s.subdomain}.${zone}";
+            # Where the service's own host finds the backend; null without a port
+            localUpstream = if s.port == null then null else "http://127.0.0.1:${toString s.port}";
+            # Whether the edge proxies the name to a backend elsewhere
+            fronted = !s.dnsOnly && (s.upstream != null || s.host != null && s.host != edge);
+          }
         ) data.services;
-
-      # How `hostName` reaches the backend of service `s`; null when the
-      # service's module has to say (unix sockets).
-      upstreamFrom =
-        hostName: s:
-        if s.host == hostName then
-          if s.port == null then null else "http://127.0.0.1:${toString s.port}"
-        else if s.host != null then
-          "https://${hosts.${s.host}.${s.address}}"
-        else
-          s.upstream;
     in
     {
       inherit services;
 
       autheliaUrl = "https://${services.${data.authelia}.domain}";
 
-      # `codgician.services.nginx.reverseProxies` of one host: a vhost for each
-      # service it runs and each service it fronts.
-      vhostsFor =
+      # Whether the inventory places service `name` on `hostName`.
+      runsOn = hostName: name: (services.${name}.host or null) == hostName;
+
+      # Whether `hostName` is the edge in front of service `name`.
+      fronts = hostName: name: hostName == edge && (services.${name}.fronted or false);
+
+      # Domain of the service whose backend or edge vhost is called `vhost`.
+      domainOf =
+        vhost:
+        (services.${vhost} or (lib.findFirst (s: s.edgeVhost == vhost) { } (lib.attrValues services)))
+        .domain or null;
+
+      # `codgician.services.nginx.reverseProxies` the table gives `hostName`:
+      # on the edge, one vhost for each service whose backend is elsewhere.
+      # Authelia stays with the backend's own vhost unless the backend is
+      # outside the inventory.
+      edgeVhostsFor =
         hostName:
-        lib.concatMapAttrs (
-          name: s:
-          let
-            isBackend = s.host == hostName;
-            isEdge = edge == hostName && !s.dnsOnly && (s.host != null || s.upstream != null);
-            upstream = upstreamFrom hostName s;
-          in
-          lib.optionalAttrs (isBackend || isEdge) {
-            ${if isBackend then name else s.edgeVhost} = {
-              enable = true;
-              domains = [ s.domain ];
-              authelia.enable = s.authelia != null && (isBackend || s.host == null);
-              anubis.enable = s.anubis && isEdge;
+        lib.optionalAttrs (hostName == edge) (
+          lib.mapAttrs' (
+            _: s:
+            lib.nameValuePair s.edgeVhost {
+              proxyPass = if s.host == null then s.upstream else "https://${hosts.${s.host}.${s.address}}";
+              authelia = s.authelia != null && s.host == null;
+              inherit (s) anubis;
             }
-            // lib.optionalAttrs (upstream != null) { proxyPass = upstream; };
-          }
-        ) services;
+          ) (lib.filterAttrs (_: s: s.fronted) services)
+        );
 
       # Authelia access-control rules for services restricted to some users or
       # groups; `anyone` is left to Authelia's default policy.
@@ -176,4 +181,15 @@ in
   inherit mkPublished;
   inventory = import ../inventory.nix;
   published = mkPublished lib.codgician.inventory;
+
+  # `enable` of the module of a published service: on by default on the host
+  # the inventory places the service on.
+  mkPublishedEnableOption =
+    config: name:
+    lib.mkOption {
+      type = lib.types.bool;
+      default = lib.codgician.published.runsOn config.networking.hostName name;
+      defaultText = lib.literalMD "true on the `host` of service `${name}` in `inventory.nix`";
+      description = "Whether to run ${name} on this host.";
+    };
 }

@@ -14,6 +14,8 @@ in
   imports = [ ./kernels ];
 
   options.codgician.services.jupyter = {
+    enable = lib.codgician.mkPublishedEnableOption config serviceName;
+
     user = lib.mkOption {
       type = types.str;
       default = serviceName;
@@ -67,7 +69,9 @@ in
       # Disable Jupyter auth when Authelia handles it
       disableJupyterAuth = cfg.password == null && svc.authelia != null;
     in
-    lib.mkIf (svc.host == config.networking.hostName) {
+    lib.mkIf cfg.enable {
+      codgician.services.nginx.reverseProxies.jupyter.proxyPass = svc.localUpstream;
+
       services.jupyter = {
         enable = true;
         ip = "127.0.0.1";

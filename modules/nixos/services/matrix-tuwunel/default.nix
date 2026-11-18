@@ -11,13 +11,14 @@ let
   types = lib.types;
   inherit (lib.codgician) published;
   svc = published.services.matrix-tuwunel;
-  vhost = config.codgician.services.nginx.reverseProxies.matrix-tuwunel;
 
   # Unix socket path
   socketPath = "/run/tuwunel/tuwunel.sock";
 in
 {
   options.codgician.services.matrix-tuwunel = {
+    enable = lib.codgician.mkPublishedEnableOption config serviceName;
+
     dataPath = lib.mkOption {
       type = types.str;
       default = "/var/lib/tuwunel";
@@ -28,7 +29,9 @@ in
   };
 
   config = lib.mkMerge [
-    (lib.mkIf (svc.host == config.networking.hostName) {
+    (lib.mkIf cfg.enable {
+      codgician.services.nginx.reverseProxies.matrix-tuwunel.proxyPass = "http://unix:${socketPath}";
+
       services.matrix-tuwunel = {
         enable = true;
         settings.global = {
@@ -134,10 +137,10 @@ in
       };
     })
 
-    # The vhost serves Element at `/` and the well-known documents itself, on
-    # the backend host and on the edge alike.
-    {
-      codgician.services.nginx.reverseProxies.matrix-tuwunel =
+    # The vhost serves Element at `/` and the well-known documents itself,
+    # next to the backend and on the edge alike.
+    (lib.mkIf (cfg.enable || published.fronts config.networking.hostName serviceName) {
+      codgician.services.nginx.reverseProxies.matrix-tuwunel.locations =
         let
           clientConfig = {
             "m.homeserver".base_url = "https://${svc.domain}";
@@ -148,51 +151,40 @@ in
           };
         in
         {
-          proxyPass = lib.mkDefault "http://unix:${socketPath}";
-          locations = {
-            "/" = {
-              proxyPass = lib.mkForce null;
-              root = import ./element-web.nix {
-                inherit pkgs clientConfig;
-                domains = [ svc.domain ];
-              };
-            };
+          "/".root = import ./element-web.nix {
+            inherit pkgs clientConfig;
+            domains = [ svc.domain ];
+          };
 
-            # Matrix C-S and S-S API endpoints
-            "~ ^/_matrix/" = {
-              inherit (vhost) proxyPass;
-              extraConfig = ''
-                # Allow large media uploads (0 = unlimited)
-                client_max_body_size 0;
+          # Matrix C-S and S-S API endpoints
+          "~ ^/_matrix/".extraConfig = ''
+            # Allow large media uploads (0 = unlimited)
+            client_max_body_size 0;
 
-                # Matrix sync can be long-polling
-                proxy_read_timeout 300;
-              '';
-            };
+            # Matrix sync can be long-polling
+            proxy_read_timeout 300;
+          '';
 
-            # Tuwunel-specific endpoints (health check, version, admin)
-            "~ ^/_conduwuit/" = {
-              inherit (vhost) proxyPass;
-            };
+          # Tuwunel-specific endpoints (health check, version, admin)
+          "~ ^/_conduwuit/" = { };
 
-            # Well-known endpoints for federation and client discovery
-            "= /.well-known/matrix/server" = {
-              return = "200 '${builtins.toJSON serverConfig}' ";
-              extraConfig = ''
-                add_header Content-Type application/json;
-                add_header Access-Control-Allow-Origin *;
-              '';
-            };
+          # Well-known endpoints for federation and client discovery
+          "= /.well-known/matrix/server" = {
+            return = "200 '${builtins.toJSON serverConfig}' ";
+            extraConfig = ''
+              add_header Content-Type application/json;
+              add_header Access-Control-Allow-Origin *;
+            '';
+          };
 
-            "= /.well-known/matrix/client" = {
-              return = "200 '${builtins.toJSON clientConfig}' ";
-              extraConfig = ''
-                add_header Content-Type application/json;
-                add_header Access-Control-Allow-Origin *;
-              '';
-            };
+          "= /.well-known/matrix/client" = {
+            return = "200 '${builtins.toJSON clientConfig}' ";
+            extraConfig = ''
+              add_header Content-Type application/json;
+              add_header Access-Control-Allow-Origin *;
+            '';
           };
         };
-    }
+    })
   ];
 }

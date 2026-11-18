@@ -69,12 +69,16 @@ in
         };
       };
 
-      nginx.reverseProxies.dsh-web.locations."/".extraConfig = ''
-        # dsh's initial URL contains a browser login token.
-        access_log off;
-        proxy_cookie_flags ~^dsh-auth- secure;
-        proxy_buffering off;
-      '';
+      # The dsh Web UI is a Home Manager service, so its vhost is declared here.
+      nginx.reverseProxies.dsh-web = {
+        proxyPass = dsh.localUpstream;
+        locations."/".extraConfig = ''
+          # dsh's initial URL contains a browser login token.
+          access_log off;
+          proxy_cookie_flags ~^dsh-auth- secure;
+          proxy_buffering off;
+        '';
+      };
     };
 
     system.common.inChina = true;
