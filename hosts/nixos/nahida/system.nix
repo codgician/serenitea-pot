@@ -91,9 +91,6 @@ in
       dev.dotnet.enable = true;
       dsh = {
         enable = true;
-        web = {
-          inherit (dsh) domain port;
-        };
       };
       github-copilot-cli.enable = true;
       mcp.enable = true;
