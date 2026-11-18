@@ -18,7 +18,7 @@
       } name spec)
       // lib.optionalAttrs (spec ? contextWindow) { inherit (spec) contextWindow; };
     models."qwen3.8-27b" = {
-      apiBase = "http://192.168.0.22:8000/v1";
+      apiBase = "http://${lib.codgician.inventory.hosts.paimon.lan}:8000/v1";
       contextWindow = 262144;
       path = "Qwen3.8-27B";
       reasoningEfforts = [
