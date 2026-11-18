@@ -20,7 +20,6 @@ let
         ./inventory.nix
         ./io.nix
         ./nginx.nix
-        ./secrets.nix
         ./service.nix
         ./utils.nix
       ]

@@ -1,8 +1,4 @@
-{
-  lib,
-  pkgs,
-  ...
-}:
+{ pkgs, ... }:
 {
   codgician = {
     services = {
@@ -183,13 +179,13 @@
 
     virtualization.podman.enable = true;
 
-    users = with lib.codgician; {
-      codgi.passwordAgeFile = getAgeSecretPathFromName "codgi-password";
+    users = {
+      codgi.passwordSecret = "codgi-password";
 
       smb = {
         enable = true;
-        hashedPasswordAgeFile = getAgeSecretPathFromName "smb-hashed-password";
-        passwordAgeFile = getAgeSecretPathFromName "smb-password";
+        hashedPasswordSecret = "smb-hashed-password";
+        passwordSecret = "smb-password";
       };
     };
   };

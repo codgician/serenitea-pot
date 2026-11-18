@@ -86,7 +86,7 @@
 
     virtualization.podman.enable = true;
 
-    users.codgi.passwordAgeFile = lib.codgician.getAgeSecretPathFromName "codgi-password";
+    users.codgi.passwordSecret = "codgi-password";
   };
 
   home-manager.users.codgi =

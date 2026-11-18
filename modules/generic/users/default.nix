@@ -39,35 +39,23 @@ let
         '';
       };
 
-      extraAgeFiles = lib.mkOption {
-        type = types.listOf types.path;
-        default = [ ];
-        description = ''
-          Paths to `.age` secret files owned by user "${name}" excluding `hashedPasswordAgeFile`.
-        '';
-      };
-
-      hashedPasswordAgeFile = lib.mkOption {
-        type = with types; nullOr path;
+      hashedPasswordSecret = lib.mkOption {
+        type = with types; nullOr str;
         default = null;
         visible = isLinux;
         description = ''
-          Path identifying the hashed-password secret (its basename without the
-          .age suffix selects the managed secret). Decrypted early as a
-          neededForUsers secret so it backs users.users.<name>.hashedPasswordFile.
+          Name of the secret holding the hashed login password of user "${name}".
         '';
       };
 
-      passwordAgeFile = lib.mkOption {
-        type = with types; nullOr path;
+      passwordSecret = lib.mkOption {
+        type = with types; nullOr str;
         default = null;
         description = ''
-          Path identifying the plaintext-password secret (basename without .age
-          selects the managed secret). Consumed at runtime (e.g. by smbpasswd);
-          this option does not set the login password.
+          Name of the secret holding the plaintext password of user "${name}",
+          read at runtime (e.g. by smbpasswd). It does not set the login password.
         '';
       };
-
     }
     // lib.optionalAttrs isLinux {
       extraGroups = lib.mkOption {
@@ -90,9 +78,9 @@ let
         assertion =
           !isLinux
           || config.users.users.${name}.isSystemUser
-          || cfg.${name}.hashedPasswordAgeFile != null
+          || cfg.${name}.hashedPasswordSecret != null
           || config.users.users.${name}.hashedPassword != "!";
-        message = ''User "${name}" would be locked: set `hashedPasswordAgeFile` or a password.'';
+        message = ''User "${name}" would be locked: set `hashedPasswordSecret` or a password.'';
       }
     ];
 
@@ -105,32 +93,15 @@ let
         (import ./${name} { inherit config lib pkgs; })
 
         {
-          # Secrets
           codgician.secrets.files =
-            let
-              nameOf = lib.codgician.getAgeSecretNameFromPath;
-              # passwordAgeFile (plaintext, read at runtime e.g. by smbpasswd) and
-              # extraAgeFiles stay user-owned in /run/secrets.
-              runtimeNames = builtins.map nameOf (
-                cfg.${name}.extraAgeFiles
-                ++ lib.optional (cfg.${name}.passwordAgeFile != null) cfg.${name}.passwordAgeFile
-              );
-              # hashedPasswordAgeFile feeds users.users.<name>.hashedPasswordFile,
-              # read before /run/secrets exists, so it must decrypt early
-              # (neededForUsers) and therefore be root-owned.
-              hashedNames = lib.optional (cfg.${name}.hashedPasswordAgeFile != null) (
-                nameOf cfg.${name}.hashedPasswordAgeFile
-              );
-
-              runtimeDecls = lib.genAttrs runtimeNames (_: {
-                owner = name;
-              });
-              hashedDecls = lib.genAttrs hashedNames (_: {
-                neededForUsers = true;
-              });
-            in
-            # hashed wins on collision (root + neededForUsers).
-            runtimeDecls // hashedDecls;
+            lib.optionalAttrs (cfg.${name}.passwordSecret != null) {
+              ${cfg.${name}.passwordSecret}.owner = name;
+            }
+            # users.users.<name>.hashedPasswordFile is read before /run/secrets
+            # exists, so the secret decrypts early and stays root-owned.
+            // lib.optionalAttrs (cfg.${name}.hashedPasswordSecret != null) {
+              ${cfg.${name}.hashedPasswordSecret}.neededForUsers = true;
+            };
 
           codgician.system = lib.optionalAttrs (config.codgician.system ? impermanence) {
             # Impermanence: persist home directory if enabled
@@ -156,12 +127,9 @@ let
             inherit (cfg.${name}) extraGroups;
           }
           // lib.optionalAttrs isLinux (
-            if cfg.${name}.hashedPasswordAgeFile != null then
+            if cfg.${name}.hashedPasswordSecret != null then
               {
-                hashedPasswordFile =
-                  config.codgician.secrets.files."${lib.codgician.getAgeSecretNameFromPath
-                    cfg.${name}.hashedPasswordAgeFile
-                  }".path;
+                hashedPasswordFile = config.codgician.secrets.files.${cfg.${name}.hashedPasswordSecret}.path;
               }
             else
               { hashedPassword = lib.mkDefault "!"; }
