@@ -2,9 +2,7 @@
 {
   codgician = {
     services = {
-      nats = {
-        enable = true;
-      };
+      nats.enable = true;
 
       mcpo = {
         enable = true;

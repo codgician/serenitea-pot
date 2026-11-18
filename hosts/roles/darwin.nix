@@ -1,7 +1,5 @@
 {
-  codgician.system = {
-    common.inChina = true;
-  };
+  codgician.system.common.inChina = true;
 
   system.primaryUser = "codgi";
 

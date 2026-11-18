@@ -36,9 +36,7 @@ in
           "lxm75"
           "itscd"
         ];
-        servers.shadowsocks = {
-          enable = true;
-        };
+        servers.shadowsocks.enable = true;
       };
     };
 

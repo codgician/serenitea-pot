@@ -84,9 +84,7 @@
         };
         herdr = {
           desktop.enable = true;
-          ovis = {
-            enable = true;
-          };
+          ovis.enable = true;
         };
 
         plasma = {

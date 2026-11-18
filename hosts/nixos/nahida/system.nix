@@ -5,9 +5,7 @@ in
 {
   codgician = {
     services = {
-      jupyter = {
-        notebookDir = "/lab/jupyter";
-      };
+      jupyter.notebookDir = "/lab/jupyter";
 
       # The dsh Web UI is a Home Manager service, so its vhost is declared here.
       nginx.reverseProxies.dsh-web = {
@@ -29,9 +27,7 @@ in
       claude-code.enable = true;
       codex.enable = true;
       dev.dotnet.enable = true;
-      dsh = {
-        enable = true;
-      };
+      dsh.enable = true;
       github-copilot-cli.enable = true;
       mcp.enable = true;
       pi-coding-agent.enable = true;

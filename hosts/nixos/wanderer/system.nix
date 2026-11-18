@@ -1,9 +1,7 @@
 {
   codgician.system = {
     impermanence.enable = false;
-    wsl = {
-      enable = true;
-    };
+    wsl.enable = true;
   };
 
   home-manager.users.codgi.codgician.codgi = {
