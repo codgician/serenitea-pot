@@ -1,6 +1,5 @@
 {
   config,
-  lib,
   pkgs,
   outputs,
   ...
@@ -24,11 +23,6 @@ in
 
     kernelPackages = pkgs.linuxPackages_6_18;
     zfs.package = pkgs.zfs_2_4;
-
-    supportedFilesystems = [
-      "vfat"
-      "zfs"
-    ];
 
     # The default /dev/disk/by-id is empty in Tencent CVM
     zfs.devNodes = "/dev/disk/by-path";
@@ -104,6 +98,4 @@ in
       ];
     };
   };
-
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

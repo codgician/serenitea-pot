@@ -66,10 +66,6 @@
     ];
 
     extraModulePackages = with config.boot.kernelPackages; [ mstflint_access ];
-    supportedFilesystems = [
-      "vfat"
-      "zfs"
-    ];
 
     zfs = {
       extraPools = [
@@ -78,7 +74,6 @@
         "xpool"
       ];
       forceImportAll = true;
-      forceImportRoot = true;
       # requestEncryptionCredentials handled by zfs-unlock module; other pools by zfs-mount preStart
       package = pkgs.zfs_2_4;
     };
@@ -215,8 +210,6 @@
     batteryLow = 20;
   };
 
-  networking.useDHCP = lib.mkDefault true;
-
   hardware = {
     enableRedistributableFirmware = true;
     cpu.amd = {
@@ -247,6 +240,4 @@
     '';
     serviceConfig.Type = "oneshot";
   };
-
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

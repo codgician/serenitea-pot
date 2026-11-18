@@ -26,25 +26,18 @@ in
         "xhci_pci"
         "sr_mod"
       ];
-      kernelModules = [ ];
     };
 
     supportedFilesystems = [
       "vfat"
       "zfs"
     ];
-    kernelModules = [ ];
     kernelPackages = pkgs.linuxPackages_6_18;
     zfs.package = pkgs.zfs_2_4;
     kernelParams = [ "video=Virtual-1:3024x1890@120" ];
-    extraModulePackages = [ ];
   };
 
   fileSystems."/persist".neededForBoot = true;
-
-  networking.useDHCP = lib.mkDefault true;
-
-  nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
 
   hardware.parallels.enable = true;
 

@@ -14,10 +14,8 @@
         "optee"
         "tpm_ftpm_tee"
       ];
-      kernelModules = [ ];
     };
 
-    supportedFilesystems = [ "vfat" ];
     kernelModules = [
       "amvx" # CIX P1 VPU (Linlon v5276) — V4L2 M2M video accelerator.
       "aipu" # CIX P1 Zhouyi v3 NPU.
@@ -133,8 +131,4 @@
   hardware.enableRedistributableFirmware = true;
 
   fileSystems."/persist".neededForBoot = true;
-
-  networking.useDHCP = lib.mkDefault true;
-
-  nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
 }

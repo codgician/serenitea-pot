@@ -53,8 +53,6 @@
     '';
 
     kernelPackages = pkgs.linuxPackages;
-    zfs.package = pkgs.zfs_2_4;
-    supportedFilesystems = [ "vfat" ];
   };
 
   # Thunderbolt management daemon
@@ -138,8 +136,4 @@
   hardware.enableRedistributableFirmware = true;
 
   fileSystems."/persist".neededForBoot = true;
-
-  networking.useDHCP = lib.mkDefault true;
-
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

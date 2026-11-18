@@ -39,12 +39,6 @@
       "pcie_aspm=off"
       "pcie_port_pm=off"
     ];
-
-    # ZFS on root boot configs
-    supportedFilesystems = [
-      "vfat"
-      "zfs"
-    ];
   };
 
   # Connected to UPS
@@ -89,8 +83,6 @@
     nvtopPackages.intel
   ];
 
-  networking.useDHCP = lib.mkDefault true;
-
   hardware = {
     enableRedistributableFirmware = true;
     cpu.intel.updateMicrocode = true;
@@ -99,6 +91,4 @@
   services.thermald.enable = true;
 
   powerManagement.cpuFreqGovernor = "powersave";
-
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }
