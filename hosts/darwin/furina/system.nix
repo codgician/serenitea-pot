@@ -82,6 +82,7 @@
             mas
             sshpass
             firefox-bin
+            unstable.antigravity-cli
           ]
           ++ (with pkgs.nur.repos.codgician; [
             nanokvm-usb
