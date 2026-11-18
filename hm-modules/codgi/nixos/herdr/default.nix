@@ -6,34 +6,11 @@
 }:
 let
   cfg = config.codgician.codgi.herdr;
-  inherit (lib) types;
+  relayDomain = lib.codgician.published.services.ovis-relay.domain;
 in
 {
-  options.codgician.codgi.herdr.ovis = {
-    enable = lib.mkEnableOption "Ovis browser and phone client for Herdr";
-
-    lanHttpsPort = lib.mkOption {
-      type = types.nullOr types.port;
-      default = null;
-      example = 7318;
-      description = ''
-        Port for the additional Ovis HTTPS listener on private LAN addresses.
-        It admits only paired devices or the token, even before the first pairing.
-        When null, the listener is disabled.
-      '';
-    };
-
-    relayDomain = lib.mkOption {
-      type = types.nullOr types.str;
-      default = null;
-      example = "euthymia.codgician.me";
-      description = ''
-        Domain serving a self-hosted Ovis relay and app (see `codgician.services.ovis-relay`).
-        When set, Ovis uses only this relay, and its pairing links open this app instead of app.ovis.sh.
-        When null, Ovis uses its public relay.
-      '';
-    };
-  };
+  options.codgician.codgi.herdr.ovis.enable =
+    lib.mkEnableOption "Ovis browser and phone client for Herdr";
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
@@ -73,14 +50,15 @@ in
           Environment = [
             "HOST=127.0.0.1"
             "PORT=7317"
+            # A second listener on private LAN addresses; it admits only
+            # paired devices or the token.
+            "OVIS_LAN_HTTPS_PORT=7318"
           ]
-          ++ lib.optional (
-            cfg.ovis.lanHttpsPort != null
-          ) "OVIS_LAN_HTTPS_PORT=${toString cfg.ovis.lanHttpsPort}"
           ++ lib.optional cfg.desktop.enable "OVIS_HC_BIN=${lib.getExe pkgs.llm-agents.herdr-core}"
-          ++ lib.optionals (cfg.ovis.relayDomain != null) [
-            "OVIS_RELAY_URL=wss://${cfg.ovis.relayDomain}"
-            "OVIS_RELAY_APP_URL=https://${cfg.ovis.relayDomain}"
+          # The self-hosted relay and app instead of app.ovis.sh
+          ++ [
+            "OVIS_RELAY_URL=wss://${relayDomain}"
+            "OVIS_RELAY_APP_URL=https://${relayDomain}"
           ];
           Restart = "on-failure";
           RestartSec = "5s";

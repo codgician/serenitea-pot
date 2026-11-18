@@ -122,8 +122,6 @@
           desktop.enable = true;
           ovis = {
             enable = true;
-            lanHttpsPort = 7318;
-            relayDomain = lib.codgician.published.services.ovis-relay.domain;
           };
         };
 
