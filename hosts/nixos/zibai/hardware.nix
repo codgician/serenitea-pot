@@ -8,7 +8,6 @@
   # TPM2-based ZFS root unlock
   # Generate credential: nix run .#mkzfscreds -- zroot > zroot.cred
   codgician.system.zfs-unlock = {
-    enable = true;
     devices.zroot.credentialFile = ./zroot.cred;
   };
 

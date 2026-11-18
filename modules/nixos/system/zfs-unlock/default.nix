@@ -145,24 +145,21 @@ let
   '';
 in
 {
-  options.codgician.system.zfs-unlock = {
-    enable = lib.mkEnableOption "TPM2-based ZFS unlock with filesystem confusion attack protection";
-    devices = lib.mkOption {
-      type = lib.types.attrsOf (
-        lib.types.submodule {
-          options.credentialFile = lib.mkOption {
-            type = lib.types.path;
-            description = "Path to systemd credential file (.cred) for this dataset.";
-          };
-        }
-      );
-      default = { };
-      description = "ZFS datasets for PCR 15 fingerprint extension and optional TPM unlock.";
-      example = lib.literalExpression "{ zroot.credentialFile = ./zroot.cred; }";
-    };
+  options.codgician.system.zfs-unlock.devices = lib.mkOption {
+    type = lib.types.attrsOf (
+      lib.types.submodule {
+        options.credentialFile = lib.mkOption {
+          type = lib.types.path;
+          description = "Path to systemd credential file (.cred) for this dataset.";
+        };
+      }
+    );
+    default = { };
+    description = "ZFS datasets unlocked through the TPM2, with PCR 15 fingerprint extension against filesystem confusion.";
+    example = lib.literalExpression "{ zroot.credentialFile = ./zroot.cred; }";
   };
 
-  config = lib.mkIf (cfg.enable && devices != [ ]) {
+  config = lib.mkIf (devices != [ ]) {
     assertions = map (d: {
       assertion = lib.any (
         fs: fs.fsType == "zfs" && (fs.device == d.name || lib.hasPrefix "${d.name}/" fs.device)
