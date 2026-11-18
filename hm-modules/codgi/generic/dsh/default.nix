@@ -11,8 +11,7 @@ let
 
   yamlFormat = pkgs.formats.yaml { };
 
-  # Credential reference the dendro routes resolve per request. dsh scrubs
-  # `*KEY*` names from agent subprocesses, so the key stays in the harness.
+  # Resolve the credential at launch without putting it in the Nix store.
   apiKeyEnv = "DENDRO_API_KEY";
   apiKeyPath = osConfig.codgician.secrets.files."litellm-user-api-key".path;
 
@@ -124,7 +123,13 @@ let
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram "$out/bin/dsh" \
-        --run ${lib.escapeShellArg "export ${apiKeyEnv}=\"$(<${lib.escapeShellArg apiKeyPath})\""}
+        --run ${lib.escapeShellArg ''
+          if ! ${apiKeyEnv}="$(<${lib.escapeShellArg apiKeyPath})" || [ -z "${"$" + apiKeyEnv}" ]; then
+            echo 'dsh: cannot load the Dendro API key' >&2
+            exit 1
+          fi
+          export ${apiKeyEnv}
+        ''}
     '';
     inherit (cfg.package) meta;
   };
@@ -141,10 +146,17 @@ in
         The dsh package to install.
       '';
     };
+
+    wrappedPackage = lib.mkOption {
+      type = types.package;
+      default = wrappedPackage;
+      readOnly = true;
+      internal = true;
+    };
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ wrappedPackage ];
+    home.packages = [ cfg.wrappedPackage ];
 
     home.file.".dsh/cordis.patch.yml".source = yamlFormat.generate "dsh-cordis.patch.yml" patch;
   };

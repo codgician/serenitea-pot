@@ -23,9 +23,6 @@ let
   ++ lib.optionals (config.codgician.codgi.oh-my-pi.enable or false) [
     config.codgician.codgi.oh-my-pi.package
   ]
-  ++ lib.optionals (config.codgician.codgi.opencode.enable or false) [
-    config.codgician.codgi.opencode.package
-  ]
   ++ lib.optionals (config.codgician.codgi.pi-coding-agent.enable or false) [
     config.codgician.codgi.pi-coding-agent.package
   ];

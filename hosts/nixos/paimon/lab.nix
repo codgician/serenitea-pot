@@ -9,8 +9,14 @@ let
     "/dev/nvidia0"
     "/dev/nvidiactl"
   ];
+  nahida = outputs.nixosConfigurations.nahida.config;
 in
 {
+  # Authelia builds its ACL from local proxy profiles. Only Nahida serves this vhost.
+  codgician.services.nginx.reverseProxies.dsh-web = {
+    inherit (nahida.codgician.services.nginx.reverseProxies.dsh-web) domains authelia;
+  };
+
   containers.nahida = {
     allowedDevices = builtins.map (node: {
       inherit node;
@@ -22,7 +28,7 @@ in
     privateNetwork = true;
     interfaces = [ "enp193s0f0v1" ];
 
-    path = outputs.nixosConfigurations.nahida.config.system.build.toplevel;
+    path = nahida.system.build.toplevel;
     bindMounts = {
       "/lab" = {
         hostPath = "/fpool/lab";

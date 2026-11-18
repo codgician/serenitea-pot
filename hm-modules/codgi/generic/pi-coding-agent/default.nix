@@ -11,7 +11,7 @@ let
 
   jsonFormat = pkgs.formats.json { };
 
-  # Providers routed through the dendro LiteLLM proxy (mirrors opencode).
+  # Providers routed through the dendro LiteLLM proxy.
   allowedProviders = [
     "chatgpt"
     "github"

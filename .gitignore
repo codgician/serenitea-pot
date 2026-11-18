@@ -122,9 +122,5 @@ config.tf.json
 # Direnv
 .direnv/
 
-# OpenCode
-.sisyphus/
-.omo/
-
 # Log files
 *.log

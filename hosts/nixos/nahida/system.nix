@@ -1,4 +1,8 @@
 { lib, pkgs, ... }:
+let
+  dshDomain = "moongazer.codgician.me";
+  dshPort = 3080;
+in
 {
   # My settings
   codgician = {
@@ -91,9 +95,9 @@
       nginx = {
         enable = true;
         openFirewall = true;
-        reverseProxies.opencode-web = {
-          enable = false;
-          domains = [ "fragments.codgician.me" ];
+        reverseProxies.dsh-web = {
+          enable = true;
+          domains = [ dshDomain ];
           authelia = {
             enable = true;
             rules = [
@@ -103,7 +107,15 @@
               }
             ];
           };
-          locations."/".passthru.proxyPass = "http://127.0.0.1:3030";
+          locations."/".passthru = {
+            proxyPass = "http://127.0.0.1:${toString dshPort}";
+            extraConfig = ''
+              # dsh's initial URL contains a browser login token.
+              access_log off;
+              proxy_cookie_flags ~^dsh-auth- secure;
+              proxy_buffering off;
+            '';
+          };
         };
       };
 
@@ -136,15 +148,18 @@
           dotnet.enable = true;
           nix.enable = true;
         };
+        dsh = {
+          enable = true;
+          web = {
+            domain = dshDomain;
+            port = dshPort;
+          };
+        };
         git.enable = true;
         github-copilot-cli.enable = true;
         # herdr fails to link with binutils 2.46 (overlapping FDEs)
         herdr.enable = false;
         mcp.enable = true;
-        opencode = {
-          enable = true;
-          web.enable = true;
-        };
         pi-coding-agent.enable = true;
         oh-my-pi.enable = true;
         pwsh.enable = true;

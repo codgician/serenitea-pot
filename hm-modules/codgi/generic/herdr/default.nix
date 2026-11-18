@@ -112,16 +112,6 @@ in
           session.resume_agents_on_restore = true;
           experimental.pane_history = false;
         };
-      }
-      // lib.optionalAttrs (enabled "opencode") {
-        # Herdr checks tui.jsonc when reporting integration status. Keep this
-        # declarative copy aligned with Home Manager's generated tui.json.
-        "opencode/tui.jsonc".source = jsonFormat.generate "opencode-herdr-tui.jsonc" (
-          {
-            "$schema" = "https://opencode.ai/tui.json";
-          }
-          // config.programs.opencode.tui
-        );
       };
 
       home.file = lib.mkMerge [
@@ -189,12 +179,6 @@ in
             source = "${integrationsDir}/droid/herdr-agent-state.sh";
             executable = true;
           };
-        })
-
-        (lib.optionalAttrs (enabled "opencode") {
-          ".config/opencode/plugins/herdr-agent-state.js".source =
-            "${integrationsDir}/opencode/herdr-agent-state.js";
-          ".config/opencode/herdr-tui-session.js".source = "${integrationsDir}/opencode/herdr-tui-session.js";
         })
       ];
 

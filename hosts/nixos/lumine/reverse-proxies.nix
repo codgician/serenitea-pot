@@ -100,12 +100,6 @@
       enable = true;
       openFirewall = true;
       reverseProxies = {
-        "fragments.codgician.me" = {
-          enable = true;
-          domains = [ "fragments.codgician.me" ];
-          locations."/".passthru.proxyPass = "https://192.168.0.23";
-        };
-
         "bubbles.codgician.me" = {
           enable = true;
           https = true;
@@ -159,6 +153,18 @@
           ];
           # Note: Anubis not enabled for static sites (no backend to protect)
           locations."/".passthru.root = import ./lumine-web.nix { inherit pkgs; };
+        };
+
+        "moongazer.codgician.me" = {
+          enable = true;
+          domains = [ "moongazer.codgician.me" ];
+          locations."/".passthru = {
+            proxyPass = "https://192.168.0.23";
+            extraConfig = ''
+              access_log off;
+              proxy_buffering off;
+            '';
+          };
         };
       };
     };
