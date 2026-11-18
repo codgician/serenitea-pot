@@ -15,7 +15,7 @@ in
         ttl = 120;
         comment = "Reverse proxied by ${edge}";
         type = "CNAME";
-        content = "${edge}.${zone_name}";
+        content = lib.codgician.published.hosts.${edge}.domain;
         inherit zone_id;
       }
     ) lib.codgician.published.dnsNames
