@@ -40,17 +40,7 @@ let
     "${name} (${city}.msftvpn-alt.ras.microsoft.com)";
 in
 {
-  options.codgician.services.intune.vpn = {
-    enable = lib.mkEnableOption "NetworkManager GlobalProtect VPN with Microsoft Edge authentication";
-
-    gateway = lib.mkOption {
-      type = lib.types.enum gateways;
-      default = "Shanghai-CN";
-      description = "GlobalProtect gateway to connect through.";
-    };
-  };
-
-  config = lib.mkIf (cfg.enable && cfg.vpn.enable) {
+  config = lib.mkIf cfg.enable {
     networking.networkmanager = {
       enable = true;
       plugins = [ plugin ];
@@ -70,7 +60,7 @@ in
           hip = "false";
           # A declared list lets the plugin pass --gateway directly instead of
           # answering gpclient's gateway prompt, and feeds the editor drop-down.
-          preferred-gateway = gatewayEntry cfg.vpn.gateway;
+          preferred-gateway = gatewayEntry "Shanghai-CN";
           gateway-list = lib.concatMapStringsSep ";" gatewayEntry gateways;
           gateway-list-count = toString (lib.length gateways);
         };

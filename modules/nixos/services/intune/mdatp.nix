@@ -110,11 +110,7 @@ let
   };
 in
 {
-  options.codgician.services.intune.mdatp = {
-    enable = lib.mkEnableOption "Microsoft Defender for Endpoint (mdatp), onboarded to the Intune tenant";
-  };
-
-  config = lib.mkIf (cfg.enable && cfg.mdatp.enable) (
+  config = lib.mkIf cfg.enable (
     {
       environment.systemPackages = [ mdatp ];
 
@@ -192,27 +188,25 @@ in
         ];
       };
 
-      codgician.system.impermanence.extraItems =
-        lib.optionals config.codgician.system.impermanence.enable
-          [
-            # The daemon's unprivileged (mdatp) workers traverse these.
-            {
-              path = configDir;
-              type = "directory";
-              mode = "0755";
-            }
-            {
-              path = stateDir;
-              type = "directory";
-              mode = "0755";
-            }
-            {
-              path = logDir;
-              type = "directory";
-              group = "mdatp";
-              mode = "0775";
-            }
-          ];
+      codgician.system.impermanence.extraItems = [
+        # The daemon's unprivileged (mdatp) workers traverse these.
+        {
+          path = configDir;
+          type = "directory";
+          mode = "0755";
+        }
+        {
+          path = stateDir;
+          type = "directory";
+          mode = "0755";
+        }
+        {
+          path = logDir;
+          type = "directory";
+          group = "mdatp";
+          mode = "0775";
+        }
+      ];
     }
     // (lib.codgician.mkServiceUserGroupLinux "mdatp" { })
   );

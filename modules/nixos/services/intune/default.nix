@@ -12,7 +12,7 @@ let
     makeWrapperArgs = [
       "--set"
       "INTUNE_DSREG"
-      "${cfg.packages.microsoft-identity-broker}/bin/dsreg"
+      "${pkgs.microsoft-identity-broker}/bin/dsreg"
       "--set"
       "INTUNE_SYSTEMCTL"
       "${pkgs.systemd}/bin/systemctl"
@@ -26,40 +26,22 @@ in
     ./vpn.nix
   ];
 
-  options.codgician.services.intune = {
-    enable = lib.mkEnableOption "Microsoft Intune enrollment (identity broker, Intune daemon/agent, and compliance tooling)";
-
-    packages = {
-      intune-portal = lib.mkOption {
-        type = lib.types.package;
-        default = pkgs.intune-portal;
-        defaultText = lib.literalExpression "pkgs.intune-portal";
-        description = "Intune Portal package (provides intune-daemon and intune-agent).";
-      };
-
-      microsoft-identity-broker = lib.mkOption {
-        type = lib.types.package;
-        default = pkgs.microsoft-identity-broker;
-        defaultText = lib.literalExpression "pkgs.microsoft-identity-broker";
-        description = "Microsoft Identity Device Broker package.";
-      };
-
-    };
-  };
+  options.codgician.services.intune.enable =
+    lib.mkEnableOption "Microsoft Intune enrollment (identity broker, Intune daemon/agent, Defender for Endpoint, VPN)";
 
   config = lib.mkIf cfg.enable (
     {
       # Required for TLS support in WebKitGTK (used by Intune Portal authentication)
       services.gnome.glib-networking.enable = true;
 
-      services.dbus.packages = [ cfg.packages.microsoft-identity-broker ];
+      services.dbus.packages = [ pkgs.microsoft-identity-broker ];
       services.pcscd.enable = true;
 
       environment = {
         systemPackages = with pkgs; [
           libpwquality
-          cfg.packages.intune-portal
-          cfg.packages.microsoft-identity-broker
+          intune-portal
+          microsoft-identity-broker
           intuneRegisterDevice
         ];
 
@@ -101,7 +83,7 @@ in
             description = "Intune daemon";
             requires = [ "intune-daemon.socket" ];
             serviceConfig = {
-              ExecStart = "${cfg.packages.intune-portal}/bin/intune-daemon";
+              ExecStart = "${pkgs.intune-portal}/bin/intune-daemon";
               ExecReload = "/bin/kill -HUP $MAINPID";
               StateDirectory = "intune";
               StateDirectoryMode = "0700";
@@ -114,7 +96,7 @@ in
             serviceConfig = {
               Type = "dbus";
               BusName = "com.microsoft.identity.devicebroker1";
-              ExecStart = "${cfg.packages.microsoft-identity-broker}/bin/microsoft-identity-device-broker";
+              ExecStart = "${pkgs.microsoft-identity-broker}/bin/microsoft-identity-device-broker";
               BindReadOnlyPaths = [ "${pkgs.fakeUbuntuOsRelease}:/etc/os-release" ];
             };
           };
@@ -134,7 +116,7 @@ in
           ];
           serviceConfig = {
             Type = "oneshot";
-            ExecStart = "${cfg.packages.intune-portal}/bin/intune-agent";
+            ExecStart = "${pkgs.intune-portal}/bin/intune-agent";
             StateDirectory = "intune";
             Slice = "background.slice";
           };
@@ -181,28 +163,26 @@ in
 
       # Persist Intune daemon state and identity broker data, including the
       # device identity created during Entra join, across reboots/wipes.
-      codgician.system.impermanence.extraItems =
-        lib.optionals config.codgician.system.impermanence.enable
-          [
-            {
-              path = "/var/lib/intune";
-              type = "directory";
-            }
-            {
-              path = "/var/lib/microsoft-identity-device-broker";
-              type = "directory";
-            }
-            {
-              path = "/etc/microsoft/identity-broker/private";
-              type = "directory";
-              mode = "0700";
-            }
-            {
-              path = "/etc/microsoft/identity-broker/certs";
-              type = "directory";
-              mode = "0700";
-            }
-          ];
+      codgician.system.impermanence.extraItems = [
+        {
+          path = "/var/lib/intune";
+          type = "directory";
+        }
+        {
+          path = "/var/lib/microsoft-identity-device-broker";
+          type = "directory";
+        }
+        {
+          path = "/etc/microsoft/identity-broker/private";
+          type = "directory";
+          mode = "0700";
+        }
+        {
+          path = "/etc/microsoft/identity-broker/certs";
+          type = "directory";
+          mode = "0700";
+        }
+      ];
 
     }
     // (lib.codgician.mkServiceUserGroupLinux "microsoft-identity-broker" { })

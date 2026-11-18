@@ -76,9 +76,7 @@
       # Defender for Endpoint, VPN)
       intune = {
         enable = true;
-        mdatp.enable = true;
         printer.user = "shijiazhang";
-        vpn.enable = true;
       };
     };
 
