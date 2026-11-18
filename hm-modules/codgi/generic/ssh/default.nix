@@ -8,6 +8,10 @@ let
   cfg = config.codgician.codgi.ssh;
   # Host name -> domain suffix.
   mkHosts = attrs: lib.mapAttrs (name: domain: { hostname = "${name}.${domain}"; } // attrs);
+  trusted = {
+    user = "codgi";
+    ForwardAgent = true;
+  };
 in
 {
   options.codgician.codgi.ssh.enable = lib.mkEnableOption "Ssh user configurations.";
@@ -26,22 +30,18 @@ in
       settings = {
         "*".addKeysToAgent = "yes";
       }
-      //
-        mkHosts
-          {
-            user = "codgi";
-            ForwardAgent = true;
-          }
-          {
-            fischl = "lan";
-            focalors = "lan";
-            lumine = "codgician.me";
-            nahida = "lan";
-            paimon = "lan";
-            sandrone = "lan";
-            xianyun = "codgician.me";
-            zibai = "cdu";
-          }
+      # Hosts the inventory calls public are reached at their public name.
+      // lib.mapAttrs (_: host: { hostname = host.domain; } // trusted) (
+        lib.filterAttrs (_: host: host.public) lib.codgician.published.hosts
+      )
+      // mkHosts trusted {
+        fischl = "lan";
+        focalors = "lan";
+        nahida = "lan";
+        paimon = "lan";
+        sandrone = "lan";
+        zibai = "cdu";
+      }
       // mkHosts { user = "codgi"; } {
         furina = "lan";
         odette = "lan";
