@@ -24,19 +24,19 @@ in
 
     # Shared configuration across all machines.
     xdg.configFile."teams-for-linux/config.json".text = builtins.toJSON {
-      appIconType = "light";
       auth = {
         intune.enabled = true;
         webauthn.enabled = true;
       };
-      disableGpu = false;
       download.enabled = true;
-      enableIncomingCallToast = true;
       graphApi.enabled = true;
+      incomingCalls.toast = true;
+      performance.disableGpu = false;
       quickChat = {
         enabled = true;
         shortcut = "CommandOrControl+Alt+Q";
       };
+      tray.iconType = "light";
     };
   };
 }
