@@ -5,8 +5,7 @@
   ...
 }:
 let
-  serviceName = "postfix";
-  cfg = config.codgician.services.${serviceName};
+  cfg = config.codgician.services.postfix;
   types = lib.types;
   inherit (lib.codgician.inventory) mail;
   tokenFile = "/var/lib/postfix/tokens/${mail}";
@@ -17,8 +16,6 @@ in
 {
   options.codgician.services.postfix = {
     enable = lib.mkEnableOption "postfix";
-
-    verbose = lib.mkEnableOption "debugging logs";
 
     authorizedUsers = lib.mkOption {
       type = with types; listOf str;
@@ -32,18 +29,6 @@ in
       ];
       description = "List of users authorized to interact with postfix.";
     };
-
-    user = lib.mkOption {
-      type = types.str;
-      default = "postfix";
-      description = "User under which postfix runs.";
-    };
-
-    group = lib.mkOption {
-      type = types.str;
-      default = "postfix";
-      description = "Group under which postfix runs.";
-    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -56,7 +41,6 @@ in
     # Configure postfix
     services.postfix = {
       enable = true;
-      inherit (cfg) user group;
 
       settings = {
         main = rec {
@@ -87,17 +71,12 @@ in
           smtp_sasl_security_options = "";
           smtp_sasl_mechanism_filter = "xoauth2";
         };
-
-        master = lib.mkIf cfg.verbose {
-          relay.args = [ "-v" ];
-          smtp.args = [ "-v" ];
-        };
       };
     };
 
     codgician.secrets.files."sasl-xoauth2" = {
-      owner = cfg.user;
-      group = cfg.group;
+      owner = "postfix";
+      group = "postfix";
       mode = "0600";
     };
 
@@ -107,8 +86,8 @@ in
         {
           type = "directory";
           path = "/var/lib/postfix";
-          user = cfg.user;
-          group = cfg.group;
+          user = "postfix";
+          group = "postfix";
           mode = "0600";
         }
       ];
@@ -131,7 +110,7 @@ in
         if [ ! -f "${tokenFile}" ]; then
           echo -e "\033[0;33m[postfix] WARNING: Token file not found at ${tokenFile}, use sasl-xoauth2-tool to create it.\033[0m"
         else
-          chown ${cfg.user}:${cfg.group} '${tokenFile}'
+          chown postfix:postfix '${tokenFile}'
           chmod 0600 '${tokenFile}'
         fi
       '';
