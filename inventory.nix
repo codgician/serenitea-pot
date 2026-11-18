@@ -1,15 +1,18 @@
 # Facts that more than one host, module or flake output reads.
-# Plain data: no `pkgs`, no module system. `lib/inventory.nix` derives vhosts,
-# DNS records and Authelia rules from it.
+# Plain data: no `pkgs`, no module system. `lib/inventory.nix` holds the
+# schema that documents and checks every key, and derives the edge's vhosts,
+# the DNS records and the Authelia rules.
 rec {
   zone = "codgician.me";
+  mail = "bot@${zone}";
 
-  # Hosts that services below run on, and the addresses other hosts reach
-  # them at. What only the host itself needs (system, roles) is in the
-  # manifest `hosts/<class>/<name>/default.nix`.
-  #
-  # lan: address on the home LAN
-  # pve: address of the Proxmox VE management bridge
+  # Host that owns every public name below and proxies it to its backend
+  edge = "lumine";
+
+  # Service that is the Authelia portal
+  authelia = "authelia-main";
+
+  # Hosts that services run on, with the addresses other hosts reach them at
   hosts = {
     fischl = { };
     lumine = { };
@@ -20,134 +23,102 @@ rec {
     };
   };
 
-  # Everything reachable as `<subdomain>.<zone>`; the attribute name is the
-  # service's module and vhost name.
-  #
-  # subdomain: defaults to the attribute name
-  # host:      inventory host that runs the service and serves its vhost;
-  #            the service's module is active on that host only
-  # port:      loopback port of the backend on `host`; services behind a
-  #            unix socket omit it and their module sets the vhost's upstream
-  # address:   which address of `host` the edge connects to (default `lan`)
-  # upstream:  URL of a backend that is not an inventory host, instead of `host`
-  # edge:      host that owns the public DNS name and proxies it to the backend;
-  #            with neither `host` nor `upstream` only the DNS name exists
-  # lanOnly:   the edge keeps the DNS name but does not proxy the service
-  # authelia:  require an Authelia session, enforced where the vhost meets the
-  #            backend; `users`/`groups` restrict it, otherwise any user passes
-  # anubis:    the edge puts Anubis in front
+  # Everything with a public name `<subdomain>.<zone>`; the attribute name is
+  # the name of the service's module and vhost
   services = {
-    astrolabe.edge = "lumine";
+    astrolabe = { };
     authelia-main = {
       subdomain = "auth";
       host = "paimon";
-      edge = "lumine";
       anubis = true;
     };
-    books.edge = "lumine";
-    bubbles = {
-      upstream = "http://192.168.0.24:1234";
-      edge = "lumine";
-    };
-    # Nothing on paimon answers for this name any more; lumine still proxies it.
+    books = { };
+    bubbles.upstream = "http://192.168.0.24:1234";
+    # Nothing on paimon answers for this name any more; the entry can go with
+    # the next change to lumine's nginx configuration.
     docling-serve = {
       subdomain = "vision";
       upstream = "https://${hosts.paimon.lan}";
-      edge = "lumine";
     };
     dsh-web = {
       subdomain = "moongazer";
       host = "nahida";
       port = 3080;
-      edge = "lumine";
-      # Keeps lumine's nginx.conf in the order it had before this table existed.
+      # Keeps the order of lumine's nginx.conf; can go with the next change to it.
       edgeVhost = "moongazer.${zone}";
       authelia.users = [ "codgi" ];
     };
     gitlab = {
       subdomain = "git";
       host = "paimon";
-      edge = "lumine";
       anubis = true;
     };
     gns3-server = {
       subdomain = "miliastra";
       host = "paimon";
       port = 3080;
-      edge = "lumine";
       authelia.groups = [ "gns3" ];
     };
     grafana = {
       subdomain = "lumenstone";
       host = "paimon";
-      edge = "lumine";
       anubis = true;
     };
-    hass = {
-      upstream = "http://192.168.0.11:8123";
-      edge = "lumine";
-    };
+    hass.upstream = "http://192.168.0.11:8123";
     jellyfin = {
       subdomain = "fin";
       host = "paimon";
       port = 8096;
-      edge = "lumine";
     };
     jupyter = {
       subdomain = "dragonspine";
       host = "nahida";
       port = 8888;
-      edge = "lumine";
-      authelia = { };
+      # No subject was ever declared for this site.
+      authelia.anyone = true;
     };
     litellm = {
       subdomain = "dendro";
       host = "lumine";
       port = 5483;
-      edge = "lumine";
     };
     matrix-tuwunel = {
       subdomain = "matrix";
       host = "paimon";
-      edge = "lumine";
     };
     meshcentral = {
       subdomain = "amt";
       host = "fischl";
       port = 3001;
-      edge = "lumine";
-      lanOnly = true;
+      dnsOnly = true;
     };
     open-webui = {
       subdomain = "akasha";
       host = "paimon";
       port = 3010;
-      edge = "lumine";
     };
     openvscode-server = {
       subdomain = "leyline";
       host = "nahida";
       port = 3000;
-      edge = "lumine";
-      authelia = { };
+      # Meant for `users = [ "leyline" ]`; that rule never reached Authelia.
+      authelia.anyone = true;
     };
     ovis-relay = {
       subdomain = "euthymia";
       host = "lumine";
       port = 8787;
-      edge = "lumine";
     };
     saw = {
       upstream = "https://192.168.0.28";
-      edge = "lumine";
-      authelia = { };
+      # Meant for `groups = [ "saw" ]`; that rule never reached Authelia.
+      authelia.anyone = true;
     };
     simulanka = {
       host = "paimon";
       address = "pve";
-      edge = "lumine";
     };
-    vanarana.edge = "lumine";
-    voice.edge = "lumine";
+    vanarana = { };
+    voice = { };
   };
 }

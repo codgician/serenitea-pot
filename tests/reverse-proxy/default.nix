@@ -14,7 +14,10 @@ let
 
   published = lib.codgician.mkPublished {
     zone = "test";
+    edge = "front";
+    authelia = "authelia-main";
     hosts = {
+      front = { };
       machine.lan = "192.0.2.20";
       elsewhere.lan = "192.0.2.10";
     };
@@ -22,33 +25,28 @@ let
       authelia-main = {
         subdomain = "auth";
         host = "elsewhere";
-        edge = "front";
         anubis = true;
       };
       routing = {
         host = "machine";
         port = 8081;
-        edge = "front";
       };
       authenticated = {
         host = "machine";
         port = 8082;
-        edge = "front";
         authelia.users = [ "alice" ];
       };
       external = {
         upstream = "http://127.0.0.1:8082";
-        edge = "machine";
-        authelia = { };
+        authelia.anyone = true;
       };
       private = {
         subdomain = "lan";
         host = "machine";
         port = 8081;
-        edge = "front";
-        lanOnly = true;
+        dnsOnly = true;
       };
-      parked.edge = "front";
+      parked = { };
     };
   };
 
@@ -70,13 +68,6 @@ let
           authelia.enable = true;
           anubis.enable = false;
         };
-        external = {
-          enable = true;
-          domains = [ "external.test" ];
-          proxyPass = "http://127.0.0.1:8082";
-          authelia.enable = true;
-          anubis.enable = false;
-        };
         private = {
           enable = true;
           domains = [ "lan.test" ];
@@ -87,8 +78,9 @@ let
       };
     };
 
-    # The edge leaves authentication to the backend's vhost, proxies nothing
-    # for LAN-only and parked names, and puts Anubis in front where asked.
+    # The edge leaves authentication to the backend's vhost unless the backend
+    # is outside the inventory, proxies nothing for parked names and names it
+    # only resolves, and puts Anubis in front where asked.
     "vhosts of the edge host" = {
       actual = published.vhostsFor "front";
       expected = {
@@ -111,6 +103,13 @@ let
           domains = [ "authenticated.test" ];
           proxyPass = "https://192.0.2.20";
           authelia.enable = false;
+          anubis.enable = false;
+        };
+        external = {
+          enable = true;
+          domains = [ "external.test" ];
+          proxyPass = "http://127.0.0.1:8082";
+          authelia.enable = true;
           anubis.enable = false;
         };
       };
@@ -142,15 +141,15 @@ let
     };
 
     "DNS names" = {
-      actual = published.edgeNames;
-      expected = {
-        auth = "front";
-        routing = "front";
-        authenticated = "front";
-        external = "machine";
-        lan = "front";
-        parked = "front";
-      };
+      actual = published.dnsNames;
+      expected = [
+        "auth"
+        "authenticated"
+        "external"
+        "parked"
+        "lan"
+        "routing"
+      ];
     };
   };
 
@@ -193,8 +192,6 @@ assert lib.assertMsg (failures == { }) "reverse-proxy: ${builtins.toJSON failure
               };
             };
             authenticated.authelia.url = "http://127.0.0.1:8083";
-            external.authelia.url = "http://127.0.0.1:8083";
-            external.locations."/public/".proxyPass = "http://127.0.0.1:8082";
 
             # A vhost outside the service table, with the default HTTPS setup.
             tls = {
@@ -279,8 +276,6 @@ assert lib.assertMsg (failures == { }) "reverse-proxy: ${builtins.toJSON failure
 
       with subtest("an Authelia vhost checks the session on every location"):
           assert status("authenticated.test") == "403"
-          assert status("external.test") == "403"
-          assert status("external.test", "/public/item") == "403"
 
       with subtest("default HTTPS redirect and ACME certificate bootstrap still serve the root"):
           assert status("codgician.me") == "301"
