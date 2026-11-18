@@ -2,7 +2,7 @@
   system = "x86_64-linux";
   roles = [ "server" ];
   modules = [
-    (import ./disks.nix { })
+    ./disks.nix
     ./system.nix
     ./hardware.nix
   ];

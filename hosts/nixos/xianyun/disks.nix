@@ -1,13 +1,9 @@
 {
-  disks ? [ "vda" ],
-  ...
-}:
-{
   disko = {
     devices = {
       disk.vda = {
         imageSize = "8G";
-        device = "/dev/${builtins.elemAt disks 0}";
+        device = "/dev/vda";
         type = "disk";
         content = {
           type = "gpt";

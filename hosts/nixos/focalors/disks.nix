@@ -1,15 +1,7 @@
 {
-  disks ? [
-    "sda"
-    "sdb"
-    "sdc"
-  ],
-  ...
-}:
-{
   disko.devices.disk = {
     nixos = {
-      device = "/dev/${builtins.elemAt disks 0}";
+      device = "/dev/sda";
       type = "disk";
       content = {
         type = "gpt";
@@ -41,7 +33,7 @@
     };
 
     persist = {
-      device = "/dev/${builtins.elemAt disks 1}";
+      device = "/dev/sdb";
       type = "disk";
       content = {
         type = "gpt";
@@ -57,7 +49,7 @@
     };
 
     root = {
-      device = "/dev/${builtins.elemAt disks 2}";
+      device = "/dev/sdc";
       type = "disk";
       content = {
         type = "gpt";

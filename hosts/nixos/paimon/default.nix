@@ -7,7 +7,7 @@
   ];
   modules = [
     ./system.nix
-    (import ./disks.nix { })
+    ./disks.nix
     ./hardware.nix
     ./network.nix
     ./lab.nix

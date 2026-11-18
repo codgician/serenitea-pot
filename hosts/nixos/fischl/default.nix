@@ -6,7 +6,7 @@
     "libvirt"
   ];
   modules = [
-    (import ./disks.nix { })
+    ./disks.nix
     ./hardware.nix
     ./system.nix
     ./vms

@@ -1,15 +1,7 @@
-{
-  disks ? [
-    "nvme0n1"
-    "nvme1n1"
-  ],
-  ...
-}:
-
 let
-  mkDiskConfig = id: {
+  mkDiskConfig = id: device: {
     type = "disk";
-    device = "/dev/${builtins.elemAt disks id}";
+    inherit device;
     content = {
       type = "gpt";
       partitions = {
@@ -42,8 +34,8 @@ in
     devices = {
       # Disks: mirrored ZFS root
       disk = {
-        zroot-0 = mkDiskConfig 0;
-        zroot-1 = mkDiskConfig 1;
+        zroot-0 = mkDiskConfig 0 "/dev/nvme0n1";
+        zroot-1 = mkDiskConfig 1 "/dev/nvme1n1";
       };
 
       # zpool settings
