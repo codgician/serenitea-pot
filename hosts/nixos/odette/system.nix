@@ -45,10 +45,7 @@
         gpuAcceleration = "intel";
       };
       claude-code.enable = true;
-      codex = {
-        enable = true;
-        package = pkgs.codex-wrapped;
-      };
+      codex.enable = true;
       dev = {
         haskell.enable = true;
         rust.enable = true;

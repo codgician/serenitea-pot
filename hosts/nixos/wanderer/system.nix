@@ -11,10 +11,7 @@
 
   home-manager.users.codgi.codgician.codgi = {
     claude-code.enable = true;
-    codex = {
-      enable = true;
-      package = pkgs.codex-wrapped;
-    };
+    codex.enable = true;
     oh-my-pi.enable = true;
     mcp.enable = true;
   };

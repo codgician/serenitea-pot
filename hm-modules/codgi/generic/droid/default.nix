@@ -38,22 +38,11 @@ let
   );
 in
 {
-  options.codgician.codgi.droid = {
-    enable = lib.mkEnableOption "Droid configuration";
-
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.llm-agents.droid;
-      defaultText = lib.literalExpression "pkgs.llm-agents.droid";
-      description = ''
-        The Droid package to install.
-      '';
-    };
-  };
+  options.codgician.codgi.droid.enable = lib.mkEnableOption "Droid configuration";
 
   config = lib.mkIf cfg.enable {
     home.packages = [
-      cfg.package
+      agents.packages.droid
       pkgs.llm-agents.agent-browser
     ];
 

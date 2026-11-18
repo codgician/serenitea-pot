@@ -87,10 +87,7 @@ in
   home-manager.users.codgi = {
     codgician.codgi = {
       claude-code.enable = true;
-      codex = {
-        enable = true;
-        package = pkgs.codex-wrapped;
-      };
+      codex.enable = true;
       dev.dotnet.enable = true;
       dsh = {
         enable = true;

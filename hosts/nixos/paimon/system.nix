@@ -192,10 +192,7 @@
 
   home-manager.users.codgi = {
     codgician.codgi = {
-      codex = {
-        enable = true;
-        package = pkgs.codex-wrapped;
-      };
+      codex.enable = true;
       herdr.enable = true;
       mcp.enable = true;
       pi-coding-agent.enable = true;

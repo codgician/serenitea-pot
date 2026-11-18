@@ -5,19 +5,13 @@
     {
       codgician.codgi = {
         claude-code.enable = true;
-        codex = {
-          enable = true;
-          package = pkgs.codex-wrapped;
-        };
+        codex.enable = true;
         dev = {
           haskell.enable = true;
           rust.enable = true;
         };
         dsh.enable = true;
-        droid = {
-          enable = true;
-          package = pkgs.droid-wrapped;
-        };
+        droid.enable = true;
         github-copilot-cli.enable = true;
         herdr.enable = true;
         mcp.enable = true;

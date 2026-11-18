@@ -17,8 +17,8 @@ in
 rec {
   packages = {
     claude-code = pkgs.llm-agents.claude-code;
-    codex = codgi.codex.package;
-    droid = codgi.droid.package;
+    codex = pkgs.codex-wrapped;
+    droid = pkgs.droid-wrapped;
     github-copilot-cli = pkgs.llm-agents.copilot-cli;
     oh-my-pi = pkgs.nur.repos.codgician.oh-my-pi-bin;
     pi-coding-agent = pkgs.llm-agents.pi;

@@ -108,10 +108,7 @@
           enable = true;
           gpuAcceleration = "nvidia";
         };
-        codex = {
-          enable = true;
-          package = pkgs.codex-wrapped;
-        };
+        codex.enable = true;
         claude-code.enable = true;
         dev.dotnet.enable = true;
         oh-my-pi.defaultProfile = "github-copilot";
