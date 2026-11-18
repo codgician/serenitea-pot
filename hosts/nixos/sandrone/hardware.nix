@@ -26,13 +26,9 @@
       # Keep the splash on DRM while early/kernel/systemd diagnostics remain
       # available on UART2/AP.
       "plymouth.ignore-serial-consoles"
-      #"ignore_loglevel"
       "rd.systemd.log_target=console"
-      #"rd.systemd.log_level=debug"
       "rd.systemd.show_status=1"
       "systemd.log_target=console"
-      #"systemd.log_level=debug"
-      #"systemd.show_status=1"
       # CIX P1 firmware leaves clocks lacking explicit Linux owners; without
       # this the common clock framework gates them off during bring-up.
       "clk_ignore_unused"

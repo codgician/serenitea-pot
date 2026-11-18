@@ -199,9 +199,6 @@
     serviceConfig.Type = "oneshot";
   };
 
-  # Start ollama after configuring GPU
-  # systemd.services.ollama.after = [ "nvidia-gpu-config.service" ];
-
   # Enable use of nvidia card in containers
   hardware.nvidia-container-toolkit.enable = true;
 
@@ -212,11 +209,7 @@
 
   hardware = {
     enableRedistributableFirmware = true;
-    cpu.amd = {
-      # sev.enable = true;
-      # sevGuest.enable = true;
-      updateMicrocode = true;
-    };
+    cpu.amd.updateMicrocode = true;
   };
 
   powerManagement = {
