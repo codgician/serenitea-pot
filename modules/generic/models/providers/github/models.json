@@ -336,6 +336,80 @@
       "reasoning"
     ]
   },
+  "gpt-6.2-astra": {
+    "contextWindow": 1050000,
+    "cost": {
+      "cacheRead": 0.4,
+      "cacheWrite": 10,
+      "input": 8,
+      "output": 40,
+      "tiers": [
+        {
+          "cacheRead": 0.8,
+          "cacheWrite": 20,
+          "input": 16,
+          "inputTokensAbove": 272000,
+          "output": 60
+        }
+      ]
+    },
+    "maxInputTokens": 1050000,
+    "maxOutputTokens": 128000,
+    "mode": "responses",
+    "reasoningEfforts": [
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max"
+    ],
+    "supportedEndpoints": [
+      "/v1/responses"
+    ],
+    "supports": [
+      "toolCalls",
+      "structuredOutputs",
+      "vision",
+      "reasoning"
+    ]
+  },
+  "gpt-6.2-sol": {
+    "contextWindow": 1050000,
+    "cost": {
+      "cacheRead": 0.1,
+      "cacheWrite": 2.5,
+      "input": 2,
+      "output": 10,
+      "tiers": [
+        {
+          "cacheRead": 0.2,
+          "cacheWrite": 5,
+          "input": 4,
+          "inputTokensAbove": 272000,
+          "output": 15
+        }
+      ]
+    },
+    "maxInputTokens": 1050000,
+    "maxOutputTokens": 128000,
+    "mode": "responses",
+    "reasoningEfforts": [
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "max"
+    ],
+    "supportedEndpoints": [
+      "/v1/responses"
+    ],
+    "supports": [
+      "toolCalls",
+      "structuredOutputs",
+      "vision",
+      "reasoning"
+    ]
+  },
   "grok-4.6": {
     "contextWindow": 500000,
     "cost": {
