@@ -121,6 +121,10 @@ in
       codgician.secrets.files."mdatp-onboard" = { };
 
       systemd = {
+        # Intune's MDE custom compliance script (run by intune-agent) looks up
+        # `mdatp` on PATH and reports Defender as not onboarded without it.
+        user.services.intune-agent.path = [ mdatp ];
+
         services = {
           mdatp = {
             description = "Microsoft Defender";
