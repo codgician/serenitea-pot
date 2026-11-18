@@ -12,10 +12,7 @@
       # `ssh-add`. Desktop-specific askpass wiring lives in the desktop modules.
       ssh-agent.enable = !osConfig.codgician.system.capabilities.hasDesktop;
 
-      gpg-agent = {
-        enable = true;
-        enableSshSupport = false;
-      };
+      gpg-agent.enable = true;
     };
   };
 }
