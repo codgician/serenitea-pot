@@ -28,8 +28,6 @@
     };
 
     kernelModules = [ "kvm-intel" ];
-    kernelPackages = pkgs.linuxPackages_6_18;
-    zfs.package = pkgs.zfs_2_4;
 
     plymouth = {
       enable = true;
@@ -62,8 +60,6 @@
       '';
     };
   };
-
-  fileSystems."/persist".neededForBoot = true;
 
   # Boot loader - using systemd-boot
   boot.loader.systemd-boot.enable = true;

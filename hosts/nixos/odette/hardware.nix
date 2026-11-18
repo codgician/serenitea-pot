@@ -314,6 +314,4 @@ in
       echo 65535 > /sys/kernel/debug/cros_ec/suspend_timeout_ms
     '';
   };
-
-  fileSystems."/persist".neededForBoot = true;
 }

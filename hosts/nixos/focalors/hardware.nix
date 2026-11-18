@@ -32,12 +32,8 @@ in
       "vfat"
       "zfs"
     ];
-    kernelPackages = pkgs.linuxPackages_6_18;
-    zfs.package = pkgs.zfs_2_4;
     kernelParams = [ "video=Virtual-1:3024x1890@120" ];
   };
-
-  fileSystems."/persist".neededForBoot = true;
 
   hardware.parallels.enable = true;
 

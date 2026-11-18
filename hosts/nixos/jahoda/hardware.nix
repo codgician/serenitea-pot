@@ -134,6 +134,4 @@
   hardware.cpu.intel.updateMicrocode = lib.mkDefault true;
 
   hardware.enableRedistributableFirmware = true;
-
-  fileSystems."/persist".neededForBoot = true;
 }

@@ -75,7 +75,6 @@
       ];
       forceImportAll = true;
       # requestEncryptionCredentials handled by zfs-unlock module; other pools by zfs-mount preStart
-      package = pkgs.zfs_2_4;
     };
   };
 
@@ -89,7 +88,6 @@
   fileSystems = {
     "/boot-0".neededForBoot = true;
     "/boot-1".neededForBoot = true;
-    "/persist".neededForBoot = true;
   };
 
   # Sync content to backup ESP partition on activation

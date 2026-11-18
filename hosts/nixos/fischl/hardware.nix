@@ -28,8 +28,6 @@
     };
 
     kernelModules = [ "kvm-intel" ];
-    kernelPackages = pkgs.linuxPackages_6_18;
-    zfs.package = pkgs.zfs_2_4;
     kernelParams = [
       "iommu.passthrough=0"
       "intel_iommu=on"
@@ -51,7 +49,6 @@
   fileSystems = {
     "/boot-0".neededForBoot = true;
     "/boot-1".neededForBoot = true;
-    "/persist".neededForBoot = true;
   };
 
   # Sync content to backup ESP partition on activation
