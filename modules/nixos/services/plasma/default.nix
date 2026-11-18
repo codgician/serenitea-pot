@@ -15,12 +15,6 @@ in
   options.codgician.services.plasma = {
     enable = lib.mkEnableOption "Plasma Desktop.";
 
-    autoLoginUser = lib.mkOption {
-      type = types.nullOr types.str;
-      default = null;
-      description = "Specify an auto-login user if you want to enable auto login.";
-    };
-
     wallpaper = lib.mkOption {
       type = types.nullOr types.path;
       default = null;
@@ -34,14 +28,10 @@ in
       displayManager = {
         defaultSession = "plasma";
         plasma-login-manager.enable = true;
-        autoLogin = lib.mkIf (cfg.autoLoginUser != null) {
-          enable = true;
-          user = cfg.autoLoginUser;
-        };
       };
 
       desktopManager.plasma6 = {
-        enable = cfg.enable;
+        enable = true;
         enableQt5Integration = true;
       };
     };
