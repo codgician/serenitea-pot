@@ -18,15 +18,12 @@ let
     };
 
   # Graphical sessions that provide a desktop and login-session keyring.
-  hasDesktopEnvironment =
-    (config.codgician.services.gnome.enable or false)
-    || (config.codgician.services.hyprland.enable or false)
-    || (config.codgician.services.plasma.enable or false);
+  hasDesktopEnvironment = config.codgician.services.plasma.enable;
 in
 {
   options.codgician.system.capabilities = {
     hasDesktop = mkCapability ''
-      Whether a graphical desktop is installed (e.g. GNOME, Hyprland, or Plasma).
+      Whether a graphical desktop is installed (Plasma).
       Derived from the enabled desktop session modules.
 
       A desktop environment also implies a graphical login session with a

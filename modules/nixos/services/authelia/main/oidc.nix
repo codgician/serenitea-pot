@@ -1,4 +1,7 @@
-{ ... }:
+{ lib, ... }:
+let
+  url = service: "https://${lib.codgician.published.services.${service}.domain}";
+in
 {
   # OIDC clients
   # Docs: https://www.authelia.com/configuration/identity-providers/openid-connect/clients/
@@ -13,7 +16,7 @@
       require_pkce = true;
       pkce_challenge_method = "S256";
       redirect_uris = [
-        "https://fin.codgician.me/sso/OID/redirect/authelia-main"
+        "${url "jellyfin"}/sso/OID/redirect/authelia-main"
       ];
       scopes = [
         "openid"
@@ -36,7 +39,7 @@
       require_pkce = true;
       pkce_challenge_method = "S256";
       redirect_uris = [
-        "https://simulanka.codgician.me"
+        (url "simulanka")
       ];
       scopes = [
         "openid"
@@ -60,7 +63,7 @@
       require_pkce = false;
       pkce_challenge_method = "";
       redirect_uris = [
-        "https://akasha.codgician.me/oauth/oidc/callback"
+        "${url "open-webui"}/oauth/oidc/callback"
       ];
       scopes = [
         "openid"
@@ -83,7 +86,7 @@
       require_pkce = true;
       pkce_challenge_method = "S256";
       redirect_uris = [
-        "https://amt.codgician.me/auth-oidc-callback"
+        "${url "meshcentral"}/auth-oidc-callback"
       ];
       scopes = [
         "openid"
@@ -106,7 +109,7 @@
       require_pkce = true;
       pkce_challenge_method = "S256";
       redirect_uris = [
-        "https://hass.codgician.me/auth/oidc/callback"
+        "${url "hass"}/auth/oidc/callback"
       ];
       scopes = [
         "openid"
@@ -128,7 +131,7 @@
       require_pkce = true;
       pkce_challenge_method = "S256";
       redirect_uris = [
-        "https://lumenstone.codgician.me/login/generic_oauth"
+        "${url "grafana"}/login/generic_oauth"
       ];
       scopes = [
         "openid"
@@ -151,7 +154,7 @@
       require_pkce = true;
       pkce_challenge_method = "S256";
       redirect_uris = [
-        "https://git.codgician.me/users/auth/openid_connect/callback"
+        "${url "gitlab"}/users/auth/openid_connect/callback"
       ];
       scopes = [
         "openid"
@@ -174,7 +177,7 @@
       require_pkce = false;
       pkce_challenge_method = "";
       redirect_uris = [
-        "https://dendro.codgician.me/sso/callback"
+        "${url "litellm"}/sso/callback"
       ];
       scopes = [
         "openid"
@@ -197,7 +200,7 @@
       require_pkce = true;
       pkce_challenge_method = "S256";
       redirect_uris = [
-        "https://matrix.codgician.me/_matrix/client/unstable/login/sso/callback/matrix-tuwunel"
+        "${url "matrix-tuwunel"}/_matrix/client/unstable/login/sso/callback/matrix-tuwunel"
       ];
       scopes = [
         "openid"

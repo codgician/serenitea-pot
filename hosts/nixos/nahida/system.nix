@@ -1,32 +1,16 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 let
-  dshDomain = "moongazer.codgician.me";
-  dshPort = 3080;
+  dsh = lib.codgician.published.services.dsh-web;
 in
 {
   codgician = {
     services = {
       openvscode-server = {
-        enable = true;
         user = "codgi";
         group = "users";
-        reverseProxy = {
-          enable = true;
-          domains = [ "leyline.codgician.me" ];
-          authelia = {
-            enable = true;
-            rules = [
-              {
-                users = [ "leyline" ];
-                policy = "two_factor";
-              }
-            ];
-          };
-        };
       };
 
       jupyter = {
-        enable = true;
         notebookDir = "/lab/jupyter";
         user = "codgi";
 
@@ -83,40 +67,14 @@ in
             "transformers"
           ];
         };
-
-        reverseProxy = {
-          enable = true;
-          domains = [ "dragonspine.codgician.me" ];
-          authelia.enable = true;
-        };
       };
 
-      nginx = {
-        enable = true;
-        openFirewall = true;
-        reverseProxies.dsh-web = {
-          enable = true;
-          domains = [ dshDomain ];
-          authelia = {
-            enable = true;
-            rules = [
-              {
-                users = [ "codgi" ];
-                policy = "two_factor";
-              }
-            ];
-          };
-          locations."/".passthru = {
-            proxyPass = "http://127.0.0.1:${toString dshPort}";
-            extraConfig = ''
-              # dsh's initial URL contains a browser login token.
-              access_log off;
-              proxy_cookie_flags ~^dsh-auth- secure;
-              proxy_buffering off;
-            '';
-          };
-        };
-      };
+      nginx.reverseProxies.dsh-web.locations."/".extraConfig = ''
+        # dsh's initial URL contains a browser login token.
+        access_log off;
+        proxy_cookie_flags ~^dsh-auth- secure;
+        proxy_buffering off;
+      '';
     };
 
     system.common.inChina = true;
@@ -133,8 +91,7 @@ in
       dsh = {
         enable = true;
         web = {
-          domain = dshDomain;
-          port = dshPort;
+          inherit (dsh) domain port;
         };
       };
       github-copilot-cli.enable = true;

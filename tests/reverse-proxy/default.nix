@@ -1,4 +1,5 @@
-# Exercise the service adapter through the real nginx consumer, not copied attrs.
+# Derive vhosts, DNS names and Authelia rules from a fixture inventory, then
+# serve the vhosts of one of its hosts through the real nginx module.
 {
   lib,
   pkgs,
@@ -9,61 +10,153 @@
 let
   nixos-lib = import (pkgs.path + "/nixos/lib") { inherit lib; };
   system = pkgs.stdenv.hostPlatform.system;
-  serviceNames = [
-    "routing"
-    "overridden"
-    "private"
-    "private-default"
-    "extra-root"
-    "authenticated"
-    "tls"
-  ];
   staticFiles = pkgs.writeTextDir "static/hello.txt" "static-content\n";
 
-  fixtureModule =
-    { config, lib, ... }:
-    {
-      options.codgician.services.proxyFixture = lib.genAttrs serviceNames (serviceName: {
-        # Deliberately left disabled: proxy-only service profiles must still work.
-        enable = lib.mkEnableOption "reverse proxy test backend";
-        reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-          inherit serviceName;
-          defaultDomains = [ "${serviceName}.test" ];
-          defaultProxyPass = "http://127.0.0.1:8081";
-        };
-      });
-
-      config.codgician.services.nginx = lib.mkMerge (
-        map (
-          serviceName:
-          lib.codgician.mkServiceReverseProxyConfig {
-            inherit serviceName;
-            cfg = config.codgician.services.proxyFixture.${serviceName};
-            extraVhostConfig =
-              if serviceName == "overridden" then
-                {
-                  # Same merge shape as the NATS websocket directives.
-                  locations."/".passthru.extraConfig = ''
-                    proxy_buffering off;
-                    proxy_read_timeout 1h;
-                    proxy_send_timeout 1h;
-                    add_header X-Adapter-Extra preserved always;
-                  '';
-                }
-              else if serviceName == "extra-root" then
-                {
-                  locations."/" = {
-                    lanOnly = false;
-                    passthru.proxyPass = "http://127.0.0.1:8082";
-                  };
-                }
-              else
-                { };
-          }
-        ) serviceNames
-      );
+  published = lib.codgician.mkPublished {
+    zone = "test";
+    hosts = {
+      machine.lan = "192.0.2.20";
+      elsewhere.lan = "192.0.2.10";
     };
+    services = {
+      authelia-main = {
+        subdomain = "auth";
+        host = "elsewhere";
+        edge = "front";
+        anubis = true;
+      };
+      routing = {
+        host = "machine";
+        port = 8081;
+        edge = "front";
+      };
+      authenticated = {
+        host = "machine";
+        port = 8082;
+        edge = "front";
+        authelia.users = [ "alice" ];
+      };
+      external = {
+        upstream = "http://127.0.0.1:8082";
+        edge = "machine";
+        authelia = { };
+      };
+      private = {
+        subdomain = "lan";
+        host = "machine";
+        port = 8081;
+        edge = "front";
+        lanOnly = true;
+      };
+      parked.edge = "front";
+    };
+  };
+
+  expectations = {
+    "vhosts of the backend host" = {
+      actual = published.vhostsFor "machine";
+      expected = {
+        routing = {
+          enable = true;
+          domains = [ "routing.test" ];
+          proxyPass = "http://127.0.0.1:8081";
+          authelia.enable = false;
+          anubis.enable = false;
+        };
+        authenticated = {
+          enable = true;
+          domains = [ "authenticated.test" ];
+          proxyPass = "http://127.0.0.1:8082";
+          authelia.enable = true;
+          anubis.enable = false;
+        };
+        external = {
+          enable = true;
+          domains = [ "external.test" ];
+          proxyPass = "http://127.0.0.1:8082";
+          authelia.enable = true;
+          anubis.enable = false;
+        };
+        private = {
+          enable = true;
+          domains = [ "lan.test" ];
+          proxyPass = "http://127.0.0.1:8081";
+          authelia.enable = false;
+          anubis.enable = false;
+        };
+      };
+    };
+
+    # The edge leaves authentication to the backend's vhost, proxies nothing
+    # for LAN-only and parked names, and puts Anubis in front where asked.
+    "vhosts of the edge host" = {
+      actual = published.vhostsFor "front";
+      expected = {
+        authelia-main = {
+          enable = true;
+          domains = [ "auth.test" ];
+          proxyPass = "https://192.0.2.10";
+          authelia.enable = false;
+          anubis.enable = true;
+        };
+        routing = {
+          enable = true;
+          domains = [ "routing.test" ];
+          proxyPass = "https://192.0.2.20";
+          authelia.enable = false;
+          anubis.enable = false;
+        };
+        authenticated = {
+          enable = true;
+          domains = [ "authenticated.test" ];
+          proxyPass = "https://192.0.2.20";
+          authelia.enable = false;
+          anubis.enable = false;
+        };
+      };
+    };
+
+    "vhosts of the unix-socket backend" = {
+      actual = published.vhostsFor "elsewhere";
+      expected.authelia-main = {
+        enable = true;
+        domains = [ "auth.test" ];
+        authelia.enable = false;
+        anubis.enable = false;
+      };
+    };
+
+    "Authelia rules" = {
+      actual = published.autheliaRules;
+      expected = [
+        {
+          domain = [ "authenticated.test" ];
+          policy = "two_factor";
+          subject = [ "user:alice" ];
+        }
+        {
+          domain = [ "authenticated.test" ];
+          policy = "deny";
+        }
+      ];
+    };
+
+    "DNS names" = {
+      actual = published.edgeNames;
+      expected = {
+        auth = "front";
+        routing = "front";
+        authenticated = "front";
+        external = "machine";
+        lan = "front";
+        parked = "front";
+      };
+    };
+  };
+
+  failures = lib.filterAttrs (_: e: e.actual != e.expected) expectations;
 in
+assert lib.assertMsg (failures == { }) "reverse-proxy: ${builtins.toJSON failures}";
 {
   reverseProxyRouting = nixos-lib.runTest {
     name = "reverse-proxy-routing";
@@ -79,80 +172,38 @@ in
     nodes.machine =
       { lib, ... }:
       {
-        imports = [ fixtureModule ];
         users.users.root = {
           initialPassword = "root";
           hashedPasswordFile = lib.mkForce null;
         };
         environment.systemPackages = [ pkgs.curl ];
 
-        codgician.services.proxyFixture = {
-          routing.reverseProxy = {
-            enable = true;
-            https = false;
-            locations = {
-              "/custom/".passthru.proxyPass = "http://127.0.0.1:8082/mapped/";
-              "/static/".passthru = {
+        codgician.services.nginx.reverseProxies = lib.mkMerge [
+          (lib.mapAttrs (_: vhost: vhost // { https = false; }) (published.vhostsFor "machine"))
+          {
+            # What a service module adds to the vhost the inventory gives it.
+            routing.locations = {
+              "/".extraConfig = ''
+                add_header X-Fragment preserved always;
+              '';
+              "/custom/".proxyPass = "http://127.0.0.1:8082/mapped/";
+              "/static/" = {
                 root = staticFiles;
                 tryFiles = "$uri =404";
               };
             };
-            robots = ''
-              User-agent: *
-              Disallow: /custom/
-            '';
-          };
-          overridden.reverseProxy = {
-            enable = true;
-            https = false;
-            locations."/".passthru.proxyPass = "http://127.0.0.1:8082";
-          };
-          private.reverseProxy = {
-            enable = true;
-            https = false;
-            lanOnly = true;
-            locations = {
-              # Changing only the upstream must not silently remove the ACL.
-              "/".passthru.proxyPass = "http://127.0.0.1:8082";
-              "/custom/".passthru.proxyPass = "http://127.0.0.1:8082";
-              "/public/" = {
-                lanOnly = false;
-                passthru.proxyPass = "http://127.0.0.1:8082";
-              };
-            };
-          };
-          private-default.reverseProxy = {
-            enable = true;
-            https = false;
-            lanOnly = true;
-          };
-          extra-root.reverseProxy = {
-            enable = true;
-            https = false;
-            lanOnly = true;
-          };
-          authenticated.reverseProxy = {
-            enable = true;
-            https = false;
-            authelia = {
+            authenticated.authelia.url = "http://127.0.0.1:8083";
+            external.authelia.url = "http://127.0.0.1:8083";
+            external.locations."/public/".proxyPass = "http://127.0.0.1:8082";
+
+            # A vhost outside the service table, with the default HTTPS setup.
+            tls = {
               enable = true;
-              url = "http://127.0.0.1:8083";
+              domains = [ "codgician.me" ];
+              proxyPass = "http://127.0.0.1:8081";
             };
-            locations = {
-              "/".passthru.proxyPass = "http://127.0.0.1:8082";
-              "/custom/".passthru.proxyPass = "http://127.0.0.1:8082";
-              "/public/" = {
-                authelia.enable = false;
-                passthru.proxyPass = "http://127.0.0.1:8082";
-              };
-            };
-          };
-          tls.reverseProxy = {
-            enable = true;
-            # Exercise the unchanged default HTTPS/ACME-host integration.
-            domains = [ "codgician.me" ];
-          };
-        };
+          }
+        ];
 
         services.nginx.virtualHosts = {
           backend-one = {
@@ -216,32 +267,20 @@ in
               f"--write-out '%{{http_code}}' -H 'Host: {host}' http://127.0.0.1{path}"
           )
 
-      with subtest("default root, custom proxy URI, static content and robots"):
+      with subtest("the inventory port is the root upstream; added locations keep theirs"):
           assert request("routing.test") == "backend-one:/"
           assert request("routing.test", "/custom/item") == "backend-two:/mapped/item"
           assert request("routing.test", "/static/hello.txt") == "static-content\n"
-          assert request("routing.test", "/robots.txt") == "User-agent: *\nDisallow: /custom/\n"
+          assert request("lan.test") == "backend-one:/"
 
-      with subtest("root override merges with existing websocket extras"):
-          assert request("overridden.test", "/item") == "backend-two:/item"
-          headers = request("overridden.test", flags="--head").lower()
-          assert "x-adapter-extra: preserved" in headers
-          assert request("extra-root.test") == "backend-two:/"
+      with subtest("a fragment on the root location merges with the derived upstream"):
+          headers = request("routing.test", flags="--head").lower()
+          assert "x-fragment: preserved" in headers
 
-      with subtest("root and added paths inherit LAN restrictions, with explicit exceptions"):
-          assert status("private-default.test") == "403"
-          assert status("private.test") == "403"
-          assert status("private.test", "/custom/item") == "403"
-          assert request("private.test", "/public/item") == "backend-two:/public/item"
-          machine.succeed("ip address add 192.168.1.2/32 dev lo")
-          assert request("private-default.test", flags="--interface 192.168.1.2") == "backend-one:/"
-          assert request("private.test", flags="--interface 192.168.1.2") == "backend-two:/"
-          assert request("private.test", "/custom/item", "--interface 192.168.1.2") == "backend-two:/custom/item"
-
-      with subtest("root and added paths inherit Authelia, with explicit exceptions"):
+      with subtest("an Authelia vhost checks the session on every location"):
           assert status("authenticated.test") == "403"
-          assert status("authenticated.test", "/custom/item") == "403"
-          assert request("authenticated.test", "/public/item") == "backend-two:/public/item"
+          assert status("external.test") == "403"
+          assert status("external.test", "/public/item") == "403"
 
       with subtest("default HTTPS redirect and ACME certificate bootstrap still serve the root"):
           assert status("codgician.me") == "301"

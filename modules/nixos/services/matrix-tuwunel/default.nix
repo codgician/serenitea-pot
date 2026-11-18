@@ -9,26 +9,15 @@ let
   serviceUser = "tuwunel"; # Match upstream NixOS module
   cfg = config.codgician.services.matrix-tuwunel;
   types = lib.types;
+  inherit (lib.codgician) published;
+  svc = published.services.matrix-tuwunel;
+  vhost = config.codgician.services.nginx.reverseProxies.matrix-tuwunel;
 
   # Unix socket path
   socketPath = "/run/tuwunel/tuwunel.sock";
-
-  # Authelia OIDC config
-  autheliaInstance = "main";
-  autheliaSessionDomain =
-    config.codgician.services.authelia.instances.${autheliaInstance}.sessionDomain;
-  autheliaUrl = "https://auth.${autheliaSessionDomain}";
 in
 {
   options.codgician.services.matrix-tuwunel = {
-    enable = lib.mkEnableOption "Tuwunel Matrix server.";
-
-    domain = lib.mkOption {
-      type = types.str;
-      example = "matrix.example.org";
-      description = "Domain name for the Tuwunel server (server_name).";
-    };
-
     dataPath = lib.mkOption {
       type = types.str;
       default = "/var/lib/tuwunel";
@@ -36,30 +25,15 @@ in
     };
 
     zfsOptimizations = lib.mkEnableOption "RocksDB optimizations for ZFS (disables direct I/O, uses zstd compression).";
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultDomains = [ cfg.domain ];
-      defaultDomainsText = "[ config.codgician.services.matrix-tuwunel.domain ]";
-      defaultProxyPass = "http://unix:${socketPath}";
-      defaultProxyPassText = "http://unix:/run/tuwunel/tuwunel.sock";
-      extraOptions = {
-        elementWeb = lib.mkEnableOption ''
-          Host Element web client at `/`.
-        '';
-      };
-    };
   };
 
   config = lib.mkMerge [
-    # Tuwunel service configuration (only when service is enabled locally)
-    (lib.mkIf cfg.enable {
+    (lib.mkIf (svc.host == config.networking.hostName) {
       services.matrix-tuwunel = {
         enable = true;
         settings.global = {
           # Core settings
-          server_name = cfg.domain;
+          server_name = svc.domain;
           # database_path defaults to /var/lib/tuwunel, BindPaths redirects to cfg.dataPath
           # Use unix socket instead of TCP (more efficient, more secure)
           unix_socket_path = socketPath;
@@ -100,8 +74,8 @@ in
               brand = "authelia";
               client_id = serviceName;
               client_secret_file = config.codgician.secrets.files.tuwunel-oidc-secret-authelia-main.path;
-              issuer_url = autheliaUrl;
-              callback_url = "https://${cfg.domain}/_matrix/client/unstable/login/sso/callback/${serviceName}";
+              issuer_url = published.autheliaUrl;
+              callback_url = "https://${svc.domain}/_matrix/client/unstable/login/sso/callback/${serviceName}";
               default = true;
               name = "Authelia";
               scope = [
@@ -160,80 +134,65 @@ in
       };
     })
 
-    # Reverse proxy profile (can be enabled independently for external proxies)
+    # The vhost serves Element at `/` and the well-known documents itself, on
+    # the backend host and on the edge alike.
     {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-        extraVhostConfig =
-          let
-            clientConfig = {
-              "m.homeserver".base_url = "https://${cfg.domain}";
-              "org.matrix.msc3575.proxy".url = "https://${cfg.domain}"; # Sliding sync
+      codgician.services.nginx.reverseProxies.matrix-tuwunel =
+        let
+          clientConfig = {
+            "m.homeserver".base_url = "https://${svc.domain}";
+            "org.matrix.msc3575.proxy".url = "https://${svc.domain}"; # Sliding sync
+          };
+          serverConfig = {
+            "m.server" = "${svc.domain}:443";
+          };
+        in
+        {
+          proxyPass = lib.mkDefault "http://unix:${socketPath}";
+          locations = {
+            "/" = {
+              proxyPass = lib.mkForce null;
+              root = import ./element-web.nix {
+                inherit pkgs clientConfig;
+                domains = [ svc.domain ];
+              };
             };
-            serverConfig = {
-              "m.server" = "${cfg.domain}:443";
+
+            # Matrix C-S and S-S API endpoints
+            "~ ^/_matrix/" = {
+              inherit (vhost) proxyPass;
+              extraConfig = ''
+                # Allow large media uploads (0 = unlimited)
+                client_max_body_size 0;
+
+                # Matrix sync can be long-polling
+                proxy_read_timeout 300;
+              '';
             };
-          in
-          {
-            locations = {
-              "/" = lib.mkIf cfg.reverseProxy.elementWeb {
-                passthru = {
-                  proxyPass = lib.mkForce null;
-                  root = import ./element-web.nix {
-                    inherit pkgs clientConfig;
-                    domains = cfg.reverseProxy.domains;
-                  };
-                };
-              };
 
-              # Matrix C-S and S-S API endpoints
-              "~ ^/_matrix/" = {
-                inherit (cfg.reverseProxy) lanOnly;
-                passthru = {
-                  inherit (cfg.reverseProxy) proxyPass;
-                  extraConfig = ''
-                    # Allow large media uploads (0 = unlimited)
-                    client_max_body_size 0;
+            # Tuwunel-specific endpoints (health check, version, admin)
+            "~ ^/_conduwuit/" = {
+              inherit (vhost) proxyPass;
+            };
 
-                    # Matrix sync can be long-polling
-                    proxy_read_timeout 300;
-                  '';
-                };
-              };
+            # Well-known endpoints for federation and client discovery
+            "= /.well-known/matrix/server" = {
+              return = "200 '${builtins.toJSON serverConfig}' ";
+              extraConfig = ''
+                add_header Content-Type application/json;
+                add_header Access-Control-Allow-Origin *;
+              '';
+            };
 
-              # Tuwunel-specific endpoints (health check, version, admin)
-              "~ ^/_conduwuit/" = {
-                inherit (cfg.reverseProxy) lanOnly;
-                passthru = {
-                  inherit (cfg.reverseProxy) proxyPass;
-                };
-              };
-
-              # Well-known endpoints for federation and client discovery
-              "= /.well-known/matrix/server" = {
-                inherit (cfg.reverseProxy) lanOnly;
-                passthru = {
-                  return = "200 '${builtins.toJSON serverConfig}' ";
-                  extraConfig = ''
-                    add_header Content-Type application/json;
-                    add_header Access-Control-Allow-Origin *;
-                  '';
-                };
-              };
-
-              "= /.well-known/matrix/client" = {
-                inherit (cfg.reverseProxy) lanOnly;
-                passthru = {
-                  return = "200 '${builtins.toJSON clientConfig}' ";
-                  extraConfig = ''
-                    add_header Content-Type application/json;
-                    add_header Access-Control-Allow-Origin *;
-                  '';
-                };
-              };
+            "= /.well-known/matrix/client" = {
+              return = "200 '${builtins.toJSON clientConfig}' ";
+              extraConfig = ''
+                add_header Content-Type application/json;
+                add_header Access-Control-Allow-Origin *;
+              '';
             };
           };
-      };
+        };
     }
   ];
 }

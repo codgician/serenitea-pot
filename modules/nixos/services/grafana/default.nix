@@ -9,9 +9,10 @@ let
   serviceName = "grafana";
   cfg = config.codgician.services.grafana;
   types = lib.types;
+  inherit (lib.codgician) published;
+  svc = published.services.grafana;
 
-  scheme = if cfg.reverseProxy.https then "https" else "http";
-  url = "${scheme}://${builtins.head cfg.reverseProxy.domains}";
+  url = "https://${svc.domain}";
 
   # Dashboard derivation that bundles all dashboard JSON files
   dashboardsDir = pkgs.runCommand "grafana-dashboards" { } ''
@@ -35,8 +36,6 @@ let
 in
 {
   options.codgician.services.grafana = {
-    enable = lib.mkEnableOption "Grafana";
-
     dataDir = lib.mkOption {
       type = types.path;
       default = "/var/lib/grafana";
@@ -89,16 +88,10 @@ in
         '';
       };
     };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://unix:/run/grafana/grafana.sock";
-    };
   };
 
   config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
+    (lib.mkIf (svc.host == config.networking.hostName) {
       services.grafana = {
         enable = true;
         settings = {
@@ -111,7 +104,7 @@ in
 
           security = {
             secret_key = "$__file{${config.codgician.secrets.files.grafana-secret-key.path}}";
-            strict_transport_security = cfg.reverseProxy.enable;
+            strict_transport_security = true;
             admin_password = "$__file{${config.codgician.secrets.files.grafana-admin-password.path}}";
           };
 
@@ -138,9 +131,9 @@ in
               "groups"
             ];
             empty_scopes = false;
-            auth_url = "https://auth.codgician.me/api/oidc/authorization";
-            token_url = "https://auth.codgician.me/api/oidc/token";
-            api_url = "https://auth.codgician.me/api/oidc/userinfo";
+            auth_url = "${published.autheliaUrl}/api/oidc/authorization";
+            token_url = "${published.autheliaUrl}/api/oidc/token";
+            api_url = "${published.autheliaUrl}/api/oidc/userinfo";
             login_attribute_path = "preferred_username";
             groups_attribute_path = "groups";
             name_attribute_path = "name";
@@ -245,11 +238,9 @@ in
           });
     })
 
-    # Reverse proxy profile
     {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-      };
+      codgician.services.nginx.reverseProxies.grafana.proxyPass =
+        lib.mkDefault "http://unix:/run/grafana/grafana.sock";
     }
   ];
 }

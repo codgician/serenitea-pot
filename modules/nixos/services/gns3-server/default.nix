@@ -5,46 +5,20 @@
   ...
 }:
 let
-  serviceName = "gns3-server";
   cfg = config.codgician.services.gns3-server;
-  types = lib.types;
+  svc = lib.codgician.published.services.gns3-server;
   stateDir = "/var/lib/gns3";
 in
 {
-  options.codgician.services.gns3-server = {
-    enable = lib.mkEnableOption "GNS3 Server";
-
-    host = lib.mkOption {
-      type = types.str;
-      default = "127.0.0.1";
-      description = ''
-        Address GNS3 Server listens on. Device consoles bind to the same address.
-      '';
-    };
-
-    port = lib.mkOption {
-      type = types.port;
-      default = 3080;
-      description = "TCP port GNS3 Server listens on.";
-    };
-
-    dataDir = lib.mkOption {
-      type = types.path;
-      default = stateDir;
-      example = "/xpool/appdata/gns3";
-      description = "Directory holding GNS3 images, projects, appliances, configs and symbols.";
-    };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://${cfg.host}:${toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.gns3-server; http://$\{host}:$\{toString port}'';
-    };
+  options.codgician.services.gns3-server.dataDir = lib.mkOption {
+    type = lib.types.path;
+    default = stateDir;
+    example = "/xpool/appdata/gns3";
+    description = "Directory holding GNS3 images, projects, appliances, configs and symbols.";
   };
 
   config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
+    (lib.mkIf (svc.host == config.networking.hostName) {
       services.gns3-server = {
         enable = true;
         auth = {
@@ -55,7 +29,9 @@ in
         ubridge.enable = true;
         settings = {
           Server = {
-            inherit (cfg) host port;
+            # Device consoles bind to the same address.
+            host = "127.0.0.1";
+            inherit (svc) port;
             report_errors = false;
             appliances_path = "${cfg.dataDir}/appliances";
             configs_path = "${cfg.dataDir}/configs";
@@ -100,22 +76,18 @@ in
       ];
     })
 
-    # Reverse proxy profile
     {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-        extraVhostConfig.locations."/".passthru.extraConfig = ''
-          # Appliance images can be several GB
-          client_max_body_size 0;
-          proxy_request_buffering off;
-          proxy_buffering off;
+      codgician.services.nginx.reverseProxies.gns3-server.locations."/".extraConfig = ''
+        # Appliance images can be several GB
+        client_max_body_size 0;
+        proxy_request_buffering off;
+        proxy_buffering off;
 
-          # Console and notification websockets idle for long periods
-          proxy_read_timeout 3600s;
-          proxy_send_timeout 3600s;
-          send_timeout 3600s;
-        '';
-      };
+        # Console and notification websockets idle for long periods
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+        send_timeout 3600s;
+      '';
     }
   ];
 }

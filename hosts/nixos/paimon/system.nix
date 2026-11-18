@@ -12,40 +12,12 @@
         host = "0.0.0.0";
       };
 
-      comfyui = {
-        enable = false;
-        dataDir = "/xpool/appdata/comfyui";
-        modelDir = "/xpool/llm/comfyui";
-        userDir = "/xpool/appdata/comfyui-user";
-        reverseProxy = {
-          enable = false;
-          domains = [ "vanarana.codgician.me" ];
-          authelia = {
-            enable = true;
-            rules = [
-              {
-                groups = [ "vanarana" ];
-                policy = "two_factor";
-              }
-            ];
-          };
-        };
-      };
       mcpo = {
         enable = true;
         dataDir = "/xpool/appdata/mcpo";
       };
 
       open-terminal.enable = true;
-
-      # Auth
-      authelia.instances.main = {
-        enable = true;
-        sessionDomain = "codgician.me";
-        domain = "auth.codgician.me";
-        database = "postgresql";
-        reverseProxy.enable = true;
-      };
 
       # Monitor
       prometheus.enable = true;
@@ -63,25 +35,13 @@
 
       # Chat
       matrix-tuwunel = {
-        enable = true;
-        domain = "matrix.codgician.me";
         dataPath = "/opool/tuwunel";
         zfsOptimizations = true;
-        reverseProxy = {
-          enable = true;
-          elementWeb = true;
-        };
-      };
-
-      vllm = {
-        enable = false;
-        cacheDir = "/xpool/llm/llm-cache";
       };
 
       sglang = {
         enable = true;
         monitoring.enable = true;
-        # Share the engine-neutral ModelScope cache with vLLM.
         cacheDir = "/xpool/llm/llm-cache";
         instances.qwen-chat = {
           model = "RadixArk/Qwen3.8-27B-NVFP4";
@@ -154,43 +114,7 @@
         };
       };
 
-      open-webui = {
-        enable = true;
-        # Use customized package
-        package = pkgs.open-webui-akasha;
-        database = "postgresql";
-        stateDir = "/xpool/appdata/open-webui";
-        reverseProxy = rec {
-          enable = true;
-          domains = [ "akasha.codgician.me" ];
-          appIcon =
-            (pkgs.fetchurl {
-              url = "https://media.githubusercontent.com/media/codgician/assets/465dc48eabca23c08f1e07ba8b0cf07fd7cf53d6/images/akasha/logo.png";
-              sha256 = "sha256-aXa2So5dcthDY8B1UXvfu4Ym8RSTAmR+XWPRokVC9oA=";
-            }).outPath;
-          favicon =
-            (pkgs.fetchurl {
-              url = "https://media.githubusercontent.com/media/codgician/assets/465dc48eabca23c08f1e07ba8b0cf07fd7cf53d6/images/akasha/logo-round.png";
-              sha256 = "sha256-qty11SyWzNgxkOsUvy1BUI5NgydUdXN1V6p7FvHhvTk=";
-            }).outPath;
-          splash = favicon;
-        };
-
-        # Run Qwen3 embeddings locally in Open WebUI on CPU.
-        embedding = {
-          engine = "local";
-          model = "Qwen/Qwen3-Embedding-0.6B";
-        };
-      };
-
-      # Monitoring
-      grafana = {
-        enable = true;
-        reverseProxy = {
-          enable = true;
-          domains = [ "lumenstone.codgician.me" ];
-        };
-      };
+      open-webui.stateDir = "/xpool/appdata/open-webui";
 
       # File server
       samba = {
@@ -243,40 +167,12 @@
         };
       };
 
-      gitlab = {
-        enable = true;
-        statePath = "/fpool/gitlab";
-        host = "git.codgician.me";
-        reverseProxy.enable = true;
-      };
+      gitlab.statePath = "/fpool/gitlab";
 
-      jellyfin = {
-        enable = true;
-        dataDir = "/xpool/appdata/jellyfin";
-        reverseProxy = {
-          enable = true;
-          domains = [ "fin.codgician.me" ];
-        };
-      };
+      jellyfin.dataDir = "/xpool/appdata/jellyfin";
 
       # Network lab
-      gns3-server = {
-        enable = true;
-        dataDir = "/xpool/appdata/gns3";
-        reverseProxy = {
-          enable = true;
-          domains = [ "miliastra.codgician.me" ];
-          authelia = {
-            enable = true;
-            rules = [
-              {
-                groups = [ "gns3" ];
-                policy = "two_factor";
-              }
-            ];
-          };
-        };
-      };
+      gns3-server.dataDir = "/xpool/appdata/gns3";
     };
 
     system = {

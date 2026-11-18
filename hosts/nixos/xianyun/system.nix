@@ -29,12 +29,11 @@ in
 
       nginx.reverseProxies."codgi.cn" = {
         enable = true;
-        https = true;
         domains = [
           "codgi.cn"
           "*.codgi.cn"
         ];
-        locations."/".passthru.root = import ../../roles/edge/landing-page.nix {
+        locations."/".root = import ../../roles/edge/landing-page.nix {
           inherit pkgs;
           name = "xianyun";
           message = ''

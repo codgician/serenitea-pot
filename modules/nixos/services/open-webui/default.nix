@@ -7,23 +7,32 @@
 let
   serviceName = "open-webui";
   cfg = config.codgician.services.open-webui;
-  types = lib.types;
+  inherit (lib.codgician) published;
+  svc = published.services.open-webui;
+  enabled = svc.host == config.networking.hostName;
+  vhost = config.codgician.services.nginx.reverseProxies.open-webui;
   defaultStateDir = "/var/lib/${serviceName}";
   # Kept in its own directory: nginx serves the manifest's parent directory.
   pwaManifest = ./static/pwa-manifest.json;
 
-  webuiUrl =
-    if cfg.reverseProxy.enable then
-      "${if cfg.reverseProxy.https then "https" else "http"}://${builtins.head cfg.reverseProxy.domains}"
-    else
-      "${cfg.host}:${builtins.toString cfg.port}";
+  webuiUrl = "https://${svc.domain}";
 
-  ollamaCfg = config.codgician.services.ollama;
-  vllmCfg = config.codgician.services.vllm;
   mcpoCfg = config.codgician.services.mcpo;
-  ollamaEmbeddingModel = "hf.co/Qwen/Qwen3-Embedding-4B-GGUF:Q4_K_M";
   pgDbName = "open-webui";
   pgDbHost = "/run/postgresql";
+
+  # Branding
+  appIcon =
+    (pkgs.fetchurl {
+      url = "https://media.githubusercontent.com/media/codgician/assets/465dc48eabca23c08f1e07ba8b0cf07fd7cf53d6/images/akasha/logo.png";
+      sha256 = "sha256-aXa2So5dcthDY8B1UXvfu4Ym8RSTAmR+XWPRokVC9oA=";
+    }).outPath;
+  favicon =
+    (pkgs.fetchurl {
+      url = "https://media.githubusercontent.com/media/codgician/assets/465dc48eabca23c08f1e07ba8b0cf07fd7cf53d6/images/akasha/logo-round.png";
+      sha256 = "sha256-qty11SyWzNgxkOsUvy1BUI5NgydUdXN1V6p7FvHhvTk=";
+    }).outPath;
+  splash = favicon;
 
   # Group id of "akasha-users" persisted in the open-webui database, referenced
   # by access grants baked into the persisted UI state below.
@@ -116,17 +125,6 @@ let
     image_generation = true;
   };
 
-  doclingParams = {
-    do_ocr = true;
-    ocr_engine = "auto";
-    table_mode = "accurate";
-    pdf_backend = "dlparse_v4";
-    do_code_enrichment = true;
-    do_formula_enrichment = true;
-    do_picture_description = true;
-    picture_description_preset = "default";
-  };
-
   environment = {
     # The NixOS service has no GPU passthrough; keep local inference on CPU.
     USE_CUDA_DOCKER = "False";
@@ -143,7 +141,7 @@ let
     ENABLE_PLUGINS = "False";
     ENABLE_PIP_INSTALL_FRONTMATTER_REQUIREMENTS = "False";
     # Branding
-    EXTERNAL_PWA_MANIFEST_URL = lib.mkIf cfg.reverseProxy.enable "${webuiUrl}/static/pwa-manifest.json";
+    EXTERNAL_PWA_MANIFEST_URL = "${webuiUrl}/static/pwa-manifest.json";
     # OAuth
     ENABLE_SIGNUP = "False";
     ENABLE_LOGIN_FORM = "False";
@@ -155,7 +153,7 @@ let
     OAUTH_CLIENT_ID = "akasha";
     # OAUTH_CLIENT_SECRET provided in env
     OPENID_REDIRECT_URI = "${webuiUrl}/oauth/oidc/callback";
-    OPENID_PROVIDER_URL = "https://auth.codgician.me/.well-known/openid-configuration";
+    OPENID_PROVIDER_URL = "${published.autheliaUrl}/.well-known/openid-configuration";
     OAUTH_PROVIDER_NAME = "Authelia";
     OAUTH_SCOPES = "openid email profile groups";
     ENABLE_OAUTH_ROLE_MANAGEMENT = "True";
@@ -173,9 +171,7 @@ let
     ENABLE_MESSAGE_RATING = "True";
     ENABLE_COMMUNITY_SHARING = "True";
     ENABLE_TAGS_GENERATION = "True";
-    # Ollama
-    ENABLE_OLLAMA_API = if config.services.ollama.enable then "True" else "False";
-    OLLAMA_BASE_URL = lib.mkIf ollamaCfg.enable "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
+    ENABLE_OLLAMA_API = "False";
     # OpenAI (LiteLLM)
     ENABLE_OPENAI_API = "True";
     # OPENAI_API_BASE_URLS, OPENAI_API_KEYS defined in environment
@@ -207,14 +203,9 @@ let
     ENABLE_SEARCH_QUERY = "True";
     ENABLE_RAG_WEB_SEARCH = "True";
     RAG_WEB_SEARCH_ENGINE = "exa";
-    RAG_EMBEDDING_ENGINE =
-      if cfg.embedding.engine == "local" then
-        ""
-      else if cfg.embedding.engine == "vllm" then
-        "openai"
-      else
-        cfg.embedding.engine;
-    RAG_EMBEDDING_MODEL = cfg.embedding.model;
+    # Qwen3 embeddings run inside Open WebUI on CPU.
+    RAG_EMBEDDING_ENGINE = "";
+    RAG_EMBEDDING_MODEL = "Qwen/Qwen3-Embedding-0.6B";
     SENTENCE_TRANSFORMERS_HOME = "${cfg.stateDir}/cache/embedding/models";
     RAG_EMBEDDING_MODEL_AUTO_UPDATE = "False";
     # RAG_OPENAI_API_KEY provided in env
@@ -226,9 +217,9 @@ let
     WEBSOCKET_MANAGER = "redis";
     WEBSOCKET_REDIS_URL = "unix://${config.services.redis.servers.open-webui.unixSocket}";
     # Database
-    DATABASE_URL = lib.mkIf (cfg.database == "postgresql") "postgresql:///${pgDbName}?host=${pgDbHost}";
+    DATABASE_URL = "postgresql:///${pgDbName}?host=${pgDbHost}";
     # Vector Database
-    VECTOR_DB = lib.mkIf (cfg.database == "postgresql") "pgvector";
+    VECTOR_DB = "pgvector";
     # Image generation (OpenAI-compatible engine via LiteLLM)
     ENABLE_IMAGE_GENERATION = "True";
     IMAGE_GENERATION_ENGINE = "openai";
@@ -251,212 +242,26 @@ let
     ENABLE_REALTIME_CHAT_SAVE = "True";
     ENABLE_CHAT_RESPONSE_BASE64_IMAGE_URL_CONVERSION = "True";
   }
-  // (lib.optionalAttrs (cfg.embedding.engine == "ollama") {
-    RAG_OLLAMA_BASE_URL = "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
-  })
-  // (lib.optionalAttrs (cfg.embedding.engine == "openai") {
-    RAG_OPENAI_API_BASE_URL = cfg.embedding.openai.baseUrl;
-  })
-  // (lib.optionalAttrs (cfg.embedding.engine == "vllm" && cfg.embedding.vllm.instance != null) {
-    # The embedding backend is always co-located with open-webui.
-    RAG_OPENAI_API_BASE_URL =
-      let
-        inst = vllmCfg.instances.${cfg.embedding.vllm.instance};
-      in
-      "http://127.0.0.1:${builtins.toString inst.port}/v1";
-  })
   // (lib.optionalAttrs mcpoCfg.enable {
     # Tool servers (MCP endpoints exposed by mcpo)
     TOOL_SERVER_CONNECTIONS = builtins.toJSON toolServerConnections;
-  })
-  // (lib.optionalAttrs config.codgician.services.docling-serve.enable {
-    # Docling (PDF extraction engine)
-    CONTENT_EXTRACTION_ENGINE = "docling";
-    DOCLING_SERVER_URL =
-      with config.codgician.services.docling-serve;
-      "http://${host}:${builtins.toString port}";
-    DOCLING_OCR_ENGINE = "rapidocr";
-    DOCLING_OCR_LANG = "english,chinese";
-    DOCLING_PARAMS = builtins.toJSON doclingParams;
   });
 in
 {
-  options.codgician.services.open-webui = {
-    enable = lib.mkEnableOption serviceName;
-
-    backend = lib.mkOption {
-      type = types.enum [ "nixpkgs" ];
-      default = "nixpkgs";
-      description = ''
-        Backend to use for deploying open-webui.
-      '';
-    };
-
-    package = lib.mkPackageOption pkgs "open-webui" { };
-
-    host = lib.mkOption {
-      type = types.str;
-      default = "127.0.0.1";
-      description = ''
-        Host for ${serviceName} to listen on.
-      '';
-    };
-
-    port = lib.mkOption {
-      type = types.port;
-      default = 3010;
-      description = ''
-        Port for ${serviceName} to listen on.
-      '';
-    };
-
-    database = lib.mkOption {
-      type = types.enum [
-        "sqlite"
-        "postgresql"
-      ];
-      default = "sqlite";
-      example = "postgresql";
-      description = "Database backend for open-webui.";
-    };
-
-    stateDir = lib.mkOption {
-      type = types.path;
-      default = "/var/lib/${serviceName}";
-      description = "Directory to store open-webui data.";
-    };
-
-    openFirewall = lib.mkEnableOption "Open firewall for ${serviceName}";
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://${cfg.host}:${builtins.toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.open-webui; http://$\{host}:$\{toString port}'';
-      extraOptions = {
-        # Custom favicon
-        favicon = lib.mkOption {
-          type = with types; nullOr path;
-          default = null;
-          example = "/path/to/favicon.png";
-          description = "Custom favicon.png for open-webui.";
-        };
-
-        appIcon = lib.mkOption {
-          type = with types; nullOr path;
-          default = null;
-          example = "/path/to/app-icon.png";
-          description = "Custom app icon for open-webui.";
-        };
-
-        # Custom splash
-        splash = lib.mkOption {
-          type = with types; nullOr path;
-          default = null;
-          example = "/path/to/splash.png";
-          description = "Custom splash.png for open-webui.";
-        };
-      };
-    };
-
-    embedding = lib.mkOption {
-      type = types.submodule {
-        options = {
-          engine = lib.mkOption {
-            type = types.enum [
-              "local"
-              "ollama"
-              "openai"
-              "vllm"
-            ];
-            default = "ollama";
-            description = ''
-              Embedding backend engine for RAG.
-              - "local": Run a SentenceTransformers model inside Open WebUI
-              - "ollama": Use Ollama embeddings (requires ollama service enabled)
-              - "openai": Use OpenAI-compatible embeddings with manual URL configuration
-              - "vllm": Use vLLM embeddings (auto-configures URL from vLLM instance)
-            '';
-          };
-
-          model = lib.mkOption {
-            type = types.str;
-            default = ollamaEmbeddingModel;
-            description = ''
-              Embedding model to use. Default preserves Ollama behavior.
-              For local inference, use a SentenceTransformers model ID or path.
-              For openai/vllm, use e.g. "Qwen/Qwen3-Embedding-4B".
-            '';
-          };
-
-          openai = lib.mkOption {
-            type = types.submodule {
-              options = {
-                baseUrl = lib.mkOption {
-                  type = with types; nullOr str;
-                  default = null;
-                  description = ''
-                    OpenAI-compatible API base URL for embeddings.
-                    Required when engine = "openai". Example: http://127.0.0.1:8001/v1
-                  '';
-                };
-
-                apiKey = lib.mkOption {
-                  type = types.str;
-                  default = "no_api_key";
-                  description = ''
-                    API key for OpenAI-compatible embedding endpoint.
-                  '';
-                };
-              };
-            };
-            default = { };
-            description = "OpenAI-compatible embedding configuration (for engine = 'openai').";
-          };
-
-          vllm = lib.mkOption {
-            type = types.submodule {
-              options = {
-                instance = lib.mkOption {
-                  type = with types; nullOr str;
-                  default = null;
-                  example = "embedding";
-                  description = ''
-                    Name of the vLLM instance to use for embeddings.
-                    The endpoint URL will be automatically configured from the instance's host and port.
-                    Required when engine = "vllm".
-                  '';
-                };
-
-                apiKey = lib.mkOption {
-                  type = types.str;
-                  default = "no_api_key";
-                  description = "API key for vLLM embedding endpoint.";
-                };
-              };
-            };
-            default = { };
-            description = "vLLM embedding configuration (for engine = 'vllm').";
-          };
-        };
-      };
-      default = { };
-      description = "Embedding backend configuration for RAG.";
-    };
+  options.codgician.services.open-webui.stateDir = lib.mkOption {
+    type = lib.types.path;
+    default = defaultStateDir;
+    description = "Directory to store open-webui data.";
   };
 
   config = lib.mkMerge [
-    # Nixpkgs backend
-    (lib.mkIf (cfg.enable && cfg.backend == "nixpkgs") {
+    (lib.mkIf enabled {
       services.open-webui = {
         enable = true;
-        inherit (cfg)
-          host
-          port
-          stateDir
-          openFirewall
-          package
-          ;
+        host = "127.0.0.1";
+        inherit (svc) port;
+        inherit (cfg) stateDir;
+        package = pkgs.open-webui-akasha;
         inherit environment;
         environmentFile = config.codgician.secrets.templates."open-webui-env".path;
       };
@@ -474,30 +279,6 @@ in
           Group = serviceName;
         };
       };
-    })
-
-    # Common options
-    (lib.mkIf cfg.enable {
-      assertions = [
-        {
-          assertion = cfg.embedding.engine != "openai" || cfg.embedding.openai.baseUrl != null;
-          message = "codgician.services.open-webui.embedding.openai.baseUrl is required when embedding.engine is 'openai'";
-        }
-        {
-          assertion = cfg.embedding.engine != "vllm" || cfg.embedding.vllm.instance != null;
-          message = "codgician.services.open-webui.embedding.vllm.instance is required when embedding.engine is 'vllm'";
-        }
-        {
-          assertion =
-            cfg.embedding.engine != "vllm"
-            || (cfg.embedding.vllm.instance != null && vllmCfg.instances ? ${cfg.embedding.vllm.instance});
-          message = "codgician.services.open-webui.embedding.vllm.instance must reference a valid vLLM instance defined in codgician.services.vllm.instances";
-        }
-      ];
-      # Add embedding model to ollama
-      codgician.services.ollama.loadModels = lib.mkIf (cfg.embedding.engine == "ollama") [
-        cfg.embedding.model
-      ];
 
       # Set up Redis
       services.redis.servers.${serviceName} = {
@@ -519,18 +300,8 @@ in
           group = serviceName;
         }
       ];
-    })
 
-    # User
-    (lib.mkIf cfg.enable (
-      lib.codgician.mkServiceUserGroupLinux serviceName {
-        uid = 2026;
-        gid = 2026;
-      }
-    ))
-
-    # PostgreSQL
-    (lib.mkIf (cfg.enable && cfg.database == "postgresql") {
+      # PostgreSQL
       codgician.services.postgresql.enable = true;
       services.postgresql = {
         extensions =
@@ -553,106 +324,85 @@ in
       };
     })
 
-    # User
-    (lib.mkIf cfg.enable (
+    (lib.mkIf enabled (
       lib.codgician.mkServiceUserGroupLinux serviceName {
         uid = 2026;
         gid = 2026;
       }
     ))
 
-    # Reverse proxy profile
+    # Locations of the vhost, on the backend host and on the edge alike;
+    # the icons are only served next to the backend.
     {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-        extraVhostConfig.locations =
-          let
-            inherit (cfg.reverseProxy)
-              appIcon
-              favicon
-              splash
-              ;
-
-            inherit (lib.codgician) mkNginxLocationForStaticFile;
-            convertImage = lib.codgician.convertImage pkgs;
-            resizeImage =
-              size: outName: image:
-              convertImage image {
-                args = "-background transparent -resize ${size}";
-                inherit outName;
-              };
-
-            faviconIco = convertImage favicon {
-              args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
-              outName = "favicon.ico";
+      codgician.services.nginx.reverseProxies.open-webui.locations =
+        let
+          inherit (lib.codgician) mkNginxLocationForStaticFile;
+          convertImage = lib.codgician.convertImage pkgs;
+          resizeImage =
+            size: outName: image:
+            convertImage image {
+              args = "-background transparent -resize ${size}";
+              inherit outName;
             };
-            favicon96 = resizeImage "96x96" "favicon-96x96.png" favicon;
-            favicon512 = resizeImage "512x512" "favicon" appIcon;
-          in
-          {
-            "= /static/pwa-manifest.json".passthru = mkNginxLocationForStaticFile pwaManifest;
-          }
-          //
 
-            (lib.optionalAttrs (favicon != null) {
-              "= /favicon.png".passthru = mkNginxLocationForStaticFile favicon512;
-              "= /static/favicon.png".passthru = mkNginxLocationForStaticFile favicon512;
-              "= /static/favicon-dark.png".passthru = mkNginxLocationForStaticFile favicon512;
-              "= /static/favicon-96x96.png".passthru = mkNginxLocationForStaticFile favicon96;
-              "= /favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
-              "= /static/favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
-            })
-          // (lib.optionalAttrs (appIcon != null) {
-            "= /static/logo.png".passthru = mkNginxLocationForStaticFile appIcon;
-            "= /static/apple-touch-icon.png".passthru = mkNginxLocationForStaticFile (
-              resizeImage "180x180" "apple-touch-icon.png" appIcon
-            );
-            "= /static/web-app-manifest-192x192.png".passthru = mkNginxLocationForStaticFile (
-              resizeImage "192x192" "web-app-manifest-192x192.png" appIcon
-            );
-            "= /static/web-app-manifest-512x512.png".passthru = mkNginxLocationForStaticFile (
-              resizeImage "512x512" "web-app-manifest-512x512.png" appIcon
-            );
-          })
-          // (lib.optionalAttrs (splash != null) {
-            "= /static/splash.png".passthru = mkNginxLocationForStaticFile splash;
-            "= /static/splash-dark.png".passthru = mkNginxLocationForStaticFile splash;
-          })
-          // {
-            "/_app/immutable/" = {
-              inherit (cfg.reverseProxy) lanOnly;
-              passthru = {
-                inherit (cfg.reverseProxy) proxyPass;
-                extraConfig = ''
-                  add_header Cache-Control "public, max-age=31536000, immutable";
-                '';
-              };
-            };
-            "/api/v1/files" = {
-              inherit (cfg.reverseProxy) lanOnly;
-              passthru = {
-                inherit (cfg.reverseProxy) proxyPass;
-                extraConfig = ''
-                  client_max_body_size 128M;
-                  proxy_connect_timeout 1800;
-                  proxy_send_timeout 1800;
-                  proxy_read_timeout 1800;
-                  send_timeout 1800;
-                '';
-              };
-            };
-            "/".passthru.extraConfig = ''
-              client_max_body_size 128M;
-              proxy_buffering off;
-              proxy_connect_timeout 300;
-              proxy_send_timeout 300;
-              proxy_read_timeout 300;
-              send_timeout 300;
-              # Prevent stale frontend after upgrades - browser must always fetch fresh HTML
-              add_header Cache-Control "no-store, no-cache, must-revalidate" always;
+          faviconIco = convertImage favicon {
+            args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
+            outName = "favicon.ico";
+          };
+          favicon96 = resizeImage "96x96" "favicon-96x96.png" favicon;
+          favicon512 = resizeImage "512x512" "favicon" appIcon;
+        in
+        {
+          "= /static/pwa-manifest.json" = mkNginxLocationForStaticFile pwaManifest;
+        }
+        // (lib.optionalAttrs enabled {
+          "= /favicon.png" = mkNginxLocationForStaticFile favicon512;
+          "= /static/favicon.png" = mkNginxLocationForStaticFile favicon512;
+          "= /static/favicon-dark.png" = mkNginxLocationForStaticFile favicon512;
+          "= /static/favicon-96x96.png" = mkNginxLocationForStaticFile favicon96;
+          "= /favicon.ico" = mkNginxLocationForStaticFile faviconIco;
+          "= /static/favicon.ico" = mkNginxLocationForStaticFile faviconIco;
+          "= /static/logo.png" = mkNginxLocationForStaticFile appIcon;
+          "= /static/apple-touch-icon.png" = mkNginxLocationForStaticFile (
+            resizeImage "180x180" "apple-touch-icon.png" appIcon
+          );
+          "= /static/web-app-manifest-192x192.png" = mkNginxLocationForStaticFile (
+            resizeImage "192x192" "web-app-manifest-192x192.png" appIcon
+          );
+          "= /static/web-app-manifest-512x512.png" = mkNginxLocationForStaticFile (
+            resizeImage "512x512" "web-app-manifest-512x512.png" appIcon
+          );
+          "= /static/splash.png" = mkNginxLocationForStaticFile splash;
+          "= /static/splash-dark.png" = mkNginxLocationForStaticFile splash;
+        })
+        // {
+          "/_app/immutable/" = {
+            inherit (vhost) proxyPass;
+            extraConfig = ''
+              add_header Cache-Control "public, max-age=31536000, immutable";
             '';
           };
-      };
+          "/api/v1/files" = {
+            inherit (vhost) proxyPass;
+            extraConfig = ''
+              client_max_body_size 128M;
+              proxy_connect_timeout 1800;
+              proxy_send_timeout 1800;
+              proxy_read_timeout 1800;
+              send_timeout 1800;
+            '';
+          };
+          "/".extraConfig = ''
+            client_max_body_size 128M;
+            proxy_buffering off;
+            proxy_connect_timeout 300;
+            proxy_send_timeout 300;
+            proxy_read_timeout 300;
+            send_timeout 300;
+            # Prevent stale frontend after upgrades - browser must always fetch fresh HTML
+            add_header Cache-Control "no-store, no-cache, must-revalidate" always;
+          '';
+        };
     }
   ];
 }

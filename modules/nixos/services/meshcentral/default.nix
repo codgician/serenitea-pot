@@ -6,53 +6,24 @@
   ...
 }:
 let
-  serviceName = "meshcentral";
-  cfg = config.codgician.services.meshcentral;
-  types = lib.types;
+  inherit (lib.codgician) published;
+  svc = published.services.meshcentral;
 in
 {
-  options.codgician.services.meshcentral = {
-    enable = lib.mkEnableOption "meshcentral";
-
-    package = lib.mkPackageOption pkgs "meshcentral" { };
-
-    host = lib.mkOption {
-      type = types.str;
-      default = "127.0.0.1";
-      description = ''
-        Host for meshcentral to listen on.
-      '';
-    };
-
-    port = lib.mkOption {
-      type = types.port;
-      default = 3001;
-      description = "TCP port for meshcentral to listen.";
-    };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://${cfg.host}:${toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.meshcentral; http://$\{host}:$\{toString port}'';
-    };
-  };
-
   config = lib.mkMerge [
     # Meshcentral configurations
-    (lib.mkIf cfg.enable {
+    (lib.mkIf (svc.host == config.networking.hostName) {
       services.meshcentral = {
         enable = true;
         settings = {
           domains."" = {
             showPasswordLogin = false;
-            allowedOrigin = lib.mkIf cfg.reverseProxy.enable cfg.reverseProxy.domains;
-            authStrategies.oidc = lib.mkIf cfg.reverseProxy.enable {
-              issuer = "https://auth.codgician.me";
+            allowedOrigin = [ svc.domain ];
+            authStrategies.oidc = {
+              issuer = published.autheliaUrl;
               client =
                 let
-                  scheme = if cfg.reverseProxy.https then "https" else "http";
-                  url = "${scheme}://${builtins.head cfg.reverseProxy.domains}";
+                  url = "https://${svc.domain}";
                 in
                 {
                   client_id = "meshcentral";
@@ -79,8 +50,8 @@ in
             };
           };
           settings = {
-            PortBind = cfg.host;
-            Port = cfg.port;
+            PortBind = "127.0.0.1";
+            Port = svc.port;
             TlsOffload = "127.0.0.1,::1";
           };
         };
@@ -90,28 +61,17 @@ in
       systemd.services.meshcentral = {
         serviceConfig = {
           ExecStartPre = "+${pkgs.writeShellScript "meshcentral-pre-start" (utils.genJqSecretsReplacementSnippet config.services.meshcentral.settings "/run/meshcentral/config.json")}";
-          ExecStart = lib.mkForce "${cfg.package}/bin/meshcentral --datapath /var/lib/meshcentral --configfile /run/meshcentral/config.json";
+          ExecStart = lib.mkForce "${pkgs.meshcentral}/bin/meshcentral --datapath /var/lib/meshcentral --configfile /run/meshcentral/config.json";
           RuntimeDirectory = "meshcentral";
           RuntimeDirectoryMode = "0700";
         };
       };
     })
 
-    # Reverse proxy profiles
     {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-        extraVhostConfig.locations."/" = {
-          inherit (cfg.reverseProxy) lanOnly;
-          authelia.enable = cfg.reverseProxy.authelia.enable;
-          passthru = {
-            inherit (cfg.reverseProxy) proxyPass;
-            extraConfig = ''
-              proxy_buffering off;
-            '';
-          };
-        };
-      };
+      codgician.services.nginx.reverseProxies.meshcentral.locations."/".extraConfig = ''
+        proxy_buffering off;
+      '';
     }
   ];
 }

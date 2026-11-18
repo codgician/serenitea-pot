@@ -5,66 +5,29 @@
   ...
 }:
 let
-  serviceName = "gitlab";
   cfg = config.codgician.services.gitlab;
-  types = lib.types;
+  inherit (lib.codgician) inventory published;
+  svc = published.services.gitlab;
 in
 {
-  options.codgician.services.gitlab = {
-    enable = lib.mkEnableOption "GitLab server.";
-
-    statePath = lib.mkOption {
-      type = types.str;
-      example = "/mnt/gitlab";
-      description = "Path to store GitLab state data.";
-    };
-
-    host = lib.mkOption {
-      type = types.str;
-      example = "gitlab.example.org";
-      description = "Host name of the GitLab server.";
-    };
-
-    user = lib.mkOption {
-      type = types.str;
-      default = serviceName;
-      description = "User under which GitLab runs.";
-    };
-
-    group = lib.mkOption {
-      type = types.str;
-      default = serviceName;
-      description = "Group under which GitLab runs.";
-    };
-
-    pages.domain = lib.mkOption {
-      type = with types; nullOr str;
-      default = null;
-      example = "example.org";
-      description = "Host name for GitLab Pages. Set to `null` to disable GitLab Pages.";
-    };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultDomains = [ cfg.host ];
-      defaultDomainsText = "[ config.codgician.services.gitlab.host ]";
-      defaultProxyPass = "http://unix:/run/gitlab/gitlab-workhorse.socket";
-    };
+  options.codgician.services.gitlab.statePath = lib.mkOption {
+    type = lib.types.str;
+    example = "/mnt/gitlab";
+    description = "Path to store GitLab state data.";
   };
 
   config = lib.mkMerge [
-    # GitLab configurations
-    (lib.mkIf cfg.enable {
+    {
+      codgician.services.nginx.reverseProxies.gitlab.proxyPass =
+        lib.mkDefault "http://unix:/run/gitlab/gitlab-workhorse.socket";
+    }
+
+    (lib.mkIf (svc.host == config.networking.hostName) {
       services.gitlab = {
         enable = true;
         packages.gitlab = pkgs.gitlab;
-        inherit (cfg)
-          statePath
-          host
-          user
-          group
-          ;
+        inherit (cfg) statePath;
+        host = svc.domain;
         https = true;
         port = 443;
 
@@ -89,7 +52,7 @@ in
           authentication = "login";
           address = "127.0.0.1";
           port = 25;
-          domain = "codgician.me";
+          domain = inventory.zone;
         };
 
         extraConfig = {
@@ -104,8 +67,7 @@ in
           };
 
           pages = {
-            enabled = cfg.pages.domain != null;
-            host = lib.mkIf (cfg.pages.domain != null) cfg.pages.domain;
+            enabled = false;
             port = 443;
             https = true;
             external_https = [ "127.0.0.1:443" ];
@@ -124,7 +86,7 @@ in
                 args = {
                   name = "openid_connect";
                   strategy_class = "OmniAuth::Strategies::OpenIDConnect";
-                  issuer = "https://auth.codgician.me";
+                  issuer = published.autheliaUrl;
                   discovery = true;
                   scope = [
                     "openid"
@@ -141,7 +103,7 @@ in
                   client_options = {
                     identifier = "gitlab";
                     secret._secret = config.codgician.secrets.files.gitlab-oidc-secret-authelia-main.path;
-                    redirect_uri = "https://${cfg.host}/users/auth/openid_connect/callback";
+                    redirect_uri = "https://${svc.domain}/users/auth/openid_connect/callback";
                   };
                 };
               }
@@ -151,7 +113,7 @@ in
       };
 
       # Add to authorized users of postfix
-      codgician.services.postfix.authorizedUsers = [ serviceName ];
+      codgician.services.postfix.authorizedUsers = [ "gitlab" ];
 
       # PostgreSQL
       codgician.services.postgresql.enable = true;
@@ -171,17 +133,10 @@ in
             "gitlab-oidc-secret-authelia-main"
           ]
           (name: {
-            owner = cfg.user;
-            group = cfg.group;
+            owner = "gitlab";
+            group = "gitlab";
             mode = "0600";
           });
     })
-
-    # Reverse proxy profile
-    {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-      };
-    }
   ];
 }

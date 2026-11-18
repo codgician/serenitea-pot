@@ -55,10 +55,18 @@ in
       description = "The path where all persistent files should be stored.";
     };
 
-    wipeOnShutdown.zfs.enable = lib.mkEnableOption ''
-      Roll `zroot/root` back to `@empty` on shutdown, creating the snapshot
-      from a fresh dataset when it does not exist yet.
-    '';
+    wipeOnShutdown.zfs = {
+      enable = lib.mkEnableOption "Wipe ZFS root datasets on shutdown.";
+
+      datasets = lib.mkOption {
+        type = types.listOf types.str;
+        default = [ "zroot/root" ];
+        description = ''
+          ZFS datasets to rollback on shutdown. If @empty exists, rolls back to it.
+          Otherwise bootstraps by destroying and recreating the dataset with @empty.
+        '';
+      };
+    };
 
     wipeOnShutdown.btrfs = {
       enable = lib.mkEnableOption "Wipe btrfs root subvolumes on shutdown.";
@@ -200,7 +208,7 @@ in
             set -euo pipefail
             zfs=${zfs}/bin/zfs
 
-            for dataset in zroot/root; do
+            for dataset in ${lib.escapeShellArgs cfg.wipeOnShutdown.zfs.datasets}; do
               if ! $zfs list "$dataset" >/dev/null 2>&1; then
                 echo "impermanence: Dataset '$dataset' not found, skipping"
                 continue

@@ -6,8 +6,7 @@
 }:
 let
   serviceName = "ovis-relay";
-  cfg = config.codgician.services.${serviceName};
-  types = lib.types;
+  svc = lib.codgician.published.services.ovis-relay;
 
   # The CLI is only a wrapper; source, dependencies, and build hooks live here.
   ovis = pkgs.llm-agents.ovis.unwrapped;
@@ -78,123 +77,94 @@ let
       extraConfig ? "",
     }:
     {
-      authelia.enable = false;
-      passthru = {
-        inherit root tryFiles;
-        extraConfig =
-          include csp + lib.optionalString (cache != null) "\n${include cache}" + "\n" + extraConfig;
-      };
+      inherit root tryFiles;
+      extraConfig =
+        include csp + lib.optionalString (cache != null) "\n${include cache}" + "\n" + extraConfig;
     };
 
   relayLocation = {
-    authelia.enable = false;
-    passthru = {
-      inherit (cfg.reverseProxy) proxyPass;
-      extraConfig = ''
-        proxy_read_timeout 300s;
-        proxy_buffering off;
-      '';
-    };
+    inherit (config.codgician.services.nginx.reverseProxies.ovis-relay) proxyPass;
+    extraConfig = ''
+      proxy_read_timeout 300s;
+      proxy_buffering off;
+    '';
   };
 in
 {
-  options.codgician.services.${serviceName} = {
-    enable = lib.mkEnableOption "Ovis relay and self-hosted Ovis app";
-
-    port = lib.mkOption {
-      type = types.port;
-      default = 8787;
-      description = "Port for the Ovis relay to listen on (loopback only).";
+  config = lib.mkIf (svc.host == config.networking.hostName) {
+    systemd.services.${serviceName} = {
+      description = "Ovis relay";
+      wantedBy = [ "multi-user.target" ];
+      after = [ "network.target" ];
+      environment = {
+        # Every connection arrives from nginx, so per-address budgets cover all users.
+        RELAY_PER_ADDRESS_PER_MINUTE = "600";
+        RELAY_MAX_SOCKETS_PER_ADDRESS = "1024";
+      };
+      serviceConfig = {
+        ExecStart = "${lib.getExe pkgs.bun} ${relay}/share/ovis-relay/relay/bun.ts --port ${toString svc.port} --hostname 127.0.0.1";
+        DynamicUser = true;
+        Restart = "on-failure";
+        RestartSec = "5s";
+        NoNewPrivileges = true;
+        ProtectSystem = "strict";
+        ProtectHome = true;
+        PrivateTmp = true;
+        PrivateDevices = true;
+        ProtectKernelTunables = true;
+        ProtectKernelModules = true;
+        ProtectControlGroups = true;
+        RestrictAddressFamilies = [
+          "AF_INET"
+          "AF_INET6"
+          "AF_UNIX"
+        ];
+        RestrictNamespaces = true;
+        LockPersonality = true;
+      };
     };
 
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://127.0.0.1:${toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.${serviceName}; http://127.0.0.1:$\{toString port}'';
+    # The hosted app is served from the store, next to the relay.
+    codgician.services.nginx.reverseProxies.ovis-relay.locations = {
+      # Relay
+      "= /health" = relayLocation;
+      "/v1/" = relayLocation;
+
+      # Hosted app
+      "/" = staticLocation { tryFiles = "$uri =404"; } // {
+        proxyPass = lib.mkForce null;
+      };
+      "= /" = staticLocation {
+        tryFiles = "/index.html =404";
+        cache = "cache-revalidate";
+      };
+      "~ ^/(index\\.html|sw\\.js|manifest\\.webmanifest)$" = staticLocation {
+        cache = "cache-revalidate";
+      };
+      "/assets/" = staticLocation { cache = "cache-immutable"; };
+      "/.well-known/" = staticLocation { extraConfig = "default_type application/json;"; };
+      # Quote regexes containing braces so nginx does not parse them as blocks.
+      "~ \"^(${scope})$\"" = staticLocation {
+        # Redirect from the validated capture, not the decoded and untrusted $uri.
+        extraConfig = "return 301 $1/;";
+      };
+      "~ \"^${scope}/manifest\\.webmanifest$\"" = staticLocation {
+        tryFiles = "/manifest.webmanifest =404";
+        cache = "cache-revalidate";
+      };
+      "~ \"^${scope}/sw\\.js$\"" = staticLocation {
+        tryFiles = "/sw.js =404";
+        cache = "cache-revalidate";
+      };
+      "~ \"^${scope}/~render$\"" = staticLocation {
+        tryFiles = "/render.html =404";
+        csp = "csp-render";
+        cache = "cache-revalidate";
+      };
+      "/s/" = staticLocation {
+        tryFiles = "/index.html =404";
+        cache = "cache-revalidate";
+      };
     };
   };
-
-  config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
-      systemd.services.${serviceName} = {
-        description = "Ovis relay";
-        wantedBy = [ "multi-user.target" ];
-        after = [ "network.target" ];
-        environment = {
-          # Every connection arrives from nginx, so per-address budgets cover all users.
-          RELAY_PER_ADDRESS_PER_MINUTE = "600";
-          RELAY_MAX_SOCKETS_PER_ADDRESS = "1024";
-        };
-        serviceConfig = {
-          ExecStart = "${lib.getExe pkgs.bun} ${relay}/share/ovis-relay/relay/bun.ts --port ${toString cfg.port} --hostname 127.0.0.1";
-          DynamicUser = true;
-          Restart = "on-failure";
-          RestartSec = "5s";
-          NoNewPrivileges = true;
-          ProtectSystem = "strict";
-          ProtectHome = true;
-          PrivateTmp = true;
-          PrivateDevices = true;
-          ProtectKernelTunables = true;
-          ProtectKernelModules = true;
-          ProtectControlGroups = true;
-          RestrictAddressFamilies = [
-            "AF_INET"
-            "AF_INET6"
-            "AF_UNIX"
-          ];
-          RestrictNamespaces = true;
-          LockPersonality = true;
-        };
-      };
-    })
-
-    {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-        extraVhostConfig.locations = {
-          # Relay
-          "= /health" = relayLocation;
-          "/v1/" = relayLocation;
-
-          # Hosted app
-          "/" = lib.recursiveUpdate (staticLocation { tryFiles = "$uri =404"; }) {
-            passthru.proxyPass = lib.mkForce null;
-          };
-          "= /" = staticLocation {
-            tryFiles = "/index.html =404";
-            cache = "cache-revalidate";
-          };
-          "~ ^/(index\\.html|sw\\.js|manifest\\.webmanifest)$" = staticLocation {
-            cache = "cache-revalidate";
-          };
-          "/assets/" = staticLocation { cache = "cache-immutable"; };
-          "/.well-known/" = staticLocation { extraConfig = "default_type application/json;"; };
-          # Quote regexes containing braces so nginx does not parse them as blocks.
-          "~ \"^(${scope})$\"" = staticLocation {
-            # Redirect from the validated capture, not the decoded and untrusted $uri.
-            extraConfig = "return 301 $1/;";
-          };
-          "~ \"^${scope}/manifest\\.webmanifest$\"" = staticLocation {
-            tryFiles = "/manifest.webmanifest =404";
-            cache = "cache-revalidate";
-          };
-          "~ \"^${scope}/sw\\.js$\"" = staticLocation {
-            tryFiles = "/sw.js =404";
-            cache = "cache-revalidate";
-          };
-          "~ \"^${scope}/~render$\"" = staticLocation {
-            tryFiles = "/render.html =404";
-            csp = "csp-render";
-            cache = "cache-revalidate";
-          };
-          "/s/" = staticLocation {
-            tryFiles = "/index.html =404";
-            cache = "cache-revalidate";
-          };
-        };
-      };
-    }
-  ];
 }

@@ -19,7 +19,7 @@ let
         ./image.nix
         ./inventory.nix
         ./io.nix
-        ./reverse-proxy.nix
+        ./nginx.nix
         ./secrets.nix
         ./service.nix
         ./utils.nix

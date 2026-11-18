@@ -7,63 +7,17 @@ args@{
 let
   name = "main";
   serviceName = "authelia-${name}";
-  cfg = config.codgician.services.authelia.instances.${name};
-  types = lib.types;
+  user = serviceName;
+  group = serviceName;
+  inherit (lib.codgician) inventory published;
+  svc = published.services.${serviceName};
 in
 {
-  options.codgician.services.authelia.instances.${name} = {
-    enable = lib.mkEnableOption "Authelia instance ${name}";
-
-    sessionDomain = lib.mkOption {
-      type = types.str;
-      example = "example.com";
-      description = "The session domain for Authelia instance ${name}.";
-    };
-
-    domain = lib.mkOption {
-      type = types.str;
-      default = "auth.${cfg.sessionDomain}";
-      defaultText = "$\{config.codgician.services.authelia.$\{name\}.domain\}";
-      example = "auth.example.com";
-      description = "The authentication domain for Authelia instance ${name}.";
-    };
-
-    user = lib.mkOption {
-      type = types.str;
-      default = "authelia-${name}";
-      description = "User under which Authelia instance ${name} runs.";
-    };
-
-    group = lib.mkOption {
-      type = types.str;
-      default = "authelia-${name}";
-      description = "Group under which Authelia instance ${name} runs.";
-    };
-
-    database = lib.mkOption {
-      type = types.enum [
-        "sqlite"
-        "postgresql"
-      ];
-      default = "sqlite";
-      example = "postgresql";
-      description = "Database backend for Authelia instance ${name}.";
-    };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://unix:/run/${serviceName}/${name}.sock";
-      defaultDomains = [ "${cfg.domain}" ];
-      defaultDomainsText = "with config.codgician.services.authelia.${name}; [ domain ]";
-    };
-  };
-
   config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
+    (lib.mkIf (svc.host == config.networking.hostName) {
       services.authelia.instances.${name} = {
         enable = true;
-        inherit (cfg) user group;
+        inherit user group;
 
         secrets = {
           jwtSecretFile = config.codgician.secrets.files."authelia-main-jwt".path;
@@ -108,8 +62,8 @@ in
             remember_me = "1M";
             cookies = [
               {
-                domain = cfg.sessionDomain;
-                authelia_url = "https://${cfg.domain}";
+                domain = inventory.zone;
+                authelia_url = "https://${svc.domain}";
               }
             ];
             redis = {
@@ -118,7 +72,7 @@ in
           };
 
           storage = {
-            postgres = lib.mkIf (cfg.database == "postgresql") {
+            postgres = {
               address = "unix:///run/postgresql";
               database = "authelia-${name}";
               username = "authelia-${name}";
@@ -127,48 +81,15 @@ in
 
           access_control = {
             default_policy = "two_factor";
-            rules =
-              let
-                # Function to generate rules for a single reverse proxy config
-                mkProxyRules =
-                  name: proxyCfg:
-                  if !proxyCfg.authelia.enable then
-                    [ ]
-                  else
-                    let
-                      domains = proxyCfg.domains;
-                      # Map accessRules to Authelia rule format
-                      customRules = map (rule: {
-                        domain = domains;
-                        policy = rule.policy;
-                        subject = (map (u: "user:${u}") rule.users) ++ (map (g: "group:${g}") rule.groups);
-                      }) proxyCfg.authelia.rules;
-
-                      # Default policy rule for this domain (catch-all for this domain)
-                      defaultRule = [
-                        {
-                          domain = domains;
-                          policy = proxyCfg.authelia.defaultPolicy;
-                        }
-                      ];
-                    in
-                    customRules ++ defaultRule;
-
-                # Collect all rules from all proxies
-                nginxRules = lib.concatLists (
-                  lib.mapAttrsToList mkProxyRules config.codgician.services.nginx.reverseProxies
-                );
-              in
-              nginxRules
-              ++ [
-                # Explicit catch-all matching default_policy: functionally
-                # identical to relying on default_policy, but silences
-                # Authelia's "no rules specified" startup warning.
-                {
-                  domain_regex = "^.*$";
-                  policy = "two_factor";
-                }
-              ];
+            rules = published.autheliaRules ++ [
+              # Explicit catch-all matching default_policy: functionally
+              # identical to relying on default_policy, but silences
+              # Authelia's "no rules specified" startup warning.
+              {
+                domain_regex = "^.*$";
+                policy = "two_factor";
+              }
+            ];
           };
 
           notifier = {
@@ -176,7 +97,7 @@ in
               address = "smtp://localhost:25";
               sender = "bot@codgician.me";
               subject = "[Authelia] {title}";
-              identifier = cfg.sessionDomain;
+              identifier = inventory.zone;
               timeout = "15s";
               startup_check_address = "bot@codgician.me";
               # Local smtp relay (postfix on localhost:25) doesn't offer
@@ -188,7 +109,7 @@ in
           };
 
           totp = {
-            issuer = "codgician.me";
+            issuer = inventory.zone;
             algorithm = "SHA1";
             digits = 6;
             period = 30;
@@ -242,13 +163,13 @@ in
         RestartMaxDelaySec = "5min";
       };
 
-      # Add nginx to authelia group for socket access (only when nginx is enabled)
-      users.groups.${cfg.group}.members = lib.mkIf config.codgician.services.nginx.enable [ "nginx" ];
+      # Add nginx to authelia group for socket access
+      users.groups.${group}.members = lib.mkIf config.services.nginx.enable [ "nginx" ];
 
       # Redis
       services.redis.servers.${serviceName} = {
         enable = true;
-        inherit (cfg) user group;
+        inherit user group;
         unixSocketPerm = 660;
       };
 
@@ -262,8 +183,8 @@ in
             "authelia-main-jwks"
           ]
           (name: {
-            owner = cfg.user;
-            group = cfg.group;
+            owner = user;
+            inherit group;
             mode = "0600";
           });
 
@@ -272,13 +193,11 @@ in
         {
           type = "directory";
           path = "/var/lib/${serviceName}";
-          inherit (cfg) user group;
+          inherit user group;
         }
       ];
-    })
 
-    # PostgreSQL
-    (lib.mkIf (cfg.enable && cfg.database == "postgresql") {
+      # PostgreSQL
       codgician.services.postgresql.enable = true;
       services.postgresql = {
         ensureDatabases = [ "authelia-${name}" ];
@@ -291,11 +210,9 @@ in
       };
     })
 
-    # Reverse proxy profile
     {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-      };
+      codgician.services.nginx.reverseProxies.${serviceName}.proxyPass =
+        lib.mkDefault "http://unix:/run/${serviceName}/${name}.sock";
     }
   ];
 }

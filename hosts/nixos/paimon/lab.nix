@@ -12,11 +12,6 @@ let
   nahida = outputs.nixosConfigurations.nahida.config;
 in
 {
-  # Authelia builds its ACL from local proxy profiles. Only Nahida serves this vhost.
-  codgician.services.nginx.reverseProxies.dsh-web = {
-    inherit (nahida.codgician.services.nginx.reverseProxies.dsh-web) domains authelia;
-  };
-
   containers.nahida = {
     allowedDevices = builtins.map (node: {
       inherit node;

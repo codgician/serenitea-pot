@@ -8,25 +8,12 @@ let
   serviceName = "jupyter";
   cfg = config.codgician.services.jupyter;
   types = lib.types;
+  svc = lib.codgician.published.services.jupyter;
 in
 {
   imports = [ ./kernels ];
 
   options.codgician.services.jupyter = {
-    enable = lib.mkEnableOption "Jupyter";
-
-    ip = lib.mkOption {
-      type = types.str;
-      default = "127.0.0.1";
-      description = "Host for Jupyter to listen on.";
-    };
-
-    port = lib.mkOption {
-      type = types.port;
-      default = 8888;
-      description = "Port for Jupyter to listen on.";
-    };
-
     user = lib.mkOption {
       type = types.str;
       default = serviceName;
@@ -51,7 +38,7 @@ in
       example = "argon2:$argon2id$v=19$m=10240,t=10,p=8$...";
       description = ''
         Hashed password for Jupyter authentication.
-        When null and reverseProxy.authelia.enable = true, Jupyter auth is disabled.
+        When null and the inventory puts Jupyter behind Authelia, Jupyter auth is disabled.
         When null and authelia is not enabled, an assertion will fail.
 
         Generate with: `jupyter server password` or
@@ -73,74 +60,57 @@ in
         making them available ONLY in Jupyter context, not system-wide.
       '';
     };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://${cfg.ip}:${builtins.toString cfg.port}";
-      defaultProxyPassText = "with config.codgician.services.jupyter; http://\${ip}:\${builtins.toString port}";
-    };
   };
 
   config =
     let
       # Disable Jupyter auth when Authelia handles it
-      disableJupyterAuth = cfg.password == null && cfg.reverseProxy.authelia.enable;
+      disableJupyterAuth = cfg.password == null && svc.authelia != null;
     in
-    lib.mkMerge [
-      # Jupyter configurations
-      (lib.mkIf cfg.enable {
-        services.jupyter = {
-          enable = true;
-          inherit (cfg)
-            ip
-            port
-            user
-            group
-            notebookDir
-            ;
+    lib.mkIf (svc.host == config.networking.hostName) {
+      services.jupyter = {
+        enable = true;
+        ip = "127.0.0.1";
+        inherit (svc) port;
+        inherit (cfg)
+          user
+          group
+          notebookDir
+          ;
 
-          # Use provided password hash, or empty string (which triggers token mode normally,
-          # but we disable token via notebookConfig when using Authelia)
-          password = if cfg.password != null then cfg.password else "";
+        # Use provided password hash, or empty string (which triggers token mode normally,
+        # but we disable token via notebookConfig when using Authelia)
+        password = if cfg.password != null then cfg.password else "";
 
-          notebookConfig =
-            # Base config for reverse proxy
-            (lib.optionalString cfg.reverseProxy.enable ''
-              c.ServerApp.allow_remote_access = True
-              c.ServerApp.trust_xheaders = True
-            '')
-            # Disable token/password auth when Authelia handles it
-            + (lib.optionalString disableJupyterAuth ''
-              # Disable built-in authentication - Authelia handles auth
-              c.ServerApp.token = ""
-              c.PasswordIdentityProvider.hashed_password = ""
-            '');
-        };
+        notebookConfig =
+          # Base config for reverse proxy
+          ''
+            c.ServerApp.allow_remote_access = True
+            c.ServerApp.trust_xheaders = True
+          ''
+          # Disable token/password auth when Authelia handles it
+          + (lib.optionalString disableJupyterAuth ''
+            # Disable built-in authentication - Authelia handles auth
+            c.ServerApp.token = ""
+            c.PasswordIdentityProvider.hashed_password = ""
+          '');
+      };
 
-        # Add extra tools to Jupyter service PATH
-        systemd.services.jupyter.path = lib.mkIf (cfg.extraTools != [ ]) (lib.mkAfter cfg.extraTools);
+      # Add extra tools to Jupyter service PATH
+      systemd.services.jupyter.path = lib.mkIf (cfg.extraTools != [ ]) (lib.mkAfter cfg.extraTools);
 
-        # Ensure authentication is configured
-        assertions = [
-          {
-            assertion = cfg.password != null || cfg.reverseProxy.authelia.enable;
-            message = ''
-              jupyter: Authentication is required.
+      # Ensure authentication is configured
+      assertions = [
+        {
+          assertion = cfg.password != null || svc.authelia != null;
+          message = ''
+            jupyter: Authentication is required.
 
-              Either:
-              1. Enable Authelia: reverseProxy.authelia.enable = true (recommended)
-              2. Provide a password hash: password = "argon2:..."
-            '';
-          }
-        ];
-      })
-
-      # Reverse proxy profile
-      {
-        codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-          inherit serviceName cfg;
-        };
-      }
-    ];
+            Either:
+            1. Put it behind Authelia in the inventory (recommended)
+            2. Provide a password hash: password = "argon2:..."
+          '';
+        }
+      ];
+    };
 }

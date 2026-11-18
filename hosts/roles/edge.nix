@@ -2,11 +2,6 @@
 {
   codgician = {
     services = {
-      nginx = {
-        enable = true;
-        openFirewall = true;
-      };
-
       sing-box = {
         enable = true;
         domain = "${config.networking.hostName}.${lib.codgician.inventory.zone}";

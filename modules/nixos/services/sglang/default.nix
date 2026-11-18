@@ -135,12 +135,6 @@ let
             quantization versions.
           '';
         };
-
-        reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-          serviceName = "${serviceName}@${name}";
-          defaultProxyPass = "http://${config.host}:${toString config.port}";
-          defaultProxyPassText = "http://\${host}:\${port}";
-        };
       };
     };
 
@@ -241,8 +235,8 @@ in
           message = "codgician.services.sglang.monitoring requires codgician.services.prometheus.enable.";
         }
         {
-          assertion = !cfg.monitoring.enable || config.codgician.services.grafana.enable;
-          message = "codgician.services.sglang.monitoring requires codgician.services.grafana.enable.";
+          assertion = !cfg.monitoring.enable || config.services.grafana.enable;
+          message = "codgician.services.sglang.monitoring requires Grafana on this host (inventory service `grafana`).";
         }
       ];
 
@@ -273,15 +267,5 @@ in
     };
 
     virtualisation.oci-containers.containers = lib.mkMerge (map mkContainer instances);
-
-    codgician.services.nginx = lib.mkMerge (
-      map (
-        name:
-        lib.codgician.mkServiceReverseProxyConfig {
-          serviceName = "${serviceName}@${name}";
-          cfg = cfg.instances.${name};
-        }
-      ) instances
-    );
   };
 }

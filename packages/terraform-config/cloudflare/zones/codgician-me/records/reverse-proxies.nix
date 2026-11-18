@@ -1,45 +1,20 @@
-{ config, ... }:
+{ config, lib, ... }:
 let
   zone_id = config.resource.cloudflare_zone.codgician-me "id";
   zone_name = config.resource.cloudflare_zone.codgician-me.name;
-  cnames = [
-    "astrolabe"
-    "akasha"
-    "amt"
-    "auth"
-    "books"
-    "bubbles"
-    "dendro"
-    "dragonspine"
-    "euthymia"
-    "fin"
-    "git"
-    "hass"
-    "leyline"
-    "lumenstone"
-    "matrix"
-    "miliastra"
-    "moongazer"
-    "saw"
-    "simulanka"
-    "vanarana"
-    "vision"
-    "voice"
-  ];
 in
 {
-  resource.cloudflare_dns_record = builtins.listToAttrs (
-    builtins.map (name: {
-      name = "${name}-cname";
-      value = {
-        name = "${name}.${zone_name}";
-        proxied = false;
-        ttl = 120;
-        comment = "Reverse proxied by lumine";
-        type = "CNAME";
-        content = "lumine.codgician.me";
-        inherit zone_id;
-      };
-    }) cnames
-  );
+  # One CNAME to its edge host for every name in the inventory's service table.
+  resource.cloudflare_dns_record = lib.mapAttrs' (
+    name: edge:
+    lib.nameValuePair "${name}-cname" {
+      name = "${name}.${zone_name}";
+      proxied = false;
+      ttl = 120;
+      comment = "Reverse proxied by ${edge}";
+      type = "CNAME";
+      content = "${edge}.${zone_name}";
+      inherit zone_id;
+    }
+  ) lib.codgician.published.edgeNames;
 }

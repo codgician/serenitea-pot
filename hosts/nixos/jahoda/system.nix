@@ -126,7 +126,7 @@
           ovis = {
             enable = true;
             lanHttpsPort = 7318;
-            relayDomain = "euthymia.codgician.me";
+            relayDomain = lib.codgician.published.services.ovis-relay.domain;
           };
         };
 
@@ -250,7 +250,7 @@
       domains = [
         "~cdu"
         "~lan"
-        "~codgician.me"
+        "~${lib.codgician.inventory.zone}"
       ];
     };
   };
