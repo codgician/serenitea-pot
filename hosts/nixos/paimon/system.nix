@@ -16,9 +16,6 @@
       # Monitor
       prometheus.enable = true;
 
-      # Email
-      postfix.enable = true;
-
       postgresql = {
         enable = true;
         dataDir = "/opool/postgres";
@@ -196,16 +193,7 @@
     ];
   };
 
-  # Allow RAID-1 esp boot
-  boot.swraid = {
-    enable = true;
-    mdadmConf = "MAILADDR codgi";
-  };
-
   networking.hostId = "a7f3fe2e";
-
-  # Firmware updates
-  services.fwupd.enable = true;
 
   # Global packages
   environment.systemPackages = with pkgs; [

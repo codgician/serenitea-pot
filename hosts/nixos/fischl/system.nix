@@ -1,15 +1,6 @@
 { pkgs, ... }:
 {
-  codgician = {
-    services.postfix.enable = true;
-    system.common.inChina = true;
-  };
-
-  # Allow RAID-1 esp boot
-  boot.swraid = {
-    enable = true;
-    mdadmConf = "MAILADDR codgi";
-  };
+  codgician.system.common.inChina = true;
 
   # Customize zfs auto snapshot cadence
   services.zfs.autoSnapshot = {
@@ -29,9 +20,6 @@
     RuntimeWatchdogSec = "30";
     RebootWatchdogSec = "600";
   };
-
-  # Firmware updates
-  services.fwupd.enable = true;
 
   # Global packages
   environment.systemPackages = with pkgs; [

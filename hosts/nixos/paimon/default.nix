@@ -1,7 +1,10 @@
 {
   system = "x86_64-linux";
   cudaSupport = true;
-  roles = [ "server" ];
+  roles = [
+    "server"
+    "hypervisor"
+  ];
   modules = [
     ./system.nix
     (import ./disks.nix { })

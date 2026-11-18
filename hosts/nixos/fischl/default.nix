@@ -1,6 +1,9 @@
 {
   system = "x86_64-linux";
-  roles = [ "server" ];
+  roles = [
+    "server"
+    "hypervisor"
+  ];
   modules = [
     (import ./disks.nix { })
     ./hardware.nix
