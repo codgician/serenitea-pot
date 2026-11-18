@@ -9,7 +9,7 @@ let
   serviceName = "grafana";
   cfg = config.codgician.services.grafana;
   types = lib.types;
-  inherit (lib.codgician) published;
+  inherit (lib.codgician) inventory published;
   svc = published.services.grafana;
 
   url = "https://${svc.domain}";
@@ -157,7 +157,7 @@ in
           enabled = true;
           host = "localhost:25";
           from_name = "Grafana";
-          from_address = "bot@codgician.me";
+          from_address = inventory.mail;
         };
 
         users = {

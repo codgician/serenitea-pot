@@ -101,11 +101,11 @@ in
         notifier = {
           smtp = {
             address = "smtp://localhost:25";
-            sender = "bot@codgician.me";
+            sender = inventory.mail;
             subject = "[Authelia] {title}";
             identifier = inventory.zone;
             timeout = "15s";
-            startup_check_address = "bot@codgician.me";
+            startup_check_address = inventory.mail;
             # Local smtp relay (postfix on localhost:25) doesn't offer
             # STARTTLS; disable_require_tls alone (opportunistic TLS) is
             # sufficient and avoids the disable_starttls insecure-plaintext

@@ -56,12 +56,16 @@ in
           # Max request size (24MB)
           max_request_size = 25165824;
 
-          # TURN configuration (hardcoded to turn.codgician.me)
-          turn_uris = [
-            "turn:turn.codgician.me?transport=udp"
-            "turn:turn.codgician.me?transport=tcp"
-            "turns:turn.codgician.me:5349?transport=tcp"
-          ];
+          # TURN server run by the coturn module
+          turn_uris =
+            let
+              turn = config.codgician.services.coturn.domain;
+            in
+            [
+              "turn:${turn}?transport=udp"
+              "turn:${turn}?transport=tcp"
+              "turns:${turn}:5349?transport=tcp"
+            ];
           turn_secret_file = config.codgician.secrets.files.coturn-auth-secret.path;
           turn_ttl = 86400;
         }

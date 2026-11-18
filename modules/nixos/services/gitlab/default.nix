@@ -58,8 +58,8 @@ in
 
       extraConfig = {
         gitlab = {
-          email_from = "bot@codgician.me";
-          email_reply_to = "bot@codgician.me";
+          email_from = inventory.mail;
+          email_reply_to = inventory.mail;
 
           # Disable telemetry
           include_optional_metrics_in_service_ping = false;

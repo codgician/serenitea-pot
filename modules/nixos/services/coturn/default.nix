@@ -16,7 +16,7 @@ in
 
     domain = lib.mkOption {
       type = types.str;
-      default = "turn.codgician.me";
+      default = "turn.${lib.codgician.inventory.zone}";
       description = "TURN realm and ACME certificate domain.";
       example = "turn.example.org";
     };

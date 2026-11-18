@@ -8,9 +8,10 @@ let
   serviceName = "postfix";
   cfg = config.codgician.services.${serviceName};
   types = lib.types;
-  tokenFile = "/var/lib/postfix/tokens/bot@codgician.me";
+  inherit (lib.codgician.inventory) mail;
+  tokenFile = "/var/lib/postfix/tokens/${mail}";
   saslPasswd = pkgs.writeText "sasl_passwd" ''
-    [smtp.office365.com]:587 bot@codgician.me:${tokenFile}
+    [smtp.office365.com]:587 ${mail}:${tokenFile}
   '';
 in
 {
@@ -69,7 +70,7 @@ in
           import_environment = "SASL_PATH";
           inet_interfaces = "loopback-only";
           inet_protocols = "all";
-          sender_canonical_maps = "static:bot@codgician.me";
+          sender_canonical_maps = "static:${mail}";
 
           # Access control
           authorized_submit_users = builtins.concatStringsSep ", " (lib.unique cfg.authorizedUsers);
