@@ -7,8 +7,6 @@
 let
   cfg = config.codgician.system.common;
   pubKeys = import (lib.codgician.secretsDir + "/pubkeys.nix");
-  configureNetworking =
-    !(config ? proxmoxLXC) || !config.proxmoxLXC.enable || config.proxmoxLXC.manageNetwork;
   networkConfig = {
     MulticastDNS = true;
     LLMNR = true;
@@ -16,24 +14,9 @@ let
   };
 in
 {
-  options.codgician.system.common = {
-    audio.enable = lib.mkEnableOption "PipeWire audio stack";
+  options.codgician.system.common.audio.enable = lib.mkEnableOption "PipeWire audio stack";
 
-    apparmor.enable = lib.mkOption {
-      type = lib.types.bool;
-      default = true;
-      description = "AppArmor mandatory access control (enforcement with journald-visible logs).";
-    };
-
-    audit.enable = lib.mkOption {
-      type = lib.types.bool;
-      default = !config.boot.isContainer;
-      defaultText = lib.literalExpression "!config.boot.isContainer";
-      description = "Linux kernel audit subsystem and auditd userspace daemon.";
-    };
-  };
-
-  config = lib.mkIf cfg.enable {
+  config = {
     # Enable systemd in initrd
     boot.initrd.systemd.enable = lib.mkIf (!config.boot.isContainer) true;
 
@@ -99,7 +82,7 @@ in
     };
 
     # Enable mDNS
-    systemd.network.networks = lib.mkIf configureNetworking {
+    systemd.network.networks = {
       "99-ethernet-default-dhcp" = { inherit networkConfig; };
       "99-wireless-client-dhcp" = { inherit networkConfig; };
     };
@@ -183,15 +166,15 @@ in
       rtkit.enable = lib.mkIf cfg.audio.enable true;
 
       audit = {
-        enable = cfg.audit.enable;
+        enable = !config.boot.isContainer;
         backlogLimit = 8192;
       };
 
-      auditd.enable = cfg.audit.enable;
+      auditd.enable = !config.boot.isContainer;
       apparmor = {
         # NixOS automatically appends "apparmor" to `security.lsm` and sets
         # `apparmor=1` when enabled, so no manual `lsm=` wiring is needed.
-        enable = cfg.apparmor.enable;
+        enable = true;
         packages = with pkgs; [ apparmor-profiles ];
         killUnconfinedConfinables = true;
       };

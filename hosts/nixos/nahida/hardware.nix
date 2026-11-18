@@ -16,7 +16,5 @@
     pkgs.unstable.linuxPackages_6_18.nvidiaPackages.new_feature.bin
   ];
 
-  services.resolved.enable = true;
-
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }
