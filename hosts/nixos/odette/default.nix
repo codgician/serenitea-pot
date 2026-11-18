@@ -1,6 +1,9 @@
 {
   system = "x86_64-linux";
-  roles = [ "desktop" ];
+  roles = [
+    "desktop"
+    "work"
+  ];
   modules = [
     (import ./disks.nix { })
     ./system.nix

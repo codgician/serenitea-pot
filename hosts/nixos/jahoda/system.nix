@@ -4,25 +4,12 @@
     secrets.files.nats-controller-seed.owner = "codgi";
 
     services = {
-      plasma.wallpaper =
-        (pkgs.fetchurl {
-          url = "https://media.githubusercontent.com/media/codgician/assets/refs/heads/main/images/wallpapers/genshin-luna-viii.jpg";
-          sha256 = "sha256-VjoCRP8AENaUlItKCn2751GY+WtF0ncwcBWYuJHmCWE=";
-        }).outPath;
-
       sing-box = {
-        enable = true;
-        clients.ss-lumidouce = {
-          enable = true;
-          bindInterface = "eno1-guest";
-        };
-        tun = {
-          enable = true;
-          routedRanges = [
-            "192.168.0.0/16"
-            "fd00:c0d9:1c00::/48"
-          ];
-        };
+        clients.ss-lumidouce.bindInterface = "eno1-guest";
+        tun.routedRanges = [
+          "192.168.0.0/16"
+          "fd00:c0d9:1c00::/48"
+        ];
       };
 
       # Samba share for /code (dev-optimized for Windows 11 client over Thunderbolt)
@@ -67,18 +54,8 @@
         };
       };
 
-      # RAS hardware error monitoring (EDAC/DIMM ECC, PCIe AER, CPU MCE)
-      rasdaemon.enable = true;
-
-      # Microsoft Intune enrollment (device compliance, identity broker,
-      # Defender for Endpoint, VPN)
-      intune = {
-        enable = true;
-        printer.user = "shijiazhang";
-      };
+      intune.printer.user = "shijiazhang";
     };
-
-    virtualization.podman.enable = true;
 
     users.codgi.passwordSecret = "codgi-password";
   };
@@ -98,21 +75,14 @@
     in
     {
       codgician.codgi = {
-        bilibili = {
-          enable = true;
-          gpuAcceleration = "nvidia";
-        };
-        codex.enable = true;
-        claude-code.enable = true;
+        bilibili.gpuAcceleration = "nvidia";
         dev.dotnet.enable = true;
-        oh-my-pi.defaultProfile = "github-copilot";
         github-copilot-cli.enable = true;
         git.directoryIdentities = {
           "/code/" = "work";
           "~/GitHub/" = "personal";
         };
         herdr = {
-          enable = true;
           desktop.enable = true;
           ovis = {
             enable = true;
@@ -122,31 +92,10 @@
         plasma = {
           scale = 1.5;
           krdp.enable = true;
-          launchers = [
-            "applications:org.kde.dolphin.desktop"
-            "applications:microsoft-edge.desktop"
-            "applications:org.kde.konsole.desktop"
-            "applications:code.desktop"
-            "applications:teams-for-linux.desktop"
-          ];
         };
 
         easyeffects.enable = true;
-        teams-for-linux.enable = true;
       };
-
-      # Set Microsoft Edge as default browser
-      xdg.mimeApps = {
-        enable = true;
-        defaultApplications = {
-          "text/html" = "microsoft-edge.desktop";
-          "x-scheme-handler/http" = "microsoft-edge.desktop";
-          "x-scheme-handler/https" = "microsoft-edge.desktop";
-          "x-scheme-handler/about" = "microsoft-edge.desktop";
-          "x-scheme-handler/unknown" = "microsoft-edge.desktop";
-        };
-      };
-      xdg.configFile."mimeapps.list".force = true;
 
       home.packages =
         with pkgs;

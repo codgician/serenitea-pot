@@ -1,45 +1,22 @@
 { pkgs, ... }:
 {
-  codgician = {
-    services = {
-      plasma.wallpaper =
-        (pkgs.fetchurl {
-          url = "https://media.githubusercontent.com/media/codgician/assets/refs/heads/main/images/wallpapers/genshin-luna-viii.jpg";
-          sha256 = "sha256-VjoCRP8AENaUlItKCn2751GY+WtF0ncwcBWYuJHmCWE=";
-        }).outPath;
-      rasdaemon.enable = true;
-      intune = {
-        enable = true;
-        printer = {
-          enable = true;
-          user = "shijiazhang";
-        };
-      };
-      sing-box = {
-        enable = true;
-        autoStart = false;
-        clients.ss-lumidouce.enable = true;
-        tun = {
-          enable = true;
-          routedRanges = [
-            "0.0.0.0/0"
-            "::/0"
-          ];
-        };
-      };
+  codgician.services = {
+    intune.printer = {
+      enable = true;
+      user = "shijiazhang";
     };
-
-    virtualization.podman.enable = true;
+    sing-box = {
+      autoStart = false;
+      tun.routedRanges = [
+        "0.0.0.0/0"
+        "::/0"
+      ];
+    };
   };
 
   home-manager.users.codgi = {
     codgician.codgi = {
-      bilibili = {
-        enable = true;
-        gpuAcceleration = "intel";
-      };
-      claude-code.enable = true;
-      codex.enable = true;
+      bilibili.gpuAcceleration = "intel";
       dev = {
         haskell.enable = true;
         rust.enable = true;
@@ -53,33 +30,8 @@
         };
         send-email.enable = true;
       };
-      herdr.enable = true;
-      oh-my-pi.defaultProfile = "github-copilot";
-      plasma = {
-        scale = 1.5;
-        launchers = [
-          "applications:org.kde.dolphin.desktop"
-          "applications:microsoft-edge.desktop"
-          "applications:org.kde.konsole.desktop"
-          "applications:code.desktop"
-          "applications:teams-for-linux.desktop"
-        ];
-      };
-      teams-for-linux.enable = true;
+      plasma.scale = 1.5;
     };
-
-    # Set Microsoft Edge as default browser
-    xdg.mimeApps = {
-      enable = true;
-      defaultApplications = {
-        "text/html" = "microsoft-edge.desktop";
-        "x-scheme-handler/http" = "microsoft-edge.desktop";
-        "x-scheme-handler/https" = "microsoft-edge.desktop";
-        "x-scheme-handler/about" = "microsoft-edge.desktop";
-        "x-scheme-handler/unknown" = "microsoft-edge.desktop";
-      };
-    };
-    xdg.configFile."mimeapps.list".force = true;
 
     # HP Elite Dragonfly Chromebook's ELAN touchpad. Plasma on Wayland
     # reads input settings from kcminputrc (via KWin/libinput), not from
