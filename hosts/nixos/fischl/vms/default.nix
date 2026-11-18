@@ -2,12 +2,6 @@
 {
   # libvirtd
   virtualisation.libvirtd = {
-    enable = true;
-    qemu.swtpm.enable = true;
-    onBoot = "start";
-    onShutdown = "shutdown";
-    allowedBridges = [ "vs0" ];
-    startDelay = 3;
     hooks.qemu = {
       "10-isolate-cpu" = lib.getExe (
         pkgs.writeShellApplication {
@@ -39,8 +33,6 @@
 
   # Virtual machines
   virtualisation.libvirt = {
-    enable = true;
-    swtpm.enable = true;
     connections."qemu:///system" = {
       domains = [
         {
@@ -67,9 +59,6 @@
     };
   };
 
-  # Add codgi to libvirtd group
-  codgician.users.codgi.extraGroups = [ "libvirtd" ];
-
   # Bridge network for virtual machines
   codgician.virtualization.vswitch = {
     enable = true;
@@ -79,16 +68,4 @@
     };
   };
   networking.interfaces.vs0.useDHCP = true;
-
-  # Impermanence for libvirt and swtpm state
-  codgician.system.impermanence.extraItems = [
-    {
-      type = "directory";
-      path = "/var/lib/libvirt";
-    }
-    {
-      type = "directory";
-      path = "/var/lib/swtpm-localca";
-    }
-  ];
 }

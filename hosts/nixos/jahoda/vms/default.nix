@@ -10,9 +10,7 @@
 
   # libvirtd
   virtualisation.libvirtd = {
-    enable = true;
     qemu = {
-      swtpm.enable = true;
       vhostUserPackages = with pkgs; [ virtiofsd ];
       verbatimConfig = ''
         cgroup_device_acl = [
@@ -23,10 +21,6 @@
         ]
       '';
     };
-    onBoot = "start";
-    onShutdown = "shutdown";
-    allowedBridges = [ "vs0" ];
-    startDelay = 3;
     hooks.qemu = {
       "10-isolate-cpu" = lib.getExe (
         pkgs.writeShellApplication {
@@ -58,8 +52,6 @@
 
   # Virtual machines
   virtualisation.libvirt = {
-    enable = true;
-    swtpm.enable = true;
     connections."qemu:///system" = {
       domains = [
         {
@@ -82,21 +74,6 @@
     };
   };
 
-  # Add codgi to libvirtd and kvm groups (kvm needed for /dev/kvmfr0 access)
-  codgician.users.codgi.extraGroups = [
-    "libvirtd"
-    "kvm"
-  ];
-
-  # Impermanence for libvirt and swtpm state
-  codgician.system.impermanence.extraItems = [
-    {
-      type = "directory";
-      path = "/var/lib/libvirt";
-    }
-    {
-      type = "directory";
-      path = "/var/lib/swtpm-localca";
-    }
-  ];
+  # kvm grants access to /dev/kvmfr0
+  codgician.users.codgi.extraGroups = [ "kvm" ];
 }

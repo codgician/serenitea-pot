@@ -3,6 +3,7 @@
   roles = [
     "desktop"
     "work"
+    "libvirt"
   ];
   modules = [
     (import ./disks.nix { })

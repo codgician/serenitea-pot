@@ -3,6 +3,7 @@
   roles = [
     "server"
     "hypervisor"
+    "libvirt"
   ];
   modules = [
     (import ./disks.nix { })
