@@ -92,6 +92,18 @@
       };
     };
 
+    "gpt-live-1" = {
+      model = {
+        format = "OpenAI";
+        name = "gpt-live-1";
+        version = "2026-09-10";
+      };
+      sku = {
+        name = "GlobalStandard";
+        capacity = 10;
+      };
+    };
+
     "gpt-image-2.5-flare" = {
       registry = {
         mode = "image_generation";
@@ -124,10 +136,10 @@
       };
     };
 
-    "decision-1" = {
+    "decision-1.1" = {
       model = {
         format = "Microsoft";
-        name = "Microsoft-Decision-1";
+        name = "Microsoft-Decision-1.1";
         version = "1";
       };
       sku = {
@@ -136,16 +148,33 @@
       };
     };
 
-    "mai-image-2.6" = {
+    "mai-image-2.7" = {
       registry = {
         provider = "azure_ai";
         mode = "image_generation";
-        baseModel = "azure_ai/MAI-Image-2.6";
+        baseModel = "azure_ai/MAI-Image-2.7";
       };
       model = {
         format = "Microsoft";
-        name = "MAI-Image-2.6";
-        version = "2026-07-31";
+        name = "MAI-Image-2.7";
+        version = "2026-11-02";
+      };
+      sku = {
+        name = "GlobalStandard";
+        capacity = 6;
+      };
+    };
+
+    "mai-image-2.7-flash" = {
+      registry = {
+        provider = "azure_ai";
+        mode = "image_generation";
+        baseModel = "azure_ai/MAI-Image-2.7-Flash";
+      };
+      model = {
+        format = "Microsoft";
+        name = "MAI-Image-2.7-Flash";
+        version = "2026-11-02";
       };
       sku = {
         name = "GlobalStandard";
