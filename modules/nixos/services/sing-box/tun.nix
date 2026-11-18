@@ -1,58 +1,14 @@
 { config, lib, ... }:
 let
-  cfg = config.codgician.services.sing-box;
-  tunCfg = cfg.tun;
-  inherit (lib) types;
+  tunCfg = config.codgician.services.sing-box.tun;
+  interfaceName = "tun0";
 in
 {
   options.codgician.services.sing-box.tun = {
-    enable = lib.mkEnableOption "TUN-based split routing for sing-box";
-
-    tag = lib.mkOption {
-      type = types.str;
-      default = "tun-in";
-      description = "Tag name for the TUN inbound.";
-    };
-
-    interfaceName = lib.mkOption {
-      type = types.str;
-      default = "tun0";
-      description = "Name of the TUN interface.";
-    };
-
-    mtu = lib.mkOption {
-      type = types.int;
-      default = 9000;
-      description = "MTU for the TUN interface.";
-    };
-
-    address = lib.mkOption {
-      type = with types; listOf str;
-      default = [
-        "172.19.0.1/30"
-        "fdfe:dcba:9876::1/126"
-      ];
-      description = "Addresses assigned to the TUN interface (CIDR notation).";
-    };
-
-    stack = lib.mkOption {
-      type = types.enum [
-        "system"
-        "gvisor"
-        "mixed"
-      ];
-      default = "system";
-      description = "Network stack for TUN. 'system' is most performant on Linux with capabilities.";
-    };
-
-    outbound = lib.mkOption {
-      type = types.str;
-      description = "Tag of the outbound to route matched traffic through.";
-      example = "outbound-hysteria2";
-    };
+    enable = lib.mkEnableOption "TUN-based split routing through the ss-lumidouce client";
 
     routedRanges = lib.mkOption {
-      type = with types; listOf str;
+      type = with lib.types; listOf str;
       default = [ ];
       description = "IP CIDR ranges to route through the proxy outbound.";
       example = [
@@ -68,11 +24,14 @@ in
       inbounds = [
         {
           type = "tun";
-          tag = tunCfg.tag;
-          interface_name = tunCfg.interfaceName;
-          address = tunCfg.address;
-          mtu = tunCfg.mtu;
-          stack = tunCfg.stack;
+          tag = "tun-in";
+          interface_name = interfaceName;
+          address = [
+            "172.19.0.1/30"
+            "fdfe:dcba:9876::1/126"
+          ];
+          mtu = 9000;
+          stack = "mixed";
           auto_route = true;
           strict_route = true;
           route_address = tunCfg.routedRanges;
@@ -84,7 +43,7 @@ in
         default_domain_resolver.server = "local";
         rules = lib.optional (tunCfg.routedRanges != [ ]) {
           ip_cidr = tunCfg.routedRanges;
-          outbound = tunCfg.outbound;
+          outbound = "outbound-ss-lumidouce";
         };
         auto_detect_interface = true;
       };
@@ -94,7 +53,7 @@ in
     # sing-box registers the TUN as default DNS route; this networkd unit
     # overrides that so only explicitly configured domains use TUN DNS.
     systemd.network.networks."50-sing-box-tun" = {
-      matchConfig.Name = tunCfg.interfaceName;
+      matchConfig.Name = interfaceName;
       linkConfig.RequiredForOnline = false;
       networkConfig = {
         DNSDefaultRoute = false;
@@ -109,7 +68,7 @@ in
     # The TUN is brought up by sing-box at runtime and held in "configuring"
     # by KeepConfiguration=yes, so it never reaches `configured`. Exclude it
     # from wait-online to avoid a 2-minute boot-time timeout failure.
-    systemd.network.wait-online.ignoredInterfaces = [ tunCfg.interfaceName ];
+    systemd.network.wait-online.ignoredInterfaces = [ interfaceName ];
 
     # Systemd capabilities for TUN
     systemd.services.sing-box.serviceConfig = {
@@ -124,12 +83,5 @@ in
         "CAP_NET_BIND_SERVICE"
       ];
     };
-
-    assertions = [
-      {
-        assertion = tunCfg.enable -> tunCfg.outbound != "";
-        message = "An outbound tag must be specified for TUN routing.";
-      }
-    ];
   };
 }

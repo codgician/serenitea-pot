@@ -38,7 +38,6 @@ in
         ];
         servers.shadowsocks = {
           enable = true;
-          port = 8444;
         };
       };
     };

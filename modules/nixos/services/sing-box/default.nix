@@ -27,12 +27,6 @@ in
       '';
     };
 
-    domain = lib.mkOption {
-      type = with types; nullOr str;
-      default = null;
-      description = "Domain for this sing-box server.";
-    };
-
     users = lib.mkOption {
       type = with lib.types; listOf str;
       default = [ ];
@@ -84,11 +78,6 @@ in
         isSystemUser = true;
       };
       groups.${group} = { };
-    };
-
-    # ACME
-    codgician.acme = lib.mkIf (cfg.domain != null) {
-      ${cfg.domain}.enable = true;
     };
 
     # Secrets

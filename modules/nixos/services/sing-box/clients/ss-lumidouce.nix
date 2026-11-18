@@ -1,27 +1,19 @@
 { config, lib, ... }:
 let
-  serviceName = "sing-box";
   profileName = "ss-lumidouce";
   secretName = "sing-ss-lumidouce-password";
-  cfg = config.codgician.services.${serviceName};
+  cfg = config.codgician.services.sing-box;
   clientCfg = cfg.clients.${profileName};
+  tag = "outbound-${profileName}";
 in
 {
-  options.codgician.services.${serviceName}.clients.${profileName} = {
-    enable = lib.mkEnableOption "${profileName} client for ${serviceName}";
+  options.codgician.services.sing-box.clients.${profileName} = {
+    enable = lib.mkEnableOption "${profileName} client for sing-box";
 
     bindInterface = lib.mkOption {
       type = with lib.types; nullOr str;
       default = null;
       description = "Network interface used for outbound connections.";
-    };
-
-    tag = lib.mkOption {
-      type = lib.types.str;
-      readOnly = true;
-      internal = true;
-      default = "outbound-${profileName}";
-      description = "Tag name for this outbound.";
     };
   };
 
@@ -30,7 +22,7 @@ in
       outbounds = [
         {
           type = "shadowsocks";
-          tag = clientCfg.tag;
+          inherit tag;
           server = "sz.codgician.me";
           server_port = 3391;
           method = "2022-blake3-aes-256-gcm";
@@ -44,23 +36,23 @@ in
       ];
 
       # The lumidouce router, reached through this outbound. DNS queries that
-      # enter a TUN routed through lumidouce resolve there as well.
+      # enter the TUN, which routes through lumidouce, resolve there as well.
       dns = {
         servers = [
           {
             type = "udp";
             tag = "dns-${profileName}";
             server = "192.168.0.1";
-            detour = clientCfg.tag;
+            detour = tag;
           }
         ];
-        final = lib.mkIf (cfg.tun.enable && cfg.tun.outbound == clientCfg.tag) "dns-${profileName}";
+        final = lib.mkIf cfg.tun.enable "dns-${profileName}";
       };
     };
 
     codgician.secrets.files.${secretName} = {
-      owner = serviceName;
-      group = serviceName;
+      owner = "sing-box";
+      group = "sing-box";
       mode = "0600";
     };
   };

@@ -4,7 +4,6 @@
     services = {
       sing-box = {
         enable = true;
-        domain = "${config.networking.hostName}.${lib.codgician.inventory.zone}";
         servers.hysteria2.enable = true;
       };
 
