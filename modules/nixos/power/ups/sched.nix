@@ -1,12 +1,5 @@
-{
-  config,
-  pkgs,
-  lib,
-  ...
-}:
-
+{ pkgs, lib }:
 let
-  cfg = config.codgician.power.ups;
   upssched-cmd = pkgs.writeShellApplication {
     name = "upssched-cmd";
     runtimeInputs = with pkgs; [
@@ -55,10 +48,7 @@ pkgs.writeText "upssched.conf" ''
   LOCKFN /var/lib/nut/upssched.lock
   AT ONBATT * EXECUTE onbatt
   AT ONLINE * EXECUTE online
-  ${lib.optionalString (cfg.sched.shutdownTimer > 0) ''
-    AT ONBATT * START-TIMER timeonbatt ${toString cfg.sched.shutdownTimer}
-    AT ONLINE * CANCEL-TIMER timeonbatt timeonline
-  ''}
+
   AT COMMBAD * EXECUTE upsgone
   AT NOCOMM * EXECUTE upsgone
   AT REPLBATT * EXECUTE replacebat

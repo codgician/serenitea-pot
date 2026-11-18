@@ -213,7 +213,6 @@
 
   # Connected to UPS
   codgician.power.ups.devices.br1500g = {
-    sku = "br1500g";
     batteryLow = 20;
   };
 
