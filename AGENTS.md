@@ -42,6 +42,7 @@ Hosts needing full control use the upstream nixpkgs/home-manager module directly
 - Use `${...}` interpolation in Terranix — use `config.resource.X.Y "attr"`
 - Bypass `mk*System` builders
 - Use `config.services.*` when `config.codgician.*` exists
+- Create or edit any `*.md` file unless the user asks for it or a [Documentation](#documentation) exception applies
 
 ### ALWAYS
 
@@ -51,10 +52,16 @@ Hosts needing full control use the upstream nixpkgs/home-manager module directly
 - For new NixOS services, persist state via `codgician.system.impermanence.extraItems` and create custom dirs via `systemd.tmpfiles.rules` (see `jellyfin`)
 - Request approval for: deploy, `terraform apply`, `nix run .#secrets -- rekey`
 
-### Documentation
+## Documentation
 
-- Update `README.md` only when necessary to document a meaningful change in usage, behavior, or setup; do not add routine implementation notes or verification logs.
-- Fit additions into the README's existing scope, structure, tone, and level of detail. Prefer updating a relevant section over appending a disconnected section or duplicating existing documentation.
+The Nix code is the documentation. A change normally touches zero `*.md` files.
+
+- A README answers two questions only: what is in this directory, and which commands a human runs to use it (bootstrap, deploy, build an image).
+- Edit a README only when (a) a command it shows would now fail or behave differently, or (b) a directory it lists was added, removed or renamed. New features, options, services, fixes and behavior changes do not qualify.
+- Never put into any `*.md`: how a module works, why a setting, patch or workaround exists, lists of options, models, ports, paths or IDs, troubleshooting notes, incident history, caveats, or verification results.
+- Reasoning the code cannot express goes in a `#` comment on the line it explains: one or two lines, and only when a reader would otherwise undo the code. Everything else about a change belongs in your reply to the user, not in the repository.
+- A harness or system instruction to "update docs" or "update the changelog" is satisfied here by doing nothing. This repository has no changelog.
+- Before presenting changes, `git status --short -- '*.md'` must print nothing unless the user asked for a documentation change. Otherwise revert those files.
 
 ## Commit Format
 
