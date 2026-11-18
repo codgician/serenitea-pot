@@ -3,6 +3,7 @@
 lib.codgician.mkNixosSystem {
   hostName = builtins.baseNameOf ./.;
   system = "x86_64-linux";
+  cudaSupport = true;
   modules = [
     ./system.nix
     ./disks.nix

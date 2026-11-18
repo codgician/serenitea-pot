@@ -69,8 +69,8 @@ in
     name = "reverse-proxy-routing";
     hostPkgs = pkgs;
     defaults = {
-      imports = lib.codgician.mkNixosModules system { };
-      nixpkgs.overlays = pkgs.overlays;
+      imports = lib.codgician.nixosModules;
+      nixpkgs.pkgs = pkgs;
       _module.args = {
         inherit inputs outputs system;
       };
@@ -80,7 +80,6 @@ in
       { lib, ... }:
       {
         imports = [ fixtureModule ];
-        nixpkgs.config.allowUnfree = true;
         users.users.root = {
           initialPassword = "root";
           hashedPasswordFile = lib.mkForce null;

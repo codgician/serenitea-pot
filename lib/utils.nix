@@ -15,42 +15,33 @@ rec {
     "aarch64-linux"
     "x86_64-linux"
   ];
-  isDarwinSystem = lib.hasSuffix "-darwin";
   isLinuxSystem = lib.hasSuffix "-linux";
   allSystems = darwinSystems ++ linuxSystems;
 
-  # Get package overlays
+  # Overlays applied to both the stable and the unstable package set
   getCommonOverlays =
     system:
     [
-      inputs.nur.overlays.default
+      (final: prev: { nur.repos.codgician = import inputs.nur-codgician { pkgs = prev; }; })
       inputs.nix-vscode-extensions.overlays.default
     ]
     ++ (lib.optional (isLinuxSystem system) inputs.proxmox-nixos.overlays.${system})
-    ++ [
-      (mkNixpkgsOverlay "master" system)
-      (mkNixpkgsOverlay "unstable" system)
-    ];
+    ++ [ (mkUnstableOverlay system) ];
 
-  # nixpkgs master no longer supports x86_64-darwin after 26.05. Keep that
-  # system on the release input while all supported systems continue on master.
-  mkNixpkgsOverlay =
-    branch: system: final: prev:
-    let
-      nixpkgs = if system == "x86_64-darwin" then inputs.nixpkgs else inputs."nixpkgs-${branch}";
-    in
-    {
-      "${branch}" = import nixpkgs {
-        inherit system;
-        config = {
-          allowUnfree = true;
-          # Inherit CUDA/ROCm config from the host's stable pkgs
-          cudaSupport = prev.config.cudaSupport or false;
-          rocmSupport = prev.config.rocmSupport or false;
-        };
-        overlays = getCommonOverlays system;
+  # nixpkgs unstable no longer supports x86_64-darwin after 26.05, so that
+  # system keeps resolving `pkgs.unstable` to the release input.
+  mkUnstableOverlay = system: final: prev: {
+    unstable = import (if system == "x86_64-darwin" then inputs.nixpkgs else inputs.nixpkgs-unstable) {
+      inherit system;
+      config = {
+        allowUnfree = true;
+        # Inherit CUDA/ROCm config from the stable package set
+        cudaSupport = prev.config.cudaSupport or false;
+        rocmSupport = prev.config.rocmSupport or false;
       };
+      overlays = getCommonOverlays system;
     };
+  };
 
   mkOverlays =
     system:
@@ -65,111 +56,69 @@ rec {
           outputs
           ;
       }
-    ) (with lib.codgician; getFolderPaths overlaysDir));
+    ) (with lib.codgician; getFolderPaths overlaysDir))
+    ++ [ inputs.nur-codgician.overlays.kernel-modules ];
 
-  # Make package universe
   mkPkgs =
-    system:
-    (import nixpkgs {
+    system: config:
+    import nixpkgs {
       inherit system;
       overlays = mkOverlays system;
-      config.allowUnfree = true;
-      flake.source = nixpkgs.outPath;
-    });
-
-  # Make home-manager module
-  mkHomeManagerModules =
-    {
-      home-manager ? inputs.home-manager,
-      modulesName,
-      sharedModules,
-    }:
-    [
-      (home-manager.${modulesName}.home-manager)
-      {
-        home-manager = {
-          useGlobalPkgs = true;
-          useUserPackages = true;
-          inherit sharedModules;
-        };
+      config = {
+        allowUnfree = true;
       }
-    ];
+      // config;
+    };
 
-  # All Darwin modules for building system
-  mkDarwinModules =
-    system:
-    {
-      home-manager ? inputs.home-manager,
-    }:
-    with inputs;
-    (mkHomeManagerModules {
-      inherit home-manager;
-      modulesName = "darwinModules";
-      sharedModules = [
-        # Home Manager modules
-      ];
-    })
-    ++ [
-      # Darwin modules
-      outputs.modules.darwin
-      sops-nix.darwinModules.sops
-    ];
+  # Every flake output takes its packages from these sets. Hosts receive them
+  # through `nixpkgs.pkgs`, so a host, its specialisations and the containers
+  # it embeds evaluate nixpkgs once instead of once each.
+  pkgsFor = lib.genAttrs allSystems (system: mkPkgs system { });
+  cudaPkgsFor = lib.genAttrs linuxSystems (system: mkPkgs system { cudaSupport = true; });
 
-  # All NixOS modules for building system
-  mkNixosModules =
-    system:
-    {
-      home-manager ? inputs.home-manager,
-    }:
+  homeManagerDefaults = sharedModules: {
+    home-manager = {
+      useGlobalPkgs = true;
+      useUserPackages = true;
+      inherit sharedModules;
+    };
+  };
+
+  # Modules imported by every Darwin host
+  darwinModules = with inputs; [
+    home-manager.darwinModules.home-manager
+    (homeManagerDefaults [ ])
+    outputs.modules.darwin
+    sops-nix.darwinModules.sops
+  ];
+
+  # Modules imported by every NixOS host
+  nixosModules =
     with inputs;
-    (mkHomeManagerModules {
-      inherit home-manager;
-      modulesName = "nixosModules";
-      sharedModules = [
-        # Home Manager modules
-        plasma-manager.homeModules.plasma-manager
-      ];
-    })
-    ++ [
-      # NixOS modules
+    [
+      home-manager.nixosModules.home-manager
+      (homeManagerDefaults [ plasma-manager.homeModules.plasma-manager ])
       outputs.modules.nixos
       impermanence.nixosModules.impermanence
       disko.nixosModules.disko
       noctalia.nixosModules.default
       sops-nix.nixosModules.sops
       lanzaboote.nixosModules.lanzaboote
-      nixos-generators.nixosModules.all-formats
       nixos-wsl.nixosModules.wsl
       nixvirt.nixosModules.default
       vscode-server.nixosModules.default
       proxmox-nixos.nixosModules.proxmox-ve
     ]
-    ++ (builtins.attrValues nur.legacyPackages."${system}".repos.codgician.modules);
-
-  # Base configs for all platforms
-  mkBaseConfig =
-    system: hostName:
-    { ... }:
-    {
-      networking.hostName = hostName;
-      nixpkgs = {
-        config.allowUnfree = true;
-        overlays = mkOverlays system;
-      };
-    };
+    ++ (builtins.attrValues nur-codgician.nixosModules);
 
   # Common configurations for macOS systems
   mkDarwinSystem =
     {
       hostName,
-      modules ? [ ],
       system,
-      stable ? true,
-      nix-darwin ? if stable then inputs.darwin else inputs.darwin-unstable,
-      home-manager ? if stable then inputs.home-manager else inputs.home-manager-unstable,
-      ...
+      modules ? [ ],
     }:
-    nix-darwin.lib.darwinSystem {
+    inputs.darwin.lib.darwinSystem {
       inherit system lib;
       specialArgs = {
         inherit
@@ -180,10 +129,13 @@ rec {
           ;
       };
       modules =
-        (lib.codgician.mkDarwinModules system { inherit home-manager; })
+        darwinModules
         ++ modules
         ++ [
-          (mkBaseConfig system hostName)
+          {
+            networking.hostName = hostName;
+            nixpkgs.pkgs = pkgsFor.${system};
+          }
         ];
     };
 
@@ -191,11 +143,9 @@ rec {
   mkNixosSystem =
     {
       hostName,
-      modules ? [ ],
       system,
-      stable ? true,
-      nixpkgs ? if stable then inputs.nixpkgs else inputs.nixpkgs-unstable,
-      home-manager ? if stable then inputs.home-manager else inputs.home-manager-unstable,
+      modules ? [ ],
+      cudaSupport ? false,
     }:
     nixpkgs.lib.nixosSystem {
       inherit system lib;
@@ -208,17 +158,18 @@ rec {
           ;
       };
       modules =
-        (lib.codgician.mkNixosModules system { inherit home-manager; })
+        nixosModules
         ++ modules
         ++ [
-          (mkBaseConfig system hostName)
+          {
+            networking.hostName = hostName;
+            nixpkgs.pkgs = (if cudaSupport then cudaPkgsFor else pkgsFor).${system};
+          }
         ];
     };
 
-  # Generate attribution set for specified systems
-  pkgsFor = lib.genAttrs allSystems mkPkgs;
+  # Generate attribute set for specified systems
   forSystems = systems: func: lib.genAttrs systems (system: func pkgsFor.${system});
   forAllSystems = forSystems allSystems;
-  forDarwinSystems = forSystems darwinSystems;
   forLinuxSystems = forSystems linuxSystems;
 }

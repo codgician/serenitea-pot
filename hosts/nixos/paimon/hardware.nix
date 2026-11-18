@@ -138,9 +138,6 @@
   # Load nvidia driver for Xorg and Wayland
   services.xserver.videoDrivers = [ "nvidia" ];
 
-  # CUDA support for nixpkgs
-  nixpkgs.config.cudaSupport = true;
-
   hardware.nvidia = {
     modesetting.enable = true;
     powerManagement.enable = true;

@@ -13,8 +13,8 @@ let
   fixtures = ./fixtures;
 
   commonDefaults = {
-    imports = lib.codgician.mkNixosModules system { };
-    nixpkgs.overlays = pkgs.overlays;
+    imports = lib.codgician.nixosModules;
+    nixpkgs.pkgs = pkgs;
     _module.args = {
       inherit inputs outputs system;
     };
@@ -23,8 +23,6 @@ let
   machine =
     { lib, config, ... }:
     {
-      nixpkgs.config.allowUnfree = true;
-
       # Point sops-nix at the throwaway fixture key as a NIX STORE PATH. The
       # store is mounted read-only at every activation phase, so the key is
       # available even during the early `setupSecretsForUsers` step (which runs

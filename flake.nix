@@ -21,17 +21,12 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs-master.url = "github:NixOS/nixpkgs/master";
     llm-agents = {
       url = "github:numtide/llm-agents.nix";
       inputs = {
         flake-parts.follows = "flake-parts";
         nixpkgs.follows = "nixpkgs-unstable";
       };
-    };
-    nixos-generators = {
-      url = "github:nix-community/nixos-generators";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     flake-compat = {
@@ -55,19 +50,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    darwin-unstable = {
-      url = "github:lnl7/nix-darwin";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
-
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    home-manager-unstable = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
     noctalia.url = "github:noctalia-dev/noctalia/cachix";
@@ -106,12 +91,9 @@
       };
     };
 
-    nur = {
-      url = "github:nix-community/NUR";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        flake-parts.follows = "flake-parts";
-      };
+    nur-codgician = {
+      url = "github:codgician/nur-packages";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     lanzaboote = {
@@ -211,10 +193,11 @@
       );
 
       # Packages: `nix build .#pkgName`
-      packages = lib.codgician.forAllSystems (
-        pkgs:
+      packages = lib.genAttrs lib.codgician.allSystems (
+        system:
         import ./packages {
-          inherit lib pkgs inputs;
+          inherit lib inputs system;
+          pkgs = lib.codgician.pkgsFor.${system};
           outputs = self;
         }
       );

@@ -70,8 +70,8 @@ in
     name = "rescue";
     hostPkgs = pkgs;
     defaults = {
-      imports = lib.codgician.mkNixosModules system { };
-      nixpkgs.overlays = pkgs.overlays;
+      imports = lib.codgician.nixosModules;
+      nixpkgs.pkgs = pkgs;
       _module.args = {
         inherit inputs outputs system;
       };
@@ -84,7 +84,6 @@ in
           revision = "test";
         })
       ];
-      nixpkgs.config.allowUnfree = true;
       virtualisation = {
         memorySize = 2048;
         # vdb: fixture ESP + root pool, vdc: fixture data,

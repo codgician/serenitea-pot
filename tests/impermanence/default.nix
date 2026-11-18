@@ -12,8 +12,8 @@ let
   system = pkgs.stdenv.hostPlatform.system;
 
   commonDefaults = {
-    imports = lib.codgician.mkNixosModules system { };
-    nixpkgs.overlays = pkgs.overlays;
+    imports = lib.codgician.nixosModules;
+    nixpkgs.pkgs = pkgs;
     _module.args = {
       inherit inputs outputs system;
     };
@@ -22,8 +22,6 @@ let
   machineBase =
     { lib, pkgs, ... }:
     {
-      nixpkgs.config.allowUnfree = true;
-
       users.users.root = {
         initialPassword = "root";
         hashedPasswordFile = lib.mkForce null;
@@ -72,8 +70,6 @@ let
   btrfsMachineBase =
     { lib, pkgs, ... }:
     {
-      nixpkgs.config.allowUnfree = true;
-
       users.users.root = {
         initialPassword = "root";
         hashedPasswordFile = lib.mkForce null;
