@@ -79,9 +79,11 @@ in
       # RAS hardware error monitoring (EDAC/DIMM ECC, PCIe AER, CPU MCE)
       rasdaemon.enable = true;
 
-      # Microsoft Intune enrollment (device compliance, identity broker, VPN)
+      # Microsoft Intune enrollment (device compliance, identity broker,
+      # Defender for Endpoint, VPN)
       intune = {
         enable = true;
+        mdatp.enable = true;
         vpn.enable = true;
       };
     };

@@ -366,6 +366,13 @@ let
       ];
       users = with users; [ codgi ];
     };
+    mdatp-onboard = {
+      hosts = with hosts; [
+        jahoda
+        odette
+      ];
+      users = with users; [ codgi ];
+    };
     meshcentral-oidc-secret-authelia-main = {
       hosts = with hosts; [ fischl ];
       users = with users; [ codgi ];

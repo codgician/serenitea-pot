@@ -20,7 +20,10 @@ let
   } (builtins.readFile ./register-device.py);
 in
 {
-  imports = [ ./vpn.nix ];
+  imports = [
+    ./mdatp.nix
+    ./vpn.nix
+  ];
 
   options.codgician.services.intune = {
     enable = lib.mkEnableOption "Microsoft Intune enrollment (identity broker, Intune daemon/agent, and compliance tooling)";

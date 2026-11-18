@@ -15,6 +15,7 @@ in
       rasdaemon.enable = true;
       intune = {
         enable = true;
+        mdatp.enable = true;
         vpn.enable = true;
       };
       sing-box = {
