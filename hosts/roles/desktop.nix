@@ -14,7 +14,10 @@ in
       plasma.enable = true;
     };
 
-    system.common.audio.enable = true;
+    system = {
+      common.audio.enable = true;
+      secure-boot.enable = lib.mkDefault true;
+    };
   };
 
   home-manager.users.codgi.codgician.codgi = {
@@ -44,6 +47,11 @@ in
   networking.useNetworkd = false;
   networking.networkmanager.enable = true;
   networking.firewall.enable = false;
+
+  security.tpm2 = {
+    enable = true;
+    pkcs11.enable = true;
+  };
 
   # Already set by the common module; the second definition repeats both
   # entries in nix.conf.

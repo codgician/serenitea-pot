@@ -116,11 +116,5 @@
     v4l-utils
   ];
 
-  # tpm2# TPM
-  security.tpm2 = {
-    enable = true;
-    pkcs11.enable = true;
-  };
-
   hardware.enableRedistributableFirmware = true;
 }

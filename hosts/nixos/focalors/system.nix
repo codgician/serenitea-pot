@@ -7,10 +7,7 @@
         sha256 = "1n8ckyhkbsadilwx171kyw44ivp0z7dhz837p1f5jy3zh811bab6";
       }).outPath;
 
-    system = {
-      common.inChina = true;
-      secure-boot.enable = true;
-    };
+    system.common.inChina = true;
   };
 
   home-manager.users.codgi = {

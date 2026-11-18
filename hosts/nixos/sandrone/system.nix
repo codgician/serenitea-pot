@@ -1,6 +1,9 @@
 { pkgs, ... }:
 {
-  codgician.system.common.inChina = true;
+  codgician.system = {
+    common.inChina = true;
+    secure-boot.enable = false;
+  };
 
   home-manager.users.codgi = {
     codgician.codgi = {

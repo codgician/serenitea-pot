@@ -29,8 +29,6 @@
       };
     };
 
-    system.secure-boot.enable = true;
-
     virtualization.podman.enable = true;
   };
 

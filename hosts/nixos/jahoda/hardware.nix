@@ -113,12 +113,6 @@
     package = config.boot.kernelPackages.nvidiaPackages.production;
   };
 
-  # TPM
-  security.tpm2 = {
-    enable = true;
-    pkcs11.enable = true;
-  };
-
   # Thunderbolt Ethernet - static IP for direct connection
   systemd.network.enable = true;
 
