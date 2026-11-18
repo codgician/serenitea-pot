@@ -81,7 +81,6 @@ in
         patch = ./kernel/hid-multitouch-redrix-recalibrate.patch;
       }
     ];
-    zfs.package = pkgs.zfs_unstable;
     supportedFilesystems = [ "vfat" ];
   };
 
