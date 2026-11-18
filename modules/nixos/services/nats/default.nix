@@ -4,17 +4,7 @@ let
   websocketPort = 9222;
 in
 {
-  options.codgician.services.nats = {
-    enable = lib.mkEnableOption "authenticated NATS terminal relay";
-
-    openFirewall = lib.mkEnableOption "opening firewall for the NATS WebSocket listener";
-
-    host = lib.mkOption {
-      type = lib.types.str;
-      default = "127.0.0.1";
-      description = "IP address for the authenticated plaintext WebSocket listener.";
-    };
-  };
+  options.codgician.services.nats.enable = lib.mkEnableOption "authenticated NATS terminal relay";
 
   config = lib.mkIf cfg.enable {
     services.nats = {
@@ -26,7 +16,7 @@ in
         jetstream = lib.mkForce false;
         host = "127.0.0.1";
         websocket = {
-          host = cfg.host;
+          host = "0.0.0.0";
           port = websocketPort;
           # Application payloads remain end-to-end encrypted over plaintext WebSocket.
           no_tls = true;
@@ -55,7 +45,7 @@ in
       };
     };
 
-    networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [ websocketPort ];
+    networking.firewall.allowedTCPPorts = [ websocketPort ];
 
     systemd.services.nats = {
       wants = [ "network-online.target" ];
