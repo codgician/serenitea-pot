@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ ... }:
 
 final: prev:
 let
@@ -33,16 +33,13 @@ in
     ollama-cuda
     ollama-rocm
     ollama-vulkan
-    docling
     docling-serve
     litellm
     ;
+
+  ollama = adapt prev.unstable.ollama;
 
   pythonPackagesExtensions = (prev.pythonPackagesExtensions or [ ]) ++ [
     pythonUnstableExtension
   ];
 }
-// (lib.genAttrs [
-  "ollama"
-  "llama-cpp"
-] (name: adapt prev.unstable.${name}))

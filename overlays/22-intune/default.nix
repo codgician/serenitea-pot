@@ -133,7 +133,7 @@ in
     '';
   };
 
-  inherit intune-portal-unwrapped fakeUbuntuOsRelease mdatp-unwrapped;
+  inherit fakeUbuntuOsRelease;
 
   mdatp =
     prev.runCommand "mdatp-${mdatp-unwrapped.version}"
