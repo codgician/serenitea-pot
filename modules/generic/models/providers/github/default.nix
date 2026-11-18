@@ -5,7 +5,7 @@
   ...
 }:
 let
-  data = builtins.fromJSON (builtins.readFile ./models.json);
+  data = lib.importJSON ./models.json;
   modelName =
     id:
     if id == "mai-code-1-flash-picker" then
@@ -20,8 +20,6 @@ let
     lib.mapAttrs' (id: spec: lib.nameValuePair (modelName id) (spec // { path = id; })) data;
 in
 {
-  description = "GitHub Copilot models";
-  modelType = modelLib.generatedModelType;
   provider = {
     transformer = modelLib.mkGeneratedModel {
       modelPrefix = "github_copilot";

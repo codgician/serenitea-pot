@@ -1,7 +1,5 @@
 { modelLib, ... }:
 {
-  description = "xAI models";
-  modelType = modelLib.basicModelType;
   provider = {
     transformer = modelLib.mkModel {
       modelPrefix = "xai";

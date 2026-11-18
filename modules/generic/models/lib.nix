@@ -1,33 +1,19 @@
 { lib }:
 let
-  inherit (lib) mkOption types;
+  modelDefaults = {
+    aliases = [ ];
+    mode = "chat";
+    variants = { };
+    reasoningEfforts = [ ];
+  };
 
-  commonOptions = {
-    aliases = mkOption {
-      type = types.listOf types.str;
-      default = [ ];
-      description = "Alternative names for this model";
-    };
-    mode = mkOption {
-      type = types.str;
-      default = "chat";
-      description = "Model mode (chat, image_generation, embedding, etc.)";
-    };
-    variants = mkOption {
-      type = types.attrsOf (types.attrsOf types.anything);
-      default = { };
-      description = "Model variants (e.g., reasoning effort levels)";
-    };
-    reasoningEfforts = mkOption {
-      type = types.listOf types.str;
-      default = [ ];
-      description = "Reasoning effort levels supported by the provider";
-    };
-    path = mkOption {
-      type = types.nullOr types.str;
-      default = null;
-      description = "Provider-local model path override; defaults to the model name.";
-    };
+  generatedDefaults = modelDefaults // {
+    contextWindow = null;
+    maxInputTokens = null;
+    maxOutputTokens = null;
+    cost = null;
+    supportedEndpoints = [ ];
+    supports = [ ];
   };
 
   generatedCostInfo =
@@ -94,65 +80,6 @@ let
     };
 in
 rec {
-  inherit commonOptions;
-
-  basicModelType = types.submodule {
-    options = commonOptions;
-  };
-
-  generatedModelType = types.submodule {
-    options = commonOptions // {
-      contextWindow = mkOption {
-        type = types.nullOr types.int;
-        default = null;
-      };
-      maxInputTokens = mkOption {
-        type = types.nullOr types.int;
-        default = null;
-      };
-      maxOutputTokens = mkOption {
-        type = types.nullOr types.int;
-        default = null;
-      };
-      cost = mkOption {
-        type = types.nullOr types.attrs;
-        default = null;
-      };
-      supportedEndpoints = mkOption {
-        type = types.listOf types.str;
-        default = [ ];
-      };
-      supports = mkOption {
-        type = types.listOf (
-          types.enum [
-            "toolCalls"
-            "parallelToolCalls"
-            "structuredOutputs"
-            "vision"
-            "reasoning"
-          ]
-        );
-        default = [ ];
-      };
-    };
-  };
-
-  mkProviderType =
-    modelType:
-    types.submodule {
-      options = {
-        transformer = mkOption {
-          type = types.raw;
-          description = "Function that transforms a model spec into a registry entry";
-        };
-        models = mkOption {
-          type = types.attrsOf modelType;
-          default = { };
-          description = "Model definitions for this provider";
-        };
-      };
-    };
-
   mkModel =
     {
       modelPrefix,
@@ -161,7 +88,11 @@ rec {
       extraParams ? { },
       extraModelInfo ? { },
     }:
-    name: spec: {
+    name: attrs:
+    let
+      spec = modelDefaults // attrs;
+    in
+    {
       inherit (spec) aliases mode variants;
       reasoningEfforts = lib.unique (spec.reasoningEfforts ++ builtins.attrNames spec.variants);
       litellmModelInfo = {
@@ -169,7 +100,7 @@ rec {
       }
       // extraModelInfo;
       litellmParams = {
-        model = "${modelPrefix}/${if spec.path != null then spec.path else name}";
+        model = "${modelPrefix}/${spec.path or name}";
       }
       // lib.optionalAttrs (apiKeyEnv != null) { api_key = "os.environ/${apiKeyEnv}"; }
       // extraParams;
@@ -183,7 +114,10 @@ rec {
       extraParams ? { },
       tags,
     }:
-    name: spec:
+    name: attrs:
+    let
+      spec = generatedDefaults // attrs;
+    in
     (mkModel {
       inherit
         modelPrefix

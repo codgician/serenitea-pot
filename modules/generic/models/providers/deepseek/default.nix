@@ -13,8 +13,6 @@ let
   };
 in
 {
-  description = "DeepSeek models";
-  modelType = modelLib.basicModelType;
   provider = {
     transformer = modelLib.mkModel {
       modelPrefix = "deepseek";

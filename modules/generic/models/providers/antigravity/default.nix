@@ -6,11 +6,6 @@ let
   # LiteLLM has no date-based pricing, so update these on those dates.
   definitions = {
     "gemini-4-argon" = {
-      routes = {
-        low = "gemini-4-argon-low";
-        medium = "gemini-4-argon-medium";
-        high = "gemini-4-argon-high";
-      };
       maxOutputTokens = 65536;
       cost = {
         input = 2;
@@ -20,11 +15,6 @@ let
       };
     };
     "gemini-4-carbon" = {
-      routes = {
-        low = "gemini-4-carbon-low";
-        medium = "gemini-4-carbon-medium";
-        high = "gemini-4-carbon-high";
-      };
       maxOutputTokens = 262144;
       cost = {
         input = 2;
@@ -34,11 +24,6 @@ let
       };
     };
     "gemini-3.8-flash" = {
-      routes = {
-        low = "gemini-3.8-flash-low";
-        medium = "gemini-3.8-flash-medium";
-        high = "gemini-3.8-flash-high";
-      };
       maxOutputTokens = 65536;
       cost = {
         input = 0.75;
@@ -58,10 +43,14 @@ let
       };
     };
   };
+
+  # Reasoning effort -> upstream SKU; one SKU per effort unless listed above.
+  routesFor =
+    name:
+    definitions.${name}.routes
+      or (lib.genAttrs [ "low" "medium" "high" ] (effort: "${name}-${effort}"));
 in
 {
-  description = "Gemini models through the Antigravity subscription";
-  modelType = modelLib.generatedModelType;
   provider = {
     transformer =
       name: spec:
@@ -84,17 +73,17 @@ in
           # Explicit prices above still take precedence for spend.
           base_model = "gemini/${name}";
           reasoning_effort_levels = spec.reasoningEfforts;
-          antigravity.routes = definitions.${name}.routes;
+          antigravity.routes = routesFor name;
         };
       };
     models = lib.mapAttrs (
-      _: definition:
+      name: definition:
       removeAttrs definition [ "routes" ]
       // {
         contextWindow = 1048576;
         maxInputTokens = 1048576;
-        reasoningEfforts = builtins.attrNames definition.routes;
-        variants = lib.mapAttrs (reasoningEffort: _: { inherit reasoningEffort; }) definition.routes;
+        reasoningEfforts = builtins.attrNames (routesFor name);
+        variants = lib.mapAttrs (reasoningEffort: _: { inherit reasoningEffort; }) (routesFor name);
         supports = [
           "vision"
           "reasoning"
