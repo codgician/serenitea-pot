@@ -1,12 +1,13 @@
 # Facts that more than one host, module or flake output reads.
 # Plain data: no `pkgs`, no module system. `lib/inventory.nix` holds the
 # schema that documents and checks every key, and derives the edge's vhosts,
-# the DNS records and the Authelia rules.
+# the DNS records, the Authelia rules and the members of the WireGuard mesh.
 rec {
   zone = "codgician.me";
   mail = "bot@${zone}";
 
-  # Host that owns every public name below and proxies it to its backend
+  # Host that owns the public names below, unless they are `direct`, and
+  # proxies them to their backends
   edge = "lumine";
 
   # Service that is the Authelia portal

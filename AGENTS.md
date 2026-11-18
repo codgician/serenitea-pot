@@ -32,19 +32,24 @@ What a host runs: the `enable` lines in its files, its roles, and the services p
 - `zone`, `mail`: the DNS zone and the address all services send mail from
 - `edge`: the host that owns every public name and proxies it to its backend
 - `authelia`: the name of the service that is the Authelia portal
-- `hosts.<name>`: only the edge and hosts that services run on. `lan` and `pve` are the addresses other hosts reach them at; an entry may be `{ }`. A host's `system` and `roles` are in its manifest, not here
-- `services.<name>`: one entry per public name `<subdomain>.<zone>`; `<name>` is also the name of the service's module and vhost. Every entry gets a CNAME to the edge
+- `hosts.<name>`: hosts of this flake that other machines refer to (the edge, hosts that services run on, members of the WireGuard mesh); an entry may be `{ }`. A host's `system` and `roles` are in its manifest, not here
+  - `lan`, `pve`: the addresses other hosts reach it at
+  - `public = true`: the internet reaches it at `<name>.<zone>`
+  - `wireguard`: its membership of the mesh. `ipv4`, `ipv6` (its addresses inside the mesh) and `publicKey` are required; `port` is where it listens, omitted for a member that only dials out; `routes` are the networks behind it
+- `peers.<name>`: machines this flake does not build that its hosts connect to. `wireguard` is required and has the keys it has for a host; `subdomain` is the label under the zone the peer is reached at
+- `services.<name>`: one entry per public name `<subdomain>.<zone>`; `<name>` is also the name of the service's module and vhost. Every entry gets a CNAME to the edge unless it is `direct`
   - `subdomain`: defaults to `<name>`
   - `host`: the inventory host the service runs on. The `enable` option of the service's module defaults to true there and to false everywhere else
   - `port`: loopback port of the backend on `host`; omit it for a unix socket
   - `address`: `lan` (default) or `pve`, the address of `host` the edge connects to
   - `upstream`: URL of a backend that no host here runs, instead of `host`; the edge proxies straight to it
+  - `direct = true`: the name resolves to `host` itself, which must be `public`. The edge gets no vhost and no CNAME for it; its record is written next to the host's (see `records/turn.nix`)
   - `dnsOnly = true`: the name resolves to the edge, but the edge does not proxy it
   - `authelia`: unset means no login. `authelia.users` / `authelia.groups` require an Authelia session and add the rule that admits only those subjects; `authelia.anyone = true` requires a session of any user. Setting `authelia` without subjects or `anyone` is an error. The vhost next to the backend enforces it (on `host`; on the edge for `upstream`)
   - `anubis = true`: the edge puts Anubis in front
   - `edgeVhost`: name of the edge's vhost when it must differ from `<name>`; exists only to keep lumine's nginx.conf order
   - neither `host` nor `upstream`: the entry only reserves the name
-- Derived: `published.services.<name>` (the entry with defaults, plus `domain`, `localUpstream` and `fronted`), `published.autheliaUrl`, `runsOn <host> <name>`, `fronts <host> <name>`, `edgeVhostsFor <host>`, `autheliaRules`, `dnsNames`
+- Derived: `published.hosts.<name>` (the entry with defaults, plus `domain`, which is null unless the host is public), `published.wireguard.<name>` (every member of the mesh, host or peer, plus the `domain` of its endpoint), `published.services.<name>` (the entry with defaults, plus `domain`, `localUpstream` and `fronted`), `published.autheliaUrl`, `runsOn <host> <name>`, `fronts <host> <name>`, `edgeVhostsFor <host>`, `autheliaRules`, `dnsNames`
 
 ## Module Options
 
@@ -89,7 +94,7 @@ A service with an entry in `inventory.nix` `services` (see `jellyfin` for the sm
 - Write raw `.tf` files — use Terranix Nix expressions
 - Use `${...}` interpolation in Terranix — use `config.resource.X.Y "attr"`
 - Bypass `mk*System` builders, or list hosts anywhere but as folders under `hosts/`
-- Type the address of an inventory host, the zone, the mail address or the domain of a published service in new code; read `lib.codgician.inventory` / `lib.codgician.published`. Still literal today: the WireGuard peer files, the `ss-lumidouce` sing-box client, the Home Manager ssh config, the vllm model provider and `records/turn.nix`
+- Type the address of an inventory host, the zone, the mail address, the domain of a published service or a fact about a WireGuard member in new code; read `lib.codgician.inventory` / `lib.codgician.published`. Still literal today: the `ss-lumidouce` sing-box client, `secrets/templates/open-webui-env.nix`, the contact address in `celestia/budget.nix`, the fixture zone in `tests/reverse-proxy` and the cache URL in `flake.nix`, which `nixConfig` cannot compute
 - Use `config.services.*` when `config.codgician.*` exists
 - Create or edit any `*.md` file unless the user asks for it or a [Documentation](#documentation) exception applies
 
