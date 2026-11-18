@@ -56,7 +56,7 @@ rec {
           outputs
           ;
       }
-    ) (with lib.codgician; getFolderPaths overlaysDir))
+    ) (lib.codgician.getFolderPaths ../overlays))
     ++ [ inputs.nur-codgician.overlays.kernel-modules ];
 
   mkPkgs =

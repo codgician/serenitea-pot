@@ -1,10 +1,1 @@
-args@{ lib, ... }:
-let
-  shellNames = lib.codgician.getFolderNames ./.;
-in
-builtins.listToAttrs (
-  builtins.map (name: {
-    inherit name;
-    value = import ./${name} args;
-  }) shellNames
-)
+args@{ lib, ... }: lib.genAttrs (lib.codgician.getFolderNames ./.) (name: import ./${name} args)
