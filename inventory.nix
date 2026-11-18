@@ -4,51 +4,20 @@
 rec {
   zone = "codgician.me";
 
-  # system:      decides the class (NixOS or nix-darwin) and the package set
-  # cudaSupport: build the package set with CUDA
-  # roles:       modules from hosts/roles shared with other hosts
-  # lan, pve:    addresses other hosts use to reach this one
+  # Hosts that services below run on, and the addresses other hosts reach
+  # them at. What only the host itself needs (system, roles) is in the
+  # manifest `hosts/<class>/<name>/default.nix`.
+  #
+  # lan: address on the home LAN
+  # pve: address of the Proxmox VE management bridge
   hosts = {
-    fischl.system = "x86_64-linux";
-    focalors = {
-      system = "aarch64-linux";
-      roles = [ "desktop" ];
-    };
-    furina.system = "aarch64-darwin";
-    jahoda = {
-      system = "x86_64-linux";
-      roles = [ "desktop" ];
-    };
-    lumine = {
-      system = "aarch64-linux";
-      roles = [ "edge" ];
-    };
-    nahida = {
-      system = "x86_64-linux";
-      cudaSupport = true;
-      lan = "192.168.0.23";
-    };
-    odette = {
-      system = "x86_64-linux";
-      roles = [ "desktop" ];
-    };
+    fischl = { };
+    lumine = { };
+    nahida.lan = "192.168.0.23";
     paimon = {
-      system = "x86_64-linux";
-      cudaSupport = true;
       lan = "192.168.0.22";
       pve = "192.168.0.21";
     };
-    raiden-ei.system = "x86_64-darwin";
-    sandrone = {
-      system = "aarch64-linux";
-      roles = [ "desktop" ];
-    };
-    wanderer.system = "x86_64-linux";
-    xianyun = {
-      system = "x86_64-linux";
-      roles = [ "edge" ];
-    };
-    zibai.system = "x86_64-linux";
   };
 
   # Everything reachable as `<subdomain>.<zone>`; the attribute name is the

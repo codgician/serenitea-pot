@@ -2,42 +2,56 @@
 
 let
   inherit (outputs) lib;
-  inherit (lib.codgician) inventory;
 
-  classOf = host: if lib.hasSuffix "-darwin" host.system then "darwin" else "nixos";
-  hostsOf = class: lib.filterAttrs (_: host: classOf host == class) inventory.hosts;
+  # A host folder's `default.nix` is its manifest: `system`, the ordered
+  # `modules` list (order decides how list options merge), `roles` shared with
+  # other hosts and, on NixOS, `cudaSupport`.
+  manifestKeys = [
+    "system"
+    "cudaSupport"
+    "roles"
+    "modules"
+  ];
 
-  # A host is the module list in its directory's `default.nix`, followed by
-  # the roles shared with other hosts: `common`, its class, and those the
-  # inventory assigns.
-  modulesFor =
-    class: name: host:
-    import (./. + "/${class}/${name}")
-    ++ map (role: ./roles + "/${role}.nix") (
-      [
-        "common"
-        class
-      ]
-      ++ host.roles or [ ]
+  roleModule =
+    where: role:
+    let
+      path = ./roles + "/${role}.nix";
+    in
+    if builtins.pathExists path then
+      path
+    else
+      throw "${where}: unknown role \"${role}\"; hosts/roles has no ${role}.nix";
+
+  mkHosts =
+    class: mkSystem:
+    lib.genAttrs (lib.codgician.getFolderNames (./. + "/${class}")) (
+      hostName:
+      let
+        where = "hosts/${class}/${hostName}";
+        host = import (./. + "/${class}/${hostName}");
+        unknown = lib.attrNames (removeAttrs host manifestKeys);
+      in
+      assert lib.assertMsg (unknown == [ ]) "${where}: unknown manifest attributes: ${toString unknown}";
+      mkSystem (
+        removeAttrs host [ "roles" ]
+        // {
+          inherit hostName;
+          # Every host gets `common` and the role of its class.
+          modules =
+            host.modules
+            ++ map (roleModule where) (
+              [
+                "common"
+                class
+              ]
+              ++ host.roles or [ ]
+            );
+        }
+      )
     );
 in
 {
-  darwinConfigurations = lib.mapAttrs (
-    name: host:
-    lib.codgician.mkDarwinSystem {
-      hostName = name;
-      inherit (host) system;
-      modules = modulesFor "darwin" name host;
-    }
-  ) (hostsOf "darwin");
-
-  nixosConfigurations = lib.mapAttrs (
-    name: host:
-    lib.codgician.mkNixosSystem {
-      hostName = name;
-      inherit (host) system;
-      cudaSupport = host.cudaSupport or false;
-      modules = modulesFor "nixos" name host;
-    }
-  ) (hostsOf "nixos");
+  darwinConfigurations = mkHosts "darwin" lib.codgician.mkDarwinSystem;
+  nixosConfigurations = mkHosts "nixos" lib.codgician.mkNixosSystem;
 }
