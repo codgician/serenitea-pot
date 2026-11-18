@@ -6,22 +6,11 @@
 }:
 let
   cfg = config.codgician.codgi.bilibili;
-  gpuFeatures =
-    if cfg.gpuAcceleration == "nvidia" then
-      "AcceleratedVideoDecodeLinuxGL,AcceleratedVideoDecodeLinuxZeroCopyGL,VaapiOnNvidiaGPUs,VaapiIgnoreDriverChecks,PlatformHEVCDecoderSupport"
-    else
-      "AcceleratedVideoDecodeLinuxGL,AcceleratedVideoDecodeLinuxZeroCopyGL,VaapiVideoDecoder,VaapiIgnoreDriverChecks,PlatformHEVCDecoderSupport";
+  vaapiFeature = if cfg.gpuAcceleration == "nvidia" then "VaapiOnNvidiaGPUs" else "VaapiVideoDecoder";
 in
 {
   options.codgician.codgi.bilibili = {
     enable = lib.mkEnableOption "Bilibili desktop client";
-
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.bilibili;
-      defaultText = lib.literalExpression "pkgs.bilibili";
-      description = "The Bilibili package to install.";
-    };
 
     gpuAcceleration = lib.mkOption {
       type =
@@ -37,12 +26,12 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ cfg.package ];
+    home.packages = [ pkgs.bilibili ];
 
     xdg.configFile = lib.optionalAttrs (cfg.gpuAcceleration != null) {
       "bilibili/bilibili-flags.conf".text = ''
         --ignore-gpu-blocklist
-        --enable-features=${gpuFeatures}
+        --enable-features=AcceleratedVideoDecodeLinuxGL,AcceleratedVideoDecodeLinuxZeroCopyGL,${vaapiFeature},VaapiIgnoreDriverChecks,PlatformHEVCDecoderSupport
         --enable-gpu-rasterization
         --enable-zero-copy
         --disable-gpu-sandbox

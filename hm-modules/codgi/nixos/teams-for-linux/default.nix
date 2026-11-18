@@ -4,25 +4,13 @@
   pkgs,
   ...
 }:
-let
-  cfg = config.codgician.codgi."teams-for-linux";
-in
 {
-  options.codgician.codgi."teams-for-linux" = {
-    enable = lib.mkEnableOption "teams-for-linux (Microsoft Teams for Linux)";
+  options.codgician.codgi."teams-for-linux".enable =
+    lib.mkEnableOption "teams-for-linux (Microsoft Teams for Linux)";
 
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.teams-for-linux;
-      defaultText = lib.literalExpression "pkgs.teams-for-linux";
-      description = "The teams-for-linux package to install.";
-    };
-  };
+  config = lib.mkIf config.codgician.codgi."teams-for-linux".enable {
+    home.packages = [ pkgs.teams-for-linux ];
 
-  config = lib.mkIf cfg.enable {
-    home.packages = [ cfg.package ];
-
-    # Shared configuration across all machines.
     xdg.configFile."teams-for-linux/config.json".text = builtins.toJSON {
       auth = {
         intune.enabled = true;

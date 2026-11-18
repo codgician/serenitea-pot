@@ -132,12 +132,6 @@ let
 in
 {
   options.codgician.codgi.plasma = {
-    enable = lib.mkOption {
-      type = types.bool;
-      default = osConfig.services.desktopManager.plasma6.enable;
-      description = "Enable dotfiles for KDE plasma desktop.";
-    };
-
     krdp = {
       enable = lib.mkEnableOption "the KRDP server for this Plasma session";
 
@@ -177,25 +171,9 @@ in
       example = 2;
       description = "Global display scale for Plasma and XWayland applications.";
     };
-
-    wallpaperFillMode = lib.mkOption {
-      type =
-        with types;
-        nullOr (enum [
-          "stretch"
-          "preserveAspectFit"
-          "preserveAspectCrop"
-          "tile"
-          "tileVertically"
-          "tileHorizontally"
-          "pad"
-        ]);
-      default = "preserveAspectCrop";
-      description = "How Plasma scales the configured wallpaper.";
-    };
   };
 
-  config = lib.mkIf cfg.enable {
+  config = lib.mkIf osConfig.services.desktopManager.plasma6.enable {
     programs.plasma = {
       enable = true;
       # Plasma stores desktop and lock-screen wallpapers separately.
@@ -391,7 +369,7 @@ in
 
       workspace = {
         wallpaper = lib.mkIf (cfg.wallpaper != null) cfg.wallpaper;
-        wallpaperFillMode = lib.mkIf (cfg.wallpaperFillMode != null) cfg.wallpaperFillMode;
+        wallpaperFillMode = "preserveAspectCrop";
         cursor = {
           theme = "Breeze";
           size = 24;
