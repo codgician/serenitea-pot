@@ -42,6 +42,8 @@ rec {
     };
     xianyun = {
       public = true;
+      ipv4 = "129.28.44.172";
+      ipv6 = "2402:4e00:c000:2300:aa68:cd10:e82c:0";
       wireguard = {
         ipv4 = "192.168.254.72";
         ipv6 = "fd00:c0d9:1cff::72";

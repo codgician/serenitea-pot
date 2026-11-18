@@ -1,12 +1,6 @@
-{
-  config,
-  pkgs,
-  outputs,
-  ...
-}:
+{ lib, ... }:
 let
-  dnsRecords =
-    outputs.packages.${pkgs.stdenv.hostPlatform.system}.terraform-config.config.resource.cloudflare_dns_record;
+  inherit (lib.codgician.inventory.hosts.xianyun) ipv4 ipv6;
   # Tencent's stable DHCP address, mapped 1:1 to the public IPv4 address.
   privateIPv4 = "10.6.4.16";
 in
@@ -16,9 +10,9 @@ in
       coturn = {
         relay-ips = [
           privateIPv4
-          dnsRecords."${config.networking.hostName}-aaaa".content
+          ipv6
         ];
-        external-ips = [ "${dnsRecords."${config.networking.hostName}-a".content}/${privateIPv4}" ];
+        external-ips = [ "${ipv4}/${privateIPv4}" ];
       };
 
       nginx.landingPage = {

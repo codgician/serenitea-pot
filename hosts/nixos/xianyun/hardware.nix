@@ -1,13 +1,6 @@
-{
-  config,
-  pkgs,
-  outputs,
-  ...
-}:
+{ lib, pkgs, ... }:
 let
-  inherit (config.networking) hostName;
-  terraformConf = outputs.packages.${pkgs.stdenv.hostPlatform.system}.terraform-config.config;
-  publicIpv6 = terraformConf.resource.cloudflare_dns_record."${hostName}-aaaa".content;
+  publicIpv6 = lib.codgician.inventory.hosts.xianyun.ipv6;
 in
 {
   boot = {

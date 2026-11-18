@@ -42,6 +42,8 @@ let
     lan = optional str null; # address on the home LAN
     pve = optional str null; # address of the Proxmox VE management bridge
     public = optional bool false; # the internet reaches it at `<name>.<zone>`
+    ipv4 = optional str null; # its fixed public addresses
+    ipv6 = optional str null;
     wireguard = optional wireguardSchema null; # its membership of the mesh
   };
   peerSchema = {

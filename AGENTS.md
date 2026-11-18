@@ -34,7 +34,7 @@ What a host runs: the `enable` lines in its files, its roles, and the services p
 - `authelia`: the name of the service that is the Authelia portal
 - `hosts.<name>`: hosts of this flake that other machines refer to (the edge, hosts that services run on, members of the WireGuard mesh); an entry may be `{ }`. A host's `system` and `roles` are in its manifest, not here
   - `lan`, `pve`: the addresses other hosts reach it at
-  - `public = true`: the internet reaches it at `<name>.<zone>`
+  - `public = true`: the internet reaches it at `<name>.<zone>`; `ipv4`, `ipv6`: its public addresses when they are fixed
   - `wireguard`: its membership of the mesh. `ipv4`, `ipv6` (its addresses inside the mesh) and `publicKey` are required; `port` is where it listens, omitted for a member that only dials out; `routes` are the networks behind it
 - `peers.<name>`: machines this flake does not build that its hosts connect to. `wireguard` is required and has the keys it has for a host; `subdomain` is the label under the zone the peer is reached at
 - `services.<name>`: one entry per public name `<subdomain>.<zone>`; `<name>` is also the name of the service's module and vhost. Every entry gets a CNAME to the edge unless it is `direct`
