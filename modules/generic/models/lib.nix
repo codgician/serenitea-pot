@@ -1,10 +1,15 @@
-{ lib }:
+{
+  lib,
+  # tests/models imports this file without naming a provider.
+  provider ? "unknown",
+}:
 let
   modelDefaults = {
     aliases = [ ];
     mode = "chat";
     variants = { };
     reasoningEfforts = [ ];
+    path = null;
   };
 
   generatedDefaults = modelDefaults // {
@@ -87,11 +92,18 @@ rec {
       tags,
       extraParams ? { },
       extraModelInfo ? { },
+      extraKeys ? [ ],
     }:
     name: attrs:
     let
       spec = modelDefaults // attrs;
+      unknownKeys = builtins.attrNames (
+        removeAttrs attrs (builtins.attrNames modelDefaults ++ extraKeys)
+      );
     in
+    assert lib.assertMsg (
+      unknownKeys == [ ]
+    ) "codgician.models: unknown keys in ${provider} model '${name}': ${toString unknownKeys}";
     {
       inherit (spec) aliases mode variants;
       reasoningEfforts = lib.unique (spec.reasoningEfforts ++ builtins.attrNames spec.variants);
@@ -100,7 +112,7 @@ rec {
       }
       // extraModelInfo;
       litellmParams = {
-        model = "${modelPrefix}/${spec.path or name}";
+        model = "${modelPrefix}/${if spec.path != null then spec.path else name}";
       }
       // lib.optionalAttrs (apiKeyEnv != null) { api_key = "os.environ/${apiKeyEnv}"; }
       // extraParams;
@@ -126,6 +138,7 @@ rec {
         extraParams
         ;
       extraModelInfo = generatedModelInfo spec;
+      extraKeys = builtins.attrNames generatedDefaults;
     } name spec)
     // {
       inherit (spec)
@@ -137,12 +150,4 @@ rec {
         ;
       input = [ "text" ] ++ lib.optional (builtins.elem "vision" spec.supports) "image";
     };
-
-  flattenRegistry =
-    registry:
-    lib.concatLists (
-      lib.mapAttrsToList (
-        provider: models: lib.mapAttrsToList (model: attrs: attrs // { inherit provider model; }) models
-      ) registry
-    );
 }

@@ -6,16 +6,23 @@
 }:
 let
   inherit (lib) mkOption types;
-  modelLib = import ./lib.nix { inherit lib; };
 
   registry = lib.genAttrs (lib.codgician.getFolderNames ./providers) (
     name:
     let
+      modelLib = import ./lib.nix {
+        inherit lib;
+        provider = name;
+      };
       inherit (import ./providers/${name} { inherit lib modelLib pkgs; }) provider;
     in
     lib.mapAttrs provider.transformer provider.models
   );
-  flatModels = modelLib.flattenRegistry registry;
+  flatModels = lib.concatLists (
+    lib.mapAttrsToList (
+      provider: models: lib.mapAttrsToList (model: attrs: attrs // { inherit provider model; }) models
+    ) registry
+  );
 in
 {
   options.codgician.models = {

@@ -10,6 +10,10 @@
           "vllm"
           "local"
         ];
+        extraKeys = [
+          "apiBase"
+          "contextWindow"
+        ];
         extraParams.api_base = spec.apiBase;
       } name spec)
       // lib.optionalAttrs (spec ? contextWindow) { inherit (spec) contextWindow; };

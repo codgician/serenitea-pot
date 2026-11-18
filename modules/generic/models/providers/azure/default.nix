@@ -17,6 +17,12 @@ in
           "azure"
           "remote"
         ];
+        extraKeys = [
+          "provider"
+          "baseModel"
+          "realtimeProtocol"
+          "apiVersion"
+        ];
         extraModelInfo = lib.optionalAttrs (spec ? baseModel) { base_model = spec.baseModel; };
         extraParams = {
           api_base = "https://${metadata.account.name}.services.ai.azure.com";
