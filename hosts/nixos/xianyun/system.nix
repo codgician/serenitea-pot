@@ -14,12 +14,6 @@ in
   codgician = {
     services = {
       coturn = {
-        enable = true;
-        openFirewall = true;
-        listening-ips = [
-          "0.0.0.0"
-          "::"
-        ];
         relay-ips = [
           privateIPv4
           dnsRecords."${config.networking.hostName}-aaaa".content

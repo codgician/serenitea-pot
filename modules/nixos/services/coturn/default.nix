@@ -2,7 +2,8 @@
 let
   cfg = config.codgician.services.coturn;
   inherit (lib) types;
-  cert = config.security.acme.certs.${cfg.domain};
+  svc = lib.codgician.published.services.coturn;
+  cert = config.security.acme.certs.${svc.domain};
   listeningPort = 3478;
   tlsListeningPort = 5349;
   relayPortRange = {
@@ -12,18 +13,13 @@ let
 in
 {
   options.codgician.services.coturn = {
-    enable = lib.mkEnableOption "coturn STUN/TURN server";
+    enable = lib.codgician.mkPublishedEnableOption config "coturn";
 
     domain = lib.mkOption {
       type = types.str;
-      default = "turn.${lib.codgician.inventory.zone}";
-      description = "TURN realm and ACME certificate domain.";
-      example = "turn.example.org";
-    };
-
-    listening-ips = lib.mkOption {
-      type = types.listOf types.str;
-      description = "Local listener addresses. Use wildcard addresses to listen on all interfaces.";
+      default = svc.domain;
+      readOnly = true;
+      description = "TURN realm, for the modules that hand it to their clients.";
     };
 
     relay-ips = lib.mkOption {
@@ -38,22 +34,17 @@ in
       example = [ "203.0.113.1/10.0.0.1" ];
       description = "Public/private address mappings for relay addresses behind port-preserving NAT.";
     };
-
-    openFirewall = lib.mkEnableOption "opening the TURN listener and UDP relay ports";
   };
 
   config = lib.mkIf cfg.enable {
-    assertions = [
-      {
-        assertion = cfg.listening-ips != [ ];
-        message = "coturn: listening-ips must contain at least one listener address.";
-      }
-    ];
-
     services.coturn = {
       enable = true;
-      realm = cfg.domain;
-      inherit (cfg) listening-ips relay-ips;
+      realm = svc.domain;
+      listening-ips = [
+        "0.0.0.0"
+        "::"
+      ];
+      inherit (cfg) relay-ips;
       listening-port = listeningPort;
       tls-listening-port = tlsListeningPort;
       min-port = relayPortRange.from;
@@ -93,18 +84,18 @@ in
       mode = "0400";
     };
 
-    codgician.acme.${cfg.domain} = {
+    codgician.acme.${svc.domain} = {
       enable = true;
       reloadServices = [ "coturn.service" ];
     };
 
     systemd.services.coturn = {
-      requires = [ "acme-${cfg.domain}.service" ];
-      after = [ "acme-${cfg.domain}.service" ];
+      requires = [ "acme-${svc.domain}.service" ];
+      after = [ "acme-${svc.domain}.service" ];
       serviceConfig.SupplementaryGroups = [ cert.group ];
     };
 
-    networking.firewall = lib.mkIf cfg.openFirewall {
+    networking.firewall = {
       allowedTCPPorts = [
         listeningPort
         tlsListeningPort

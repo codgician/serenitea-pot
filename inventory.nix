@@ -95,6 +95,11 @@ rec {
     };
     books = { };
     bubbles.upstream = "http://192.168.0.24:1234";
+    coturn = {
+      subdomain = "turn";
+      host = "xianyun";
+      direct = true;
+    };
     # Nothing on paimon answers for this name any more; the entry can go with
     # the next change to lumine's nginx configuration.
     docling-serve = {
