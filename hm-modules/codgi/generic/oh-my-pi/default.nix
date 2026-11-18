@@ -8,15 +8,11 @@
 let
   cfg = config.codgician.codgi.oh-my-pi;
   inherit (lib) types;
+  agents = import ../agents.nix { inherit config osConfig pkgs; };
 
   yamlFormat = pkgs.formats.yaml { };
 
-  profiles = import ./profiles {
-    inherit pkgs osConfig;
-    extraSkillDirectories = lib.optionals (config.codgician.codgi.herdr.enable or false) [
-      "${config.codgician.codgi.herdr.package.src}/skills"
-    ];
-  };
+  profiles = import ./profiles { inherit lib agents; };
 
   # Initial values omp owns afterwards: the setup wizard advances
   # setupVersion itself, so it is seeded once and never reasserted.
@@ -68,21 +64,14 @@ let
         '';
         force = true;
       };
+    }
+    // lib.optionalAttrs agents.herdr.enable {
+      "${agentDir}/extensions/herdr-omp-agent-state.ts".source = agents.herdr.extension "omp";
     };
-
 in
 {
   options.codgician.codgi.oh-my-pi = {
     enable = lib.mkEnableOption "oh-my-pi (omp)";
-
-    package = lib.mkOption {
-      type = types.package;
-      default = pkgs.nur.repos.codgician.oh-my-pi-bin;
-      defaultText = lib.literalExpression "pkgs.nur.repos.codgician.oh-my-pi-bin";
-      description = ''
-        The oh-my-pi package to install.
-      '';
-    };
 
     defaultProfile = lib.mkOption {
       type = types.enum (builtins.attrNames profiles);
@@ -108,7 +97,7 @@ in
       Prefer an existing project development environment. For a new persistent project environment, use a flake dev shell with direnv only when the user requests it.
     '';
 
-    home.packages = [ cfg.package ];
+    home.packages = [ agents.packages.oh-my-pi ];
     home.file = {
       ".omp/.env" = {
         source = config.lib.file.mkOutOfStoreSymlink osConfig.codgician.secrets.templates."omp-env".path;

@@ -12,18 +12,6 @@ in
   options.codgician.codgi.herdr.ovis = {
     enable = lib.mkEnableOption "Ovis browser and phone client for Herdr";
 
-    hostname = lib.mkOption {
-      type = types.str;
-      default = "127.0.0.1";
-      description = "Hostname for the Ovis HTTP and WebSocket server to listen on.";
-    };
-
-    port = lib.mkOption {
-      type = types.port;
-      default = 7317;
-      description = "Port for the Ovis HTTP and WebSocket server to listen on.";
-    };
-
     lanHttpsPort = lib.mkOption {
       type = types.nullOr types.port;
       default = null;
@@ -57,7 +45,7 @@ in
         };
 
         Service = {
-          ExecStart = "${lib.getExe cfg.package} server";
+          ExecStart = "${lib.getExe pkgs.llm-agents.herdr} server";
           Restart = "on-failure";
           RestartSec = "2s";
         };
@@ -81,15 +69,15 @@ in
         };
 
         Service = {
-          ExecStart = lib.getExe (pkgs.llm-agents.ovis.override { herdr = cfg.package; });
+          ExecStart = lib.getExe pkgs.llm-agents.ovis;
           Environment = [
-            "HOST=${cfg.ovis.hostname}"
-            "PORT=${toString cfg.ovis.port}"
+            "HOST=127.0.0.1"
+            "PORT=7317"
           ]
           ++ lib.optional (
             cfg.ovis.lanHttpsPort != null
           ) "OVIS_LAN_HTTPS_PORT=${toString cfg.ovis.lanHttpsPort}"
-          ++ lib.optional cfg.desktop.enable "OVIS_HC_BIN=${lib.getExe cfg.desktop.corePackage}"
+          ++ lib.optional cfg.desktop.enable "OVIS_HC_BIN=${lib.getExe pkgs.llm-agents.herdr-core}"
           ++ lib.optionals (cfg.ovis.relayDomain != null) [
             "OVIS_RELAY_URL=wss://${cfg.ovis.relayDomain}"
             "OVIS_RELAY_APP_URL=https://${cfg.ovis.relayDomain}"

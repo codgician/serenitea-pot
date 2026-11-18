@@ -1,14 +1,12 @@
-{ lib, osConfig }:
+{ lib, agents }:
 let
-  textModels = osConfig.codgician.models.textGenerationModels;
-
   # Dendro hides the upstream host from OMP's endpoint detection, but Copilot
   # rejects snapcompact's detail: "original".
   copilotModelOverrides = builtins.listToAttrs (
     map (m: {
       name = m.model;
       value.compat.supportsImageDetailOriginal = false;
-    }) (builtins.filter (m: m.provider == "github") textModels)
+    }) (agents.modelsFrom [ "github" ])
   );
 
   # OMP's LiteLLM discovery picks the wire API from the upstream provider name
@@ -19,7 +17,7 @@ let
     if builtins.elem "/v1/messages" (m.litellmModelInfo.supported_endpoints or [ ]) then
       "anthropic-messages"
     else if m.mode == "responses" then
-      "openai-responses"
+      agents.modeToApi.responses
     else
       null;
 
@@ -30,7 +28,7 @@ let
         inherit name;
         value.api = endpointApi m;
       }) ([ m.model ] ++ m.aliases)
-    ) (builtins.filter (m: endpointApi m != null) textModels)
+    ) (builtins.filter (m: endpointApi m != null) agents.textModels)
   );
 in
 {
@@ -51,12 +49,12 @@ in
     modelProviderOrder = [ "dendro" ];
   };
   "models.yml".providers.dendro = {
-    baseUrl = "https://dendro.codgician.me/v1";
-    api = "openai-completions";
+    baseUrl = "${agents.dendroUrl}/v1";
+    api = agents.modeToApi.chat;
     # Plain API-key shaping; anthropic-messages otherwise defaults to OAuth-style requests.
     auth = "apiKey";
     authHeader = true;
-    apiKey = "!cat ${osConfig.codgician.secrets.files."litellm-user-api-key".path}";
+    apiKey = agents.apiKeyCommand;
     discovery.type = "litellm";
     modelOverrides = lib.recursiveUpdate copilotModelOverrides endpointModelOverrides;
   };

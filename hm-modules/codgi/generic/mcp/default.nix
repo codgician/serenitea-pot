@@ -18,5 +18,10 @@ in
         websearch.url = "https://mcp.exa.ai/mcp";
       };
     };
+
+    # Agents without an upstream switch (droid) read programs.mcp.servers themselves.
+    programs.claude-code.enableMcpIntegration = true;
+    programs.codex.enableMcpIntegration = true;
+    programs.github-copilot-cli.enableMcpIntegration = true;
   };
 }

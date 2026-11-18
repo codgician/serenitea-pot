@@ -7,50 +7,35 @@
 }:
 let
   cfg = config.codgician.codgi.claude-code;
+  agents = import ../agents.nix { inherit config osConfig pkgs; };
+  inherit (config.programs.claude-code) configDir;
+  herdrHook = "${configDir}/hooks/herdr-agent-state.sh";
 in
 {
-  options.codgician.codgi.claude-code = {
-    enable = lib.mkEnableOption "Claude Code";
-
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.llm-agents.claude-code;
-      defaultText = lib.literalExpression "pkgs.llm-agents.claude-code";
-      description = ''
-        The Claude Code package to install.
-      '';
-    };
-  };
+  options.codgician.codgi.claude-code.enable = lib.mkEnableOption "Claude Code";
 
   config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.llm-agents.agent-browser ];
     # Bypass programs.claude-code.skills: Home Manager inspects those paths
     # during evaluation, which would realize these target-platform sources.
-    home.file = {
-      "${config.programs.claude-code.configDir}/skills/agent-browser".source =
-        "${pkgs.llm-agents.agent-browser.src}/skills/agent-browser";
-    }
-    // lib.optionalAttrs (config.codgician.codgi.herdr.enable or false) {
-      "${config.programs.claude-code.configDir}/skills/herdr".source =
-        "${config.codgician.codgi.herdr.package.src}/skills/herdr";
-    };
+    home.file =
+      lib.mapAttrs' (
+        name: source: lib.nameValuePair "${configDir}/skills/${name}" { inherit source; }
+      ) agents.skills
+      // lib.optionalAttrs agents.herdr.enable {
+        ${herdrHook} = agents.herdr.hookFile "claude";
+      };
     programs.claude-code = {
       enable = true;
-      inherit (cfg) package;
-
-      enableMcpIntegration = config.codgician.codgi.mcp.enable;
+      package = agents.packages.claude-code;
 
       settings = {
-        apiKeyHelper =
-          let
-            inherit (osConfig.codgician.secrets.files."litellm-user-api-key") path;
-          in
-          lib.getExe (
-            pkgs.writeShellApplication {
-              name = "claude-code-api-key-helper";
-              text = "[ -r ${path} ] && cat ${path} || exit 1";
-            }
-          );
+        apiKeyHelper = lib.getExe (
+          pkgs.writeShellApplication {
+            name = "claude-code-api-key-helper";
+            text = "[ -r ${agents.apiKeyPath} ] && cat ${agents.apiKeyPath} || exit 1";
+          }
+        );
         attribution = {
           commit = "";
           pr = "";
@@ -63,7 +48,7 @@ in
           CLAUDE_CODE_ATTRIBUTION_HEADER = "0";
           CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1";
           CLAUDE_CODE_EFFORT_LEVEL = "xhigh";
-          ANTHROPIC_BASE_URL = "https://dendro.codgician.me";
+          ANTHROPIC_BASE_URL = agents.dendroUrl;
           ANTHROPIC_MODEL = "claude-opus-5-5[1m]";
           ANTHROPIC_DEFAULT_FABLE_MODEL = "claude-fable-5-2[1m]";
           ANTHROPIC_DEFAULT_SONNET_MODEL = "claude-sonnet-5-5[1m]";
@@ -103,6 +88,9 @@ in
         effortLevel = "max";
         outputStyle = "Explanatory";
         showTurnDuration = true;
+      }
+      // lib.optionalAttrs agents.herdr.enable {
+        hooks.SessionStart = [ ({ matcher = "*"; } // agents.herdr.sessionStart herdrHook) ];
       };
     };
   };

@@ -7,29 +7,7 @@
 }:
 let
   cfg = config.codgician.codgi.pi-coding-agent;
-  inherit (lib) types;
-
-  jsonFormat = pkgs.formats.json { };
-
-  # Providers routed through the dendro LiteLLM proxy.
-  allowedProviders = [
-    "chatgpt"
-    "github"
-    "nvidia"
-    "vllm"
-    "xai"
-  ];
-
-  filteredModels = builtins.filter (
-    m: builtins.elem m.provider allowedProviders
-  ) osConfig.codgician.models.textGenerationModels;
-
-  # Registry mode -> pi API type. Each model talks to its native LiteLLM
-  # surface, avoiding LiteLLM's chat<->responses bridging.
-  modeToApi = {
-    chat = "openai-completions";
-    responses = "openai-responses";
-  };
+  agents = import ../agents.nix { inherit config osConfig pkgs; };
 
   # pi thinking level -> registry effort keys, in preference order (first key
   # the model defines wins). Map values are the exact effort strings sent
@@ -51,34 +29,16 @@ let
     ];
   };
 
-  # First candidate effort the model defines, or null when none (hidden in pi).
-  resolveEffort =
-    effortKeys: candidates:
-    let
-      matches = builtins.filter (k: builtins.elem k effortKeys) candidates;
-    in
-    if matches == [ ] then null else builtins.head matches;
-
-  # thinkingLevelMap: every pi level -> effort string or null.
-  mkThinkingLevelMap =
-    m:
-    let
-      effortKeys = m.reasoningEfforts;
-    in
-    builtins.mapAttrs (_level: resolveEffort effortKeys) piLevelToEffortKeys;
-
   # Registry model -> pi model entry. `id` matches the LiteLLM model name.
   mkPiModel =
     m:
     let
       hasReasoning = m.reasoningEfforts != [ ] || builtins.elem "reasoning" (m.supports or [ ]);
-      contextWindow = m.contextWindow or null;
-      maxTokens = m.maxOutputTokens or null;
       cost = m.cost or null;
     in
     {
       id = m.model;
-      api = modeToApi.${m.mode};
+      api = agents.modeToApi.${m.mode};
       input =
         m.input or [
           "text"
@@ -87,47 +47,45 @@ let
       reasoning = hasReasoning;
     }
     // lib.optionalAttrs hasReasoning {
-      thinkingLevelMap = mkThinkingLevelMap m;
+      # Every pi level -> effort string, or null (hidden in pi) when the model defines none.
+      thinkingLevelMap = lib.mapAttrs (
+        _: lib.findFirst (effort: builtins.elem effort m.reasoningEfforts) null
+      ) piLevelToEffortKeys;
     }
-    // lib.optionalAttrs (contextWindow != null) { inherit contextWindow; }
-    // lib.optionalAttrs (maxTokens != null) { inherit maxTokens; }
+    // agents.modelLimits m
     // lib.optionalAttrs (cost != null) { inherit cost; };
-
-  piModels = map mkPiModel filteredModels;
 
   # OpenAI-compatible provider for the dendro LiteLLM proxy. Per-model `api`
   # picks the surface; `apiKey` reads the secret at request time.
   modelsJson = {
     providers.dendro = {
-      baseUrl = "https://dendro.codgician.me/v1";
-      api = "openai-completions";
-      apiKey = "!cat ${osConfig.codgician.secrets.files."litellm-user-api-key".path}";
-      models = piModels;
+      baseUrl = "${agents.dendroUrl}/v1";
+      api = agents.modeToApi.chat;
+      apiKey = agents.apiKeyCommand;
+      models = map mkPiModel (
+        agents.modelsFrom [
+          "chatgpt"
+          "github"
+          "nvidia"
+          "vllm"
+          "xai"
+        ]
+      );
     };
   };
 in
 {
-  options.codgician.codgi.pi-coding-agent = {
-    enable = lib.mkEnableOption "pi-coding-agent";
-
-    package = lib.mkOption {
-      type = types.package;
-      default = pkgs.llm-agents.pi;
-      defaultText = lib.literalExpression "pkgs.llm-agents.pi";
-      description = ''
-        The pi-coding-agent package to install.
-      '';
-    };
-  };
+  options.codgician.codgi.pi-coding-agent.enable = lib.mkEnableOption "pi-coding-agent";
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ cfg.package ];
+    home.packages = [ agents.packages.pi-coding-agent ];
 
     home.file = {
-      ".pi/agent/models.json".source = jsonFormat.generate "pi-models.json" modelsJson;
+      ".pi/agent/models.json".source = (pkgs.formats.json { }).generate "pi-models.json" modelsJson;
     }
-    // lib.optionalAttrs (config.codgician.codgi.herdr.enable or false) {
-      ".pi/agent/skills/herdr".source = "${config.codgician.codgi.herdr.package.src}/skills/herdr";
+    // lib.optionalAttrs agents.herdr.enable {
+      ".pi/agent/skills/herdr".source = agents.skills.herdr;
+      ".pi/agent/extensions/herdr-agent-state.ts".source = agents.herdr.extension "pi";
     };
   };
 }

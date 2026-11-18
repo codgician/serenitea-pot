@@ -7,22 +7,14 @@
 }:
 let
   cfg = config.codgician.codgi.droid;
-  herdrHook = "${config.home.homeDirectory}/.factory/hooks/herdr-agent-state.sh";
-  allowedProviders = [
-    "github"
-    "nvidia"
-    "xai"
-  ];
-
-  filteredModels = builtins.filter (
-    m: builtins.elem m.provider allowedProviders
-  ) osConfig.codgician.models.textGenerationModels;
+  agents = import ../agents.nix { inherit config osConfig pkgs; };
+  herdrHook = ".factory/hooks/herdr-agent-state.sh";
 
   mkDroidModel = m: {
     inherit (m) model;
     id = "custom:${m.model}";
     displayName = "${m.model} [Dendro]";
-    baseUrl = "https://dendro.codgician.me";
+    baseUrl = agents.dendroUrl;
     apiKey = "\${PROVIDER_API_KEY}";
     provider = "generic-chat-completion-api";
   };
@@ -44,17 +36,6 @@ let
   mcpServers = lib.mapAttrs (_: mkMcpServer) (
     lib.filterAttrs (_: server: !(server.disabled or false)) config.programs.mcp.servers
   );
-  mcpConfigJson = builtins.toJSON { inherit mcpServers; };
-
-  skillsDir = pkgs.symlinkJoin {
-    name = "droid-skills";
-    paths = [
-      "${pkgs.llm-agents.agent-browser.src}/skills"
-    ]
-    ++ lib.optionals (config.codgician.codgi.herdr.enable or false) [
-      "${config.codgician.codgi.herdr.package.src}/skills"
-    ];
-  };
 in
 {
   options.codgician.codgi.droid = {
@@ -80,7 +61,13 @@ in
       # Write to ~/.factory/settings.json (per docs, merged with settings.json)
       ".factory/settings.json".text = builtins.toJSON (
         {
-          customModels = map mkDroidModel filteredModels;
+          customModels = map mkDroidModel (
+            agents.modelsFrom [
+              "github"
+              "nvidia"
+              "xai"
+            ]
+          );
           sessionDefaultSettings = {
             model = "custom:claude-opus-5";
             reasoningEffort = "xhigh";
@@ -89,27 +76,23 @@ in
             autonomyMode = "auto-high";
           };
         }
-        // lib.optionalAttrs (config.codgician.codgi.herdr.enable or false) {
+        // lib.optionalAttrs agents.herdr.enable {
           hooks.SessionStart = [
-            {
-              hooks = [
-                {
-                  type = "command";
-                  command = "bash '${herdrHook}' session";
-                  timeout = 10;
-                }
-              ];
-            }
+            (agents.herdr.sessionStart "${config.home.homeDirectory}/${herdrHook}")
           ];
         }
       );
 
-      # Link skills directory to ~/.factory/skills
-      ".factory/skills".source = skillsDir;
+      ".factory/skills".source = pkgs.symlinkJoin {
+        name = "droid-skills";
+        paths = agents.skillRoots;
+      };
+    }
+    // lib.optionalAttrs agents.herdr.enable {
+      ${herdrHook} = agents.herdr.hookFile "droid";
     }
     // lib.optionalAttrs config.codgician.codgi.mcp.enable {
-      # Link MCP config to ~/.factory/mcp.json
-      ".factory/mcp.json".text = mcpConfigJson;
+      ".factory/mcp.json".text = builtins.toJSON { inherit mcpServers; };
     };
   };
 }

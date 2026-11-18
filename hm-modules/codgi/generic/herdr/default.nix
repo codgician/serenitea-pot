@@ -1,204 +1,63 @@
 {
   config,
   lib,
-  osConfig,
   pkgs,
   ...
 }:
 let
   cfg = config.codgician.codgi.herdr;
-  tomlFormat = pkgs.formats.toml { };
-  jsonFormat = pkgs.formats.json { };
-
-  integrationsDir = "${cfg.package}/share/herdr/integrations";
-  homeDir = config.home.homeDirectory;
-  enabled = name: config.codgician.codgi.${name}.enable or false;
-  absolutePath = path: if lib.hasPrefix "/" path then path else "${homeDir}/${path}";
-
-  claudeConfigDir = absolutePath config.programs.claude-code.configDir;
-  claudeHook = "${claudeConfigDir}/hooks/herdr-agent-state.sh";
-
-  codexConfigDir =
-    if config.home.preferXdgDirectories then "${config.xdg.configHome}/codex" else "${homeDir}/.codex";
-  codexHook = "${codexConfigDir}/herdr-agent-state.sh";
-
-  copilotConfigDir = absolutePath config.programs.github-copilot-cli.configDir;
-  copilotHook = "${copilotConfigDir}/hooks/herdr-agent-state.sh";
-  ompProfiles = import ../oh-my-pi/profiles { inherit pkgs osConfig; };
-
-  ompIntegrationFiles = lib.mapAttrs' (
-    name: _:
-    lib.nameValuePair ".omp/profiles/${name}/agent/extensions/herdr-omp-agent-state.ts" {
-      source = "${integrationsDir}/omp/herdr-agent-state.ts";
-    }
-  ) ompProfiles;
 in
 {
   options.codgician.codgi.herdr = {
     enable = lib.mkEnableOption "Herdr terminal workspace manager for AI coding agents";
-
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.llm-agents.herdr;
-      defaultText = lib.literalExpression "pkgs.llm-agents.herdr";
-      description = "The Herdr package to install.";
-    };
-
-    desktop = {
-      enable = lib.mkEnableOption "Herdr desktop app and core runtime, independently of the TUI";
-
-      package = lib.mkOption {
-        type = lib.types.package;
-        default = pkgs.llm-agents.herdr-app.override { herdr-core = cfg.desktop.corePackage; };
-        defaultText = lib.literalExpression ''
-          pkgs.llm-agents.herdr-app.override {
-            herdr-core = config.codgician.codgi.herdr.desktop.corePackage;
-          }
-        '';
-        description = "The Herdr desktop app package to install.";
-      };
-
-      corePackage = lib.mkOption {
-        type = lib.types.package;
-        default = pkgs.llm-agents.herdr-core;
-        defaultText = lib.literalExpression "pkgs.llm-agents.herdr-core";
-        description = "The Herdr core runtime package to install, providing the hc command.";
-      };
-    };
+    desktop.enable = lib.mkEnableOption "Herdr desktop app and core runtime, independently of the TUI";
   };
 
   config = lib.mkMerge [
     (lib.mkIf cfg.desktop.enable {
       home.packages = [
-        cfg.desktop.package
-        cfg.desktop.corePackage
+        pkgs.llm-agents.herdr-app
+        pkgs.llm-agents.herdr-core
       ];
     })
 
+    # Each agent module installs its own Herdr hook and skill.
     (lib.mkIf cfg.enable {
-      home.packages = [ cfg.package ];
+      home.packages = [ pkgs.llm-agents.herdr ];
 
-      xdg.configFile = {
-        "herdr/config.toml".source = tomlFormat.generate "herdr-config.toml" {
-          onboarding = false;
+      xdg.configFile."herdr/config.toml".source = (pkgs.formats.toml { }).generate "herdr-config.toml" {
+        onboarding = false;
 
-          theme = {
-            name = "catppuccin";
-            auto_switch = true;
-            dark_name = "catppuccin";
-            light_name = "catppuccin-latte";
-          };
-
-          terminal = {
-            default_shell = lib.getExe pkgs.zsh;
-            shell_mode = "login";
-            new_cwd = "follow";
-          };
-
-          update = {
-            version_check = false;
-            manifest_check = true;
-          };
-
-          ui = {
-            status_indicators = "symbols";
-            toast = {
-              delivery = "system";
-              delay_seconds = 2;
-            };
-            sound.enabled = false;
-          };
-
-          session.resume_agents_on_restore = true;
-          experimental.pane_history = false;
+        theme = {
+          name = "catppuccin";
+          auto_switch = true;
+          dark_name = "catppuccin";
+          light_name = "catppuccin-latte";
         };
+
+        terminal = {
+          default_shell = lib.getExe pkgs.zsh;
+          shell_mode = "login";
+          new_cwd = "follow";
+        };
+
+        update = {
+          version_check = false;
+          manifest_check = true;
+        };
+
+        ui = {
+          status_indicators = "symbols";
+          toast = {
+            delivery = "system";
+            delay_seconds = 2;
+          };
+          sound.enabled = false;
+        };
+
+        session.resume_agents_on_restore = true;
+        experimental.pane_history = false;
       };
-
-      home.file = lib.mkMerge [
-        (lib.optionalAttrs (enabled "pi-coding-agent") {
-          ".pi/agent/extensions/herdr-agent-state.ts".source = "${integrationsDir}/pi/herdr-agent-state.ts";
-        })
-
-        (lib.optionalAttrs (enabled "oh-my-pi") (
-          {
-            ".omp/agent/extensions/herdr-omp-agent-state.ts".source =
-              "${integrationsDir}/omp/herdr-agent-state.ts";
-          }
-          // ompIntegrationFiles
-        ))
-
-        (lib.optionalAttrs (enabled "claude-code") {
-          "${config.programs.claude-code.configDir}/hooks/herdr-agent-state.sh" = {
-            source = "${integrationsDir}/claude/herdr-agent-state.sh";
-            executable = true;
-          };
-        })
-
-        (lib.optionalAttrs (enabled "codex") {
-          "${lib.removePrefix "${homeDir}/" codexConfigDir}/herdr-agent-state.sh" = {
-            source = "${integrationsDir}/codex/herdr-agent-state.sh";
-            executable = true;
-          };
-          "${lib.removePrefix "${homeDir}/" codexConfigDir}/hooks.json".source =
-            jsonFormat.generate "codex-herdr-hooks.json"
-              {
-                hooks.SessionStart = [
-                  {
-                    hooks = [
-                      {
-                        type = "command";
-                        command = "bash '${codexHook}' session";
-                        timeout = 10;
-                      }
-                    ];
-                  }
-                ];
-              };
-        })
-
-        (lib.optionalAttrs (enabled "github-copilot-cli") {
-          "${config.programs.github-copilot-cli.configDir}/hooks/herdr-agent-state.sh" = {
-            source = "${integrationsDir}/copilot/herdr-agent-state.sh";
-            executable = true;
-          };
-          "${config.programs.github-copilot-cli.configDir}/settings.json".source =
-            jsonFormat.generate "copilot-herdr-settings.json"
-              {
-                hooks.SessionStart = [
-                  {
-                    type = "command";
-                    bash = "bash '${copilotHook}'";
-                    timeoutSec = 10;
-                  }
-                ];
-              };
-        })
-
-        (lib.optionalAttrs (enabled "droid") {
-          ".factory/hooks/herdr-agent-state.sh" = {
-            source = "${integrationsDir}/droid/herdr-agent-state.sh";
-            executable = true;
-          };
-        })
-      ];
-
-      programs.claude-code.settings = lib.mkIf (enabled "claude-code") {
-        hooks.SessionStart = [
-          {
-            matcher = "*";
-            hooks = [
-              {
-                type = "command";
-                command = "bash '${claudeHook}' session";
-                timeout = 10;
-              }
-            ];
-          }
-        ];
-      };
-
-      programs.codex.settings.features.hooks = lib.mkIf (enabled "codex") true;
-
     })
   ];
 }
