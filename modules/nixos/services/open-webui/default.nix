@@ -9,7 +9,8 @@ let
   cfg = config.codgician.services.open-webui;
   types = lib.types;
   defaultStateDir = "/var/lib/${serviceName}";
-  pwaManifest = ./pwa-manifest.json;
+  # Kept in its own directory: nginx serves the manifest's parent directory.
+  pwaManifest = ./static/pwa-manifest.json;
 
   webuiUrl =
     if cfg.reverseProxy.enable then
