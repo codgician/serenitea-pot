@@ -2,11 +2,12 @@
 # module arguments.
 {
   config,
+  lib,
   osConfig,
   pkgs,
+  ...
 }:
 let
-  inherit (pkgs) lib;
   inherit (config.codgician) codgi;
   herdrIntegrations = "${pkgs.llm-agents.herdr}/share/herdr/integrations";
   skillSources = {
@@ -26,7 +27,7 @@ rec {
   enabledPackages = lib.attrValues (lib.filterAttrs (name: _: codgi.${name}.enable) packages);
 
   # The LiteLLM proxy; the key is read at run time and never enters the store.
-  dendroUrl = "https://dendro.codgician.me";
+  dendroUrl = "https://${lib.codgician.published.services.litellm.domain}";
   apiKeyPath = osConfig.codgician.secrets.files."litellm-user-api-key".path;
   apiKeyCommand = "!cat ${apiKeyPath}";
 

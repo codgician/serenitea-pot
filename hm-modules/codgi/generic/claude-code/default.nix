@@ -4,10 +4,10 @@
   pkgs,
   osConfig,
   ...
-}:
+}@args:
 let
   cfg = config.codgician.codgi.claude-code;
-  agents = import ../agents.nix { inherit config osConfig pkgs; };
+  agents = import ../agents.nix args;
   inherit (config.programs.claude-code) configDir;
   herdrHook = "${configDir}/hooks/herdr-agent-state.sh";
 in

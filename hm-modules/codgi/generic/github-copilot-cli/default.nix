@@ -4,10 +4,10 @@
   osConfig,
   pkgs,
   ...
-}:
+}@args:
 let
   cfg = config.codgician.codgi.github-copilot-cli;
-  agents = import ../agents.nix { inherit config osConfig pkgs; };
+  agents = import ../agents.nix args;
   inherit (config.programs.github-copilot-cli) configDir;
   herdrHook = "${configDir}/hooks/herdr-agent-state.sh";
 in

@@ -4,10 +4,10 @@
   osConfig,
   pkgs,
   ...
-}:
+}@args:
 let
   cfg = config.codgician.codgi.codex;
-  agents = import ../agents.nix { inherit config osConfig pkgs; };
+  agents = import ../agents.nix args;
 
   # CODEX_HOME as programs.codex chooses it, relative to the home directory.
   codexDir =

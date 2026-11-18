@@ -4,11 +4,11 @@
   osConfig,
   pkgs,
   ...
-}:
+}@args:
 let
   cfg = config.codgician.codgi.oh-my-pi;
   inherit (lib) types;
-  agents = import ../agents.nix { inherit config osConfig pkgs; };
+  agents = import ../agents.nix args;
 
   yamlFormat = pkgs.formats.yaml { };
 

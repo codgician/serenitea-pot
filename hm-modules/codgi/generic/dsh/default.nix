@@ -4,10 +4,10 @@
   osConfig,
   pkgs,
   ...
-}:
+}@args:
 let
   cfg = config.codgician.codgi.dsh;
-  agents = import ../agents.nix { inherit config osConfig pkgs; };
+  agents = import ../agents.nix args;
 
   # Resolve the credential at launch without putting it in the Nix store.
   apiKeyEnv = "DENDRO_API_KEY";

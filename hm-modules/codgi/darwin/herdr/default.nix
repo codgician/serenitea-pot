@@ -4,10 +4,10 @@
   osConfig,
   pkgs,
   ...
-}:
+}@args:
 let
   cfg = config.codgician.codgi.herdr;
-  agents = import ../../generic/agents.nix { inherit config osConfig pkgs; };
+  agents = import ../../generic/agents.nix args;
   agentPackages = [ pkgs.llm-agents.herdr ] ++ agents.enabledPackages;
 in
 {

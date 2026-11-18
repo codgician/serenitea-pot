@@ -4,10 +4,10 @@
   osConfig,
   pkgs,
   ...
-}:
+}@args:
 let
   cfg = config.codgician.codgi.droid;
-  agents = import ../agents.nix { inherit config osConfig pkgs; };
+  agents = import ../agents.nix args;
   herdrHook = ".factory/hooks/herdr-agent-state.sh";
 
   mkDroidModel = m: {

@@ -4,10 +4,10 @@
   osConfig,
   pkgs,
   ...
-}:
+}@args:
 let
   cfg = config.codgician.codgi.pi-coding-agent;
-  agents = import ../agents.nix { inherit config osConfig pkgs; };
+  agents = import ../agents.nix args;
 
   # pi thinking level -> registry effort keys, in preference order (first key
   # the model defines wins). Map values are the exact effort strings sent
