@@ -5,13 +5,9 @@
   ...
 }:
 {
-  codgician = {
-    system = {
-      auto-upgrade.enable = true;
-      impermanence.enable = lib.mkDefault true;
-    };
-
-    users.codgi.hashedPasswordSecret = "codgi-hashed-password";
+  codgician.system = {
+    auto-upgrade.enable = true;
+    impermanence.enable = lib.mkDefault true;
   };
 
   services.vscode-server.enable = true;

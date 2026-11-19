@@ -37,6 +37,7 @@ in
         }).outPath;
   }
   // lib.optionalAttrs isLinux {
+    hashedPasswordSecret = lib.mkDefault "codgi-hashed-password";
     extraGroups = [
       "wheel"
     ]

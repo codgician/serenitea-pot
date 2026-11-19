@@ -46,13 +46,15 @@ let
           security.sudo.enable = lib.mkForce false;
           security.sudo-rs.enable = lib.mkForce true;
 
-          # Log in as codgi instead of the upstream nixos account. The empty
-          # password matches upstream and overrides the users module's default
-          # lock; SSH accepts codgi's public keys only.
+          # Log in as codgi instead of the upstream nixos account. The image
+          # carries no secret, so codgi has no password secret; the empty
+          # password matches upstream and overrides the users module's lock.
+          # SSH accepts codgi's public keys only.
           users.users.nixos.enable = false;
           users.users.codgi.hashedPassword = "";
           codgician.users.codgi = {
             enable = true;
+            hashedPasswordSecret = null;
             extraGroups = [ "networkmanager" ];
           };
           services.getty.autologinUser = lib.mkForce "codgi";
