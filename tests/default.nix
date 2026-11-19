@@ -1,4 +1,4 @@
-# NixOS VM tests
+# NixOS VM tests and evaluation checks
 #
 # Run: nix build .#checks.x86_64-linux.<testName>
 args@{ lib, ... }:
