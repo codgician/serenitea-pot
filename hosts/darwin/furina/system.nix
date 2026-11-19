@@ -1,5 +1,12 @@
 { pkgs, ... }:
 {
+  codgician = {
+    system.common.inChina = true;
+    users.codgi.enable = true;
+  };
+
+  system.primaryUser = "codgi";
+
   home-manager.users.codgi =
     { pkgs, ... }:
     {
@@ -8,6 +15,7 @@
         codex.enable = true;
         dev = {
           haskell.enable = true;
+          nix.enable = true;
           rust.enable = true;
         };
         dsh.enable = true;
@@ -17,10 +25,13 @@
         mcp.enable = true;
         oh-my-pi.enable = true;
         pi-coding-agent.enable = true;
+        pwsh.enable = true;
+        ssh.enable = true;
         vscode.enable = true;
       };
 
       home = {
+        stateVersion = "26.05";
         packages =
           with pkgs;
           [
@@ -100,6 +111,17 @@
         "/System/Applications/iPhone Mirroring.app"
       ];
     };
+
+    NSGlobalDomain = {
+      AppleInterfaceStyle = "Dark";
+      AppleInterfaceStyleSwitchesAutomatically = false;
+      AppleTemperatureUnit = "Celsius";
+      AppleMeasurementUnits = "Centimeters";
+      AppleMetricUnits = 1;
+    };
+
+    SoftwareUpdate.AutomaticallyInstallMacOSUpdates = true;
+
     trackpad.Clicking = true;
   };
 

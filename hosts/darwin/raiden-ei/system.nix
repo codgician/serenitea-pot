@@ -1,9 +1,16 @@
 { pkgs, ... }:
 {
-  codgician.system.brew.casks = [
-    "bluebubbles"
-    "opencore-configurator"
-  ];
+  codgician = {
+    system = {
+      brew.casks = [
+        "bluebubbles"
+        "opencore-configurator"
+      ];
+      common.inChina = true;
+    };
+
+    users.codgi.enable = true;
+  };
 
   # Avoid uncached Haskell closures on legacy x86_64-darwin. nix-darwin only
   # needs the ShellCheck executable, and nix-fast-build can run without its
@@ -35,9 +42,18 @@
   # the ShellCheck override above, so do not include it on this host.
   system.tools.darwin-uninstaller.enable = false;
 
+  system.primaryUser = "codgi";
+
   home-manager.users.codgi =
     { pkgs, ... }:
     {
+      codgician.codgi = {
+        dev.nix.enable = true;
+        pwsh.enable = true;
+        ssh.enable = true;
+      };
+
+      home.stateVersion = "26.05";
       home.packages = with pkgs; [
         iperf3
         htop
@@ -79,9 +95,16 @@
     };
 
     NSGlobalDomain = {
+      AppleInterfaceStyle = "Dark";
+      AppleInterfaceStyleSwitchesAutomatically = false;
+      AppleTemperatureUnit = "Celsius";
+      AppleMeasurementUnits = "Centimeters";
+      AppleMetricUnits = 1;
       NSAutomaticWindowAnimationsEnabled = false;
       NSScrollAnimationEnabled = false;
     };
+
+    SoftwareUpdate.AutomaticallyInstallMacOSUpdates = true;
 
     universalaccess = {
       reduceMotion = true;
