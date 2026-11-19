@@ -89,9 +89,6 @@ let
             home.file."serenitea-pot".source = lib.codgician.rootDir;
 
             codgician.codgi = {
-              git.enable = true;
-              tmux.enable = true;
-              zsh.enable = true;
               oh-my-pi = {
                 enable = true;
                 context = lib.mkAfter ''
