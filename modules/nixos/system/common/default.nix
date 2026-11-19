@@ -220,12 +220,17 @@ in
     };
 
     # systemd-boot common configurations
-    boot.loader.systemd-boot = {
-      configurationLimit = 10;
-      edk2-uefi-shell.enable = true;
-      memtest86.enable = pkgs.stdenv.hostPlatform.isx86;
-      netbootxyz.enable = true;
-    };
+    boot.loader.systemd-boot =
+      let
+        # Lanzaboote replaces systemd-boot and installs none of these unsigned tools.
+        tools = !config.codgician.system.secure-boot.enable;
+      in
+      {
+        configurationLimit = 10;
+        edk2-uefi-shell.enable = tools;
+        memtest86.enable = tools && pkgs.stdenv.hostPlatform.isx86;
+        netbootxyz.enable = tools;
+      };
 
     # Enable fail2ban
     services.fail2ban.enable = config.networking.firewall.enable;

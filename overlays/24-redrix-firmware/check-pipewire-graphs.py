@@ -304,8 +304,16 @@ with tempfile.TemporaryDirectory(prefix="redrix-filter-chain-") as directory:
         assert abs(rms(resumed[RATE * 2:RATE * 4:2]) / loud - 10 ** (-13.5 / 20)) < 0.005
         print("PASS idle speaker volume agrees with readback and resumed audio", flush=True)
         muted_speaker = speaker_capture(100, mute_during=True)
-        assert rms(muted_speaker[RATE // 2:RATE:2]) > loud * 0.5, "speaker started muted"
-        assert max(map(abs, muted_speaker[RATE * 4:])) == 0, "speaker did not mute"
+        # Build load can delay playback by hundreds of milliseconds after the
+        # recorder starts, so measure from the first rendered frame. Mute is
+        # sent at least 0.7 s after the player runs, and the 4 s tone outlasts
+        # the 3 s capture: a sustained silent tail can only come from mute.
+        rendered = [i // 2 for i, x in enumerate(muted_speaker) if x]
+        assert rendered, "speaker rendered no audio"
+        first, last = rendered[0], rendered[-1]
+        early = muted_speaker[2 * (first + RATE // 10):2 * (first + RATE * 2 // 5):2]
+        assert rms(early) > loud * 0.5, "speaker started muted"
+        assert last < RATE * 5 // 2, "speaker did not mute"
         print("PASS native speaker mute silences an active processed stream", flush=True)
         volume(POLICY["speakerNode"], 50, 20, mute=True)
 
