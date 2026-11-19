@@ -39,7 +39,7 @@ in
         OG_PASSTHROUGH = true;
         SERVE_ROBOTS_TXT = false;
         # Share challenge passes across subdomains.
-        COOKIE_DOMAIN = lib.codgician.inventory.zone;
+        COOKIE_DOMAIN = config.codgician.inventory.zone;
       };
 
       instances = lib.mapAttrs' (

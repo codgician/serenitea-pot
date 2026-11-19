@@ -1,4 +1,9 @@
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   codgician = {
     secrets.files.nats-controller-seed.owner = "codgi";
@@ -266,7 +271,7 @@
       domains = [
         "~cdu"
         "~lan"
-        "~${lib.codgician.inventory.zone}"
+        "~${config.codgician.inventory.zone}"
       ];
     };
   };

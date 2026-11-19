@@ -1,6 +1,6 @@
-{ config, lib, ... }:
+{ config, ... }:
 let
-  svc = lib.codgician.published.services.coturn;
+  svc = config.codgician.inventory.services.coturn;
 in
 {
   resource.cloudflare_dns_record.turn-cname = {

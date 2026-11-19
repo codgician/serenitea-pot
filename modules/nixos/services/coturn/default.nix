@@ -2,7 +2,7 @@
 let
   cfg = config.codgician.services.coturn;
   inherit (lib) types;
-  svc = lib.codgician.published.services.coturn;
+  svc = config.codgician.inventory.services.coturn;
   cert = config.security.acme.certs.${svc.domain};
   listeningPort = 3478;
   tlsListeningPort = 5349;

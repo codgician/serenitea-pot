@@ -7,7 +7,7 @@
 let
   serviceName = "ovis-relay";
   cfg = config.codgician.services.${serviceName};
-  svc = lib.codgician.published.services.ovis-relay;
+  svc = config.codgician.inventory.services.ovis-relay;
 
   # The CLI is only a wrapper; source, dependencies, and build hooks live here.
   ovis = pkgs.llm-agents.ovis.unwrapped;

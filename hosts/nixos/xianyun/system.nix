@@ -1,6 +1,6 @@
-{ lib, ... }:
+{ config, lib, ... }:
 let
-  inherit (lib.codgician.inventory.hosts.xianyun) ipv4 ipv6;
+  inherit (config.codgician.inventory.hosts.xianyun) ipv4 ipv6;
   # Tencent's stable DHCP address, mapped 1:1 to the public IPv4 address.
   privateIPv4 = "10.6.4.16";
 in

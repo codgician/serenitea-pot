@@ -5,7 +5,7 @@
 }:
 let
   cfg = config.codgician.services.jupyter;
-  svc = lib.codgician.published.services.jupyter;
+  svc = config.codgician.inventory.services.jupyter;
 in
 {
   imports = [ ./kernels ];

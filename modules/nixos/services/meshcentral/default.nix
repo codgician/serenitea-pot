@@ -7,8 +7,8 @@
 }:
 let
   cfg = config.codgician.services.meshcentral;
-  inherit (lib.codgician) published;
-  svc = published.services.meshcentral;
+  inherit (config.codgician) inventory;
+  svc = inventory.services.meshcentral;
 in
 {
   options.codgician.services.meshcentral.enable =
@@ -26,7 +26,7 @@ in
             showPasswordLogin = false;
             allowedOrigin = [ svc.domain ];
             authStrategies.oidc = {
-              issuer = published.autheliaUrl;
+              issuer = inventory.autheliaUrl;
               client =
                 let
                   url = "https://${svc.domain}";
@@ -74,7 +74,7 @@ in
       };
     })
 
-    (lib.mkIf (cfg.enable || published.fronts config.networking.hostName "meshcentral") {
+    (lib.mkIf (cfg.enable || config.codgician.services.nginx.fronts ? meshcentral) {
       codgician.services.nginx.reverseProxies.meshcentral.locations."/".extraConfig = ''
         proxy_buffering off;
       '';

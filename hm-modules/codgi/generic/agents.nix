@@ -27,7 +27,7 @@ rec {
   enabledPackages = lib.attrValues (lib.filterAttrs (name: _: codgi.${name}.enable) packages);
 
   # The LiteLLM proxy; the key is read at run time and never enters the store.
-  dendroUrl = "https://${lib.codgician.published.services.litellm.domain}";
+  dendroUrl = "https://${osConfig.codgician.inventory.services.litellm.domain}";
   apiKeyPath = osConfig.codgician.secrets.files."litellm-user-api-key".path;
   apiKeyCommand = "!cat ${apiKeyPath}";
 

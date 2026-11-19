@@ -9,8 +9,8 @@ let
   serviceUser = "tuwunel"; # Match upstream NixOS module
   cfg = config.codgician.services.matrix-tuwunel;
   types = lib.types;
-  inherit (lib.codgician) published;
-  svc = published.services.matrix-tuwunel;
+  inherit (config.codgician) inventory;
+  svc = inventory.services.matrix-tuwunel;
 
   # Unix socket path
   socketPath = "/run/tuwunel/tuwunel.sock";
@@ -59,7 +59,7 @@ in
           # TURN server run by the coturn module
           turn_uris =
             let
-              turn = published.services.coturn.domain;
+              turn = inventory.services.coturn.domain;
             in
             [
               "turn:${turn}?transport=udp"
@@ -81,7 +81,7 @@ in
               brand = "authelia";
               client_id = serviceName;
               client_secret_file = config.codgician.secrets.files.tuwunel-oidc-secret-authelia-main.path;
-              issuer_url = published.autheliaUrl;
+              issuer_url = inventory.autheliaUrl;
               callback_url = "https://${svc.domain}/_matrix/client/unstable/login/sso/callback/${serviceName}";
               default = true;
               name = "Authelia";
@@ -143,7 +143,7 @@ in
 
     # The vhost serves Element at `/` and the well-known documents itself,
     # next to the backend and on the edge alike.
-    (lib.mkIf (cfg.enable || published.fronts config.networking.hostName serviceName) {
+    (lib.mkIf (cfg.enable || config.codgician.services.nginx.fronts ? ${serviceName}) {
       codgician.services.nginx.reverseProxies.matrix-tuwunel.locations =
         let
           clientConfig = {

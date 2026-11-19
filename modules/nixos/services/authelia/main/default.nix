@@ -10,8 +10,8 @@ let
   user = serviceName;
   group = serviceName;
   cfg = config.codgician.services.authelia.instances.${name};
-  inherit (lib.codgician) inventory published;
-  svc = published.services.${serviceName};
+  inherit (config.codgician) inventory;
+  svc = inventory.services.${serviceName};
 in
 {
   options.codgician.services.authelia.instances.${name}.enable =
@@ -87,7 +87,7 @@ in
 
         access_control = {
           default_policy = "two_factor";
-          rules = published.autheliaRules ++ [
+          rules = inventory.autheliaRules ++ [
             # Explicit catch-all matching default_policy: functionally
             # identical to relying on default_policy, but silences
             # Authelia's "no rules specified" startup warning.

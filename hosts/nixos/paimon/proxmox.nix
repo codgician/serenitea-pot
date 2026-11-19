@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   pkgs,
   ...
@@ -91,7 +92,7 @@ in
   networking.firewall.allowedTCPPorts = [ 8006 ];
   services.proxmox-ve = {
     enable = true;
-    ipAddress = lib.codgician.inventory.hosts.paimon.pve;
+    ipAddress = config.codgician.inventory.hosts.paimon.pve;
   };
 
   # proxmox-nixos sets this as a string; 26.05 requires a list.
@@ -119,7 +120,7 @@ in
 
   codgician = {
     services.nginx.reverseProxies.simulanka.proxyPass = "https://127.0.0.1:8006";
-    acme.${lib.codgician.published.services.simulanka.domain}.postRun = ''
+    acme.${config.codgician.inventory.services.simulanka.domain}.postRun = ''
       cp -f cert.pem /etc/pve/local/pveproxy-ssl.pem
       cp -f key.pem /etc/pve/local/pveproxy-ssl.key
       systemctl restart pveproxy.service

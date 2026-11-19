@@ -1,7 +1,7 @@
 { config, lib, ... }:
 let
   cfg = config.codgician.services.jellyfin;
-  svc = lib.codgician.published.services.jellyfin;
+  svc = config.codgician.inventory.services.jellyfin;
   defaultDataDir = "/var/lib/jellyfin";
 in
 {

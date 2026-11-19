@@ -7,8 +7,7 @@
 }:
 let
   cfg = config.codgician.codgi.dsh;
-  inherit (lib.codgician) published;
-  svc = published.services.dsh-web;
+  svc = osConfig.codgician.inventory.services.dsh-web;
 
   # The headless service has no XDG Documents directory to discover.
   webPatch = (pkgs.formats.yaml { }).generate "dsh-web.patch.yml" [
@@ -20,7 +19,7 @@ let
 in
 {
   # The Web UI runs on the host the inventory places `dsh-web` on.
-  config = lib.mkIf (cfg.enable && published.runsOn osConfig.networking.hostName "dsh-web") {
+  config = lib.mkIf (cfg.enable && svc.host == osConfig.networking.hostName) {
     systemd.user.services.dsh-web = {
       Unit.Description = "DeepSeek Harness Web UI";
       Service = {

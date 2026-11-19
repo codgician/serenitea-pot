@@ -7,7 +7,7 @@
 let
   cfg = config.codgician.services.postfix;
   types = lib.types;
-  inherit (lib.codgician.inventory) mail;
+  inherit (config.codgician.inventory) mail;
   tokenFile = "/var/lib/postfix/tokens/${mail}";
   saslPasswd = pkgs.writeText "sasl_passwd" ''
     [smtp.office365.com]:587 ${mail}:${tokenFile}

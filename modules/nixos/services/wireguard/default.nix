@@ -12,7 +12,7 @@ let
   pair = a: b: if a < b then "${a}-${b}" else "${b}-${a}";
 
   # This host is the member named after it and peers with all the others.
-  members = lib.codgician.published.wireguard;
+  members = config.codgician.inventory.wireguard;
   self = members.${hostName};
 in
 {

@@ -1,12 +1,13 @@
 {
   config,
   lib,
+  osConfig,
   pkgs,
   ...
 }:
 let
   cfg = config.codgician.codgi.herdr;
-  relayDomain = lib.codgician.published.services.ovis-relay.domain;
+  relayDomain = osConfig.codgician.inventory.services.ovis-relay.domain;
 in
 {
   options.codgician.codgi.herdr.ovis.enable =

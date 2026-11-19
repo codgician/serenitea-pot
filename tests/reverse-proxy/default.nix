@@ -1,5 +1,5 @@
-# Derive vhosts, DNS names and Authelia rules from fixture inventories at
-# evaluation time, then serve one fixture through the real nginx module.
+# Evaluate the inventory module on fixture tables, then serve one fixture
+# through the real nginx module.
 {
   lib,
   pkgs,
@@ -10,11 +10,22 @@
 let
   system = pkgs.stdenv.hostPlatform.system;
   staticFiles = pkgs.writeTextDir "static/hello.txt" "static-content\n";
-  inherit (lib.codgician) mkPublished;
+  nixos-lib = import (pkgs.path + "/nixos/lib") { inherit lib; };
+
+  # `codgician.inventory` when `table` takes the place of `inventory.nix`.
+  inventoryOf =
+    table:
+    (lib.evalModules {
+      modules = [
+        ../../modules/generic/inventory
+        { codgician.inventory = lib.mkForce table; }
+      ];
+    }).config.codgician.inventory;
 
   # Derivation only: an edge with backends elsewhere.
   table = {
     zone = "example.org";
+    mail = "bot@example.org";
     edge = "front";
     authelia = "portal";
     hosts = {
@@ -62,7 +73,7 @@ let
       parked = { };
     };
   };
-  derived = mkPublished table;
+  derived = inventoryOf table;
 
   withService =
     service:
@@ -72,61 +83,78 @@ let
         broken = service;
       };
     };
-  rejected =
-    lib.mapAttrs
-      (_: data: !(builtins.tryEval (builtins.deepSeq (mkPublished data).services true)).success)
-      {
-        "unknown key" = withService { hots = "backend"; };
-        "unknown key inside authelia" = withService {
-          host = "backend";
-          authelia.group = [ "staff" ];
-        };
-        "authelia that is not a set" = withService {
-          host = "backend";
-          authelia = false;
-        };
-        "authelia without subjects" = withService {
-          host = "backend";
-          authelia = { };
-        };
-        "authelia with subjects and anyone" = withService {
-          host = "backend";
-          authelia = {
-            users = [ "alice" ];
-            anyone = true;
-          };
-        };
-        "port that is not a number" = withService {
-          host = "backend";
-          port = "8096x";
-        };
-        "unknown backend host" = withService { host = "backnd"; };
-        "host and upstream together" = withService {
-          host = "backend";
-          upstream = "http://192.0.2.20";
-        };
-        "backend without the address the edge needs" = withService { host = "front"; } // {
-          edge = "backend";
-        };
-        "unknown edge" = table // {
-          edge = "frnt";
-        };
-        "unknown Authelia service" = table // {
-          authelia = "portl";
-        };
-        "unknown host key" = table // {
-          hosts = table.hosts // {
-            front.lna = "192.0.2.1";
-          };
+  # Reading one value is enough: whoever reads the inventory checks all of it.
+  rejected = lib.mapAttrs (_: data: !(builtins.tryEval (inventoryOf data).zone).success) {
+    "unknown key" = withService { hots = "backend"; };
+    "unknown key inside authelia" = withService {
+      host = "backend";
+      authelia.group = [ "staff" ];
+    };
+    "authelia that is not a set" = withService {
+      host = "backend";
+      authelia = false;
+    };
+    "authelia without subjects" = withService {
+      host = "backend";
+      authelia = { };
+    };
+    "authelia with subjects and anyone" = withService {
+      host = "backend";
+      authelia = {
+        users = [ "alice" ];
+        anyone = true;
+      };
+    };
+    "port that is not a number" = withService {
+      host = "backend";
+      port = "8096x";
+    };
+    "unknown backend host" = withService { host = "backnd"; };
+    "host and upstream together" = withService {
+      host = "backend";
+      upstream = "http://192.0.2.20";
+    };
+    "backend without the address the edge needs" = withService { host = "front"; } // {
+      edge = "backend";
+    };
+    "unknown edge" = table // {
+      edge = "frnt";
+    };
+    "unknown Authelia service" = table // {
+      authelia = "portl";
+    };
+    "unknown host key" = table // {
+      hosts = table.hosts // {
+        front.lna = "192.0.2.1";
+      };
+    };
+    "mesh member without a key" = table // {
+      hosts = table.hosts // {
+        front.wireguard = {
+          ipv4 = "192.0.2.1";
+          ipv6 = "2001:db8::1";
         };
       };
+    };
+    "peer that is also a host" = table // {
+      peers.front.wireguard = {
+        ipv4 = "192.0.2.1";
+        ipv6 = "2001:db8::1";
+        publicKey = "key";
+      };
+    };
+    "direct name on a host that is not public" = withService {
+      host = "backend";
+      direct = true;
+    };
+  };
 
   expectations = {
     # Authentication stays with the backend's own vhost unless the backend is
     # outside the inventory; names the edge only resolves, parked names and
     # services on the edge itself get no vhost from the table.
     "vhosts the table gives the edge" = {
-      actual = derived.edgeVhostsFor "front";
+      actual = derived.edgeVhosts;
       expected = {
         portal = {
           proxyPass = "https://192.0.2.10";
@@ -156,18 +184,40 @@ let
       };
     };
 
+    # Only the edge gets them: the node under a table whose edge is elsewhere.
     "vhosts the table gives another host" = {
-      actual = derived.edgeVhostsFor "backend";
+      actual =
+        (test.extendNixOS {
+          module.codgician.inventory = lib.mkOverride 40 (
+            vmTable
+            // {
+              edge = "elsewhere";
+              hosts = {
+                machine.lan = "192.0.2.1";
+                elsewhere = { };
+              };
+            }
+          );
+        }).nodes.machine.codgician.services.nginx.fronts;
       expected = { };
     };
 
     "placement" = {
-      actual = map (name: derived.runsOn "backend" name) [
-        "wiki"
-        "local"
-        "appliance"
-        "absent"
-      ];
+      actual =
+        map
+          (
+            name:
+            (lib.codgician.mkPublishedEnableOption {
+              networking.hostName = "backend";
+              codgician.inventory = derived;
+            } name).default
+          )
+          [
+            "wiki"
+            "local"
+            "appliance"
+            "absent"
+          ];
       expected = [
         true
         false
@@ -177,7 +227,7 @@ let
     };
 
     "fronted services" = {
-      actual = lib.filter (derived.fronts "front") (lib.attrNames table.services ++ [ "absent" ]);
+      actual = lib.attrNames (lib.filterAttrs (_: service: service.fronted) derived.services);
       expected = [
         "appliance"
         "console"
@@ -188,7 +238,7 @@ let
     };
 
     "domains by vhost name" = {
-      actual = map derived.domainOf [
+      actual = map (vhost: derived.vhostDomains.${vhost} or null) [
         "wiki"
         "console.example.org"
         "portal"
@@ -270,6 +320,7 @@ let
   # module knows.
   vmTable = {
     zone = "fixture.codgician.me";
+    mail = "bot@fixture.codgician.me";
     edge = "machine";
     authelia = "portal";
     hosts = {
@@ -305,16 +356,8 @@ let
     };
   };
 
-  # Every module on the node reads the fixture instead of `inventory.nix`.
-  vmLib = lib.extend (
-    _: prev: {
-      codgician = prev.codgician // {
-        inventory = vmTable;
-      };
-    }
-  );
-  nixos-lib = import (pkgs.path + "/nixos/lib") { lib = vmLib; };
-  domain = name: vmLib.codgician.published.services.${name}.domain;
+  vmInventory = inventoryOf vmTable;
+  domain = name: vmInventory.services.${name}.domain;
   domains = map domain (lib.attrNames vmTable.services);
 
   # The shape of a published service's module.
@@ -326,13 +369,11 @@ let
 
       config = lib.mkIf config.codgician.services.${name}.enable {
         codgician.services.nginx.reverseProxies.${name}.proxyPass =
-          lib.codgician.published.services.${name}.localUpstream;
+          config.codgician.inventory.services.${name}.localUpstream;
       };
     };
-in
-assert lib.assertMsg (failures == { }) "reverse-proxy: ${builtins.toJSON failures}";
-{
-  reverseProxyRouting = nixos-lib.runTest {
+
+  test = nixos-lib.runTest {
     name = "reverse-proxy-routing";
     hostPkgs = pkgs;
     defaults = {
@@ -360,6 +401,7 @@ assert lib.assertMsg (failures == { }) "reverse-proxy: ${builtins.toJSON failure
         environment.systemPackages = [ pkgs.curl ];
 
         codgician.services.moved.enable = true;
+        codgician.inventory = lib.mkForce vmTable;
 
         # What a service module adds to its vhost.
         codgician.services.nginx.reverseProxies.routing.locations = {
@@ -477,4 +519,8 @@ assert lib.assertMsg (failures == { }) "reverse-proxy: ${builtins.toJSON failure
           assert "location: https://${domain "routing"}/" in redirect
     '';
   };
+in
+assert lib.assertMsg (failures == { }) "reverse-proxy: ${builtins.toJSON failures}";
+{
+  reverseProxyRouting = test;
 }

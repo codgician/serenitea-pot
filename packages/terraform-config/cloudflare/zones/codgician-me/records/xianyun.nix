@@ -2,7 +2,7 @@
 let
   zone_id = config.resource.cloudflare_zone.codgician-me "id";
   zone_name = config.resource.cloudflare_zone.codgician-me.name;
-  inherit (lib.codgician.inventory.hosts.xianyun) ipv4 ipv6;
+  inherit (config.codgician.inventory.hosts.xianyun) ipv4 ipv6;
 in
 {
   resource.cloudflare_dns_record =

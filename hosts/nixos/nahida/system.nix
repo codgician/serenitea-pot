@@ -1,6 +1,11 @@
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
-  dsh = lib.codgician.published.services.dsh-web;
+  dsh = config.codgician.inventory.services.dsh-web;
 in
 {
   codgician = {

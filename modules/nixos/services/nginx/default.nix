@@ -7,7 +7,7 @@
 let
   cfg = config.codgician.services.nginx;
   types = lib.types;
-  inherit (lib.codgician) inventory published;
+  inherit (config.codgician) inventory;
   inherit (config.networking) hostName;
   autheliaApiPath = "/internal/authelia/authz";
 
@@ -28,13 +28,13 @@ let
   vhostModule =
     { name, ... }:
     let
-      service = published.services.${name} or null;
+      service = inventory.services.${name} or null;
     in
     {
       options = {
         domains = lib.mkOption {
           type = types.listOf types.str;
-          default = lib.optional (published.domainOf name != null) (published.domainOf name);
+          default = lib.optional (inventory.vhostDomains ? ${name}) inventory.vhostDomains.${name};
           defaultText = lib.literalMD "the domain of the service called `<name>` in `inventory.nix`";
           example = [
             "example.com"
@@ -149,7 +149,7 @@ let
       })
       ++ (lib.optional vhost.authelia {
         "${autheliaApiPath}" = {
-          proxyPass = published.autheliaUrl + "/api/authz/auth-request"; # Use auth-request endpoint
+          proxyPass = inventory.autheliaUrl + "/api/authz/auth-request"; # Use auth-request endpoint
           recommendedProxySettings = false;
           extraConfig = ''
             internal;
@@ -236,12 +236,25 @@ in
         table adds one for every service whose backend is elsewhere.
       '';
     };
+
+    fronts = lib.mkOption {
+      type = types.attrsOf types.attrs;
+      readOnly = true;
+      description = ''
+        The `reverseProxies` this host has because it is the inventory's edge:
+        `codgician.inventory.edgeVhosts` there, none on every other host.
+      '';
+    };
   };
 
   config = lib.mkMerge [
     {
+      codgician.services.nginx.fronts = lib.optionalAttrs (
+        hostName == inventory.edge
+      ) inventory.edgeVhosts;
+
       codgician.services.nginx.reverseProxies = lib.mkMerge [
-        (published.edgeVhostsFor hostName)
+        cfg.fronts
         (lib.mkIf (cfg.landingPage != null) {
           ${cfg.landingPage.domain} = {
             domains = [

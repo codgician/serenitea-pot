@@ -292,7 +292,7 @@ in
         ];
         routingPolicyRules = [
           {
-            From = "${lib.codgician.inventory.hosts.paimon.pve}/32";
+            From = "${config.codgician.inventory.hosts.paimon.pve}/32";
             Table = 2048;
             Priority = 200;
           }

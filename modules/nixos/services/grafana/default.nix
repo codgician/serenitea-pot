@@ -8,8 +8,8 @@ let
   serviceName = "grafana";
   cfg = config.codgician.services.grafana;
   types = lib.types;
-  inherit (lib.codgician) inventory published;
-  svc = published.services.grafana;
+  inherit (config.codgician) inventory;
+  svc = inventory.services.grafana;
 
   url = "https://${svc.domain}";
 
@@ -82,9 +82,9 @@ in
             "groups"
           ];
           empty_scopes = false;
-          auth_url = "${published.autheliaUrl}/api/oidc/authorization";
-          token_url = "${published.autheliaUrl}/api/oidc/token";
-          api_url = "${published.autheliaUrl}/api/oidc/userinfo";
+          auth_url = "${inventory.autheliaUrl}/api/oidc/authorization";
+          token_url = "${inventory.autheliaUrl}/api/oidc/token";
+          api_url = "${inventory.autheliaUrl}/api/oidc/userinfo";
           login_attribute_path = "preferred_username";
           groups_attribute_path = "groups";
           name_attribute_path = "name";

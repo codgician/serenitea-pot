@@ -1,10 +1,11 @@
-# Facts that more than one host, module or flake output reads.
-# Plain data: no `pkgs`, no module system. `lib/inventory.nix` holds the
-# schema that documents and checks every key, and derives the edge's vhosts,
-# the DNS records, the Authelia rules and the members of the WireGuard mesh.
-rec {
+# Facts that more than one host, module or flake output reads: the
+# definitions of the option `codgician.inventory`, which
+# `modules/generic/inventory` declares, documents and checks. `config` here
+# is the inventory itself.
+{ config, ... }:
+{
   zone = "codgician.me";
-  mail = "bot@${zone}";
+  mail = "bot@${config.zone}";
 
   # Host that owns the public names below, unless they are `direct`, and
   # proxies them to their backends
@@ -107,14 +108,14 @@ rec {
     # the next change to lumine's nginx configuration.
     docling-serve = {
       subdomain = "vision";
-      upstream = "https://${hosts.paimon.lan}";
+      upstream = "https://${config.hosts.paimon.lan}";
     };
     dsh-web = {
       subdomain = "moongazer";
       host = "nahida";
       port = 3080;
       # Keeps the order of lumine's nginx.conf; can go with the next change to it.
-      edgeVhost = "moongazer.${zone}";
+      edgeVhost = "moongazer.${config.zone}";
       authelia.users = [ "codgi" ];
     };
     gitlab = {

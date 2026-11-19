@@ -15,7 +15,7 @@
 
       nginx = {
         landingPage = {
-          domain = lib.codgician.inventory.zone;
+          domain = config.codgician.inventory.zone;
           footer = "Our paths will surely cross";
         };
 
@@ -26,7 +26,7 @@
             include ${config.codgician.secrets.files.saw-basic-auth.path};
           '';
 
-          ${lib.codgician.published.services.dsh-web.edgeVhost}.locations."/".extraConfig = ''
+          ${config.codgician.inventory.services.dsh-web.edgeVhost}.locations."/".extraConfig = ''
             access_log off;
             proxy_buffering off;
           '';

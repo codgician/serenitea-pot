@@ -2,7 +2,7 @@
 let
   zone_id = config.resource.cloudflare_zone.codgician-me "id";
   zone_name = config.resource.cloudflare_zone.codgician-me.name;
-  inherit (lib.codgician.inventory) edge;
+  inherit (config.codgician) inventory;
 in
 {
   # One CNAME to the edge host for every name in the inventory's service table.
@@ -13,11 +13,11 @@ in
         name = "${name}.${zone_name}";
         proxied = false;
         ttl = 120;
-        comment = "Reverse proxied by ${edge}";
+        comment = "Reverse proxied by ${inventory.edge}";
         type = "CNAME";
-        content = lib.codgician.published.hosts.${edge}.domain;
+        content = inventory.hosts.${inventory.edge}.domain;
         inherit zone_id;
       }
-    ) lib.codgician.published.dnsNames
+    ) inventory.dnsNames
   );
 }

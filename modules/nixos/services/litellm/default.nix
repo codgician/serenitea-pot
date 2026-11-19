@@ -10,8 +10,8 @@ let
   group = serviceName;
   uid = config.users.users.${user}.uid;
   cfg = config.codgician.services.litellm;
-  inherit (lib.codgician) published;
-  svc = published.services.litellm;
+  inherit (config.codgician) inventory;
+  svc = inventory.services.litellm;
   stateDir = "/var/lib/${serviceName}";
   dbName = "litellm";
   dbHost = "/run/postgresql";
@@ -189,9 +189,9 @@ let
     PROXY_BASE_URL = "https://${svc.domain}";
     GENERIC_CLIENT_ID = "dendro";
     # GENERIC_CLIENT_SECRET in environment file
-    GENERIC_AUTHORIZATION_ENDPOINT = "${published.autheliaUrl}/api/oidc/authorization";
-    GENERIC_TOKEN_ENDPOINT = "${published.autheliaUrl}/api/oidc/token";
-    GENERIC_USERINFO_ENDPOINT = "${published.autheliaUrl}/api/oidc/userinfo";
+    GENERIC_AUTHORIZATION_ENDPOINT = "${inventory.autheliaUrl}/api/oidc/authorization";
+    GENERIC_TOKEN_ENDPOINT = "${inventory.autheliaUrl}/api/oidc/token";
+    GENERIC_USERINFO_ENDPOINT = "${inventory.autheliaUrl}/api/oidc/userinfo";
     GENERIC_INCLUDE_CLIENT_ID = "true";
     # GENERIC_CLIENT_USE_PKCE = "true"; problematic with authelia
     GENERIC_SCOPE = "openid email profile groups";
@@ -306,7 +306,7 @@ in
       };
     })
 
-    (lib.mkIf (cfg.enable || published.fronts config.networking.hostName serviceName) {
+    (lib.mkIf (cfg.enable || config.codgician.services.nginx.fronts ? ${serviceName}) {
       codgician.services.nginx.reverseProxies.litellm.locations =
         let
           inherit (lib.codgician) mkNginxLocationForStaticFile;

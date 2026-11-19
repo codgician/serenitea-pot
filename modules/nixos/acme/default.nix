@@ -5,7 +5,7 @@ let
 
   # DNS-01 provider of each zone; a certificate uses the zone its name ends in.
   zones = {
-    ${lib.codgician.inventory.zone} = {
+    ${config.codgician.inventory.zone} = {
       dnsProvider = "cloudflare";
       credential = "cloudflare-credential";
     };

@@ -6,8 +6,8 @@
 let
   serviceName = "openvscode-server";
   cfg = config.codgician.services.${serviceName};
-  inherit (lib.codgician) published;
-  svc = published.services.openvscode-server;
+  inherit (config.codgician) inventory;
+  svc = inventory.services.openvscode-server;
 in
 {
   options.codgician.services.${serviceName}.enable =
@@ -36,7 +36,7 @@ in
     })
 
     # Long timeouts for WebSocket
-    (lib.mkIf (cfg.enable || published.fronts config.networking.hostName serviceName) {
+    (lib.mkIf (cfg.enable || config.codgician.services.nginx.fronts ? ${serviceName}) {
       codgician.services.nginx.reverseProxies.openvscode-server.locations."/".extraConfig = ''
         # Long timeouts for IDE (terminals, LSPs can idle)
         proxy_read_timeout 3600s;

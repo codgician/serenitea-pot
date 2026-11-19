@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  osConfig,
   pkgs,
   ...
 }:
@@ -32,7 +33,7 @@ in
       }
       # Hosts the inventory calls public are reached at their public name.
       // lib.mapAttrs (_: host: { hostname = host.domain; } // trusted) (
-        lib.filterAttrs (_: host: host.public) lib.codgician.published.hosts
+        lib.filterAttrs (_: host: host.public) osConfig.codgician.inventory.hosts
       )
       // mkHosts trusted {
         fischl = "lan";

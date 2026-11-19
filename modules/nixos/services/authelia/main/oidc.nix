@@ -1,6 +1,6 @@
-{ lib, ... }:
+{ config, ... }:
 let
-  url = service: "https://${lib.codgician.published.services.${service}.domain}";
+  url = service: "https://${config.codgician.inventory.services.${service}.domain}";
 
   defaults = {
     public = false;

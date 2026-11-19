@@ -7,8 +7,8 @@
 let
   serviceName = "open-webui";
   cfg = config.codgician.services.open-webui;
-  inherit (lib.codgician) published;
-  svc = published.services.open-webui;
+  inherit (config.codgician) inventory;
+  svc = inventory.services.open-webui;
   defaultStateDir = "/var/lib/${serviceName}";
   # Kept in its own directory: nginx serves the manifest's parent directory.
   pwaManifest = ./static/pwa-manifest.json;
@@ -151,7 +151,7 @@ let
     OAUTH_CLIENT_ID = "akasha";
     # OAUTH_CLIENT_SECRET provided in env
     OPENID_REDIRECT_URI = "${webuiUrl}/oauth/oidc/callback";
-    OPENID_PROVIDER_URL = "${published.autheliaUrl}/.well-known/openid-configuration";
+    OPENID_PROVIDER_URL = "${inventory.autheliaUrl}/.well-known/openid-configuration";
     OAUTH_PROVIDER_NAME = "Authelia";
     OAUTH_SCOPES = "openid email profile groups";
     ENABLE_OAUTH_ROLE_MANAGEMENT = "True";
@@ -337,7 +337,7 @@ in
 
     # Locations of the vhost, next to the backend and on the edge alike; the
     # icons are only served next to the backend.
-    (lib.mkIf (cfg.enable || published.fronts config.networking.hostName serviceName) {
+    (lib.mkIf (cfg.enable || config.codgician.services.nginx.fronts ? ${serviceName}) {
       codgician.services.nginx.reverseProxies.open-webui.locations =
         let
           inherit (lib.codgician) mkNginxLocationForStaticFile;

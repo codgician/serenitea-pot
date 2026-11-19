@@ -6,8 +6,8 @@
 }:
 let
   cfg = config.codgician.services.gitlab;
-  inherit (lib.codgician) inventory published;
-  svc = published.services.gitlab;
+  inherit (config.codgician) inventory;
+  svc = inventory.services.gitlab;
 in
 {
   options.codgician.services.gitlab = {
@@ -87,7 +87,7 @@ in
               args = {
                 name = "openid_connect";
                 strategy_class = "OmniAuth::Strategies::OpenIDConnect";
-                issuer = published.autheliaUrl;
+                issuer = inventory.autheliaUrl;
                 discovery = true;
                 scope = [
                   "openid"

@@ -6,8 +6,8 @@
 }:
 let
   cfg = config.codgician.services.gns3-server;
-  inherit (lib.codgician) published;
-  svc = published.services.gns3-server;
+  inherit (config.codgician) inventory;
+  svc = inventory.services.gns3-server;
   stateDir = "/var/lib/gns3";
 in
 {
@@ -83,7 +83,7 @@ in
       ];
     })
 
-    (lib.mkIf (cfg.enable || published.fronts config.networking.hostName "gns3-server") {
+    (lib.mkIf (cfg.enable || config.codgician.services.nginx.fronts ? gns3-server) {
       codgician.services.nginx.reverseProxies.gns3-server.locations."/".extraConfig = ''
         # Appliance images can be several GB
         client_max_body_size 0;

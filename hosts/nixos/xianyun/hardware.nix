@@ -1,6 +1,11 @@
-{ lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
-  publicIpv6 = lib.codgician.inventory.hosts.xianyun.ipv6;
+  publicIpv6 = config.codgician.inventory.hosts.xianyun.ipv6;
 in
 {
   boot = {

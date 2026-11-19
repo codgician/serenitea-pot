@@ -8,7 +8,6 @@ nixpkgs.lib.extend (
       map (file: import file (args // { inherit lib nixpkgs; })) [
         ./consts.nix
         ./image.nix
-        ./inventory.nix
         ./io.nix
         ./nginx.nix
         ./service.nix

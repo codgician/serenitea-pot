@@ -13,7 +13,15 @@ let
   # A provider folder gives the type of its model specs, the specs and the
   # function that turns a checked spec into a registry entry.
   providers = lib.genAttrs (lib.codgician.getFolderNames ./providers) (
-    name: import ./providers/${name} { inherit lib modelLib pkgs; }
+    name:
+    import ./providers/${name} {
+      inherit
+        config
+        lib
+        modelLib
+        pkgs
+        ;
+    }
   );
 
   registry = lib.mapAttrs (name: lib.mapAttrs providers.${name}.provider.transformer) cfg.providers;
