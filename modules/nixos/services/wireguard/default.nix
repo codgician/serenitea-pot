@@ -54,5 +54,14 @@ in
 
       firewall.allowedUDPPorts = [ self.port ];
     };
+
+    # A member routes between the mesh and its other networks and answers
+    # ARP and NDP for the peers behind it.
+    boot.kernel.sysctl = {
+      "net.ipv4.conf.all.forwarding" = "1";
+      "net.ipv4.conf.all.proxy_arp" = "1";
+      "net.ipv6.conf.all.forwarding" = "1";
+      "net.ipv6.conf.all.proxy_ndp" = "1";
+    };
   };
 }
