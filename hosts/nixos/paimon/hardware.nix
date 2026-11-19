@@ -201,7 +201,10 @@
   hardware.nvidia-container-toolkit.enable = true;
 
   # Connected to UPS
-  codgician.power.ups.devices.br1500g.batteryLow = 20;
+  codgician.power.ups.devices.br1500g = {
+    sku = "br1500g";
+    batteryLow = 20;
+  };
 
   hardware = {
     enableRedistributableFirmware = true;

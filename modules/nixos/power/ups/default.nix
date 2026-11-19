@@ -6,21 +6,98 @@
 }:
 let
   cfg = config.codgician.power.ups;
+  types = lib.types;
+  skuNames = lib.codgician.getNixFileNamesWithoutExt ./skus;
 in
 {
-  options.codgician.power.ups.devices = lib.mkOption {
-    type = lib.types.attrsOf (
-      lib.types.submodule {
-        options.batteryLow = lib.mkOption {
-          type = lib.types.int;
-          default = 10;
-          description = "Battery charge percentage at which the UPS will shut down.";
+  options.codgician.power.ups = {
+    devices = lib.mkOption {
+      type =
+        with types;
+        attrsOf (submodule {
+          options = {
+            sku = lib.mkOption {
+              type = types.enum skuNames;
+              example = builtins.head skuNames;
+              description = "SKU of the UPS device.";
+            };
+
+            description = lib.mkOption {
+              type = with types; nullOr str;
+              default = null;
+              description = "Description of the UPS.";
+            };
+
+            product = lib.mkOption {
+              type = with types; nullOr str;
+              default = null;
+              description = "Product name of the UPS (optional, used for matching device).";
+            };
+
+            serial = lib.mkOption {
+              type = with types; nullOr str;
+              default = null;
+              description = "Serial of the UPS (optional, used for matching device).";
+            };
+
+            port = lib.mkOption {
+              type = with types; nullOr str;
+              default = null;
+              example = "/dev/ttyS0";
+              description = "Port to which the UPS is connected.";
+            };
+
+            onDelay = lib.mkOption {
+              type = types.int;
+              default = 90;
+              description = "Time to wait before switching on the UPS (seconds).";
+            };
+
+            offDelay = lib.mkOption {
+              type = types.int;
+              default = 60;
+              description = "Time to wait before switching off the UPS (seconds).";
+            };
+
+            batteryLow = lib.mkOption {
+              type = types.int;
+              default = 10;
+              description = ''
+                Battery charge percentage at which the UPS will shut down.
+                Note not all model support this configuration.
+              '';
+            };
+          };
+        });
+      default = { };
+      example = {
+        br1500g = {
+          sku = "br1500g";
+          batteryLow = 20;
         };
-      }
-    );
-    default = { };
-    example.br1500g.batteryLow = 20;
-    description = "Connected APC Back-UPS RS 1500G devices.";
+      };
+      description = "List of UPS device models that are connected.";
+    };
+
+    minSupplies = lib.mkOption {
+      type = types.int;
+      default = 1;
+      description = ''
+        Minimum number of power supplies that must be online for the UPS to
+        consider the system to be powered.
+      '';
+    };
+
+    sched = {
+      shutdownTimer = lib.mkOption {
+        type = types.int;
+        default = 0;
+        description = ''
+          Time to wait before shutting down the system (seconds),
+          regardless of UPS battery level. Set to 0 to disable.
+        '';
+      };
+    };
   };
 
   config = lib.mkIf (cfg.devices != { }) {
@@ -39,23 +116,13 @@ in
       };
 
       # Devices
-      ups = builtins.mapAttrs (_: device: {
-        driver = "usbhid-ups";
-        description = "APC Back-UPS RS 1500G";
-        port = "auto";
-        directives = [
-          "vendorid = 051D"
-          "productid = 0002"
-          "vendor = \"American Power Conversion\""
-          "ondelay = 90"
-          "offdelay = 60"
-          "override.battery.charge.low = ${toString device.batteryLow}"
-        ];
-      }) cfg.devices;
+      ups = builtins.mapAttrs (
+        name: value: import (./skus + "/${value.sku}.nix") (value // { inherit lib; })
+      ) cfg.devices;
 
       # Monitor
       upsmon = {
-        monitor = builtins.mapAttrs (name: _: {
+        monitor = builtins.mapAttrs (name: value: {
           user = "admin";
           powerValue = 1;
           type = "master";
@@ -64,7 +131,7 @@ in
         }) cfg.devices;
 
         settings = {
-          MINSUPPLIES = 1;
+          MINSUPPLIES = cfg.minSupplies;
           NOTIFYFLAG = [
             [
               "ONLINE"
@@ -124,7 +191,7 @@ in
         ];
       };
 
-      schedulerRules = (import ./sched.nix { inherit pkgs lib; }).outPath;
+      schedulerRules = (import ./sched.nix { inherit config pkgs lib; }).outPath;
     };
   };
 }
