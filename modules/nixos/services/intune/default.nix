@@ -22,6 +22,7 @@ in
 {
   imports = [
     ./mdatp.nix
+    ./printer.nix
     ./vpn.nix
   ];
 

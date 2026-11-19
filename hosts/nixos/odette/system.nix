@@ -16,6 +16,10 @@ in
       intune = {
         enable = true;
         mdatp.enable = true;
+        printer = {
+          enable = true;
+          user = "shijiazhang";
+        };
         vpn.enable = true;
       };
       sing-box = {
