@@ -12,12 +12,6 @@ let
   nahida = outputs.nixosConfigurations.nahida.config;
 in
 {
-  # Authelia builds its rules from the sites paimon knows; this one is
-  # declared in nahida's files.
-  codgician.services.nginx.reverseProxies.dsh-web = {
-    inherit (nahida.codgician.services.nginx.reverseProxies.dsh-web) domains authelia;
-  };
-
   containers.nahida = {
     allowedDevices = builtins.map (node: {
       inherit node;

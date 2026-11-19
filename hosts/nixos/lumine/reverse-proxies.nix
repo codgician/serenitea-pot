@@ -40,24 +40,15 @@ in
 
       # Sites no module declares
       reverseProxies = {
-        bubbles = {
-          domains = [ "bubbles.${zone}" ];
-          proxyPass = "http://192.168.0.24:1234";
-        };
+        bubbles.proxyPass = "http://192.168.0.24:1234";
 
         # Nothing on paimon answers for this name any more; the vhost can go
         # with the next change to lumine's nginx configuration.
-        docling-serve = {
-          domains = [ "vision.${zone}" ];
-          proxyPass = paimon;
-        };
+        docling-serve.proxyPass = paimon;
 
-        hass = {
-          domains = [ "hass.${zone}" ];
-          proxyPass = "http://192.168.0.11:8123";
-        };
+        hass.proxyPass = "http://192.168.0.11:8123";
 
-        # The dsh Web UI on nahida, which declares the site in its own files.
+        # The dsh Web UI on nahida.
         # Named after the domain to keep the order of lumine's nginx.conf.
         "moongazer.${zone}" = {
           domains = [ "moongazer.${zone}" ];
@@ -69,10 +60,7 @@ in
         };
 
         saw = {
-          domains = [ "saw.${zone}" ];
           proxyPass = "https://192.168.0.28";
-          # paimon, where Authelia runs, repeats the site and its policy.
-          authelia.groups = [ "saw" ];
           locations."/".extraConfig = ''
             client_max_body_size 128M;
             proxy_buffering off;
@@ -80,12 +68,8 @@ in
           '';
         };
 
-        # Proxmox VE on paimon's management bridge; paimon declares the site
-        # in its own files.
-        simulanka = {
-          domains = [ "simulanka.${zone}" ];
-          proxyPass = "https://192.168.0.21";
-        };
+        # Proxmox VE on paimon's management bridge
+        simulanka.proxyPass = "https://192.168.0.21";
       };
     };
   };

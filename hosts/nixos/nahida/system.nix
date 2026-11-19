@@ -1,6 +1,5 @@
-{ lib, pkgs, ... }:
+{ config, pkgs, ... }:
 let
-  dshDomain = "moongazer.${lib.codgician.zone}";
   dshPort = 3080;
 in
 {
@@ -13,10 +12,8 @@ in
 
       openvscode-server.enable = true;
 
-      # The dsh Web UI is a Home Manager service, so its site is declared here.
+      # The dsh Web UI is a Home Manager service; its site is in the nginx module.
       nginx.reverseProxies.dsh-web = {
-        domains = [ dshDomain ];
-        authelia.users = [ "codgi" ];
         proxyPass = "http://127.0.0.1:${toString dshPort}";
         locations."/".extraConfig = ''
           # dsh's initial URL contains a browser login token.
@@ -49,7 +46,7 @@ in
       dsh = {
         enable = true;
         web = {
-          domain = dshDomain;
+          domain = builtins.head config.codgician.services.nginx.reverseProxies.dsh-web.domains;
           port = dshPort;
         };
       };

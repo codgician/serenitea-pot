@@ -115,10 +115,7 @@ in
 
   codgician = {
     # The Proxmox VE UI; lumine is its public entry.
-    services.nginx.reverseProxies.simulanka = {
-      domains = [ "simulanka.${lib.codgician.zone}" ];
-      proxyPass = "https://127.0.0.1:8006";
-    };
+    services.nginx.reverseProxies.simulanka.proxyPass = "https://127.0.0.1:8006";
     acme."simulanka.${lib.codgician.zone}".postRun = ''
       cp -f cert.pem /etc/pve/local/pveproxy-ssl.pem
       cp -f key.pem /etc/pve/local/pveproxy-ssl.key

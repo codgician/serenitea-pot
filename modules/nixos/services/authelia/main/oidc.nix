@@ -1,7 +1,6 @@
-{ config, lib, ... }:
+{ config, ... }:
 let
-  inherit (lib.codgician) zone;
-  # Where the site of a service module is
+  # Where a site is
   url =
     site: "https://${builtins.head config.codgician.services.nginx.reverseProxies.${site}.domains}";
 
@@ -45,7 +44,7 @@ in
       client_name = "Proxmox VE";
       # proxmox-ve-oidc-secret-authelia-main.age, hashed with pbkdf2
       client_secret = "$pbkdf2-sha512$310000$ukEvIApLnfEEmOko21MxRQ$cyEAkkrydzgW3ZZdQzbfwUtA9AMH.o3Y4VMiScKWtJ3JaSI3cXhaUueGyUrPIUNS1mrRuwCiAunnr0BxI.SIrw";
-      redirect_uris = [ "https://simulanka.${zone}" ];
+      redirect_uris = [ (url "simulanka") ];
     }
     {
       client_id = "akasha";
@@ -67,7 +66,7 @@ in
       client_id = "home-assistant";
       client_name = "Home Assistant";
       client_secret = "$pbkdf2-sha512$310000$pT/gLgFD3bJ2/lWQBWROZA$c7N9VIP1OpKmmQsrnm8YmseHCA9BOaTcu0Wmlr890qyhTdsi1OC33yRHTgvS2zuAeH8B/lPuEnuot.vMpT2pAw";
-      redirect_uris = [ "https://hass.${zone}/auth/oidc/callback" ];
+      redirect_uris = [ "${url "hass"}/auth/oidc/callback" ];
       scopes = [
         "openid"
         "profile"

@@ -262,6 +262,8 @@ let
   };
 in
 {
+  imports = [ ./sites.nix ];
+
   options.codgician.services.nginx = {
     trustedProxies = lib.mkOption {
       type = types.listOf types.str;
