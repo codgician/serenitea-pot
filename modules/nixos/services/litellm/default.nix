@@ -10,8 +10,9 @@ let
   group = serviceName;
   uid = config.users.users.${user}.uid;
   cfg = config.codgician.services.litellm;
-  inherit (config.codgician) inventory;
-  svc = inventory.services.litellm;
+  authelia = config.codgician.services.authelia.instances.main.url;
+  domain = "dendro.${lib.codgician.zone}";
+  port = 5483;
   stateDir = "/var/lib/${serviceName}";
   dbName = "litellm";
   dbHost = "/run/postgresql";
@@ -186,12 +187,12 @@ let
     }/${dbName}?host=${dbHost}";
 
     # Admin UI login through Authelia
-    PROXY_BASE_URL = "https://${svc.domain}";
+    PROXY_BASE_URL = "https://${domain}";
     GENERIC_CLIENT_ID = "dendro";
     # GENERIC_CLIENT_SECRET in environment file
-    GENERIC_AUTHORIZATION_ENDPOINT = "${inventory.autheliaUrl}/api/oidc/authorization";
-    GENERIC_TOKEN_ENDPOINT = "${inventory.autheliaUrl}/api/oidc/token";
-    GENERIC_USERINFO_ENDPOINT = "${inventory.autheliaUrl}/api/oidc/userinfo";
+    GENERIC_AUTHORIZATION_ENDPOINT = "${authelia}/api/oidc/authorization";
+    GENERIC_TOKEN_ENDPOINT = "${authelia}/api/oidc/token";
+    GENERIC_USERINFO_ENDPOINT = "${authelia}/api/oidc/userinfo";
     GENERIC_INCLUDE_CLIENT_ID = "true";
     # GENERIC_CLIENT_USE_PKCE = "true"; problematic with authelia
     GENERIC_SCOPE = "openid email profile groups";
@@ -199,12 +200,11 @@ let
   };
 in
 {
-  options.codgician.services.litellm.enable =
-    lib.codgician.mkPublishedEnableOption config serviceName;
+  options.codgician.services.litellm.enable = lib.mkEnableOption "LiteLLM proxy";
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
-      codgician.services.nginx.reverseProxies.litellm.proxyPass = svc.localUpstream;
+      codgician.services.nginx.reverseProxies.litellm.proxyPass = "http://127.0.0.1:${toString port}";
 
       # Ensure litellm user is created
       codgician.users.${serviceName} = {
@@ -284,7 +284,7 @@ in
           "--security-opt=no-new-privileges"
         ];
         cmd = [
-          "--port=${builtins.toString svc.port}"
+          "--port=${toString port}"
           "--host=127.0.0.1"
           "--config"
           "/config.yaml"
@@ -306,7 +306,8 @@ in
       };
     })
 
-    (lib.mkIf (cfg.enable || config.codgician.services.nginx.fronts ? ${serviceName}) {
+    {
+      codgician.services.nginx.reverseProxies.litellm.domains = [ domain ];
       codgician.services.nginx.reverseProxies.litellm.locations =
         let
           inherit (lib.codgician) mkNginxLocationForStaticFile;
@@ -331,6 +332,6 @@ in
           "= /swagger/favicon.png" = mkNginxLocationForStaticFile favicon;
           "= /ui/favicon.ico" = mkNginxLocationForStaticFile faviconIco;
         };
-    })
+    }
   ];
 }
