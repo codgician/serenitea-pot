@@ -339,7 +339,7 @@ let
           reverseProxies.nameless.proxyPass = "http://127.0.0.1:8082";
 
           # A front that says nowhere to go.
-          fronts.members = { };
+          fronts.remote = lib.mkForce { };
 
           # Served and fronted by the same host.
           fronts.routing.proxyPass = "http://127.0.0.1:8082";
@@ -353,12 +353,11 @@ let
         };
       };
       expected = [
-        ''nginx: "members" has nothing to serve at "/". Set `proxyPass`, or make the "/" location serve something.''
         ''nginx: "nameless" has no domain. The module or host that owns the site sets `reverseProxies.nameless.domains`; check the spelling of the name.''
         ''nginx: "remot" has no domain. The module or host that owns the site sets `reverseProxies.remot.domains`; check the spelling of the name.''
+        ''nginx: "remote" has nothing to serve at "/". Set `proxyPass`, or make the "/" location serve something.''
         "nginx: reverseProxies.both.authelia needs `users` or `groups`, or `anyone = true`, and not both."
         "nginx: reverseProxies.open.authelia needs `users` or `groups`, or `anyone = true`, and not both."
-        ''nginx: this host fronts "members" and serves it as well.''
         ''nginx: this host fronts "routing" and serves it as well.''
       ];
     };
