@@ -1,5 +1,5 @@
-# Evaluate the inventory module on fixture tables, then serve one fixture
-# through the real nginx module.
+# Sites served and fronted through the real nginx module, the checks it makes
+# and the access rules Authelia derives from the sites.
 {
   lib,
   pkgs,
@@ -12,366 +12,44 @@ let
   staticFiles = pkgs.writeTextDir "static/hello.txt" "static-content\n";
   nixos-lib = import (pkgs.path + "/nixos/lib") { inherit lib; };
 
-  # `codgician.inventory` when `table` takes the place of `inventory.nix`.
-  inventoryOf =
-    table:
-    (lib.evalModules {
-      modules = [
-        ../../modules/generic/inventory
-        { codgician.inventory = lib.mkForce table; }
-      ];
-    }).config.codgician.inventory;
+  # Ends in a zone the acme module knows.
+  zone = "fixture.${lib.codgician.zone}";
+  domain = name: "${name}.${zone}";
+  domains = map domain [
+    "auth"
+    "routing"
+    "members"
+    "remote"
+    "appliance"
+  ];
 
-  # Derivation only: an edge with backends elsewhere.
-  table = {
-    zone = "example.org";
-    mail = "bot@example.org";
-    edge = "front";
-    authelia = "portal";
-    hosts = {
-      front = { };
-      backend = {
-        lan = "192.0.2.10";
-        pve = "192.0.2.11";
-      };
-    };
-    services = {
-      portal = {
-        subdomain = "auth";
-        host = "backend";
-        anubis = true;
-      };
-      wiki = {
-        host = "backend";
-        port = 8081;
-        authelia.users = [ "alice" ];
-      };
-      console = {
-        host = "backend";
-        address = "pve";
-        authelia.groups = [ "staff" ];
-        edgeVhost = "console.example.org";
-      };
-      notes = {
-        host = "backend";
-        port = 8082;
-        authelia.anyone = true;
-      };
-      appliance = {
-        upstream = "http://192.0.2.20:8080";
-        authelia.anyone = true;
-      };
-      local = {
-        host = "front";
-        port = 8083;
-        anubis = true;
-      };
-      printer = {
-        host = "backend";
-        dnsOnly = true;
-      };
-      parked = { };
-    };
-  };
-  derived = inventoryOf table;
-
-  withService =
-    service:
-    table
-    // {
-      services = table.services // {
-        broken = service;
-      };
-    };
-  rejected =
-    lib.mapAttrs (_: data: !(builtins.tryEval (builtins.deepSeq (inventoryOf data) true)).success)
-      {
-        "unknown key" = withService { hots = "backend"; };
-        "unknown key inside authelia" = withService {
-          host = "backend";
-          authelia.group = [ "staff" ];
-        };
-        "authelia that is not a set" = withService {
-          host = "backend";
-          authelia = false;
-        };
-        "authelia without subjects" = withService {
-          host = "backend";
-          authelia = { };
-        };
-        "authelia with subjects and anyone" = withService {
-          host = "backend";
-          authelia = {
-            users = [ "alice" ];
-            anyone = true;
-          };
-        };
-        "port that is not a number" = withService {
-          host = "backend";
-          port = "8096x";
-        };
-        "unknown backend host" = withService { host = "backnd"; };
-        "host and upstream together" = withService {
-          host = "backend";
-          upstream = "http://192.0.2.20";
-        };
-        "backend without the address the edge needs" = withService { host = "front"; } // {
-          edge = "backend";
-        };
-        "unknown edge" = table // {
-          edge = "frnt";
-        };
-        "unknown Authelia service" = table // {
-          authelia = "portl";
-        };
-        "unknown host key" = table // {
-          hosts = table.hosts // {
-            front.lna = "192.0.2.1";
-          };
-        };
-        "mesh member without a key" = table // {
-          hosts = table.hosts // {
-            front.wireguard = {
-              ipv4 = "192.0.2.1";
-              ipv6 = "2001:db8::1";
-            };
-          };
-        };
-        "peer that is also a host" = table // {
-          peers.front.wireguard = {
-            ipv4 = "192.0.2.1";
-            ipv6 = "2001:db8::1";
-            publicKey = "key";
-          };
-        };
-        "direct name on a host that is not public" = withService {
-          host = "backend";
-          direct = true;
-        };
-      };
-
-  expectations = {
-    # Authentication stays with the backend's own vhost unless the backend is
-    # outside the inventory; names the edge only resolves, parked names and
-    # services on the edge itself get no vhost from the table.
-    "vhosts the table gives the edge" = {
-      actual = derived.edgeVhosts;
-      expected = {
-        portal = {
-          proxyPass = "https://192.0.2.10";
-          authelia = false;
-          anubis = true;
-        };
-        wiki = {
-          proxyPass = "https://192.0.2.10";
-          authelia = false;
-          anubis = false;
-        };
-        "console.example.org" = {
-          proxyPass = "https://192.0.2.11";
-          authelia = false;
-          anubis = false;
-        };
-        notes = {
-          proxyPass = "https://192.0.2.10";
-          authelia = false;
-          anubis = false;
-        };
-        appliance = {
-          proxyPass = "http://192.0.2.20:8080";
-          authelia = true;
-          anubis = false;
-        };
-      };
-    };
-
-    # Only the edge gets them: the node under a table whose edge is elsewhere.
-    "vhosts the table gives another host" = {
-      actual =
-        (test.extendNixOS {
-          module.codgician.inventory = lib.mkOverride 40 (
-            vmTable
-            // {
-              edge = "elsewhere";
-              hosts = {
-                machine.lan = "192.0.2.1";
-                elsewhere = { };
-              };
-            }
-          );
-        }).nodes.machine.codgician.services.nginx.fronts;
-      expected = { };
-    };
-
-    "placement" = {
-      actual =
-        map
-          (
-            name:
-            (lib.codgician.mkPublishedEnableOption {
-              networking.hostName = "backend";
-              codgician.inventory = derived;
-            } name).default
-          )
-          [
-            "wiki"
-            "local"
-            "appliance"
-            "absent"
-          ];
-      expected = [
-        true
-        false
-        false
-        false
-      ];
-    };
-
-    "fronted services" = {
-      actual = lib.attrNames (lib.filterAttrs (_: service: service.fronted) derived.services);
-      expected = [
-        "appliance"
-        "console"
-        "notes"
-        "portal"
-        "wiki"
-      ];
-    };
-
-    "domains by vhost name" = {
-      actual = map (vhost: derived.vhostDomains.${vhost} or null) [
-        "wiki"
-        "console.example.org"
-        "portal"
-        "absent"
-      ];
-      expected = [
-        "wiki.example.org"
-        "console.example.org"
-        "auth.example.org"
-        null
-      ];
-    };
-
-    "local upstreams" = {
-      actual = [
-        derived.services.wiki.localUpstream
-        derived.services.portal.localUpstream
-      ];
-      expected = [
-        "http://127.0.0.1:8081"
-        null
-      ];
-    };
-
-    "Authelia portal" = {
-      actual = derived.autheliaUrl;
-      expected = "https://auth.example.org";
-    };
-
-    # Only restricted services get rules; `anyone` is Authelia's default policy.
-    "Authelia rules" = {
-      actual = derived.autheliaRules;
-      expected = [
-        {
-          domain = [ "console.example.org" ];
-          policy = "two_factor";
-          subject = [ "group:staff" ];
-        }
-        {
-          domain = [ "console.example.org" ];
-          policy = "deny";
-        }
-        {
-          domain = [ "wiki.example.org" ];
-          policy = "two_factor";
-          subject = [ "user:alice" ];
-        }
-        {
-          domain = [ "wiki.example.org" ];
-          policy = "deny";
-        }
-      ];
-    };
-
-    "DNS names" = {
-      actual = derived.dnsNames;
-      expected = [
-        "appliance"
-        "console"
-        "local"
-        "notes"
-        "parked"
-        "auth"
-        "printer"
-        "wiki"
-      ];
-    };
-
-    "tables that must be rejected" = {
-      actual = lib.attrNames (lib.filterAttrs (_: isRejected: !isRejected) rejected);
-      expected = [ ];
-    };
-  };
-
-  failures = lib.filterAttrs (_: e: e.actual != e.expected) expectations;
-
-  # Served by the VM: `machine` is the edge, runs three services itself and
-  # fronts a backend outside the inventory. The zone ends in one the acme
-  # module knows.
-  vmTable = {
-    zone = "fixture.codgician.me";
-    mail = "bot@fixture.codgician.me";
-    edge = "machine";
-    authelia = "portal";
-    hosts = {
-      machine = { };
-      elsewhere = { };
-    };
-    services = {
-      portal = {
-        subdomain = "auth";
-        host = "machine";
-        port = 8083;
-      };
-      routing = {
-        host = "machine";
-        port = 8081;
-      };
-      members = {
-        host = "machine";
-        port = 8082;
-        authelia.users = [ "alice" ];
-      };
-      # Placed elsewhere; the node runs it anyway.
-      moved = {
-        host = "elsewhere";
-        port = 8082;
-        dnsOnly = true;
-      };
-      appliance.upstream = "http://127.0.0.1:8082";
-      guarded = {
-        upstream = "http://127.0.0.1:8081";
-        authelia.anyone = true;
-      };
-    };
-  };
-
-  vmInventory = inventoryOf vmTable;
-  domain = name: vmInventory.services.${name}.domain;
-  domains = map domain (lib.attrNames vmTable.services);
-
-  # The shape of a published service's module.
+  # The shape of a service module: the site outside `enable`, with a location
+  # every hop gets; the upstream inside.
   serviceModule =
     name:
+    {
+      port,
+      authelia ? null,
+    }:
     { config, lib, ... }:
     {
-      options.codgician.services.${name}.enable = lib.codgician.mkPublishedEnableOption config name;
+      options.codgician.services.${name}.enable = lib.mkEnableOption name;
 
-      config = lib.mkIf config.codgician.services.${name}.enable {
-        codgician.services.nginx.reverseProxies.${name}.proxyPass =
-          config.codgician.inventory.services.${name}.localUpstream;
-      };
+      config = lib.mkMerge [
+        {
+          codgician.services.nginx.reverseProxies.${name} = {
+            domains = [ (domain name) ];
+            inherit authelia;
+            locations."/shared/".extraConfig = ''
+              add_header X-Shared ${name} always;
+            '';
+          };
+        }
+
+        (lib.mkIf config.codgician.services.${name}.enable {
+          codgician.services.nginx.reverseProxies.${name}.proxyPass = "http://127.0.0.1:${toString port}";
+        })
+      ];
     };
 
   test = nixos-lib.runTest {
@@ -388,11 +66,17 @@ let
     nodes.machine =
       { lib, ... }:
       {
-        imports = map serviceModule [
-          "portal"
-          "routing"
-          "members"
-          "moved"
+        imports = [
+          (serviceModule "routing" { port = 8081; })
+          (serviceModule "members" {
+            port = 8082;
+            authelia.users = [ "alice" ];
+          })
+          # Served by another host; this one is its public entry.
+          (serviceModule "remote" {
+            port = 8082;
+            authelia.groups = [ "staff" ];
+          })
         ];
 
         users.users.root = {
@@ -401,25 +85,45 @@ let
         };
         environment.systemPackages = [ pkgs.curl ];
 
-        codgician.services.moved.enable = true;
-        codgician.inventory = lib.mkForce vmTable;
+        codgician.services = {
+          routing.enable = true;
+          members.enable = true;
 
-        # What a service module adds to its vhost.
-        codgician.services.nginx.reverseProxies.routing.locations = {
-          "/".extraConfig = ''
-            add_header X-Location-Extra preserved always;
-          '';
-          "/inherited/" = { };
-          "/custom/".proxyPass = "http://127.0.0.1:8082/mapped/";
-          "/static/" = {
-            root = staticFiles;
-            tryFiles = "$uri =404";
+          nginx = {
+            fronts.remote.proxyPass = "http://127.0.0.1:8082";
+
+            reverseProxies = {
+              # What a host adds to a site.
+              routing.locations = {
+                "/".extraConfig = ''
+                  add_header X-Location-Extra preserved always;
+                '';
+                "/inherited/" = { };
+                "/custom/".proxyPass = "http://127.0.0.1:8082/mapped/";
+                "/static/" = {
+                  root = staticFiles;
+                  tryFiles = "$uri =404";
+                };
+              };
+
+              # A site without a module.
+              appliance = {
+                domains = [ (domain "appliance") ];
+                authelia.anyone = true;
+                proxyPass = "http://127.0.0.1:8082";
+              };
+
+              # A stand-in for the portal, at the address its site gives
+              # every vhost that asks Authelia.
+              authelia-main = {
+                domains = lib.mkForce [ (domain "auth") ];
+                proxyPass = lib.mkForce "http://127.0.0.1:8083";
+              };
+            };
           };
         };
 
-        # The portal's vhost stands in for Authelia at the address every
-        # protected vhost asks.
-        networking.hosts."127.0.0.1" = [ (domain "portal") ];
+        networking.hosts."127.0.0.1" = [ (domain "auth") ];
 
         services.nginx.virtualHosts = {
           backend-one = {
@@ -491,10 +195,10 @@ let
       def status(host, path="/"):
           return curl(host, path, "--output /dev/null --write-out '%{http_code}'")
 
-      with subtest("a service module's vhost goes to the port the table gives it"):
+      with subtest("a site is served where its module is enabled"):
           assert request("${domain "routing"}") == "backend-one:/"
 
-      with subtest("locations go to the vhost's upstream unless they say otherwise"):
+      with subtest("locations go to the site's upstream unless they say otherwise"):
           assert request("${domain "routing"}", "/inherited/item") == "backend-one:/inherited/item"
           assert request("${domain "routing"}", "/custom/item") == "backend-two:/mapped/item"
           assert request("${domain "routing"}", "/static/hello.txt") == "static-content\n"
@@ -502,16 +206,20 @@ let
       with subtest("settings of the root location keep the upstream"):
           assert "x-location-extra: preserved" in request("${domain "routing"}", flags="--head").lower()
 
-      with subtest("a host can run a service the table places elsewhere"):
-          assert request("${domain "moved"}", "/item") == "backend-two:/item"
+      with subtest("a fronted site goes to the host that serves it"):
+          assert request("${domain "remote"}", "/item") == "backend-two:/item"
 
-      with subtest("the edge fronts backends outside the inventory"):
-          assert request("${domain "appliance"}", "/item") == "backend-two:/item"
+      with subtest("the locations of a site reach the host that serves it and the host that fronts it"):
+          assert "x-shared: routing" in request("${domain "routing"}", "/shared/item", "--head").lower()
+          assert "x-shared: remote" in request("${domain "remote"}", "/shared/item", "--head").lower()
 
-      with subtest("a vhost behind Authelia asks the portal, next to the backend and on the edge"):
-          assert status("${domain "portal"}") == "403"
+      with subtest("the host that serves a site with a policy asks the portal"):
+          assert status("${domain "auth"}") == "403"
           assert status("${domain "members"}") == "403"
-          assert status("${domain "guarded"}") == "403"
+          assert status("${domain "appliance"}") == "403"
+
+      with subtest("the host that fronts a site leaves the policy to the host that serves it"):
+          assert status("${domain "remote"}") == "200"
 
       with subtest("plain HTTP redirects to HTTPS"):
           redirect = machine.succeed(
@@ -520,6 +228,143 @@ let
           assert "location: https://${domain "routing"}/" in redirect
     '';
   };
+
+  # The node with `module` added to it.
+  nodeWith = module: (test.extendNixOS { inherit module; }).nodes.machine;
+
+  # What the nginx module rejects, by the first line of its message.
+  rejected =
+    module:
+    lib.sort lib.lessThan (
+      map (failed: lib.head (lib.splitString "\n" failed.message)) (
+        lib.filter (check: !check.assertion && lib.hasPrefix "nginx:" check.message)
+          (nodeWith module).assertions
+      )
+    );
+
+  expectations = {
+    # Besides the catch-all, the status page and the stand-in backends.
+    "vhosts of the node" = {
+      actual =
+        lib.mapAttrs
+          (_: vhost: {
+            inherit (vhost) serverName;
+            root = vhost.locations."/".proxyPass;
+            asksAuthelia = vhost.locations ? "/internal/authelia/authz";
+            shared = vhost.locations ? "/shared/";
+          })
+          (
+            removeAttrs test.nodes.machine.services.nginx.virtualHosts [
+              "_"
+              "localhost"
+              "backend-one"
+              "backend-two"
+              "auth-backend"
+            ]
+          );
+      expected = {
+        appliance = {
+          serverName = domain "appliance";
+          root = "http://127.0.0.1:8082";
+          asksAuthelia = true;
+          shared = false;
+        };
+        authelia-main = {
+          serverName = domain "auth";
+          root = "http://127.0.0.1:8083";
+          asksAuthelia = false;
+          shared = false;
+        };
+        members = {
+          serverName = domain "members";
+          root = "http://127.0.0.1:8082";
+          asksAuthelia = true;
+          shared = true;
+        };
+        remote = {
+          serverName = domain "remote";
+          root = "http://127.0.0.1:8082";
+          asksAuthelia = false;
+          shared = true;
+        };
+        routing = {
+          serverName = domain "routing";
+          root = "http://127.0.0.1:8081";
+          asksAuthelia = false;
+          shared = true;
+        };
+      };
+    };
+
+    "Authelia portal" = {
+      actual = test.nodes.machine.codgician.services.authelia.instances.main.url;
+      expected = "https://${domain "auth"}";
+    };
+
+    # A rule for every site with subjects, served here or not; `anyone` is
+    # left to Authelia's default policy. Sites of the fleet's own modules
+    # are left out of the comparison.
+    "Authelia rules" = {
+      actual =
+        lib.filter (rule: lib.any (lib.hasSuffix ".${zone}") (rule.domain or [ ]))
+          (nodeWith { codgician.services.authelia.instances.main.enable = true; })
+          .services.authelia.instances.main.settings.access_control.rules;
+      expected = [
+        {
+          domain = [ (domain "members") ];
+          policy = "two_factor";
+          subject = [ "user:alice" ];
+        }
+        {
+          domain = [ (domain "members") ];
+          policy = "deny";
+        }
+        {
+          domain = [ (domain "remote") ];
+          policy = "two_factor";
+          subject = [ "group:staff" ];
+        }
+        {
+          domain = [ (domain "remote") ];
+          policy = "deny";
+        }
+      ];
+    };
+
+    "what nginx rejects" = {
+      actual = rejected {
+        codgician.services.nginx = {
+          # A misspelt name: no site declares a domain for it.
+          fronts.remot.proxyPass = "http://127.0.0.1:8082";
+          reverseProxies.nameless.proxyPass = "http://127.0.0.1:8082";
+
+          # A front that says nowhere to go.
+          fronts.members = { };
+
+          # Served and fronted by the same host.
+          fronts.routing.proxyPass = "http://127.0.0.1:8082";
+
+          # Neither subjects nor `anyone`, and both.
+          reverseProxies.open.authelia = { };
+          reverseProxies.both.authelia = {
+            users = [ "alice" ];
+            anyone = true;
+          };
+        };
+      };
+      expected = [
+        ''nginx: "members" has nothing to serve at "/". Set `proxyPass`, or make the "/" location serve something.''
+        ''nginx: "nameless" has no domain. The module or host that owns the site sets `reverseProxies.nameless.domains`; check the spelling of the name.''
+        ''nginx: "remot" has no domain. The module or host that owns the site sets `reverseProxies.remot.domains`; check the spelling of the name.''
+        "nginx: reverseProxies.both.authelia needs `users` or `groups`, or `anyone = true`, and not both."
+        "nginx: reverseProxies.open.authelia needs `users` or `groups`, or `anyone = true`, and not both."
+        ''nginx: this host fronts "members" and serves it as well.''
+        ''nginx: this host fronts "routing" and serves it as well.''
+      ];
+    };
+  };
+
+  failures = lib.filterAttrs (_: e: e.actual != e.expected) expectations;
 in
 assert lib.assertMsg (failures == { }) "reverse-proxy: ${builtins.toJSON failures}";
 {
