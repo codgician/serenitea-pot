@@ -13,208 +13,220 @@ let
   inherit (lib.codgician) zone;
   inherit (config.codgician.services.postfix) sender;
   inherit (config.codgician) inventory;
-  svc = inventory.services.${serviceName};
+  inherit (config.codgician.services) nginx;
 in
 {
-  options.codgician.services.authelia.instances.${name}.enable =
-    lib.codgician.mkPublishedEnableOption config serviceName;
+  options.codgician.services.authelia.instances.${name} = {
+    enable = lib.mkEnableOption "the Authelia portal";
 
-  config = lib.mkIf cfg.enable {
-    codgician.services.nginx.reverseProxies.${serviceName}.proxyPass =
-      "http://unix:/run/${serviceName}/${name}.sock";
+    url = lib.mkOption {
+      type = lib.types.str;
+      default = "https://${builtins.head nginx.reverseProxies.${serviceName}.domains}";
+      readOnly = true;
+      description = "URL of the portal, which is where its site is.";
+    };
+  };
 
-    services.authelia.instances.${name} = {
-      enable = true;
-      inherit user group;
+  config = lib.mkMerge [
+    { codgician.services.nginx.reverseProxies.${serviceName}.domains = [ "auth.${zone}" ]; }
 
-      secrets = {
-        jwtSecretFile = config.codgician.secrets.files."authelia-main-jwt".path;
-        sessionSecretFile = config.codgician.secrets.files."authelia-main-session".path;
-        storageEncryptionKeyFile = config.codgician.secrets.files."authelia-main-storage".path;
-      };
+    (lib.mkIf cfg.enable {
+      codgician.services.nginx.reverseProxies.${serviceName}.proxyPass =
+        "http://unix:/run/${serviceName}/${name}.sock";
 
-      settingsFiles = [
-        config.codgician.secrets.files."authelia-main-jwks".path
-      ];
+      services.authelia.instances.${name} = {
+        enable = true;
+        inherit user group;
 
-      settings = {
-        theme = "auto";
-        server.address = "unix:///run/${serviceName}/${name}.sock?umask=0117";
-        default_2fa_method = "webauthn";
+        secrets = {
+          jwtSecretFile = config.codgician.secrets.files."authelia-main-jwt".path;
+          sessionSecretFile = config.codgician.secrets.files."authelia-main-session".path;
+          storageEncryptionKeyFile = config.codgician.secrets.files."authelia-main-storage".path;
+        };
 
-        # Identity providers
-        identity_providers.oidc = import ./oidc.nix args;
+        settingsFiles = [
+          config.codgician.secrets.files."authelia-main-jwks".path
+        ];
 
-        # Use file backend for simplicity
-        authentication_backend.file = {
-          path = "/var/lib/authelia-main/users.yml";
-          search.email = true;
-          password = {
-            algorithm = "argon2";
-            argon2 = {
-              variant = "argon2id";
-              iterations = 3;
-              memory = 65536;
-              parallelism = 4;
-              key_length = 32;
-              salt_length = 16;
+        settings = {
+          theme = "auto";
+          server.address = "unix:///run/${serviceName}/${name}.sock?umask=0117";
+          default_2fa_method = "webauthn";
+
+          # Identity providers
+          identity_providers.oidc = import ./oidc.nix args;
+
+          # Use file backend for simplicity
+          authentication_backend.file = {
+            path = "/var/lib/authelia-main/users.yml";
+            search.email = true;
+            password = {
+              algorithm = "argon2";
+              argon2 = {
+                variant = "argon2id";
+                iterations = 3;
+                memory = 65536;
+                parallelism = 4;
+                key_length = 32;
+                salt_length = 16;
+              };
+            };
+          };
+
+          session = {
+            name = "authelia_session_${name}";
+            same_site = "lax";
+            expiration = "1h";
+            inactivity = "5m";
+            remember_me = "1M";
+            cookies = [
+              {
+                domain = zone;
+                authelia_url = cfg.url;
+              }
+            ];
+            redis = {
+              host = config.services.redis.servers.${serviceName}.unixSocket;
+            };
+          };
+
+          storage = {
+            postgres = {
+              address = "unix:///run/postgresql";
+              database = "authelia-${name}";
+              username = "authelia-${name}";
+            };
+          };
+
+          access_control = {
+            default_policy = "two_factor";
+            rules = inventory.autheliaRules ++ [
+              # Explicit catch-all matching default_policy: functionally
+              # identical to relying on default_policy, but silences
+              # Authelia's "no rules specified" startup warning.
+              {
+                domain_regex = "^.*$";
+                policy = "two_factor";
+              }
+            ];
+          };
+
+          notifier = {
+            smtp = {
+              address = "smtp://localhost:25";
+              inherit sender;
+              subject = "[Authelia] {title}";
+              identifier = zone;
+              timeout = "15s";
+              startup_check_address = sender;
+              # Local smtp relay (postfix on localhost:25) doesn't offer
+              # STARTTLS; disable_require_tls alone (opportunistic TLS) is
+              # sufficient and avoids the disable_starttls insecure-plaintext
+              # warning.
+              disable_require_tls = true;
+            };
+          };
+
+          totp = {
+            issuer = zone;
+            algorithm = "SHA1";
+            digits = 6;
+            period = 30;
+            skew = 1;
+            secret_size = 32;
+            allowed_algorithms = [
+              "SHA1"
+              "SHA256"
+              "SHA512"
+            ];
+            allowed_digits = [
+              6
+              8
+            ];
+            allowed_periods = [ 30 ];
+            disable_reuse_security_policy = false;
+          };
+
+          webauthn = {
+            enable_passkey_login = true;
+            attestation_conveyance_preference = "direct";
+            experimental_enable_passkey_uv_two_factors = true;
+            experimental_enable_passkey_upgrade = true;
+            display_name = "Authelia";
+            timeout = "60s";
+            selection_criteria = {
+              attachment = "";
+              discoverability = "required";
+              user_verification = "required";
+            };
+            metadata = {
+              enabled = false;
+              validate_entry = false;
             };
           };
         };
-
-        session = {
-          name = "authelia_session_${name}";
-          same_site = "lax";
-          expiration = "1h";
-          inactivity = "5m";
-          remember_me = "1M";
-          cookies = [
-            {
-              domain = zone;
-              authelia_url = "https://${svc.domain}";
-            }
-          ];
-          redis = {
-            host = config.services.redis.servers.${serviceName}.unixSocket;
-          };
-        };
-
-        storage = {
-          postgres = {
-            address = "unix:///run/postgresql";
-            database = "authelia-${name}";
-            username = "authelia-${name}";
-          };
-        };
-
-        access_control = {
-          default_policy = "two_factor";
-          rules = inventory.autheliaRules ++ [
-            # Explicit catch-all matching default_policy: functionally
-            # identical to relying on default_policy, but silences
-            # Authelia's "no rules specified" startup warning.
-            {
-              domain_regex = "^.*$";
-              policy = "two_factor";
-            }
-          ];
-        };
-
-        notifier = {
-          smtp = {
-            address = "smtp://localhost:25";
-            inherit sender;
-            subject = "[Authelia] {title}";
-            identifier = zone;
-            timeout = "15s";
-            startup_check_address = sender;
-            # Local smtp relay (postfix on localhost:25) doesn't offer
-            # STARTTLS; disable_require_tls alone (opportunistic TLS) is
-            # sufficient and avoids the disable_starttls insecure-plaintext
-            # warning.
-            disable_require_tls = true;
-          };
-        };
-
-        totp = {
-          issuer = zone;
-          algorithm = "SHA1";
-          digits = 6;
-          period = 30;
-          skew = 1;
-          secret_size = 32;
-          allowed_algorithms = [
-            "SHA1"
-            "SHA256"
-            "SHA512"
-          ];
-          allowed_digits = [
-            6
-            8
-          ];
-          allowed_periods = [ 30 ];
-          disable_reuse_security_policy = false;
-        };
-
-        webauthn = {
-          enable_passkey_login = true;
-          attestation_conveyance_preference = "direct";
-          experimental_enable_passkey_uv_two_factors = true;
-          experimental_enable_passkey_upgrade = true;
-          display_name = "Authelia";
-          timeout = "60s";
-          selection_criteria = {
-            attachment = "";
-            discoverability = "required";
-            user_verification = "required";
-          };
-          metadata = {
-            enabled = false;
-            validate_entry = false;
-          };
-        };
       };
-    };
 
-    # Add to authorized users of postfix
-    codgician.services.postfix.authorizedUsers = [ "root" ];
+      # Add to authorized users of postfix
+      codgician.services.postfix.authorizedUsers = [ "root" ];
 
-    # Grant access to /run
-    systemd.services.${serviceName}.serviceConfig = {
-      RuntimeDirectory = serviceName;
-      RuntimeDirectoryMode = "0755";
+      # Grant access to /run
+      systemd.services.${serviceName}.serviceConfig = {
+        RuntimeDirectory = serviceName;
+        RuntimeDirectoryMode = "0755";
 
-      # Exponential restart backoff: avoids hammering upstream dependencies
-      # (e.g. the WebAuthn MDS3 metadata service) with a request every
-      # RestartSec while crash-looping.
-      RestartSteps = 5;
-      RestartMaxDelaySec = "5min";
-    };
+        # Exponential restart backoff: avoids hammering upstream dependencies
+        # (e.g. the WebAuthn MDS3 metadata service) with a request every
+        # RestartSec while crash-looping.
+        RestartSteps = 5;
+        RestartMaxDelaySec = "5min";
+      };
 
-    # Add nginx to authelia group for socket access
-    users.groups.${group}.members = lib.mkIf config.services.nginx.enable [ "nginx" ];
+      # Add nginx to authelia group for socket access
+      users.groups.${group}.members = lib.mkIf config.services.nginx.enable [ "nginx" ];
 
-    # Redis
-    services.redis.servers.${serviceName} = {
-      enable = true;
-      inherit user group;
-      unixSocketPerm = 660;
-    };
-
-    # sops secrets
-    codgician.secrets.files =
-      lib.genAttrs
-        [
-          "authelia-main-jwt"
-          "authelia-main-session"
-          "authelia-main-storage"
-          "authelia-main-jwks"
-        ]
-        (name: {
-          owner = user;
-          inherit group;
-          mode = "0600";
-        });
-
-    # Persist default data directory
-    codgician.system.impermanence.extraItems = [
-      {
-        type = "directory";
-        path = "/var/lib/${serviceName}";
+      # Redis
+      services.redis.servers.${serviceName} = {
+        enable = true;
         inherit user group;
-      }
-    ];
+        unixSocketPerm = 660;
+      };
 
-    # PostgreSQL
-    codgician.services.postgresql.enable = true;
-    services.postgresql = {
-      ensureDatabases = [ "authelia-${name}" ];
-      ensureUsers = [
+      # sops secrets
+      codgician.secrets.files =
+        lib.genAttrs
+          [
+            "authelia-main-jwt"
+            "authelia-main-session"
+            "authelia-main-storage"
+            "authelia-main-jwks"
+          ]
+          (name: {
+            owner = user;
+            inherit group;
+            mode = "0600";
+          });
+
+      # Persist default data directory
+      codgician.system.impermanence.extraItems = [
         {
-          name = "authelia-${name}";
-          ensureDBOwnership = true;
+          type = "directory";
+          path = "/var/lib/${serviceName}";
+          inherit user group;
         }
       ];
-    };
-  };
+
+      # PostgreSQL
+      codgician.services.postgresql.enable = true;
+      services.postgresql = {
+        ensureDatabases = [ "authelia-${name}" ];
+        ensureUsers = [
+          {
+            name = "authelia-${name}";
+            ensureDBOwnership = true;
+          }
+        ];
+      };
+    })
+  ];
 }

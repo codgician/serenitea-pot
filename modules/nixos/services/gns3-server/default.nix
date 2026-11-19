@@ -6,13 +6,12 @@
 }:
 let
   cfg = config.codgician.services.gns3-server;
-  inherit (config.codgician) inventory;
-  svc = inventory.services.gns3-server;
+  port = 3080;
   stateDir = "/var/lib/gns3";
 in
 {
   options.codgician.services.gns3-server = {
-    enable = lib.codgician.mkPublishedEnableOption config "gns3-server";
+    enable = lib.mkEnableOption "GNS3 server";
 
     dataDir = lib.mkOption {
       type = lib.types.path;
@@ -24,7 +23,7 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
-      codgician.services.nginx.reverseProxies.gns3-server.proxyPass = svc.localUpstream;
+      codgician.services.nginx.reverseProxies.gns3-server.proxyPass = "http://127.0.0.1:${toString port}";
 
       services.gns3-server = {
         enable = true;
@@ -38,7 +37,7 @@ in
           Server = {
             # Device consoles bind to the same address.
             host = "127.0.0.1";
-            inherit (svc) port;
+            inherit port;
             report_errors = false;
             appliances_path = "${cfg.dataDir}/appliances";
             configs_path = "${cfg.dataDir}/configs";
@@ -83,18 +82,22 @@ in
       ];
     })
 
-    (lib.mkIf (cfg.enable || config.codgician.services.nginx.fronts ? gns3-server) {
-      codgician.services.nginx.reverseProxies.gns3-server.locations."/".extraConfig = ''
-        # Appliance images can be several GB
-        client_max_body_size 0;
-        proxy_request_buffering off;
-        proxy_buffering off;
+    {
+      codgician.services.nginx.reverseProxies.gns3-server = {
+        domains = [ "miliastra.${lib.codgician.zone}" ];
+        authelia.groups = [ "gns3" ];
+        locations."/".extraConfig = ''
+          # Appliance images can be several GB
+          client_max_body_size 0;
+          proxy_request_buffering off;
+          proxy_buffering off;
 
-        # Console and notification websockets idle for long periods
-        proxy_read_timeout 3600s;
-        proxy_send_timeout 3600s;
-        send_timeout 3600s;
-      '';
-    })
+          # Console and notification websockets idle for long periods
+          proxy_read_timeout 3600s;
+          proxy_send_timeout 3600s;
+          send_timeout 3600s;
+        '';
+      };
+    }
   ];
 }

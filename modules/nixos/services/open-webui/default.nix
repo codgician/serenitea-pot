@@ -7,13 +7,13 @@
 let
   serviceName = "open-webui";
   cfg = config.codgician.services.open-webui;
-  inherit (config.codgician) inventory;
-  svc = inventory.services.open-webui;
+  domain = "akasha.${lib.codgician.zone}";
+  port = 3010;
   defaultStateDir = "/var/lib/${serviceName}";
   # Kept in its own directory: nginx serves the manifest's parent directory.
   pwaManifest = ./static/pwa-manifest.json;
 
-  webuiUrl = "https://${svc.domain}";
+  webuiUrl = "https://${domain}";
 
   mcpoCfg = config.codgician.services.mcpo;
   pgDbName = "open-webui";
@@ -151,7 +151,7 @@ let
     OAUTH_CLIENT_ID = "akasha";
     # OAUTH_CLIENT_SECRET provided in env
     OPENID_REDIRECT_URI = "${webuiUrl}/oauth/oidc/callback";
-    OPENID_PROVIDER_URL = "${inventory.autheliaUrl}/.well-known/openid-configuration";
+    OPENID_PROVIDER_URL = "${config.codgician.services.authelia.instances.main.url}/.well-known/openid-configuration";
     OAUTH_PROVIDER_NAME = "Authelia";
     OAUTH_SCOPES = "openid email profile groups";
     ENABLE_OAUTH_ROLE_MANAGEMENT = "True";
@@ -247,7 +247,7 @@ let
 in
 {
   options.codgician.services.open-webui = {
-    enable = lib.codgician.mkPublishedEnableOption config serviceName;
+    enable = lib.mkEnableOption "Open WebUI";
 
     stateDir = lib.mkOption {
       type = lib.types.path;
@@ -258,12 +258,12 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
-      codgician.services.nginx.reverseProxies.open-webui.proxyPass = svc.localUpstream;
+      codgician.services.nginx.reverseProxies.open-webui.proxyPass = "http://127.0.0.1:${toString port}";
 
       services.open-webui = {
         enable = true;
         host = "127.0.0.1";
-        inherit (svc) port;
+        inherit port;
         inherit (cfg) stateDir;
         package = pkgs.open-webui-akasha;
         inherit environment;
@@ -335,9 +335,10 @@ in
       }
     ))
 
-    # Locations of the vhost, next to the backend and on the edge alike; the
-    # icons are only served next to the backend.
-    (lib.mkIf (cfg.enable || config.codgician.services.nginx.fronts ? ${serviceName}) {
+    # Locations of the site, on the host next to the backend and on a host
+    # that fronts it alike; the icons are only served next to the backend.
+    {
+      codgician.services.nginx.reverseProxies.open-webui.domains = [ domain ];
       codgician.services.nginx.reverseProxies.open-webui.locations =
         let
           inherit (lib.codgician) mkNginxLocationForStaticFile;
@@ -401,6 +402,6 @@ in
             add_header Cache-Control "no-store, no-cache, must-revalidate" always;
           '';
         };
-    })
+    }
   ];
 }

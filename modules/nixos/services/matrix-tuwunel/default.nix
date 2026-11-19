@@ -9,15 +9,14 @@ let
   serviceUser = "tuwunel"; # Match upstream NixOS module
   cfg = config.codgician.services.matrix-tuwunel;
   types = lib.types;
-  inherit (config.codgician) inventory;
-  svc = inventory.services.matrix-tuwunel;
+  domain = "matrix.${lib.codgician.zone}";
 
   # Unix socket path
   socketPath = "/run/tuwunel/tuwunel.sock";
 in
 {
   options.codgician.services.matrix-tuwunel = {
-    enable = lib.codgician.mkPublishedEnableOption config serviceName;
+    enable = lib.mkEnableOption "Tuwunel Matrix homeserver";
 
     dataPath = lib.mkOption {
       type = types.str;
@@ -36,7 +35,7 @@ in
         enable = true;
         settings.global = {
           # Core settings
-          server_name = svc.domain;
+          server_name = domain;
           # database_path defaults to /var/lib/tuwunel, BindPaths redirects to cfg.dataPath
           # Use unix socket instead of TCP (more efficient, more secure)
           unix_socket_path = socketPath;
@@ -59,7 +58,7 @@ in
           # TURN server run by the coturn module
           turn_uris =
             let
-              turn = inventory.services.coturn.domain;
+              turn = config.codgician.services.coturn.realm;
             in
             [
               "turn:${turn}?transport=udp"
@@ -81,8 +80,8 @@ in
               brand = "authelia";
               client_id = serviceName;
               client_secret_file = config.codgician.secrets.files.tuwunel-oidc-secret-authelia-main.path;
-              issuer_url = inventory.autheliaUrl;
-              callback_url = "https://${svc.domain}/_matrix/client/unstable/login/sso/callback/${serviceName}";
+              issuer_url = config.codgician.services.authelia.instances.main.url;
+              callback_url = "https://${domain}/_matrix/client/unstable/login/sso/callback/${serviceName}";
               default = true;
               name = "Authelia";
               scope = [
@@ -141,23 +140,24 @@ in
       };
     })
 
-    # The vhost serves Element at `/` and the well-known documents itself,
-    # next to the backend and on the edge alike.
-    (lib.mkIf (cfg.enable || config.codgician.services.nginx.fronts ? ${serviceName}) {
+    # The site serves Element at `/` and the well-known documents itself,
+    # on the host next to the backend and on a host that fronts it alike.
+    {
+      codgician.services.nginx.reverseProxies.matrix-tuwunel.domains = [ domain ];
       codgician.services.nginx.reverseProxies.matrix-tuwunel.locations =
         let
           clientConfig = {
-            "m.homeserver".base_url = "https://${svc.domain}";
-            "org.matrix.msc3575.proxy".url = "https://${svc.domain}"; # Sliding sync
+            "m.homeserver".base_url = "https://${domain}";
+            "org.matrix.msc3575.proxy".url = "https://${domain}"; # Sliding sync
           };
           serverConfig = {
-            "m.server" = "${svc.domain}:443";
+            "m.server" = "${domain}:443";
           };
         in
         {
           "/".root = import ./element-web.nix {
             inherit pkgs clientConfig;
-            domains = [ svc.domain ];
+            domains = [ domain ];
           };
 
           # Matrix C-S and S-S API endpoints
@@ -189,6 +189,6 @@ in
             '';
           };
         };
-    })
+    }
   ];
 }

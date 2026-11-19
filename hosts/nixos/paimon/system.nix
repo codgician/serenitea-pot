@@ -13,6 +13,7 @@
 
       # Monitor
       prometheus.enable = true;
+      grafana.enable = true;
 
       # Email
       postfix.enable = true;
@@ -25,8 +26,11 @@
 
       redis.rootDir = "/opool/redis";
 
+      authelia.instances.main.enable = true;
+
       # Chat
       matrix-tuwunel = {
+        enable = true;
         dataPath = "/opool/tuwunel";
         zfsOptimizations = true;
       };
@@ -104,7 +108,10 @@
         };
       };
 
-      open-webui.stateDir = "/xpool/appdata/open-webui";
+      open-webui = {
+        enable = true;
+        stateDir = "/xpool/appdata/open-webui";
+      };
 
       # File server
       samba = {
@@ -157,12 +164,21 @@
         };
       };
 
-      gitlab.statePath = "/fpool/gitlab";
+      gitlab = {
+        enable = true;
+        statePath = "/fpool/gitlab";
+      };
 
-      jellyfin.dataDir = "/xpool/appdata/jellyfin";
+      jellyfin = {
+        enable = true;
+        dataDir = "/xpool/appdata/jellyfin";
+      };
 
       # Network lab
-      gns3-server.dataDir = "/xpool/appdata/gns3";
+      gns3-server = {
+        enable = true;
+        dataDir = "/xpool/appdata/gns3";
+      };
     };
 
     system = {

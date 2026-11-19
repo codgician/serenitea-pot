@@ -8,10 +8,10 @@ let
   serviceName = "grafana";
   cfg = config.codgician.services.grafana;
   types = lib.types;
-  inherit (config.codgician) inventory;
-  svc = inventory.services.grafana;
+  authelia = config.codgician.services.authelia.instances.main.url;
+  domain = "lumenstone.${lib.codgician.zone}";
 
-  url = "https://${svc.domain}";
+  url = "https://${domain}";
 
   dashboardsDir = pkgs.runCommand "grafana-dashboards" { } ''
     mkdir -p $out
@@ -31,7 +31,7 @@ let
 in
 {
   options.codgician.services.grafana = {
-    enable = lib.codgician.mkPublishedEnableOption config serviceName;
+    enable = lib.mkEnableOption "Grafana";
 
     provision.dashboards = lib.mkOption {
       type = types.listOf types.path;
@@ -40,148 +40,152 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    codgician.services.nginx.reverseProxies.grafana.proxyPass = "http://unix:/run/grafana/grafana.sock";
+  config = lib.mkMerge [
+    { codgician.services.nginx.reverseProxies.grafana.domains = [ domain ]; }
 
-    services.grafana = {
-      enable = true;
-      settings = {
-        database = {
-          host = "/run/postgresql";
-          user = serviceName;
-          name = serviceName;
-          type = "postgres";
-        };
+    (lib.mkIf cfg.enable {
+      codgician.services.nginx.reverseProxies.grafana.proxyPass = "http://unix:/run/grafana/grafana.sock";
 
-        security = {
-          secret_key = "$__file{${config.codgician.secrets.files.grafana-secret-key.path}}";
-          strict_transport_security = true;
-          admin_password = "$__file{${config.codgician.secrets.files.grafana-admin-password.path}}";
-        };
-
-        server = {
-          root_url = url;
-          protocol = "socket";
-          socket = "/run/grafana/grafana.sock";
-          socket_mode = "0777";
-          enable_gzip = true;
-        };
-
-        "auth.generic_oauth" = {
-          enabled = true;
-          allow_sign_up = true;
-          auto_login = true;
-          name = "Authelia";
-          icon = "signin";
-          client_id = "grafana";
-          client_secret = "$__file{${config.codgician.secrets.files.grafana-oidc-secret-authelia-main.path}}";
-          scopes = [
-            "openid"
-            "profile"
-            "email"
-            "groups"
-          ];
-          empty_scopes = false;
-          auth_url = "${inventory.autheliaUrl}/api/oidc/authorization";
-          token_url = "${inventory.autheliaUrl}/api/oidc/token";
-          api_url = "${inventory.autheliaUrl}/api/oidc/userinfo";
-          login_attribute_path = "preferred_username";
-          groups_attribute_path = "groups";
-          name_attribute_path = "name";
-          email_attribute_path = "email";
-          use_pkce = true;
-          allow_assign_grafana_admin = true;
-          # Refrain from adding trailing or, see github:grafana/grafana#106686
-          role_attribute_path = builtins.concatStringsSep " || " [
-            "contains(groups, 'grafana-admins') && 'GrafanaAdmin'"
-            "contains(groups, 'grafana-editors') && 'Editor'"
-            "contains(groups, 'grafana-viewers') && 'Viewer'"
-          ];
-          role_attribute_strict = true;
-          skip_org_role_sync = false;
-        };
-
-        smtp = {
-          enabled = true;
-          host = "localhost:25";
-          from_name = "Grafana";
-          from_address = config.codgician.services.postfix.sender;
-        };
-
-        users = {
-          verify_email_enabled = true;
-          default_theme = "system";
-          default_language = "en-US";
-          allow_sign_up = false;
-          allow_org_create = false;
-        };
-      };
-
-      # Provisioning configuration
-      provision = {
+      services.grafana = {
         enable = true;
+        settings = {
+          database = {
+            host = "/run/postgresql";
+            user = serviceName;
+            name = serviceName;
+            type = "postgres";
+          };
 
-        datasources.settings.datasources = [
-          {
-            name = "Prometheus";
-            type = "prometheus";
-            access = "proxy";
-            url = "http://localhost:${toString config.services.prometheus.port}";
-            isDefault = true;
-            editable = false;
-            jsonData = {
-              # sglang is scraped every 2s
-              timeInterval = "2s";
-              httpMethod = "POST";
-            };
-          }
-        ];
+          security = {
+            secret_key = "$__file{${config.codgician.secrets.files.grafana-secret-key.path}}";
+            strict_transport_security = true;
+            admin_password = "$__file{${config.codgician.secrets.files.grafana-admin-password.path}}";
+          };
 
-        dashboards.settings.providers = [
+          server = {
+            root_url = url;
+            protocol = "socket";
+            socket = "/run/grafana/grafana.sock";
+            socket_mode = "0777";
+            enable_gzip = true;
+          };
+
+          "auth.generic_oauth" = {
+            enabled = true;
+            allow_sign_up = true;
+            auto_login = true;
+            name = "Authelia";
+            icon = "signin";
+            client_id = "grafana";
+            client_secret = "$__file{${config.codgician.secrets.files.grafana-oidc-secret-authelia-main.path}}";
+            scopes = [
+              "openid"
+              "profile"
+              "email"
+              "groups"
+            ];
+            empty_scopes = false;
+            auth_url = "${authelia}/api/oidc/authorization";
+            token_url = "${authelia}/api/oidc/token";
+            api_url = "${authelia}/api/oidc/userinfo";
+            login_attribute_path = "preferred_username";
+            groups_attribute_path = "groups";
+            name_attribute_path = "name";
+            email_attribute_path = "email";
+            use_pkce = true;
+            allow_assign_grafana_admin = true;
+            # Refrain from adding trailing or, see github:grafana/grafana#106686
+            role_attribute_path = builtins.concatStringsSep " || " [
+              "contains(groups, 'grafana-admins') && 'GrafanaAdmin'"
+              "contains(groups, 'grafana-editors') && 'Editor'"
+              "contains(groups, 'grafana-viewers') && 'Viewer'"
+            ];
+            role_attribute_strict = true;
+            skip_org_role_sync = false;
+          };
+
+          smtp = {
+            enabled = true;
+            host = "localhost:25";
+            from_name = "Grafana";
+            from_address = config.codgician.services.postfix.sender;
+          };
+
+          users = {
+            verify_email_enabled = true;
+            default_theme = "system";
+            default_language = "en-US";
+            allow_sign_up = false;
+            allow_org_create = false;
+          };
+        };
+
+        # Provisioning configuration
+        provision = {
+          enable = true;
+
+          datasources.settings.datasources = [
+            {
+              name = "Prometheus";
+              type = "prometheus";
+              access = "proxy";
+              url = "http://localhost:${toString config.services.prometheus.port}";
+              isDefault = true;
+              editable = false;
+              jsonData = {
+                # sglang is scraped every 2s
+                timeInterval = "2s";
+                httpMethod = "POST";
+              };
+            }
+          ];
+
+          dashboards.settings.providers = [
+            {
+              name = "default";
+              options.path = dashboardsDir;
+              disableDeletion = true;
+              allowUiUpdates = false;
+            }
+          ];
+        };
+      };
+
+      # Add to authorized users of postfix
+      codgician.services.postfix.authorizedUsers = [ serviceName ];
+
+      # Ensure postgres is enabled
+      codgician.services.postgresql.enable = true;
+      services.postgresql = {
+        ensureDatabases = [ serviceName ];
+        ensureUsers = [
           {
-            name = "default";
-            options.path = dashboardsDir;
-            disableDeletion = true;
-            allowUiUpdates = false;
+            name = serviceName;
+            ensureDBOwnership = true;
           }
         ];
       };
-    };
 
-    # Add to authorized users of postfix
-    codgician.services.postfix.authorizedUsers = [ serviceName ];
-
-    # Ensure postgres is enabled
-    codgician.services.postgresql.enable = true;
-    services.postgresql = {
-      ensureDatabases = [ serviceName ];
-      ensureUsers = [
+      codgician.system.impermanence.extraItems = [
         {
-          name = serviceName;
-          ensureDBOwnership = true;
+          type = "directory";
+          path = "/var/lib/grafana";
+          user = serviceName;
+          group = serviceName;
         }
       ];
-    };
 
-    codgician.system.impermanence.extraItems = [
-      {
-        type = "directory";
-        path = "/var/lib/grafana";
-        user = serviceName;
-        group = serviceName;
-      }
-    ];
-
-    # sops secrets
-    codgician.secrets.files =
-      lib.genAttrs
-        [
-          "grafana-admin-password"
-          "grafana-secret-key"
-          "grafana-oidc-secret-authelia-main"
-        ]
-        (_: {
-          owner = serviceName;
-        });
-  };
+      # sops secrets
+      codgician.secrets.files =
+        lib.genAttrs
+          [
+            "grafana-admin-password"
+            "grafana-secret-key"
+            "grafana-oidc-secret-authelia-main"
+          ]
+          (_: {
+            owner = serviceName;
+          });
+    })
+  ];
 }
