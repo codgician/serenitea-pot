@@ -30,9 +30,8 @@ in
     {
       codgician.services.nginx.reverseProxies.openvscode-server = {
         domains = [ "leyline.${lib.codgician.zone}" ];
-        # The server runs without a connection token. Meant for
-        # `users = [ "leyline" ]`; that rule never reached Authelia.
-        authelia.anyone = true;
+        # The server runs without a connection token.
+        authelia.users = [ "leyline" ];
         locations."/".extraConfig = ''
           # Long timeouts for IDE (terminals, LSPs can idle)
           proxy_read_timeout 3600s;

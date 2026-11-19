@@ -71,8 +71,8 @@ in
         saw = {
           domains = [ "saw.${zone}" ];
           proxyPass = "https://192.168.0.28";
-          # Meant for `groups = [ "saw" ]`; that rule never reached Authelia.
-          authelia.anyone = true;
+          # paimon, where Authelia runs, repeats the site and its policy.
+          authelia.groups = [ "saw" ];
           locations."/".extraConfig = ''
             client_max_body_size 128M;
             proxy_buffering off;

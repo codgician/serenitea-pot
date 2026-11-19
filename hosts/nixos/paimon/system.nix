@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ lib, pkgs, ... }:
 {
   codgician = {
     services = {
@@ -27,6 +27,13 @@
       redis.rootDir = "/opool/redis";
 
       authelia.instances.main.enable = true;
+
+      # lumine serves this site and declares it in its own files, which
+      # Authelia does not see; its rule is built from this copy.
+      nginx.reverseProxies.saw = {
+        domains = [ "saw.${lib.codgician.zone}" ];
+        authelia.groups = [ "saw" ];
+      };
 
       # Chat
       matrix-tuwunel = {
