@@ -2,6 +2,7 @@
 {
   codgician = {
     services = {
+      meshcentral.enable = true;
       postfix.enable = true;
 
       # RAS hardware error monitoring (EDAC/DIMM ECC, PCIe AER, CPU MCE)

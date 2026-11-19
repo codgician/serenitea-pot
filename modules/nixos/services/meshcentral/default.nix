@@ -7,29 +7,28 @@
 }:
 let
   cfg = config.codgician.services.meshcentral;
-  inherit (config.codgician) inventory;
-  svc = inventory.services.meshcentral;
+  domain = "amt.${lib.codgician.zone}";
+  port = 3001;
 in
 {
-  options.codgician.services.meshcentral.enable =
-    lib.codgician.mkPublishedEnableOption config "meshcentral";
+  options.codgician.services.meshcentral.enable = lib.mkEnableOption "MeshCentral";
 
   config = lib.mkMerge [
     # Meshcentral configurations
     (lib.mkIf cfg.enable {
-      codgician.services.nginx.reverseProxies.meshcentral.proxyPass = svc.localUpstream;
+      codgician.services.nginx.reverseProxies.meshcentral.proxyPass = "http://127.0.0.1:${toString port}";
 
       services.meshcentral = {
         enable = true;
         settings = {
           domains."" = {
             showPasswordLogin = false;
-            allowedOrigin = [ svc.domain ];
+            allowedOrigin = [ domain ];
             authStrategies.oidc = {
-              issuer = inventory.autheliaUrl;
+              issuer = config.codgician.services.authelia.instances.main.url;
               client =
                 let
-                  url = "https://${svc.domain}";
+                  url = "https://${domain}";
                 in
                 {
                   client_id = "meshcentral";
@@ -57,7 +56,7 @@ in
           };
           settings = {
             PortBind = "127.0.0.1";
-            Port = svc.port;
+            Port = port;
             TlsOffload = "127.0.0.1,::1";
           };
         };
@@ -74,10 +73,13 @@ in
       };
     })
 
-    (lib.mkIf (cfg.enable || config.codgician.services.nginx.fronts ? meshcentral) {
-      codgician.services.nginx.reverseProxies.meshcentral.locations."/".extraConfig = ''
-        proxy_buffering off;
-      '';
-    })
+    {
+      codgician.services.nginx.reverseProxies.meshcentral = {
+        domains = [ domain ];
+        locations."/".extraConfig = ''
+          proxy_buffering off;
+        '';
+      };
+    }
   ];
 }
