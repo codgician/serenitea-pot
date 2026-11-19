@@ -73,6 +73,10 @@ Hosts needing full control use the upstream nixpkgs/home-manager module directly
 - Avoid: `extraConfig`/`settings` passthroughs, mirrored upstream options, speculative knobs
 - Cross-module integration: read `config.codgician.<other>` (e.g. `mcpo.port`), don't add URL/toggle options
 
+### Overlays
+
+An overlay that takes a package from another package set (`pkgs.unstable`) or overrides it covers the whole package family, so its members stay consistent: `vscode` comes with `vscode-extensions`, `vscode-fhs`, `vscode-with-extensions`, `vscodium` and `vscodium-fhs`. Whether hosts use a member today is no reason to leave it out or to remove an overlay.
+
 ### Registries
 
 An option that several modules contribute to is declared by the module that consumes it and typed there, so an unknown key or a value of the wrong kind fails evaluation with the path of the option. Examples: `codgician.services.nginx.reverseProxies` (sites), `codgician.models.providers`, `codgician.system.impermanence.extraItems`, `codgician.services.postfix.authorizedUsers`, `codgician.acme`. A contribution is written in the module or host file it is about, never in the owning module's folder (the model providers and the sites without a module are the owning module's own data).

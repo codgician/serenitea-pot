@@ -81,6 +81,7 @@ in
         patch = ./kernel/hid-multitouch-redrix-recalibrate.patch;
       }
     ];
+    zfs.package = pkgs.zfs_unstable;
   };
 
   # flashrom's PCI ECAM access needs relaxed /dev/mem checks, only for updates.
