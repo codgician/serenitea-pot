@@ -1,5 +1,7 @@
 { modelLib, ... }:
 {
+  description = "ChatGPT models";
+  modelType = modelLib.basicModelType;
   provider = {
     transformer = modelLib.mkModel {
       modelPrefix = "chatgpt";

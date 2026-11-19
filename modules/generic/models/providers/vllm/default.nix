@@ -1,5 +1,22 @@
 { lib, modelLib, ... }:
+let
+  inherit (lib) mkOption types;
+in
 {
+  description = "Self-hosted vLLM (OpenAI-compatible) models";
+  modelType = types.submodule {
+    options = modelLib.commonOptions // {
+      apiBase = mkOption {
+        type = types.str;
+        description = "Base URL of the vLLM-compatible OpenAI endpoint.";
+      };
+      contextWindow = mkOption {
+        type = types.nullOr types.int;
+        default = null;
+        description = "Tokens of prompt and output together that the endpoint serves.";
+      };
+    };
+  };
   provider = {
     transformer =
       name: spec:
@@ -10,13 +27,9 @@
           "vllm"
           "local"
         ];
-        extraKeys = [
-          "apiBase"
-          "contextWindow"
-        ];
         extraParams.api_base = spec.apiBase;
       } name spec)
-      // lib.optionalAttrs (spec ? contextWindow) { inherit (spec) contextWindow; };
+      // lib.optionalAttrs (spec.contextWindow != null) { inherit (spec) contextWindow; };
     models."qwen3.8-27b" = {
       apiBase = "http://${lib.codgician.inventory.hosts.paimon.lan}:8000/v1";
       contextWindow = 262144;

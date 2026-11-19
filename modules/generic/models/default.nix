@@ -1,23 +1,22 @@
 # Unified model registry assembled from provider descriptors.
 {
+  config,
   lib,
   pkgs,
   ...
 }:
 let
   inherit (lib) mkOption types;
+  cfg = config.codgician.models;
+  modelLib = import ./lib.nix { inherit lib; };
 
-  registry = lib.genAttrs (lib.codgician.getFolderNames ./providers) (
-    name:
-    let
-      modelLib = import ./lib.nix {
-        inherit lib;
-        provider = name;
-      };
-      inherit (import ./providers/${name} { inherit lib modelLib pkgs; }) provider;
-    in
-    lib.mapAttrs provider.transformer provider.models
+  # A provider folder gives the type of its model specs, the specs and the
+  # function that turns a checked spec into a registry entry.
+  providers = lib.genAttrs (lib.codgician.getFolderNames ./providers) (
+    name: import ./providers/${name} { inherit lib modelLib pkgs; }
   );
+
+  registry = lib.mapAttrs (name: lib.mapAttrs providers.${name}.provider.transformer) cfg.providers;
   flatModels = lib.concatLists (
     lib.mapAttrsToList (
       provider: models: lib.mapAttrsToList (model: attrs: attrs // { inherit provider model; }) models
@@ -26,6 +25,14 @@ let
 in
 {
   options.codgician.models = {
+    providers = lib.mapAttrs (
+      _: definition:
+      mkOption {
+        type = types.attrsOf definition.modelType;
+        inherit (definition) description;
+      }
+    ) providers;
+
     all = mkOption {
       type = types.listOf types.attrs;
       readOnly = true;
@@ -44,6 +51,7 @@ in
   };
 
   config.codgician.models = {
+    providers = lib.mapAttrs (_: definition: definition.provider.models) providers;
     byProvider = registry;
     all = flatModels;
     textGenerationModels = builtins.filter (

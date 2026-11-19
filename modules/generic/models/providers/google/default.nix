@@ -1,5 +1,7 @@
 { modelLib, ... }:
 {
+  description = "Google Gemini models";
+  modelType = modelLib.basicModelType;
   provider = {
     transformer = modelLib.mkModel {
       modelPrefix = "gemini";

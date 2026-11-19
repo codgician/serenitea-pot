@@ -51,6 +51,8 @@ let
       or (lib.genAttrs [ "low" "medium" "high" ] (effort: "${name}-${effort}"));
 in
 {
+  description = "Gemini models through the Antigravity subscription";
+  modelType = modelLib.generatedModelType;
   provider = {
     transformer =
       name: spec:

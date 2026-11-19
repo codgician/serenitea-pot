@@ -95,6 +95,8 @@ let
     ) data;
 in
 {
+  description = "NVIDIA NIM models";
+  modelType = modelLib.generatedModelType;
   provider = {
     transformer = modelLib.mkGeneratedModel {
       modelPrefix = "nvidia_nim";

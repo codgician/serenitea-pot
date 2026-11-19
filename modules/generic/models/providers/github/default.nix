@@ -20,6 +20,8 @@ let
     lib.mapAttrs' (id: spec: lib.nameValuePair (modelName id) (spec // { path = id; })) data;
 in
 {
+  description = "GitHub Copilot models";
+  modelType = modelLib.generatedModelType;
   provider = {
     transformer = modelLib.mkGeneratedModel {
       modelPrefix = "github_copilot";
