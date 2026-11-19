@@ -1,7 +1,6 @@
 {
   config,
   lib,
-  osConfig,
   pkgs,
   ...
 }:
@@ -31,11 +30,9 @@ in
       settings = {
         "*".addKeysToAgent = "yes";
       }
-      # Hosts the inventory calls public are reached at their public name.
-      // lib.mapAttrs (_: host: { hostname = host.domain; } // trusted) (
-        lib.filterAttrs (_: host: host.public) osConfig.codgician.inventory.hosts
-      )
       // mkHosts trusted {
+        lumine = lib.codgician.zone;
+        xianyun = lib.codgician.zone;
         fischl = "lan";
         focalors = "lan";
         nahida = "lan";

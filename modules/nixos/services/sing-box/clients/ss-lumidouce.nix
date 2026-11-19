@@ -23,7 +23,7 @@ in
         {
           type = "shadowsocks";
           inherit tag;
-          server = config.codgician.inventory.peers.lumidouce.domain;
+          server = "sz.${lib.codgician.zone}";
           server_port = 3391;
           method = "2022-blake3-aes-256-gcm";
           password._secret = config.codgician.secrets.files.${secretName}.path;

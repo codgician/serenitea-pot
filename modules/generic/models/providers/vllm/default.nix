@@ -1,9 +1,4 @@
-{
-  config,
-  lib,
-  modelLib,
-  ...
-}:
+{ lib, modelLib, ... }:
 let
   inherit (lib) mkOption types;
 in
@@ -36,7 +31,8 @@ in
       } name spec)
       // lib.optionalAttrs (spec.contextWindow != null) { inherit (spec) contextWindow; };
     models."qwen3.8-27b" = {
-      apiBase = "http://${config.codgician.inventory.hosts.paimon.lan}:8000/v1";
+      # sglang on paimon
+      apiBase = "http://192.168.0.22:8000/v1";
       contextWindow = 262144;
       path = "Qwen3.8-27B";
       reasoningEfforts = [

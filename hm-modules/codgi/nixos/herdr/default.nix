@@ -7,7 +7,7 @@
 }:
 let
   cfg = config.codgician.codgi.herdr;
-  relayDomain = osConfig.codgician.inventory.services.ovis-relay.domain;
+  relayDomain = builtins.head osConfig.codgician.services.nginx.reverseProxies.ovis-relay.domains;
 in
 {
   options.codgician.codgi.herdr.ovis.enable =
