@@ -4,12 +4,29 @@
     secrets.files.nats-controller-seed.owner = "codgi";
 
     services = {
+      fcitx5.enable = true;
+      plasma = {
+        enable = true;
+        wallpaper =
+          (pkgs.fetchurl {
+            url = "https://media.githubusercontent.com/media/codgician/assets/refs/heads/main/images/wallpapers/genshin-luna-viii.jpg";
+            sha256 = "sha256-VjoCRP8AENaUlItKCn2751GY+WtF0ncwcBWYuJHmCWE=";
+          }).outPath;
+      };
+
       sing-box = {
-        clients.ss-lumidouce.bindInterface = "eno1-guest";
-        tun.routedRanges = [
-          "192.168.0.0/16"
-          "fd00:c0d9:1c00::/48"
-        ];
+        enable = true;
+        clients.ss-lumidouce = {
+          enable = true;
+          bindInterface = "eno1-guest";
+        };
+        tun = {
+          enable = true;
+          routedRanges = [
+            "192.168.0.0/16"
+            "fd00:c0d9:1c00::/48"
+          ];
+        };
       };
 
       # Samba share for /code (dev-optimized for Windows 11 client over Thunderbolt)
@@ -54,11 +71,33 @@
         };
       };
 
-      intune.printer.user = "shijiazhang";
+      # RAS hardware error monitoring (EDAC/DIMM ECC, PCIe AER, CPU MCE)
+      rasdaemon.enable = true;
+
+      # Microsoft Intune enrollment (device compliance, identity broker,
+      # Defender for Endpoint, VPN)
+      intune = {
+        enable = true;
+        printer.user = "shijiazhang";
+      };
     };
 
-    users.codgi.passwordSecret = "codgi-password";
+    system = {
+      auto-upgrade.enable = true;
+      common.audio.enable = true;
+      impermanence.enable = true;
+      secure-boot.enable = true;
+    };
+
+    virtualization.podman.enable = true;
+
+    users.codgi = {
+      enable = true;
+      passwordSecret = "codgi-password";
+    };
   };
+
+  services.vscode-server.enable = true;
 
   home-manager.users.codgi =
     let
@@ -75,14 +114,28 @@
     in
     {
       codgician.codgi = {
-        bilibili.gpuAcceleration = "nvidia";
-        dev.dotnet.enable = true;
+        bilibili = {
+          enable = true;
+          gpuAcceleration = "nvidia";
+        };
+        codex.enable = true;
+        claude-code.enable = true;
+        dev = {
+          dotnet.enable = true;
+          nix.enable = true;
+        };
+        mcp.enable = true;
+        oh-my-pi = {
+          enable = true;
+          defaultProfile = "github-copilot";
+        };
         github-copilot-cli.enable = true;
         git.directoryIdentities = {
           "/code/" = "work";
           "~/GitHub/" = "personal";
         };
         herdr = {
+          enable = true;
           desktop.enable = true;
           ovis.enable = true;
         };
@@ -90,10 +143,36 @@
         plasma = {
           scale = 1.5;
           krdp.enable = true;
+          launchers = [
+            "applications:org.kde.dolphin.desktop"
+            "applications:microsoft-edge.desktop"
+            "applications:org.kde.konsole.desktop"
+            "applications:code.desktop"
+            "applications:teams-for-linux.desktop"
+          ];
         };
 
         easyeffects.enable = true;
+        teams-for-linux.enable = true;
+        pwsh.enable = true;
+        ssh.enable = true;
+        vscode.enable = true;
       };
+
+      # Set Microsoft Edge as default browser
+      xdg.mimeApps = {
+        enable = true;
+        defaultApplications = {
+          "text/html" = "microsoft-edge.desktop";
+          "x-scheme-handler/http" = "microsoft-edge.desktop";
+          "x-scheme-handler/https" = "microsoft-edge.desktop";
+          "x-scheme-handler/about" = "microsoft-edge.desktop";
+          "x-scheme-handler/unknown" = "microsoft-edge.desktop";
+        };
+      };
+      xdg.configFile."mimeapps.list".force = true;
+
+      home.stateVersion = "26.05";
 
       home.packages =
         with pkgs;
@@ -123,6 +202,7 @@
 
   # Enable Network Manager (leave thunderbolt0 to systemd-networkd)
   networking.networkmanager = {
+    enable = true;
     unmanaged = [ "thunderbolt0" ];
 
     ensureProfiles.profiles = {
@@ -191,12 +271,33 @@
     };
   };
 
+  boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.consoleMode = "max";
+  boot.loader.efi.canTouchEfiVariables = true;
+  boot.plymouth = {
+    enable = true;
+    theme = "nixos-bgrt";
+    themePackages = [ pkgs.nixos-bgrt-plymouth ];
+  };
+
+  i18n.supportedLocales = [
+    "en_US.UTF-8/UTF-8"
+    "zh_CN.UTF-8/UTF-8"
+  ];
+
+  # Already set by the common module; the second definition repeats both
+  # entries in nix.conf.
+  nix.settings.trusted-users = [
+    "root"
+    "@wheel"
+  ];
 
   # Global packages
   environment.systemPackages = with pkgs; [
     google-chrome
   ];
+
+  zramSwap.enable = true;
 
   # Disable auto-suspend: NVIDIA s2idle resume deadlocks the host.
   services.logind.settings.Login = {
@@ -220,6 +321,8 @@
 
   # Enable nix-ld
   programs.nix-ld.enable = true;
+
+  networking.firewall.enable = false;
 
   system.stateVersion = "26.05";
 }

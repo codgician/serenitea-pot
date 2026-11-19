@@ -204,10 +204,17 @@ in
     rustFp
   ];
 
-  security.pam.services.kde-fingerprint.text = ''
-    auth    sufficient    ${rustFp}/lib/librust_fp_pam_module.so
-    account sufficient    ${rustFp}/lib/librust_fp_pam_module.so
-  '';
+  security = {
+    pam.services.kde-fingerprint.text = ''
+      auth    sufficient    ${rustFp}/lib/librust_fp_pam_module.so
+      account sufficient    ${rustFp}/lib/librust_fp_pam_module.so
+    '';
+
+    tpm2 = {
+      enable = true;
+      pkcs11.enable = true;
+    };
+  };
 
   hardware = {
     # Keep the board's amp parameters and use Nixpkgs' paired IPC3 firmware/topology.
@@ -307,4 +314,6 @@ in
       echo 65535 > /sys/kernel/debug/cros_ec/suspend_timeout_ms
     '';
   };
+
+  fileSystems."/persist".neededForBoot = true;
 }
