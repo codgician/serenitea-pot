@@ -37,6 +37,8 @@ let
 in
 {
   options.codgician.codgi.git = {
+    package = lib.mkPackageOption pkgs "git" { default = "gitFull"; };
+
     directoryIdentities = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
       default = { };
@@ -63,7 +65,7 @@ in
     programs.git = {
       enable = true;
       lfs.enable = true;
-      package = pkgs.gitFull;
+      inherit (cfg) package;
 
       includes = lib.mapAttrsToList (dir: identity: {
         condition = "gitdir:${dir}";

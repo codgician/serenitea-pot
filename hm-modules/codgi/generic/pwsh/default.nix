@@ -8,10 +8,13 @@ let
   cfg = config.codgician.codgi.pwsh;
 in
 {
-  options.codgician.codgi.pwsh.enable = lib.mkEnableOption "PowerShell and oh-my-posh";
+  options.codgician.codgi.pwsh = {
+    enable = lib.mkEnableOption "PowerShell and oh-my-posh";
+    package = lib.mkPackageOption pkgs "powershell" { };
+  };
 
   config = lib.mkIf cfg.enable {
-    home.packages = with pkgs; [ powershell ];
+    home.packages = [ cfg.package ];
     home.sessionVariables = {
       POWERSHELL_UPDATECHECK = "Off"; # Disable PowerShell update check
     };

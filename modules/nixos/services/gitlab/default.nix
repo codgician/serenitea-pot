@@ -12,6 +12,7 @@ in
 {
   options.codgician.services.gitlab = {
     enable = lib.mkEnableOption "GitLab";
+    package = lib.mkPackageOption pkgs "gitlab" { };
 
     statePath = lib.mkOption {
       type = lib.types.str;
@@ -29,7 +30,7 @@ in
 
       services.gitlab = {
         enable = true;
-        packages.gitlab = pkgs.gitlab;
+        packages.gitlab = cfg.package;
         inherit (cfg) statePath;
         host = domain;
         https = true;

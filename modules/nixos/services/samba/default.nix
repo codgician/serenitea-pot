@@ -12,6 +12,7 @@ in
 {
   options.codgician.services.samba = {
     enable = lib.mkEnableOption "Samba server.";
+    package = lib.mkPackageOption pkgs "samba" { default = "sambaFull"; };
 
     users = lib.mkOption {
       type = types.listOf types.str;
@@ -35,7 +36,7 @@ in
     # Samba configurations
     services.samba = {
       enable = true;
-      package = pkgs.sambaFull;
+      inherit (cfg) package;
       openFirewall = true;
 
       nsswins = false;

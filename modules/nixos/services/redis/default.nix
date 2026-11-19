@@ -24,7 +24,10 @@ let
   usingDefaultRoot = cfg.rootDir == defaultRootDir;
 in
 {
-  options.codgician.services.redis.rootDir = lib.mkOption {
+  options.codgician.services.redis = {
+    package = lib.mkPackageOption pkgs "redis" { default = "valkey"; };
+
+    rootDir = lib.mkOption {
     type = lib.types.path;
     default = defaultRootDir;
     example = "/xpool/appdata";
@@ -42,10 +45,11 @@ in
       relocates both the data and the generated `redis.conf` while leaving the
       upstream redis module untouched.
     '';
+    };
   };
 
   config = lib.mkMerge [
-    { services.redis.package = pkgs.valkey; }
+    { services.redis.package = cfg.package; }
 
     # Default root: persist each instance's state directory via impermanence.
     (lib.mkIf usingDefaultRoot {

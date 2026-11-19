@@ -74,6 +74,12 @@ in
   options.codgician.services.mcpo = {
     enable = lib.mkEnableOption "mcpo container";
 
+    image = lib.mkOption {
+      type = types.str;
+      default = "ghcr.io/open-webui/mcpo:latest";
+      description = "Container image for mcpo.";
+    };
+
     port = lib.mkOption {
       type = types.port;
       default = 8010;
@@ -102,7 +108,7 @@ in
   config = lib.mkIf cfg.enable {
     virtualisation.oci-containers.containers.mcpo = {
       autoStart = true;
-      image = "ghcr.io/open-webui/mcpo:latest";
+      inherit (cfg) image;
       ports = [ "127.0.0.1:${builtins.toString cfg.port}:8000" ];
       volumes = [
         "/run/mcpo/config.json:/config.json"

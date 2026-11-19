@@ -6,7 +6,7 @@
 }:
 let
   cfg = config.codgician.services.intune;
-  inherit (pkgs) mdatp;
+  mdatp = cfg.packages.mdatp;
 
   installDir = "/opt/microsoft/mdatp";
   stateDir = "/var/opt/microsoft/mdatp";

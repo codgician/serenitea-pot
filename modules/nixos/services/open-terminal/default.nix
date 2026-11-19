@@ -17,12 +17,20 @@ let
   };
 in
 {
-  options.codgician.services.open-terminal.enable = lib.mkEnableOption "open-terminal container";
+  options.codgician.services.open-terminal = {
+    enable = lib.mkEnableOption "open-terminal container";
+
+    image = lib.mkOption {
+      type = lib.types.str;
+      default = "ghcr.io/open-webui/open-terminal:latest";
+      description = "Container image for open-terminal.";
+    };
+  };
 
   config = lib.mkIf cfg.enable {
     virtualisation.oci-containers.containers.open-terminal = {
       autoStart = true;
-      image = "ghcr.io/open-webui/open-terminal:latest";
+      inherit (cfg) image;
       ports = [ "127.0.0.1:8022:8000" ];
       volumes = [
         "${dataDir}:/home/user:U"

@@ -9,8 +9,7 @@ let
   cfg = config.codgician.services.${serviceName};
   port = 8787;
 
-  # The CLI is only a wrapper; source, dependencies, and build hooks live here.
-  ovis = pkgs.llm-agents.ovis.unwrapped;
+  ovis = cfg.package;
 
   # The relay ships in Ovis' source but not in its package; its dependencies resolve
   # through the packaged node_modules.
@@ -89,7 +88,14 @@ let
   '';
 in
 {
-  options.codgician.services.${serviceName}.enable = lib.mkEnableOption "Ovis relay";
+  options.codgician.services.${serviceName} = {
+    enable = lib.mkEnableOption "Ovis relay";
+
+    # The CLI is only a wrapper; source, dependencies, and build hooks live in the unwrapped package.
+    package = lib.mkPackageOption pkgs [ "llm-agents" "ovis" "unwrapped" ] {
+      extraDescription = "The relay and the hosted app are built from its source.";
+    };
+  };
 
   config = lib.mkMerge [
     {

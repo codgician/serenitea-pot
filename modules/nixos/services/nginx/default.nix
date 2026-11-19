@@ -262,6 +262,8 @@ in
   imports = [ ./sites.nix ];
 
   options.codgician.services.nginx = {
+    package = lib.mkPackageOption pkgs "nginx" { default = "nginxMainlineEch"; };
+
     trustedProxies = lib.mkOption {
       type = types.listOf types.str;
       default = [ ];
@@ -343,7 +345,7 @@ in
     (lib.mkIf (vhosts != { }) {
       services.nginx = {
         enable = true;
-        package = pkgs.nginxMainlineEch;
+        inherit (cfg) package;
         recommendedProxySettings = true;
         statusPage = true;
 

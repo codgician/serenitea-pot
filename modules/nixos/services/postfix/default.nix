@@ -16,6 +16,10 @@ in
   options.codgician.services.postfix = {
     enable = lib.mkEnableOption "postfix";
 
+    saslPackage = lib.mkPackageOption pkgs [ "nur" "repos" "codgician" "sasl-xoauth2" ] {
+      extraDescription = "It is the SASL mechanism postfix signs in to the relay with.";
+    };
+
     sender = lib.mkOption {
       type = types.str;
       default = "bot@${lib.codgician.zone}";
@@ -40,7 +44,7 @@ in
   config = lib.mkIf cfg.enable {
     # Make debugging easier
     environment.systemPackages = with pkgs; [
-      pkgs.nur.repos.codgician.sasl-xoauth2
+      cfg.saslPackage
       cyrus_sasl
     ];
 
@@ -100,7 +104,7 @@ in
     };
 
     systemd.services.postfix.environment.SASL_PATH = lib.makeSearchPath "lib/sasl2" [
-      pkgs.nur.repos.codgician.sasl-xoauth2
+      cfg.saslPackage
     ];
 
     environment.etc."sasl-xoauth2.conf" = {

@@ -34,6 +34,15 @@ in
         extraDescription = "It provides intune-daemon and intune-agent.";
       };
       microsoft-identity-broker = lib.mkPackageOption pkgs "microsoft-identity-broker" { };
+      mdatp = lib.mkPackageOption pkgs "mdatp" {
+        extraDescription = "Microsoft Defender for Endpoint.";
+      };
+      networkmanager-gpclient = lib.mkPackageOption pkgs [
+        "nur"
+        "repos"
+        "codgician"
+        "networkmanager-gpclient"
+      ] { extraDescription = "The NetworkManager plugin the corporate VPN connects with."; };
     };
   };
 
