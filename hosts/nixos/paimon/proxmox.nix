@@ -92,7 +92,7 @@ in
   networking.firewall.allowedTCPPorts = [ 8006 ];
   services.proxmox-ve = {
     enable = true;
-    ipAddress = config.codgician.inventory.hosts.paimon.pve;
+    ipAddress = "192.168.0.21";
   };
 
   # proxmox-nixos sets this as a string; 26.05 requires a list.
@@ -119,8 +119,12 @@ in
   boot.kernelModules = [ "dm-thin-pool" ];
 
   codgician = {
-    services.nginx.reverseProxies.simulanka.proxyPass = "https://127.0.0.1:8006";
-    acme.${config.codgician.inventory.services.simulanka.domain}.postRun = ''
+    # The Proxmox VE UI; lumine is its public entry.
+    services.nginx.reverseProxies.simulanka = {
+      domains = [ "simulanka.${lib.codgician.zone}" ];
+      proxyPass = "https://127.0.0.1:8006";
+    };
+    acme."simulanka.${lib.codgician.zone}".postRun = ''
       cp -f cert.pem /etc/pve/local/pveproxy-ssl.pem
       cp -f key.pem /etc/pve/local/pveproxy-ssl.key
       systemctl restart pveproxy.service
