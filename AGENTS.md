@@ -67,9 +67,10 @@ A module is one nameable mechanism whose parts must stay consistent wherever it 
 Each option must pass one test: do two hosts set it differently, or does it describe the host itself (its disks, hardware, location)? If not, delete it and hardcode the value.
 A value several hosts happen to share is written in each of them. A value another module needs stays with its owner and is read from there. Neither becomes a settable option.
 Hosts needing full control use the upstream nixpkgs/home-manager module directly.
+A module that installs or runs software keeps a `package` option (`lib.mkPackageOption`, or `image` for a container) whatever the test says, so that one host can run a different build; its default is what hosts use.
 
 - Typical options (not exhaustive): `enable`, data dirs, hardware choices
-- Hardcode: application settings, env vars, feature flags, listen addresses, public names, service users, packages, branding assets (see `open-webui`, `litellm`)
+- Hardcode: application settings, env vars, feature flags, listen addresses, public names, service users, branding assets (see `open-webui`, `litellm`)
 - Avoid: `extraConfig`/`settings` passthroughs, mirrored upstream options, speculative knobs
 - Cross-module integration: read `config.codgician.<other>` (e.g. `mcpo.port`), don't add URL/toggle options
 
