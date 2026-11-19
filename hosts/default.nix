@@ -37,15 +37,18 @@ let
         removeAttrs host [ "roles" ]
         // {
           inherit hostName;
-          # Every host gets `common` and the role of its class.
+          # A manifest that still lists `roles` also gets `common` and the
+          # role of its class.
           modules =
             host.modules
-            ++ map (roleModule where) (
-              [
-                "common"
-                class
-              ]
-              ++ host.roles or [ ]
+            ++ lib.optionals (host ? roles) (
+              map (roleModule where) (
+                [
+                  "common"
+                  class
+                ]
+                ++ host.roles
+              )
             );
         }
       )
