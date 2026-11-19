@@ -6,46 +6,43 @@
 let
   serviceName = "openvscode-server";
   cfg = config.codgician.services.${serviceName};
-  inherit (config.codgician) inventory;
-  svc = inventory.services.openvscode-server;
+  port = 3000;
 in
 {
-  options.codgician.services.${serviceName}.enable =
-    lib.codgician.mkPublishedEnableOption config serviceName;
+  options.codgician.services.${serviceName}.enable = lib.mkEnableOption "OpenVSCode Server";
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
-      codgician.services.nginx.reverseProxies.openvscode-server.proxyPass = svc.localUpstream;
+      codgician.services.nginx.reverseProxies.openvscode-server.proxyPass =
+        "http://127.0.0.1:${toString port}";
 
       services.openvscode-server = {
         enable = true;
         host = "127.0.0.1";
-        inherit (svc) port;
+        inherit port;
         user = "codgi";
         group = "users";
         withoutConnectionToken = true;
         telemetryLevel = "off";
       };
-
-      assertions = [
-        {
-          assertion = svc.authelia != null;
-          message = "openvscode-server runs without a connection token: put it behind Authelia in the inventory.";
-        }
-      ];
     })
 
-    # Long timeouts for WebSocket
-    (lib.mkIf (cfg.enable || config.codgician.services.nginx.fronts ? ${serviceName}) {
-      codgician.services.nginx.reverseProxies.openvscode-server.locations."/".extraConfig = ''
-        # Long timeouts for IDE (terminals, LSPs can idle)
-        proxy_read_timeout 3600s;
-        proxy_send_timeout 3600s;
-        send_timeout 3600s;
+    {
+      codgician.services.nginx.reverseProxies.openvscode-server = {
+        domains = [ "leyline.${lib.codgician.zone}" ];
+        # The server runs without a connection token. Meant for
+        # `users = [ "leyline" ]`; that rule never reached Authelia.
+        authelia.anyone = true;
+        locations."/".extraConfig = ''
+          # Long timeouts for IDE (terminals, LSPs can idle)
+          proxy_read_timeout 3600s;
+          proxy_send_timeout 3600s;
+          send_timeout 3600s;
 
-        # Disable buffering for real-time IDE updates
-        proxy_buffering off;
-      '';
-    })
+          # Disable buffering for real-time IDE updates
+          proxy_buffering off;
+        '';
+      };
+    }
   ];
 }

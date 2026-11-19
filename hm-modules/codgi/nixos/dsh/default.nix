@@ -1,13 +1,12 @@
 {
   config,
   lib,
-  osConfig,
   pkgs,
   ...
 }:
 let
   cfg = config.codgician.codgi.dsh;
-  svc = osConfig.codgician.inventory.services.dsh-web;
+  inherit (lib) types;
 
   # The headless service has no XDG Documents directory to discover.
   webPatch = (pkgs.formats.yaml { }).generate "dsh-web.patch.yml" [
@@ -18,8 +17,20 @@ let
   ];
 in
 {
-  # The Web UI runs on the host the inventory places `dsh-web` on.
-  config = lib.mkIf (cfg.enable && svc.host == osConfig.networking.hostName) {
+  options.codgician.codgi.dsh.web = {
+    domain = lib.mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "Domain the host's reverse proxy serves the dsh Web UI at; null for no Web UI.";
+    };
+
+    port = lib.mkOption {
+      type = types.port;
+      description = "Loopback port of the dsh Web UI.";
+    };
+  };
+
+  config = lib.mkIf (cfg.enable && cfg.web.domain != null) {
     systemd.user.services.dsh-web = {
       Unit.Description = "DeepSeek Harness Web UI";
       Service = {
@@ -31,12 +42,12 @@ in
           "--host"
           "127.0.0.1"
           "--port"
-          (toString svc.port)
+          (toString cfg.web.port)
           "--no-open"
           "--public-url"
-          "https://${svc.domain}/"
+          "https://${cfg.web.domain}/"
           "--trusted-host"
-          svc.domain
+          cfg.web.domain
         ];
         WorkingDirectory = "%h";
         Restart = "on-failure";

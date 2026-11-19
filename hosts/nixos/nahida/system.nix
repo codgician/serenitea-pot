@@ -1,20 +1,23 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ lib, pkgs, ... }:
 let
-  dsh = config.codgician.inventory.services.dsh-web;
+  dshDomain = "moongazer.${lib.codgician.zone}";
+  dshPort = 3080;
 in
 {
   codgician = {
     services = {
-      jupyter.notebookDir = "/lab/jupyter";
+      jupyter = {
+        enable = true;
+        notebookDir = "/lab/jupyter";
+      };
 
-      # The dsh Web UI is a Home Manager service, so its vhost is declared here.
+      openvscode-server.enable = true;
+
+      # The dsh Web UI is a Home Manager service, so its site is declared here.
       nginx.reverseProxies.dsh-web = {
-        proxyPass = dsh.localUpstream;
+        domains = [ dshDomain ];
+        authelia.users = [ "codgi" ];
+        proxyPass = "http://127.0.0.1:${toString dshPort}";
         locations."/".extraConfig = ''
           # dsh's initial URL contains a browser login token.
           access_log off;
@@ -43,7 +46,13 @@ in
         dotnet.enable = true;
         nix.enable = true;
       };
-      dsh.enable = true;
+      dsh = {
+        enable = true;
+        web = {
+          domain = dshDomain;
+          port = dshPort;
+        };
+      };
       github-copilot-cli.enable = true;
       mcp.enable = true;
       pi-coding-agent.enable = true;

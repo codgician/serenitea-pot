@@ -5,13 +5,13 @@
 }:
 let
   cfg = config.codgician.services.jupyter;
-  svc = config.codgician.inventory.services.jupyter;
+  port = 8888;
 in
 {
   imports = [ ./kernels ];
 
   options.codgician.services.jupyter = {
-    enable = lib.codgician.mkPublishedEnableOption config "jupyter";
+    enable = lib.mkEnableOption "Jupyter";
 
     notebookDir = lib.mkOption {
       type = lib.types.str;
@@ -20,33 +20,37 @@ in
     };
   };
 
-  config = lib.mkIf cfg.enable {
-    codgician.services.nginx.reverseProxies.jupyter.proxyPass = svc.localUpstream;
+  config = lib.mkMerge [
+    {
+      codgician.services.nginx.reverseProxies.jupyter = {
+        domains = [ "dragonspine.${lib.codgician.zone}" ];
+        # Jupyter runs without authentication of its own. No subject was
+        # ever declared for this site.
+        authelia.anyone = true;
+      };
+    }
 
-    services.jupyter = {
-      enable = true;
-      ip = "127.0.0.1";
-      inherit (svc) port;
-      inherit (cfg) notebookDir;
-      user = "codgi";
-      group = "jupyter";
+    (lib.mkIf cfg.enable {
+      codgician.services.nginx.reverseProxies.jupyter.proxyPass = "http://127.0.0.1:${toString port}";
 
-      # Authelia handles authentication: no password, and no token either
-      password = "";
-      notebookConfig = ''
-        c.ServerApp.allow_remote_access = True
-        c.ServerApp.trust_xheaders = True
-        # Disable built-in authentication - Authelia handles auth
-        c.ServerApp.token = ""
-        c.PasswordIdentityProvider.hashed_password = ""
-      '';
-    };
+      services.jupyter = {
+        enable = true;
+        ip = "127.0.0.1";
+        inherit port;
+        inherit (cfg) notebookDir;
+        user = "codgi";
+        group = "jupyter";
 
-    assertions = [
-      {
-        assertion = svc.authelia != null;
-        message = "jupyter runs without authentication of its own: put it behind Authelia in the inventory.";
-      }
-    ];
-  };
+        # Authelia handles authentication: no password, and no token either
+        password = "";
+        notebookConfig = ''
+          c.ServerApp.allow_remote_access = True
+          c.ServerApp.trust_xheaders = True
+          # Disable built-in authentication - Authelia handles auth
+          c.ServerApp.token = ""
+          c.PasswordIdentityProvider.hashed_password = ""
+        '';
+      };
+    })
+  ];
 }
