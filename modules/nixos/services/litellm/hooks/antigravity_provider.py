@@ -43,15 +43,18 @@ ENDPOINT = "https://daily-cloudcode-pa.googleapis.com"
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 # The native client's OAuth client ID/secret come from litellm-env (SOPS secrets
 # antigravity-oauth-client-{id,secret}) so they are not committed to the public repository.
-REDIRECT_URI = "http://127.0.0.1:51121/oauth-callback"
-# Google accepts email/profile aliases for the userinfo scopes. Keep the identity
-# scopes unambiguous when copying the authorization URL through terminal/chat UIs.
+# agy 1.5.6's interactive consumer login uses a hosted callback and PKCE.
+REDIRECT_URI = "https://antigravity.google/oauth-callback"
 SCOPES = " ".join(
-    ["openid", "email", "profile"]
-    + [
-        "https://www.googleapis.com/auth/" + scope
-        for scope in ("cloud-platform", "cclog", "experimentsandconfigs", "aicode")
-    ]
+    (
+        "https://www.googleapis.com/auth/cloud-platform",
+        "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/userinfo.profile",
+        "https://www.googleapis.com/auth/cclog",
+        "https://www.googleapis.com/auth/experimentsandconfigs",
+        "https://www.googleapis.com/auth/aicode",
+        "openid",
+    )
 )
 # Backend model gating uses the hub version, not the changelist.
 USER_AGENT = (
@@ -117,21 +120,29 @@ def _token(**fields: str) -> dict:
         return _check(client.post(TOKEN_URL, data={**_client_credentials(), **fields}))
 
 
-def _control(method: str, token: str, body: dict) -> dict:
-    with _http() as client:
-        return _check(
-            client.post(
-                f"{ENDPOINT}/v1internal:{method}", json=body, headers=_headers(token)
-            )
-        )
+def _refresh_token(refresh_token: str) -> dict:
+    result = _token(grant_type="refresh_token", refresh_token=refresh_token)
+    result.setdefault("refresh_token", refresh_token)
+    return result
 
 
-def _project(token: str) -> str:
+def _control(client: httpx.Client, method: str, token: str, body: dict) -> dict:
+    return _check(
+        client.post(f"{ENDPOINT}/v1internal:{method}", json=body, headers=_headers(token))
+    )
+
+
+def _catalog(client: httpx.Client, token: str, project: str) -> dict:
+    return _control(client, "fetchAvailableModels", token, {"project": project})["models"]
+
+
+def _project(client: httpx.Client, token: str) -> str:
     metadata = {"ideType": "ANTIGRAVITY"}
-    result = _control("loadCodeAssist", token, {"metadata": metadata})
+    result = _control(client, "loadCodeAssist", token, {"metadata": metadata})
     project = result.get("cloudaicompanionProject")
     if project and not result.get("paidTier"):
         result = _control(
+            client,
             "loadCodeAssist",
             token,
             {"metadata": metadata, "cloudaicompanionProject": project},
@@ -146,6 +157,7 @@ def _project(token: str) -> str:
                         403, f"{tier['reasonMessage']} {tier.get('validationUrl', '')}"
                     )
         operation = _control(
+            client,
             "onboardUser", token, {"metadata": metadata, "tierId": "free-tier"}
         )
         deadline = time.monotonic() + 30
@@ -153,16 +165,15 @@ def _project(token: str) -> str:
             if time.monotonic() >= deadline:
                 raise CustomLLMError(504, "Antigravity onboarding timed out")
             time.sleep(1)
-            with _http() as client:
-                operation = _check(
-                    client.get(
-                        f"{ENDPOINT}/v1internal/{operation['name']}",
-                        headers=_headers(token),
-                    )
+            operation = _check(
+                client.get(
+                    f"{ENDPOINT}/v1internal/{operation['name']}",
+                    headers=_headers(token),
                 )
+            )
         if operation.get("error"):
             raise CustomLLMError(403, json.dumps(operation["error"]))
-    project = _control("loadCodeAssist", token, {"metadata": metadata}).get(
+    project = _control(client, "loadCodeAssist", token, {"metadata": metadata}).get(
         "cloudaicompanionProject"
     )
     if not isinstance(project, str) or not project:
@@ -197,21 +208,18 @@ def _credentials() -> dict:
         fcntl.flock(lock, fcntl.LOCK_EX)
         credentials = json.loads(path.read_text())
         if credentials["expires_at"] <= time.time() + 60:
-            result = _token(
-                grant_type="refresh_token", refresh_token=credentials["refresh_token"]
-            )
+            result = _refresh_token(credentials["refresh_token"])
             credentials.update(
                 access_token=result["access_token"],
-                refresh_token=result.get("refresh_token", credentials["refresh_token"]),
+                refresh_token=result["refresh_token"],
                 expires_at=time.time() + result["expires_in"],
             )
             # A catalog outage must not discard a newly rotated refresh token.
             _save(path, credentials)
-            credentials["models"] = _control(
-                "fetchAvailableModels",
-                credentials["access_token"],
-                {"project": credentials["project"]},
-            )["models"]
+            with _http() as client:
+                credentials["models"] = _catalog(
+                    client, credentials["access_token"], credentials["project"]
+                )
             _save(path, credentials)
         return credentials
 
@@ -243,7 +251,7 @@ def _start_login() -> None:
         "code_challenge_method": "S256",
     }
     print(
-        "Open this URL, then paste the full redirect URL (the loopback page need not load):",
+        "Open this URL, then paste the authorization code or full callback URL:",
         flush=True,
     )
     print(
@@ -260,15 +268,22 @@ def _finish_login() -> None:
     pending = json.loads(pending_path.read_text())
     result = pending.get("tokens")
     if result is None:
-        callback = urllib.parse.urlparse(input("Redirect URL: ").strip())
-        query = urllib.parse.parse_qs(callback.query)
-        if not secrets.compare_digest(query.get("state", [""])[0], pending["state"]):
-            raise ValueError("OAuth state mismatch")
-        if "error" in query:
-            raise ValueError(query["error"][0])
+        code = input("Authorization code or callback URL: ").strip()
+        callback = urllib.parse.urlsplit(code)
+        if callback.scheme or callback.netloc:
+            if callback._replace(query="", fragment="").geturl() != REDIRECT_URI:
+                raise ValueError("Unexpected Antigravity OAuth callback URL")
+            query = urllib.parse.parse_qs(callback.query)
+            if not secrets.compare_digest(query.get("state", [""])[0], pending["state"]):
+                raise ValueError("OAuth state mismatch")
+            if "error" in query:
+                raise ValueError(query["error"][0])
+            code = query.get("code", [""])[0]
+        if not code:
+            raise ValueError("Missing OAuth authorization code")
         result = _token(
             grant_type="authorization_code",
-            code=query["code"][0],
+            code=code,
             code_verifier=pending["verifier"],
             redirect_uri=REDIRECT_URI,
         )
@@ -278,18 +293,13 @@ def _finish_login() -> None:
         # account/project/catalog call that can reject access or time out.
         _save(pending_path, pending)
     elif pending["expires_at"] <= time.time() + 60:
-        refreshed = _token(
-            grant_type="refresh_token", refresh_token=result["refresh_token"]
-        )
-        refreshed.setdefault("refresh_token", result["refresh_token"])
-        result = refreshed
+        result = _refresh_token(result["refresh_token"])
         pending.update(tokens=result, expires_at=time.time() + result["expires_in"])
         _save(pending_path, pending)
     try:
-        project = _project(result["access_token"])
-        models = _control(
-            "fetchAvailableModels", result["access_token"], {"project": project}
-        )["models"]
+        with _http() as client:
+            project = _project(client, result["access_token"])
+            models = _catalog(client, result["access_token"], project)
     except CustomLLMError as error:
         raise CustomLLMError(
             error.status_code,

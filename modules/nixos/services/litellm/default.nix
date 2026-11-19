@@ -12,7 +12,7 @@ let
   cfg = config.codgician.services.litellm;
   types = lib.types;
   defaultStateDir = "/var/lib/${serviceName}";
-  claudeOAuthHook = ./hooks;
+  hooksDir = ./hooks;
   containerHome = "/var/lib/${serviceName}-podman";
   containerStorageConfig = (pkgs.formats.toml { }).generate "litellm-storage.conf" {
     storage = {
@@ -156,7 +156,7 @@ let
 
   # Environment variables
   environment = {
-    "PYTHONPATH" = if cfg.backend == "nixpkgs" then "${claudeOAuthHook}" else "/";
+    "PYTHONPATH" = if cfg.backend == "nixpkgs" then "${hooksDir}" else "/";
     # Require pending PR: https://github.com/BerriAI/litellm/pull/34889
     "GITHUB_COPILOT_CLIENT_ID" = "Ov23li8tweQw6odWQebz";
     "GITHUB_COPILOT_USER_AGENT" = "opencode/${pkgs.llm-agents.opencode.version}";
@@ -380,8 +380,8 @@ in
         user = "65532:65532";
         volumes = [
           "${(pkgs.formats.yaml { }).generate "config.yaml" settings}:/config.yaml:ro"
-          "${claudeOAuthHook}/claude_oauth_hook.py:/claude_oauth_hook.py:ro"
-          "${claudeOAuthHook}/antigravity_provider.py:/antigravity_provider.py:ro"
+          "${hooksDir}/claude_oauth_hook.py:/claude_oauth_hook.py:ro"
+          "${hooksDir}/antigravity_provider.py:/antigravity_provider.py:ro"
           "${cfg.stateDir}:/config"
           "/run/redis-${serviceName}:/run/redis-${serviceName}:ro"
         ]
