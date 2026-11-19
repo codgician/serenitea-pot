@@ -38,7 +38,7 @@ A registry is a table that several modules read. There are three, each changing 
 
 ## Inventory
 
-`config.codgician.inventory`. `modules/generic/inventory` declares the options, `inventory.nix` defines them; it is a module of the option, so `config` there is the inventory itself. Whoever reads any value checks the whole table, in a host, in Home Manager and in Terranix alike: unknown keys, wrong value kinds, names that do not exist and the rules below are evaluation errors that name the entry.
+`config.codgician.inventory`. `modules/generic/inventory` declares the options, `inventory.nix` defines them; it is a module of the option, so `config` there is the inventory itself. The rules that span entries (listed below) are checked on every read, in a host, in Home Manager and in Terranix alike; unknown keys, wrong value kinds and names that do not exist fail evaluation where the value is read. Both name the entry.
 
 - `zone`, `mail`: the DNS zone and the address all services send mail from
 - `edge`: the host (one of `hosts`) that owns every public name that is not `direct` and proxies it to its backend

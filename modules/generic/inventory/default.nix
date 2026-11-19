@@ -365,9 +365,9 @@ in
   options.codgician.inventory = mkOption {
     type = types.submodule inventoryModule;
     description = "Facts about the fleet that more than one host, module or flake output reads.";
-    # The module system checks a value when it is read, and `assertions` only
-    # when a system is built. Terranix and Home Manager read single values and
-    # build no system, so whoever reads anything checks everything.
+    # `assertions` are only checked when a system is built, but Terranix and
+    # Home Manager read the inventory without building one, so the checks
+    # across entries run on every read.
     apply =
       inventory:
       let
@@ -376,7 +376,7 @@ in
       if failed != [ ] then
         throw "codgician.inventory:${lib.concatMapStrings (check: "\n- ${check.message}") failed}"
       else
-        builtins.deepSeq inventory inventory;
+        inventory;
   };
 
   config.codgician.inventory = ../../../inventory.nix;

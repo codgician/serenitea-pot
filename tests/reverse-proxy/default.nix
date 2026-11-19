@@ -83,71 +83,72 @@ let
         broken = service;
       };
     };
-  # Reading one value is enough: whoever reads the inventory checks all of it.
-  rejected = lib.mapAttrs (_: data: !(builtins.tryEval (inventoryOf data).zone).success) {
-    "unknown key" = withService { hots = "backend"; };
-    "unknown key inside authelia" = withService {
-      host = "backend";
-      authelia.group = [ "staff" ];
-    };
-    "authelia that is not a set" = withService {
-      host = "backend";
-      authelia = false;
-    };
-    "authelia without subjects" = withService {
-      host = "backend";
-      authelia = { };
-    };
-    "authelia with subjects and anyone" = withService {
-      host = "backend";
-      authelia = {
-        users = [ "alice" ];
-        anyone = true;
-      };
-    };
-    "port that is not a number" = withService {
-      host = "backend";
-      port = "8096x";
-    };
-    "unknown backend host" = withService { host = "backnd"; };
-    "host and upstream together" = withService {
-      host = "backend";
-      upstream = "http://192.0.2.20";
-    };
-    "backend without the address the edge needs" = withService { host = "front"; } // {
-      edge = "backend";
-    };
-    "unknown edge" = table // {
-      edge = "frnt";
-    };
-    "unknown Authelia service" = table // {
-      authelia = "portl";
-    };
-    "unknown host key" = table // {
-      hosts = table.hosts // {
-        front.lna = "192.0.2.1";
-      };
-    };
-    "mesh member without a key" = table // {
-      hosts = table.hosts // {
-        front.wireguard = {
-          ipv4 = "192.0.2.1";
-          ipv6 = "2001:db8::1";
+  rejected =
+    lib.mapAttrs (_: data: !(builtins.tryEval (builtins.deepSeq (inventoryOf data) true)).success)
+      {
+        "unknown key" = withService { hots = "backend"; };
+        "unknown key inside authelia" = withService {
+          host = "backend";
+          authelia.group = [ "staff" ];
+        };
+        "authelia that is not a set" = withService {
+          host = "backend";
+          authelia = false;
+        };
+        "authelia without subjects" = withService {
+          host = "backend";
+          authelia = { };
+        };
+        "authelia with subjects and anyone" = withService {
+          host = "backend";
+          authelia = {
+            users = [ "alice" ];
+            anyone = true;
+          };
+        };
+        "port that is not a number" = withService {
+          host = "backend";
+          port = "8096x";
+        };
+        "unknown backend host" = withService { host = "backnd"; };
+        "host and upstream together" = withService {
+          host = "backend";
+          upstream = "http://192.0.2.20";
+        };
+        "backend without the address the edge needs" = withService { host = "front"; } // {
+          edge = "backend";
+        };
+        "unknown edge" = table // {
+          edge = "frnt";
+        };
+        "unknown Authelia service" = table // {
+          authelia = "portl";
+        };
+        "unknown host key" = table // {
+          hosts = table.hosts // {
+            front.lna = "192.0.2.1";
+          };
+        };
+        "mesh member without a key" = table // {
+          hosts = table.hosts // {
+            front.wireguard = {
+              ipv4 = "192.0.2.1";
+              ipv6 = "2001:db8::1";
+            };
+          };
+        };
+        "peer that is also a host" = table // {
+          peers.front.wireguard = {
+            ipv4 = "192.0.2.1";
+            ipv6 = "2001:db8::1";
+            publicKey = "key";
+          };
+        };
+        "direct name on a host that is not public" = withService {
+          host = "backend";
+          direct = true;
         };
       };
-    };
-    "peer that is also a host" = table // {
-      peers.front.wireguard = {
-        ipv4 = "192.0.2.1";
-        ipv6 = "2001:db8::1";
-        publicKey = "key";
-      };
-    };
-    "direct name on a host that is not public" = withService {
-      host = "backend";
-      direct = true;
-    };
-  };
 
   expectations = {
     # Authentication stays with the backend's own vhost unless the backend is
