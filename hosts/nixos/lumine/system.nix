@@ -1,8 +1,6 @@
-{ config, lib, ... }:
+{ ... }:
 {
   codgician = {
-    secrets.files.saw-basic-auth.owner = "nginx";
-
     services = {
       fcitx5.enable = true;
       postgresql.zfsOptimizations = true;
@@ -12,26 +10,6 @@
         servers.hysteria2.enable = true;
       };
       wireguard.enable = true;
-
-      nginx = {
-        landingPage = {
-          domain = config.codgician.inventory.zone;
-          footer = "Our paths will surely cross";
-        };
-
-        reverseProxies = {
-          saw.locations."/".extraConfig = ''
-            client_max_body_size 128M;
-            proxy_buffering off;
-            include ${config.codgician.secrets.files.saw-basic-auth.path};
-          '';
-
-          ${config.codgician.inventory.services.dsh-web.edgeVhost}.locations."/".extraConfig = ''
-            access_log off;
-            proxy_buffering off;
-          '';
-        };
-      };
     };
 
     system = {

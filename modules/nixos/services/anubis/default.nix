@@ -1,17 +1,19 @@
 { config, lib, ... }:
 let
-  # Vhosts that ask for Anubis; nginx sends their traffic here.
-  anubisProxies = lib.filterAttrs (
-    _: vhost: vhost.anubis
-  ) config.codgician.services.nginx.reverseProxies;
+  inherit (config.codgician.services) nginx;
+
+  # Fronts that ask for Anubis; nginx sends their traffic here.
+  anubisFronts = lib.filterAttrs (_: front: front.anubis) nginx.fronts;
 
   # systemd service names cannot contain dots.
   sanitizeName = builtins.replaceStrings [ "." ] [ "-" ];
 
+  targetOf = name: front: nginx.reverseProxies.${name}.locations."/".proxyPass or front.proxyPass;
+
   mkInstance =
-    name: vhost:
+    name: front:
     let
-      target = vhost.locations."/".proxyPass or vhost.proxyPass;
+      target = targetOf name front;
       socketDir = "/run/anubis/anubis-${sanitizeName name}";
     in
     {
@@ -29,7 +31,7 @@ let
     };
 in
 {
-  config = lib.mkIf (anubisProxies != { }) {
+  config = lib.mkIf (anubisFronts != { }) {
     # nginx needs access to the Anubis Unix sockets.
     users.users.nginx.extraGroups = [ "anubis" ];
 
@@ -43,8 +45,8 @@ in
       };
 
       instances = lib.mapAttrs' (
-        name: vhost: lib.nameValuePair (sanitizeName name) (mkInstance name vhost)
-      ) anubisProxies;
+        name: front: lib.nameValuePair (sanitizeName name) (mkInstance name front)
+      ) anubisFronts;
     };
 
     # Inject the signing key into every Anubis instance.
@@ -53,11 +55,11 @@ in
       lib.nameValuePair "anubis-${sanitizeName name}" {
         serviceConfig.EnvironmentFile = [ config.codgician.secrets.templates."anubis-env".path ];
       }
-    ) anubisProxies;
+    ) anubisFronts;
 
-    assertions = lib.mapAttrsToList (name: vhost: {
-      assertion = vhost.locations."/".proxyPass or vhost.proxyPass != null;
-      message = ''anubis: reverse proxy "${name}" has no upstream for Anubis to protect.'';
-    }) anubisProxies;
+    assertions = lib.mapAttrsToList (name: front: {
+      assertion = targetOf name front != null;
+      message = ''anubis: front "${name}" has no upstream for Anubis to protect.'';
+    }) anubisFronts;
   };
 }

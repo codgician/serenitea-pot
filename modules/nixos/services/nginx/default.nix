@@ -20,12 +20,46 @@ let
     location: location ? proxyPass || location ? root || location ? alias || location ? return;
   locationsOf = vhost: { "/" = { }; } // vhost.locations;
 
+  # What this host answers for: the sites it has an upstream for, the sites
+  # it fronts, and its landing page.
+  served = lib.mapAttrs (_: site: {
+    inherit (site) domains proxyPass locations;
+    authelia = site.authelia != null;
+    anubis = false;
+  }) (lib.filterAttrs (_: site: site.proxyPass != null) cfg.reverseProxies);
+
+  fronted = lib.mapAttrs (name: front: {
+    domains = cfg.reverseProxies.${name}.domains or [ ];
+    locations = cfg.reverseProxies.${name}.locations or { };
+    inherit (front) proxyPass anubis;
+    # The vhost next to the backend asks Authelia.
+    authelia = false;
+  }) cfg.fronts;
+
+  landing = lib.optionalAttrs (cfg.landingPage != null) {
+    ${cfg.landingPage.domain} = {
+      domains = [
+        cfg.landingPage.domain
+        "*.${cfg.landingPage.domain}"
+      ];
+      proxyPass = null;
+      locations."/".root = import ./landing-page.nix {
+        inherit lib pkgs;
+        inherit (cfg.landingPage) footer;
+        name = "${hostName}-web";
+      };
+      authelia = false;
+      anubis = false;
+    };
+  };
+
   # A vhost without a domain or without anything to serve at `/` is reported
   # by an assertion below instead of failing somewhere in its consumers.
   hasRoot = vhost: vhost.proxyPass != null || servesItself (vhost.locations."/" or { });
-  vhosts = lib.filterAttrs (_: vhost: vhost.domains != [ ] && hasRoot vhost) cfg.reverseProxies;
+  declared = landing // served // fronted;
+  vhosts = lib.filterAttrs (_: vhost: vhost.domains != [ ] && hasRoot vhost) declared;
 
-  vhostModule =
+  siteModule =
     { name, ... }:
     let
       service = inventory.services.${name} or null;
@@ -35,7 +69,6 @@ let
         domains = lib.mkOption {
           type = types.listOf types.str;
           default = lib.optional (inventory.vhostDomains ? ${name}) inventory.vhostDomains.${name};
-          defaultText = lib.literalMD "the domain of the service called `<name>` in `inventory.nix`";
           example = [
             "example.com"
             "example.org"
@@ -43,25 +76,48 @@ let
           description = "Server names; the first one names the certificate.";
         };
 
+        authelia = lib.mkOption {
+          type = types.nullOr (
+            types.submodule {
+              options = {
+                users = lib.mkOption {
+                  type = types.listOf types.str;
+                  default = [ ];
+                  description = "Only these users.";
+                };
+                groups = lib.mkOption {
+                  type = types.listOf types.str;
+                  default = [ ];
+                  description = "Only members of these groups.";
+                };
+                anyone = lib.mkOption {
+                  type = types.bool;
+                  default = false;
+                  description = "Every signed-in user.";
+                };
+              };
+            }
+          );
+          default = if service == null then null else service.authelia;
+          example = {
+            groups = [ "staff" ];
+          };
+          description = ''
+            Who may pass. Null for no login. Otherwise the host that serves
+            the site asks Authelia for a session before every location, and
+            Authelia admits `users` and `groups` only, or `anyone` who is
+            signed in. Either subjects or `anyone`.
+          '';
+        };
+
         proxyPass = lib.mkOption {
           type = types.nullOr types.str;
           default = null;
           example = "http://127.0.0.1:8000";
-          description = "Upstream of every location that does not say what else it serves.";
-        };
-
-        authelia = lib.mkOption {
-          type = types.bool;
-          default = service != null && service.authelia != null;
-          defaultText = lib.literalMD "whether service `<name>` in `inventory.nix` sets `authelia`";
-          description = "Ask Authelia for a session before every location.";
-        };
-
-        anubis = lib.mkOption {
-          type = types.bool;
-          default = service != null && service.anubis && service.host == inventory.edge;
-          defaultText = lib.literalMD "whether service `<name>` runs on the edge and sets `anubis`";
-          description = "Put Anubis in front of the upstream.";
+          description = ''
+            Upstream of every location that does not say what else it serves.
+            The host that sets it serves the site.
+          '';
         };
 
         locations = lib.mkOption {
@@ -75,12 +131,27 @@ let
           '';
           description = ''
             Settings of `services.nginx.virtualHosts.<name>.locations`. A
-            location goes to `proxyPass` above unless it sets `proxyPass`
-            (`null` for none), `root`, `alias` or `return`.
+            location goes to the upstream unless it sets `proxyPass` (`null`
+            for none), `root`, `alias` or `return`.
           '';
         };
       };
     };
+
+  frontModule.options = {
+    proxyPass = lib.mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      example = "https://192.0.2.10";
+      description = "Where the host that serves the site is reached.";
+    };
+
+    anubis = lib.mkOption {
+      type = types.bool;
+      default = false;
+      description = "Put Anubis in front of the upstream.";
+    };
+  };
 
   mkLocationConfig =
     name: vhost: location:
@@ -224,54 +295,82 @@ in
     };
 
     reverseProxies = lib.mkOption {
-      type = types.attrsOf (types.submodule vhostModule);
+      type = types.attrsOf (types.submodule siteModule);
       default = { };
       example = lib.literalExpression ''
-        { jellyfin.proxyPass = "http://127.0.0.1:8096"; }
+        {
+          jellyfin = {
+            domains = [ "fin.example.org" ];
+            proxyPass = "http://127.0.0.1:8096";
+          };
+        }
       '';
       description = ''
-        HTTPS virtual hosts, by name; NGINX, its firewall ports, the
-        certificates and Anubis follow from them. A service module declares
-        the one next to its backend. On the edge host the inventory's service
-        table adds one for every service whose backend is elsewhere.
+        Sites, by name. The module that owns a site says what it is
+        (`domains`, `authelia`, the locations every hop needs) outside its
+        `enable`, so that every host knows it. The site is an HTTPS virtual
+        host on the host that sets `proxyPass`: the module does where the
+        service is enabled, a host does for something without a module.
+        NGINX, its firewall ports and the certificates follow.
       '';
     };
 
     fronts = lib.mkOption {
-      type = types.attrsOf types.attrs;
-      readOnly = true;
+      type = types.attrsOf (types.submodule frontModule);
+      default = { };
+      example = lib.literalExpression ''
+        {
+          jellyfin.proxyPass = "https://192.0.2.10";
+        }
+      '';
       description = ''
-        The `reverseProxies` this host has because it is the inventory's edge:
-        `codgician.inventory.edgeVhosts` there, none on every other host.
+        Sites of `reverseProxies` that another host serves and this host is
+        the public entry of, by the site's name. The virtual host takes its
+        domains and locations from the site and does not ask Authelia: the
+        host that serves the site does.
       '';
     };
   };
 
   config = lib.mkMerge [
     {
-      codgician.services.nginx.fronts = lib.optionalAttrs (
-        hostName == inventory.edge
-      ) inventory.edgeVhosts;
+      # Until every module declares its own site.
+      codgician.services.nginx.reverseProxies = lib.mapAttrs (_: _: { }) inventory.services;
 
-      codgician.services.nginx.reverseProxies = lib.mkMerge [
-        cfg.fronts
-        (lib.mkIf (cfg.landingPage != null) {
-          ${cfg.landingPage.domain} = {
-            domains = [
-              cfg.landingPage.domain
-              "*.${cfg.landingPage.domain}"
-            ];
-            locations."/".root = import ./landing-page.nix {
-              inherit lib pkgs;
-              inherit (cfg.landingPage) footer;
-              name = "${hostName}-web";
-            };
-          };
-        })
-      ];
+      assertions =
+        lib.mapAttrsToList (name: site: {
+          assertion =
+            site.authelia == null
+            || (site.authelia.users ++ site.authelia.groups != [ ]) != site.authelia.anyone;
+          message = ''
+            nginx: reverseProxies.${name}.authelia needs `users` or `groups`, or `anyone = true`, and not both.
+          '';
+        }) cfg.reverseProxies
+        ++ lib.mapAttrsToList (name: _: {
+          assertion = !served ? ${name};
+          message = ''
+            nginx: this host fronts "${name}" and serves it as well.
+          '';
+        }) cfg.fronts
+        ++ lib.concatLists (
+          lib.mapAttrsToList (name: vhost: [
+            {
+              assertion = vhost.domains != [ ];
+              message = ''
+                nginx: "${name}" has no domain. The module or host that owns the site sets `reverseProxies.${name}.domains`; check the spelling of the name.
+              '';
+            }
+            {
+              assertion = hasRoot vhost;
+              message = ''
+                nginx: "${name}" has nothing to serve at "/". Set `proxyPass`, or make the "/" location serve something.
+              '';
+            }
+          ]) declared
+        );
     }
 
-    (lib.mkIf (cfg.reverseProxies != { }) {
+    (lib.mkIf (vhosts != { }) {
       services.nginx = {
         enable = true;
         package = pkgs.nginxMainlineEch;
@@ -335,23 +434,6 @@ in
 
       # Add nginx user to www-data group
       users.groups."www-data".members = [ "nginx" ];
-
-      assertions = lib.concatLists (
-        lib.mapAttrsToList (name: vhost: [
-          {
-            assertion = vhost.domains != [ ];
-            message = ''
-              nginx: reverse proxy "${name}" has no domain. Name it after a service in inventory.nix, or set `domains`.
-            '';
-          }
-          {
-            assertion = hasRoot vhost;
-            message = ''
-              nginx: reverse proxy "${name}" has nothing to serve at "/". Set `proxyPass` (the module of a service does so where the service is enabled) or make the "/" location serve something.
-            '';
-          }
-        ]) cfg.reverseProxies
-      );
     })
   ];
 }
