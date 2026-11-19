@@ -5,6 +5,10 @@
   ...
 }:
 {
+  # TPM2-based ZFS root unlock
+  # Generate credential: nix run .#mkzfscreds -- zroot > zroot.cred
+  codgician.system.zfs-unlock.devices.zroot.credentialFile = ./zroot.cred;
+
   boot = {
     initrd = {
       availableKernelModules = [
@@ -61,11 +65,44 @@
 
     extraModulePackages = with config.boot.kernelPackages; [ mstflint_access ];
 
-    zfs.extraPools = [
-      "fpool"
-      "opool"
-      "xpool"
-    ];
+    zfs = {
+      extraPools = [
+        "fpool"
+        "opool"
+        "xpool"
+      ];
+      forceImportAll = true;
+      # requestEncryptionCredentials handled by zfs-unlock module; other pools by zfs-mount preStart
+      package = pkgs.zfs_2_4;
+    };
+  };
+
+  # ZFS load keys
+  systemd.services."zfs-mount".preStart = "${lib.getExe config.boot.zfs.package} load-key -a";
+
+  # Specify boot-0 as the primary ESP partition
+  boot.loader.efi.efiSysMountPoint = "/boot-0";
+
+  # Mount efi partitions at boot
+  fileSystems = {
+    "/boot-0".neededForBoot = true;
+    "/boot-1".neededForBoot = true;
+    "/persist".neededForBoot = true;
+  };
+
+  # Sync content to backup ESP partition on activation
+  system.activationScripts.rsync-esp = {
+    deps = [ "udevd" ];
+    text = ''
+      if ! ${pkgs.util-linux}/bin/mountpoint -q /boot-0; then
+        echo -e "\033[0;33mWARNING: /boot-0 not mounted, RAID-1 might have degraded.\033[0m"
+      elif ! ${pkgs.util-linux}/bin/mountpoint -q /boot-1; then
+        echo -e "\033[0;33mWARNING: /boot-1 not mounted, RAID-1 might have degraded.\033[0m"
+      else
+        echo "Syncing /boot-0 to /boot-1..."
+        ${lib.getExe pkgs.rsync} -a --delete /boot-0/ /boot-1/
+      fi
+    '';
   };
 
   # Hardware-specific global packages
@@ -79,6 +116,16 @@
     nvtopPackages.nvidia
     mstflint
   ];
+
+  # TPM
+  security.tpm2 = {
+    enable = true;
+    abrmd.enable = true;
+    pkcs11.enable = true;
+  };
+
+  # Enable OpenGL
+  hardware.graphics.enable = true;
 
   # Load nvidia driver for Xorg and Wayland
   services.xserver.videoDrivers = [ "nvidia" ];
@@ -156,9 +203,15 @@
   # Connected to UPS
   codgician.power.ups.devices.br1500g.batteryLow = 20;
 
-  hardware.cpu.amd.updateMicrocode = true;
+  hardware = {
+    enableRedistributableFirmware = true;
+    cpu.amd.updateMicrocode = true;
+  };
 
-  powerManagement.powertop.enable = true;
+  powerManagement = {
+    cpuFreqGovernor = "powersave";
+    powertop.enable = true;
+  };
 
   # Configure energy_performance_preference and lower scaling_min_freq floor.
   # The amd-pstate driver defaults scaling_min_freq to lowest_nonlinear_freq (1523 MHz),

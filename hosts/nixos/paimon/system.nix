@@ -14,6 +14,9 @@
       # Monitor
       prometheus.enable = true;
 
+      # Email
+      postfix.enable = true;
+
       postgresql = {
         enable = true;
         dataDir = "/opool/postgres";
@@ -162,12 +165,23 @@
       gns3-server.dataDir = "/xpool/appdata/gns3";
     };
 
-    system.common.inChina = true;
+    system = {
+      auto-upgrade.enable = true;
+      common.inChina = true;
+      impermanence = {
+        enable = true;
+        wipeOnShutdown.zfs.enable = true;
+      };
+      secure-boot.enable = true;
+    };
 
     virtualization.podman.enable = true;
 
     users = {
-      codgi.passwordSecret = "codgi-password";
+      codgi = {
+        enable = true;
+        passwordSecret = "codgi-password";
+      };
 
       smb = {
         enable = true;
@@ -177,21 +191,41 @@
     };
   };
 
+  services.vscode-server.enable = true;
+
   home-manager.users.codgi = {
     codgician.codgi = {
+      dev.nix.enable = true;
       codex.enable = true;
       herdr.enable = true;
       mcp.enable = true;
       pi-coding-agent.enable = true;
       oh-my-pi.enable = true;
+      pwsh.enable = true;
+      ssh.enable = true;
     };
+
+    home.stateVersion = "26.05";
 
     home.packages = with pkgs; [
       nur.repos.codgician.gddr6
     ];
   };
 
+  # Use systemd-boot boot loader.
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
+  # Allow RAID-1 esp boot
+  boot.swraid = {
+    enable = true;
+    mdadmConf = "MAILADDR codgi";
+  };
+
   networking.hostId = "a7f3fe2e";
+
+  # Firmware updates
+  services.fwupd.enable = true;
 
   # Global packages
   environment.systemPackages = with pkgs; [
@@ -199,7 +233,8 @@
     libhugetlbfs
   ];
 
-  zramSwap.enable = false;
+  # Use networkd
+  networking.useNetworkd = true;
 
   system.stateVersion = "26.05";
 }
