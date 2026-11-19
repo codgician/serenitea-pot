@@ -1,8 +1,8 @@
 {
   lib,
-  nixpkgs,
   inputs,
   outputs,
+  mkLib,
   ...
 }:
 rec {
@@ -18,7 +18,23 @@ rec {
   isLinuxSystem = lib.hasSuffix "-linux";
   allSystems = darwinSystems ++ linuxSystems;
 
-  # Overlays applied to both the stable and the unstable package set
+  # Inputs a host is built from. A manifest with `stable = false` takes the
+  # unstable ones, so the whole machine follows nixos-unstable.
+  channels = {
+    stable = {
+      inherit lib;
+      inherit (inputs) nixpkgs home-manager darwin;
+    };
+    unstable = {
+      lib = mkLib inputs.nixpkgs-unstable;
+      nixpkgs = inputs.nixpkgs-unstable;
+      home-manager = inputs.home-manager-unstable;
+      darwin = inputs.darwin-unstable;
+    };
+  };
+
+  # Overlays applied to every package set, including `pkgs.master` and
+  # `pkgs.unstable` themselves
   getCommonOverlays =
     system:
     [
@@ -26,16 +42,20 @@ rec {
       inputs.nix-vscode-extensions.overlays.default
     ]
     ++ (lib.optional (isLinuxSystem system) inputs.proxmox-nixos.overlays.${system})
-    ++ [ (mkUnstableOverlay system) ];
+    ++ [
+      (mkBranchOverlay "master" inputs.nixpkgs-master system)
+      (mkBranchOverlay "unstable" inputs.nixpkgs-unstable system)
+    ];
 
-  # nixpkgs unstable no longer supports x86_64-darwin after 26.05, so that
-  # system keeps resolving `pkgs.unstable` to the release input.
-  mkUnstableOverlay = system: final: prev: {
-    unstable = import (if system == "x86_64-darwin" then inputs.nixpkgs else inputs.nixpkgs-unstable) {
+  # `pkgs.<name>` is the package set of another nixpkgs branch. nixpkgs
+  # unstable and master no longer support x86_64-darwin after 26.05, so that
+  # system keeps resolving them to the release input.
+  mkBranchOverlay = name: branch: system: final: prev: {
+    ${name} = import (if system == "x86_64-darwin" then inputs.nixpkgs else branch) {
       inherit system;
       config = {
         allowUnfree = true;
-        # Inherit CUDA/ROCm config from the stable package set
+        # Inherit CUDA/ROCm config from the package set it is added to
         cudaSupport = prev.config.cudaSupport or false;
         rocmSupport = prev.config.rocmSupport or false;
       };
@@ -60,7 +80,7 @@ rec {
     ++ [ inputs.nur-codgician.overlays.kernel-modules ];
 
   mkPkgs =
-    system: config:
+    nixpkgs: system: config:
     import nixpkgs {
       inherit system;
       overlays = mkOverlays system;
@@ -72,9 +92,16 @@ rec {
 
   # Every flake output takes its packages from these sets. Hosts receive them
   # through `nixpkgs.pkgs`, so a host, its specialisations and the containers
-  # it embeds evaluate nixpkgs once instead of once each.
-  pkgsFor = lib.genAttrs allSystems (system: mkPkgs system { });
-  cudaPkgsFor = lib.genAttrs linuxSystems (system: mkPkgs system { cudaSupport = true; });
+  # it embeds evaluate nixpkgs once instead of once each. A set is only
+  # instantiated when something reads it.
+  packageSets = lib.mapAttrs (
+    _: channel:
+    lib.genAttrs allSystems (system: {
+      default = mkPkgs channel.nixpkgs system { };
+      cuda = mkPkgs channel.nixpkgs system { cudaSupport = true; };
+    })
+  ) channels;
+  pkgsFor = lib.mapAttrs (_: sets: sets.default) packageSets.stable;
 
   homeManagerDefaults = sharedModules: {
     home-manager = {
@@ -85,20 +112,22 @@ rec {
   };
 
   # Modules imported by every Darwin host
-  darwinModules = with inputs; [
+  mkDarwinModules = home-manager: [
     home-manager.darwinModules.home-manager
     (homeManagerDefaults [ ])
     outputs.modules.darwin
-    sops-nix.darwinModules.sops
+    inputs.sops-nix.darwinModules.sops
   ];
 
   # Modules imported by every NixOS host
-  nixosModules =
-    with inputs;
+  mkNixosModules =
+    home-manager:
     [
       home-manager.nixosModules.home-manager
-      (homeManagerDefaults [ plasma-manager.homeModules.plasma-manager ])
+      (homeManagerDefaults [ inputs.plasma-manager.homeModules.plasma-manager ])
       outputs.modules.nixos
+    ]
+    ++ (with inputs; [
       impermanence.nixosModules.impermanence
       disko.nixosModules.disko
       sops-nix.nixosModules.sops
@@ -107,8 +136,9 @@ rec {
       nixvirt.nixosModules.default
       vscode-server.nixosModules.default
       proxmox-nixos.nixosModules.proxmox-ve
-    ]
-    ++ (builtins.attrValues nur-codgician.nixosModules);
+    ])
+    ++ (builtins.attrValues inputs.nur-codgician.nixosModules);
+  nixosModules = mkNixosModules inputs.home-manager;
 
   # Common configurations for macOS systems
   mkDarwinSystem =
@@ -116,24 +146,30 @@ rec {
       hostName,
       system,
       modules ? [ ],
+      stable ? true,
     }:
-    inputs.darwin.lib.darwinSystem {
-      inherit system lib;
+    let
+      channelName = if stable then "stable" else "unstable";
+      channel = channels.${channelName};
+    in
+    channel.darwin.lib.darwinSystem {
+      inherit system;
+      inherit (channel) lib;
       specialArgs = {
         inherit
           inputs
           outputs
-          lib
           system
           ;
+        inherit (channel) lib;
       };
       modules =
-        darwinModules
+        mkDarwinModules channel.home-manager
         ++ modules
         ++ [
           {
             networking.hostName = hostName;
-            nixpkgs.pkgs = pkgsFor.${system};
+            nixpkgs.pkgs = packageSets.${channelName}.${system}.default;
           }
         ];
     };
@@ -145,24 +181,30 @@ rec {
       system,
       modules ? [ ],
       cudaSupport ? false,
+      stable ? true,
     }:
-    nixpkgs.lib.nixosSystem {
-      inherit system lib;
+    let
+      channelName = if stable then "stable" else "unstable";
+      channel = channels.${channelName};
+    in
+    channel.nixpkgs.lib.nixosSystem {
+      inherit system;
+      inherit (channel) lib;
       specialArgs = {
         inherit
           inputs
           outputs
-          lib
           system
           ;
+        inherit (channel) lib;
       };
       modules =
-        nixosModules
+        mkNixosModules channel.home-manager
         ++ modules
         ++ [
           {
             networking.hostName = hostName;
-            nixpkgs.pkgs = (if cudaSupport then cudaPkgsFor else pkgsFor).${system};
+            nixpkgs.pkgs = packageSets.${channelName}.${system}.${if cudaSupport then "cuda" else "default"};
           }
         ];
     };

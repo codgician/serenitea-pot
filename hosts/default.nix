@@ -4,11 +4,12 @@ let
   inherit (outputs) lib;
 
   # A host folder's `default.nix` is its manifest: `system`, the ordered
-  # `modules` list (order decides how list options merge) and, on NixOS,
-  # `cudaSupport`.
+  # `modules` list (order decides how list options merge), `stable` (false
+  # builds the host from the unstable inputs) and, on NixOS, `cudaSupport`.
   manifestKeys = [
     "system"
     "cudaSupport"
+    "stable"
     "modules"
   ];
 

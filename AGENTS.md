@@ -15,7 +15,7 @@ nix develop .#terraform  # Terraform management
 
 ## Layout
 
-- **Hosts**: a folder `hosts/{darwin,nixos}/<name>/` defines a host. Its `default.nix` is the manifest `{ system; cudaSupport ? false; modules = [ … ]; }` (`cudaSupport` on NixOS only); `hosts/default.nix` builds every folder with `lib.codgician.mk{Nixos,Darwin}System`. The order of `modules` decides how list options merge, so keep it when editing
+- **Hosts**: a folder `hosts/{darwin,nixos}/<name>/` defines a host. Its `default.nix` is the manifest `{ system; cudaSupport ? false; stable ? true; modules = [ … ]; }` (`cudaSupport` on NixOS only; `stable = false` builds the host from `nixpkgs-unstable`, `home-manager-unstable` and `darwin-unstable`); `hosts/default.nix` builds every folder with `lib.codgician.mk{Nixos,Darwin}System`. The order of `modules` decides how list options merge, so keep it when editing. Unused inputs such as these and `nixpkgs-master` (`pkgs.master`) stay, so that a host can move to them
 - **Modules**: `modules/{generic,nixos,darwin}/`, namespace `codgician.*` (services: `codgician.services.<name>`). Every module is loaded on every host of its class
 - **Home Manager modules**: `hm-modules/codgi/{generic,nixos,darwin}/<name>/`, namespace `codgician.codgi.<name>`
 - **Fleet constants**: `lib/consts.nix`. The only one is `lib.codgician.zone`, the DNS zone
