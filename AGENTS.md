@@ -16,11 +16,11 @@ nix develop .#terraform  # Terraform management
 ## Layout
 
 - **Hosts**: a folder `hosts/{darwin,nixos}/<name>/` defines a host. Its `default.nix` is the manifest `{ system; cudaSupport ? false; modules = [ … ]; }` (`cudaSupport` on NixOS only); `hosts/default.nix` builds every folder with `lib.codgician.mk{Nixos,Darwin}System`. Nothing is shared between hosts except modules (see [Module or host](#module-or-host)). The order of `modules` decides how list options merge, so keep it when editing
-- **Inventory**: `inventory.nix`, plain data that more than one host, module or flake output reads (see [Inventory](#inventory)). `lib/inventory.nix` holds its schema, its checks and what is derived from it
+- **Inventory**: `inventory.nix`, what more than one host, module or flake output reads; the definitions of the option `codgician.inventory`, which `modules/generic/inventory` declares (see [Inventory](#inventory))
 - **Modules**: `modules/{generic,nixos,darwin}/`, namespace `codgician.*` (services: `codgician.services.<name>`)
 - **Home Manager modules**: `hm-modules/codgi/{generic,nixos,darwin}/<name>/`, namespace `codgician.codgi.<name>`
 - **Secrets**: registered in `secrets/secrets.nix`
-- **Terraform**: `packages/terraform-config/`, Terranix syntax; the CNAMEs of public names come from `lib.codgician.published.dnsNames`
+- **Terraform**: `packages/terraform-config/`, Terranix syntax; it imports the inventory module, and the CNAMEs of public names come from `config.codgician.inventory.dnsNames`
 
 What a host runs: the `enable` lines in its files and the services placed on it (`grep 'host = "<name>"' inventory.nix`).
 
@@ -32,31 +32,39 @@ There are no roles or host profiles: a change must not reach several machines at
 2. **A module**, when it is one nameable mechanism whose parts must stay consistent wherever it is used. Test: if a single host changed one line of it, would that host be broken or half-configured? Then the module is the unit that changes. It is switched by `enable` or follows from an option that exists (the mesh's forwarding sysctls follow `wireguard.enable`), is used by at least two hosts, and keeps further options only under the [option test](#module-options).
 3. **The host's files, duplicated**, for everything else: values that merely coincide today and that each machine could change on its own. Kernel and ZFS pins, state versions, boot loader, firewall and network manager choice, locales, CPU governor, swap, package lists, snapshot cadence, which applications and agents a workstation has, wallpapers and launchers are of this kind. The duplication is intended: editing one host must never change another. When in doubt, duplicate.
 
+## Registries
+
+A registry is a table that several modules read. There are three, each changing for its own reason: `codgician.inventory` (the fleet), `codgician.models` (LLM models by provider) and `codgician.system.capabilities` (what a host's own configuration amounts to). All three use the module system the way nixpkgs does. The table is an option tree with real types (`types.submodule`, `types.enum`, `types.port`), so an unknown key or a value of the wrong kind fails evaluation with the path of the option. The data are ordinary definitions in a module file (`inventory.nix`; a provider folder under `modules/generic/models/providers/`, hand-written or `lib.importJSON ./models.json`). What follows from the data is a read-only option: inside the entry's submodule when it belongs to one entry, next to the data when it spans the table. A check across entries is a type where a type can say it (an enum over the names that exist) and an assertion otherwise. Modules read `config.codgician.<registry>`, Home Manager modules read `osConfig.codgician.<registry>`, Terranix imports the module. `lib/` holds no registry data and no registry logic. `secrets/secrets.nix`, `secrets/pubkeys.nix` and the host manifests stay plain data, because they are read where no module system exists.
+
 ## Inventory
 
-`lib.codgician.inventory` is the data, `lib.codgician.published` what is derived from it. Unknown keys, wrong value kinds and broken references are evaluation errors that name the entry.
+`config.codgician.inventory`. `modules/generic/inventory` declares the options, `inventory.nix` defines them; it is a module of the option, so `config` there is the inventory itself. Whoever reads any value checks the whole table, in a host, in Home Manager and in Terranix alike: unknown keys, wrong value kinds, names that do not exist and the rules below are evaluation errors that name the entry.
 
 - `zone`, `mail`: the DNS zone and the address all services send mail from
-- `edge`: the host that owns every public name and proxies it to its backend
-- `authelia`: the name of the service that is the Authelia portal
-- `hosts.<name>`: hosts of this flake that other machines refer to (the edge, hosts that services run on, members of the WireGuard mesh); an entry may be `{ }`. A host's `system` is in its manifest, not here
+- `edge`: the host (one of `hosts`) that owns every public name that is not `direct` and proxies it to its backend
+- `authelia`: the service (one of `services`) that is the Authelia portal
+- `hosts.<name>`: hosts of this flake that other machines refer to (the edge, hosts that services run on, members of the WireGuard mesh); an entry may be `{ }`. What makes a host is its folder under `hosts/`, not an entry here
   - `lan`, `pve`: the addresses other hosts reach it at
   - `public = true`: the internet reaches it at `<name>.<zone>`; `ipv4`, `ipv6`: its public addresses when they are fixed
-  - `wireguard`: its membership of the mesh. `ipv4`, `ipv6` (its addresses inside the mesh) and `publicKey` are required; `port` is where it listens, omitted for a member that only dials out; `routes` are the networks behind it
-- `peers.<name>`: machines this flake does not build that its hosts connect to. `wireguard` is required and has the keys it has for a host; `subdomain` is the label under the zone the peer is reached at
+  - `wireguard`: its membership of the mesh. `ipv4`, `ipv6` (its addresses inside the mesh) and `publicKey` are required; `port` is where it listens, null for a member that only dials out; `routes` are the networks behind it
+  - read-only `domain`: `<name>.<zone>`, null unless the host is public
+- `peers.<name>`: machines this flake does not build that its hosts connect to; a peer cannot have the name of a host. `wireguard` is required and has the options it has for a host; `subdomain` is the label under the zone the peer is reached at, and read-only `domain` the name that gives
 - `services.<name>`: one entry per public name `<subdomain>.<zone>`; `<name>` is also the name of the service's module and vhost. Every entry gets a CNAME to the edge unless it is `direct`
   - `subdomain`: defaults to `<name>`
-  - `host`: the inventory host the service runs on. The `enable` option of the service's module defaults to true there and to false everywhere else
-  - `port`: loopback port of the backend on `host`; omit it for a unix socket
+  - `host`: the host (one of `hosts`) the service runs on. The `enable` option of the service's module defaults to true there and to false everywhere else. Unless the host is the edge, or the entry is `dnsOnly` or `direct`, the host needs the `address` the edge connects to
+  - `port`: loopback port of the backend on `host`; null for a unix socket
   - `address`: `lan` (default) or `pve`, the address of `host` the edge connects to
-  - `upstream`: URL of a backend that no host here runs, instead of `host`; the edge proxies straight to it
+  - `upstream`: URL of a backend that no host here runs, instead of `host` (not both); the edge proxies straight to it
   - `direct = true`: the name resolves to `host` itself, which must be `public`. The edge gets no vhost and no CNAME for it; its record is written next to the host's (see `records/turn.nix`)
   - `dnsOnly = true`: the name resolves to the edge, but the edge does not proxy it
-  - `authelia`: unset means no login. `authelia.users` / `authelia.groups` require an Authelia session and add the rule that admits only those subjects; `authelia.anyone = true` requires a session of any user. Setting `authelia` without subjects or `anyone` is an error. The vhost next to the backend enforces it (on `host`; on the edge for `upstream`)
+  - `authelia`: null means no login. `authelia.users` / `authelia.groups` require an Authelia session and add the rule that admits only those subjects; `authelia.anyone = true` requires a session of any user. Setting `authelia` without subjects or `anyone`, or with both, is an error. The vhost next to the backend enforces it (on `host`; on the edge for `upstream`)
   - `anubis = true`: the edge puts Anubis in front
   - `edgeVhost`: name of the edge's vhost when it must differ from `<name>`; exists only to keep lumine's nginx.conf order
   - neither `host` nor `upstream`: the entry only reserves the name
-- Derived: `published.hosts.<name>` (the entry with defaults, plus `domain`, which is null unless the host is public), `published.wireguard.<name>` (every member of the mesh, host or peer, plus the `domain` of its endpoint), `published.services.<name>` (the entry with defaults, plus `domain`, `localUpstream` and `fronted`), `published.autheliaUrl`, `runsOn <host> <name>`, `fronts <host> <name>`, `edgeVhostsFor <host>`, `autheliaRules`, `dnsNames`
+  - read-only `domain`, `localUpstream` (`http://127.0.0.1:<port>`, null without a port) and `fronted` (the edge proxies the name to a backend elsewhere)
+- Read-only, for the whole table: `autheliaUrl`, `autheliaRules`, `dnsNames` (the labels that get a CNAME to the edge), `vhostDomains` (the public name behind each vhost name), `edgeVhosts` (the edge's `reverseProxies`) and `wireguard` (every member of the mesh, host or peer, with the `domain` of its endpoint)
+- What depends on the host that reads it is computed there from `config.networking.hostName`: `lib.codgician.mkPublishedEnableOption` and `codgician.services.nginx.fronts`
+- A test puts a fixture in place of the table with `codgician.inventory = lib.mkForce { … };` (see `tests/reverse-proxy`)
 
 ## Module Options
 
@@ -71,11 +79,11 @@ Hosts needing full control use the upstream nixpkgs/home-manager module directly
 
 ### Published services
 
-A service with an entry in `inventory.nix` `services` (see `jellyfin` for the smallest module):
+A service with an entry in `codgician.inventory.services` (see `jellyfin` for the smallest module):
 
 - `enable = lib.codgician.mkPublishedEnableOption config "<name>";` It is true by default on the entry's `host`. A host parks the service with `enable = false`; a test node runs it with `enable = true`
 - Everything the module does is under `lib.mkIf cfg.enable`
-- With `svc = lib.codgician.published.services.<name>`: listen on `svc.port`, build URLs from `svc.domain` and `published.autheliaUrl`. No `host`, `port` or domain option
+- With `svc = config.codgician.inventory.services.<name>`: listen on `svc.port`, build URLs from `svc.domain` and `config.codgician.inventory.autheliaUrl`. No `host`, `port` or domain option
 - Services without an entry (`postgresql`, `nats`, `sglang`, …) use `lib.mkEnableOption` and are enabled in the host file
 
 ### Reverse proxies
@@ -83,10 +91,10 @@ A service with an entry in `inventory.nix` `services` (see `jellyfin` for the sm
 `codgician.services.nginx.reverseProxies.<name>` is the only interface; nginx, its firewall ports, the certificate and Anubis follow from it.
 
 - The module of a service declares the vhost next to its backend, inside `mkIf cfg.enable`: `reverseProxies.<name>.proxyPass = svc.localUpstream;` (or `"http://unix:…"`, see `gitlab`). A service without a module declares it in the host file the same way (see `dsh-web` in `hosts/nixos/nahida/system.nix`)
-- On the edge host the inventory adds a vhost for every entry whose backend is elsewhere (`published.edgeVhostsFor`); nobody writes those
+- On the edge host the inventory adds a vhost for every entry whose backend is elsewhere (`codgician.services.nginx.fronts`, which is `codgician.inventory.edgeVhosts` on the edge and empty elsewhere); nobody writes those
 - `domains`, `authelia` and `anubis` default from the service called `<name>`. Setting `domains` replaces the default; a vhost for something outside the inventory sets `domains` itself
 - `locations.<path>` takes upstream nginx location settings. A location goes to the vhost's `proxyPass` unless it sets `proxyPass` (`null` for none), `root`, `alias` or `return`
-- Locations the edge needs as well (body limits, timeouts, static assets) are declared once, under `lib.mkIf (cfg.enable || published.fronts config.networking.hostName "<name>")` (see `open-webui`, `matrix-tuwunel`)
+- Locations the edge needs as well (body limits, timeouts, static assets) are declared once, under `lib.mkIf (cfg.enable || config.codgician.services.nginx.fronts ? <name>)` (see `open-webui`, `matrix-tuwunel`)
 - A host adds what only it needs to a vhost in its own file (see `saw` in `hosts/nixos/lumine/system.nix`)
 - A vhost without a domain, or with nothing to serve at `/`, is an assertion that names it. This is also what a misspelt `<name>` produces
 - `codgician.services.nginx.landingPage = { domain; footer; }` serves the static page on an apex domain and its unclaimed subdomains
@@ -101,7 +109,7 @@ A service with an entry in `inventory.nix` `services` (see `jellyfin` for the sm
 - Write raw `.tf` files — use Terranix Nix expressions
 - Use `${...}` interpolation in Terranix — use `config.resource.X.Y "attr"`
 - Bypass `mk*System` builders, or list hosts anywhere but as folders under `hosts/`
-- Type the address of an inventory host, the zone, the mail address, the domain of a published service or a fact about a WireGuard member in new code; read `lib.codgician.inventory` / `lib.codgician.published`. Still literal today: `secrets/templates/open-webui-env.nix`, the contact address in `celestia/budget.nix`, the fixture zone in `tests/reverse-proxy` and the cache URL in `flake.nix`, which `nixConfig` cannot compute
+- Type the address of an inventory host, the zone, the mail address, the domain of a published service or a fact about a WireGuard member in new code; read `config.codgician.inventory`. Still literal today: `secrets/templates/open-webui-env.nix`, the contact address in `celestia/budget.nix`, the fixture zone in `tests/reverse-proxy` and the cache URL in `flake.nix`, which `nixConfig` cannot compute
 - Use `config.services.*` when `config.codgician.*` exists
 - Create or edit any `*.md` file unless the user asks for it or a [Documentation](#documentation) exception applies
 
