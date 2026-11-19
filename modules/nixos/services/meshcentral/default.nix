@@ -11,7 +11,10 @@ let
   port = 3001;
 in
 {
-  options.codgician.services.meshcentral.enable = lib.mkEnableOption "MeshCentral";
+  options.codgician.services.meshcentral = {
+    enable = lib.mkEnableOption "MeshCentral";
+    package = lib.mkPackageOption pkgs "meshcentral" { };
+  };
 
   config = lib.mkMerge [
     # Meshcentral configurations
@@ -66,7 +69,7 @@ in
       systemd.services.meshcentral = {
         serviceConfig = {
           ExecStartPre = "+${pkgs.writeShellScript "meshcentral-pre-start" (utils.genJqSecretsReplacementSnippet config.services.meshcentral.settings "/run/meshcentral/config.json")}";
-          ExecStart = lib.mkForce "${pkgs.meshcentral}/bin/meshcentral --datapath /var/lib/meshcentral --configfile /run/meshcentral/config.json";
+          ExecStart = lib.mkForce "${cfg.package}/bin/meshcentral --datapath /var/lib/meshcentral --configfile /run/meshcentral/config.json";
           RuntimeDirectory = "meshcentral";
           RuntimeDirectoryMode = "0700";
         };

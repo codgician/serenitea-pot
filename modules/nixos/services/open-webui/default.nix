@@ -248,6 +248,7 @@ in
 {
   options.codgician.services.open-webui = {
     enable = lib.mkEnableOption "Open WebUI";
+    package = lib.mkPackageOption pkgs "open-webui" { default = "open-webui-akasha"; };
 
     stateDir = lib.mkOption {
       type = lib.types.path;
@@ -264,8 +265,7 @@ in
         enable = true;
         host = "127.0.0.1";
         inherit port;
-        inherit (cfg) stateDir;
-        package = pkgs.open-webui-akasha;
+        inherit (cfg) stateDir package;
         inherit environment;
         environmentFile = config.codgician.secrets.templates."open-webui-env".path;
       };

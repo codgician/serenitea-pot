@@ -7,7 +7,7 @@
 let
   # text, bytestring, containers, mtl, transformers and time are GHC core
   # libraries; ihaskell-blaze and ihaskell-diagrams come with ihaskell.
-  ihaskell = pkgs.ihaskell.override {
+  ihaskell = config.codgician.services.jupyter.kernels.ihaskell.package.override {
     packages =
       ps: with ps; [
         lens
@@ -39,6 +39,10 @@ let
   };
 in
 {
+  options.codgician.services.jupyter.kernels.ihaskell.package =
+    lib.mkPackageOption pkgs "ihaskell"
+      { };
+
   config = lib.mkIf config.codgician.services.jupyter.enable {
     services.jupyter.kernels.ihaskell-default = {
       displayName = "Haskell (default)";

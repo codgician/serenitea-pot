@@ -200,7 +200,15 @@ let
   };
 in
 {
-  options.codgician.services.litellm.enable = lib.mkEnableOption "LiteLLM proxy";
+  options.codgician.services.litellm = {
+    enable = lib.mkEnableOption "LiteLLM proxy";
+
+    image = lib.mkOption {
+      type = lib.types.str;
+      default = "ghcr.io/codgician/litellm:my";
+      description = "Container image for LiteLLM.";
+    };
+  };
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
@@ -263,7 +271,7 @@ in
 
       virtualisation.oci-containers.containers.${serviceName} = {
         autoStart = true;
-        image = "ghcr.io/codgician/litellm:my";
+        inherit (cfg) image;
         podman.user = user;
         pull = "newer";
         capabilities.ALL = false;

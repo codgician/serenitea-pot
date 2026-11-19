@@ -12,7 +12,7 @@ let
     makeWrapperArgs = [
       "--set"
       "INTUNE_DSREG"
-      "${pkgs.microsoft-identity-broker}/bin/dsreg"
+      "${cfg.packages.microsoft-identity-broker}/bin/dsreg"
       "--set"
       "INTUNE_SYSTEMCTL"
       "${pkgs.systemd}/bin/systemctl"
@@ -26,22 +26,30 @@ in
     ./vpn.nix
   ];
 
-  options.codgician.services.intune.enable =
-    lib.mkEnableOption "Microsoft Intune enrollment (identity broker, Intune daemon/agent, Defender for Endpoint, VPN)";
+  options.codgician.services.intune = {
+    enable = lib.mkEnableOption "Microsoft Intune enrollment (identity broker, Intune daemon/agent, Defender for Endpoint, VPN)";
+
+    packages = {
+      intune-portal = lib.mkPackageOption pkgs "intune-portal" {
+        extraDescription = "It provides intune-daemon and intune-agent.";
+      };
+      microsoft-identity-broker = lib.mkPackageOption pkgs "microsoft-identity-broker" { };
+    };
+  };
 
   config = lib.mkIf cfg.enable (
     {
       # Required for TLS support in WebKitGTK (used by Intune Portal authentication)
       services.gnome.glib-networking.enable = true;
 
-      services.dbus.packages = [ pkgs.microsoft-identity-broker ];
+      services.dbus.packages = [ cfg.packages.microsoft-identity-broker ];
       services.pcscd.enable = true;
 
       environment = {
         systemPackages = with pkgs; [
           libpwquality
-          intune-portal
-          microsoft-identity-broker
+          cfg.packages.intune-portal
+          cfg.packages.microsoft-identity-broker
           intuneRegisterDevice
         ];
 
@@ -83,7 +91,7 @@ in
             description = "Intune daemon";
             requires = [ "intune-daemon.socket" ];
             serviceConfig = {
-              ExecStart = "${pkgs.intune-portal}/bin/intune-daemon";
+              ExecStart = "${cfg.packages.intune-portal}/bin/intune-daemon";
               ExecReload = "/bin/kill -HUP $MAINPID";
               StateDirectory = "intune";
               StateDirectoryMode = "0700";
@@ -96,7 +104,7 @@ in
             serviceConfig = {
               Type = "dbus";
               BusName = "com.microsoft.identity.devicebroker1";
-              ExecStart = "${pkgs.microsoft-identity-broker}/bin/microsoft-identity-device-broker";
+              ExecStart = "${cfg.packages.microsoft-identity-broker}/bin/microsoft-identity-device-broker";
               BindReadOnlyPaths = [ "${pkgs.fakeUbuntuOsRelease}:/etc/os-release" ];
             };
           };
@@ -116,7 +124,7 @@ in
           ];
           serviceConfig = {
             Type = "oneshot";
-            ExecStart = "${pkgs.intune-portal}/bin/intune-agent";
+            ExecStart = "${cfg.packages.intune-portal}/bin/intune-agent";
             StateDirectory = "intune";
             Slice = "background.slice";
           };

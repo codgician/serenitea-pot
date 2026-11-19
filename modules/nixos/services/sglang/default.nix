@@ -29,6 +29,12 @@ let
       example = "Qwen/Qwen3.8-27B-FP8";
     };
 
+    image = lib.mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      description = "Per-instance image override. Null uses `cfg.image`.";
+    };
+
     host = lib.mkOption {
       type = types.str;
       default = "127.0.0.1";
@@ -68,7 +74,7 @@ let
     name: c:
     lib.nameValuePair "${serviceName}-${name}" {
       autoStart = true;
-      image = "lmsysorg/sglang:latest";
+      image = if c.image != null then c.image else cfg.image;
       environment = {
         HF_HUB_DOWNLOAD_TIMEOUT = "600";
       }
@@ -104,6 +110,12 @@ in
 {
   options.codgician.services.sglang = {
     enable = lib.mkEnableOption "SGLang inference server (container-based)";
+
+    image = lib.mkOption {
+      type = types.str;
+      default = "lmsysorg/sglang:latest";
+      description = "Default image ref for instances that do not override `image`.";
+    };
 
     cacheDir = lib.mkOption {
       type = types.path;
