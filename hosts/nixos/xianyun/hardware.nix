@@ -14,9 +14,14 @@ in
       "sr_mod"
     ];
 
+    kernelPackages = pkgs.linuxPackages_6_18;
+    zfs.package = pkgs.zfs_2_4;
+
     # The default /dev/disk/by-id is empty in Tencent CVM
     zfs.devNodes = "/dev/disk/by-path";
   };
+
+  fileSystems."/persist".neededForBoot = true;
 
   # Enable cloud-init
   services.cloud-init.enable = true;
