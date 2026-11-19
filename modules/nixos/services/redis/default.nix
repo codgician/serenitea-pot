@@ -28,23 +28,23 @@ in
     package = lib.mkPackageOption pkgs "redis" { default = "valkey"; };
 
     rootDir = lib.mkOption {
-    type = lib.types.path;
-    default = defaultRootDir;
-    example = "/xpool/appdata";
-    description = ''
-      Root directory under which every enabled redis server instance keeps its
-      state. Each instance lives at `''${rootDir}/redis-<name>`.
+      type = lib.types.path;
+      default = defaultRootDir;
+      example = "/xpool/appdata";
+      description = ''
+        Root directory under which every enabled redis server instance keeps its
+        state. Each instance lives at `''${rootDir}/redis-<name>`.
 
-      When left at the default (`${defaultRootDir}`), each instance's state
-      directory is registered with impermanence so it survives root wipes.
+        When left at the default (`${defaultRootDir}`), each instance's state
+        directory is registered with impermanence so it survives root wipes.
 
-      When set to a custom location, impermanence registration is skipped (the
-      location is assumed to live on persistent storage) and
-      `''${rootDir}/redis-<name>` is bind-mounted onto the
-      `/var/lib/redis-<name>` path that systemd's StateDirectory manages. This
-      relocates both the data and the generated `redis.conf` while leaving the
-      upstream redis module untouched.
-    '';
+        When set to a custom location, impermanence registration is skipped (the
+        location is assumed to live on persistent storage) and
+        `''${rootDir}/redis-<name>` is bind-mounted onto the
+        `/var/lib/redis-<name>` path that systemd's StateDirectory manages. This
+        relocates both the data and the generated `redis.conf` while leaving the
+        upstream redis module untouched.
+      '';
     };
   };
 
