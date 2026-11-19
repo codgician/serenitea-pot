@@ -8,6 +8,14 @@
 let
   cfg = config.codgician.codgi.plasma;
   types = lib.types;
+
+  # The host sets one wallpaper in the NixOS Plasma module; the greeter, the
+  # desktop and the lock screen all show it.
+  wallpaper =
+    if osConfig.codgician.services.plasma.wallpaper != null then
+      osConfig.codgician.services.plasma.wallpaper
+    else
+      "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers/Flow";
   uniform = names: value: lib.genAttrs names (_: value);
   allSides = uniform [
     "top"
@@ -145,12 +153,6 @@ in
       description = "Items to pin in launcher.";
     };
 
-    wallpaper = lib.mkOption {
-      type = with types; nullOr path;
-      default = "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers/Flow";
-      description = "Wallpaper shared by the Plasma desktop and lock screen.";
-    };
-
     scale = lib.mkOption {
       type = types.nullOr (types.addCheck types.number (x: x > 0));
       default = null;
@@ -163,7 +165,7 @@ in
     programs.plasma = {
       enable = true;
       # Plasma stores desktop and lock-screen wallpapers separately.
-      kscreenlocker.appearance.wallpaper = lib.mkIf (cfg.wallpaper != null) cfg.wallpaper;
+      kscreenlocker.appearance.wallpaper = wallpaper;
 
       fonts = {
         general = {
@@ -354,7 +356,7 @@ in
       };
 
       workspace = {
-        wallpaper = lib.mkIf (cfg.wallpaper != null) cfg.wallpaper;
+        inherit wallpaper;
         wallpaperFillMode = "preserveAspectCrop";
         cursor = {
           theme = "Breeze";
@@ -379,9 +381,7 @@ in
         breezerc.Style.MenuOpacity = 60;
         kdeglobals.KScreen.ScaleFactor = lib.mkIf (cfg.scale != null) cfg.scale;
         # Keep System Settings' lock-screen preview in sync with the active image.
-        kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General".PreviewImage = lib.mkIf (
-          cfg.wallpaper != null
-        ) cfg.wallpaper;
+        kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General".PreviewImage = wallpaper;
         krdpserverrc.General = {
           Autostart = cfg.krdp.enable;
           ListenPort = 3389;

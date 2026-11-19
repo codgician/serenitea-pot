@@ -4,9 +4,6 @@
   pkgs,
   ...
 }:
-let
-  inherit (config.codgician.services.plasma) wallpaper;
-in
 {
   codgician = {
     services = {
@@ -23,7 +20,6 @@ in
   home-manager.users.codgi.codgician.codgi = {
     mcp.enable = true;
     oh-my-pi.enable = true;
-    plasma.wallpaper = lib.mkIf (wallpaper != null) wallpaper;
     vscode.enable = true;
   };
 
