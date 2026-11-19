@@ -6,6 +6,7 @@
 }:
 let
   cfg = config.codgician.services.gitlab;
+  inherit (config.codgician.services.postfix) sender;
   inherit (config.codgician) inventory;
   svc = inventory.services.gitlab;
 in
@@ -53,13 +54,13 @@ in
         authentication = "login";
         address = "127.0.0.1";
         port = 25;
-        domain = inventory.zone;
+        domain = lib.codgician.zone;
       };
 
       extraConfig = {
         gitlab = {
-          email_from = inventory.mail;
-          email_reply_to = inventory.mail;
+          email_from = sender;
+          email_reply_to = sender;
 
           # Disable telemetry
           include_optional_metrics_in_service_ping = false;

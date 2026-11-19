@@ -1,7 +1,7 @@
 { config, lib, ... }:
 let
   cfg = config.codgician.services.sing-box;
-  domain = "${config.networking.hostName}.${config.codgician.inventory.zone}";
+  domain = "${config.networking.hostName}.${lib.codgician.zone}";
   certDir = config.security.acme.certs.${domain}.directory;
   port = 8443;
 in

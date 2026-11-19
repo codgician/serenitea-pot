@@ -7,15 +7,21 @@
 let
   cfg = config.codgician.services.postfix;
   types = lib.types;
-  inherit (config.codgician.inventory) mail;
-  tokenFile = "/var/lib/postfix/tokens/${mail}";
+  tokenFile = "/var/lib/postfix/tokens/${cfg.sender}";
   saslPasswd = pkgs.writeText "sasl_passwd" ''
-    [smtp.office365.com]:587 ${mail}:${tokenFile}
+    [smtp.office365.com]:587 ${cfg.sender}:${tokenFile}
   '';
 in
 {
   options.codgician.services.postfix = {
     enable = lib.mkEnableOption "postfix";
+
+    sender = lib.mkOption {
+      type = types.str;
+      default = "bot@${lib.codgician.zone}";
+      readOnly = true;
+      description = "Mailbox the relay signs in as; every service sends its mail from it.";
+    };
 
     authorizedUsers = lib.mkOption {
       type = with types; listOf str;
@@ -54,7 +60,7 @@ in
           import_environment = "SASL_PATH";
           inet_interfaces = "loopback-only";
           inet_protocols = "all";
-          sender_canonical_maps = "static:${mail}";
+          sender_canonical_maps = "static:${cfg.sender}";
 
           # Access control
           authorized_submit_users = builtins.concatStringsSep ", " (lib.unique cfg.authorizedUsers);

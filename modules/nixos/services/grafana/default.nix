@@ -105,7 +105,7 @@ in
           enabled = true;
           host = "localhost:25";
           from_name = "Grafana";
-          from_address = inventory.mail;
+          from_address = config.codgician.services.postfix.sender;
         };
 
         users = {

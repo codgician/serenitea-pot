@@ -10,6 +10,8 @@ let
   user = serviceName;
   group = serviceName;
   cfg = config.codgician.services.authelia.instances.${name};
+  inherit (lib.codgician) zone;
+  inherit (config.codgician.services.postfix) sender;
   inherit (config.codgician) inventory;
   svc = inventory.services.${serviceName};
 in
@@ -68,7 +70,7 @@ in
           remember_me = "1M";
           cookies = [
             {
-              domain = inventory.zone;
+              domain = zone;
               authelia_url = "https://${svc.domain}";
             }
           ];
@@ -101,11 +103,11 @@ in
         notifier = {
           smtp = {
             address = "smtp://localhost:25";
-            sender = inventory.mail;
+            inherit sender;
             subject = "[Authelia] {title}";
-            identifier = inventory.zone;
+            identifier = zone;
             timeout = "15s";
-            startup_check_address = inventory.mail;
+            startup_check_address = sender;
             # Local smtp relay (postfix on localhost:25) doesn't offer
             # STARTTLS; disable_require_tls alone (opportunistic TLS) is
             # sufficient and avoids the disable_starttls insecure-plaintext
@@ -115,7 +117,7 @@ in
         };
 
         totp = {
-          issuer = inventory.zone;
+          issuer = zone;
           algorithm = "SHA1";
           digits = 6;
           period = 30;
