@@ -1,7 +1,7 @@
 # AGENTS.md
 
 Nix flake monorepo managing NixOS and macOS (nix-darwin) hosts.
-Modules hold one opinionated config shared across hosts; hosts supply only what differs.
+Modules hold mechanisms, one opinionated configuration each; a host's files hold everything else about that host, written out in full.
 
 ## Commands
 
@@ -15,15 +15,22 @@ nix develop .#terraform  # Terraform management
 
 ## Layout
 
-- **Hosts**: a folder `hosts/{darwin,nixos}/<name>/` defines a host. Its `default.nix` is the manifest `{ system; cudaSupport ? false; roles ? [ ]; modules = [ … ]; }` (`cudaSupport` on NixOS only); `hosts/default.nix` builds every folder with `lib.codgician.mk{Nixos,Darwin}System`. The order of `modules` decides how list options merge, so keep it when editing
-- **Roles**: `hosts/roles/<role>.nix`, plain modules without options. Every host gets `common` and the role of its class (`nixos` or `darwin`); `roles` in the manifest adds the rest: `desktop` (Plasma), `work` (the work desktops), `edge`, `server` (bare-metal ZFS servers; `zroot` is unlocked with `zroot.cred` in the host's folder), `hypervisor` (the servers with a mirrored ESP and a UPS) and `libvirt`. A role has at least two hosts; a value one of them needs different is `lib.mkDefault` in the role and set in the host. Roles are appended to the host's `modules`, so a list a role defines merges ahead of the host's. An unknown role or manifest key is an evaluation error
+- **Hosts**: a folder `hosts/{darwin,nixos}/<name>/` defines a host. Its `default.nix` is the manifest `{ system; cudaSupport ? false; modules = [ … ]; }` (`cudaSupport` on NixOS only); `hosts/default.nix` builds every folder with `lib.codgician.mk{Nixos,Darwin}System`. Nothing is shared between hosts except modules (see [Module or host](#module-or-host)). The order of `modules` decides how list options merge, so keep it when editing
 - **Inventory**: `inventory.nix`, plain data that more than one host, module or flake output reads (see [Inventory](#inventory)). `lib/inventory.nix` holds its schema, its checks and what is derived from it
 - **Modules**: `modules/{generic,nixos,darwin}/`, namespace `codgician.*` (services: `codgician.services.<name>`)
 - **Home Manager modules**: `hm-modules/codgi/{generic,nixos,darwin}/<name>/`, namespace `codgician.codgi.<name>`
 - **Secrets**: registered in `secrets/secrets.nix`
 - **Terraform**: `packages/terraform-config/`, Terranix syntax; the CNAMEs of public names come from `lib.codgician.published.dnsNames`
 
-What a host runs: the `enable` lines in its files, its roles, and the services placed on it (`grep 'host = "<name>"' inventory.nix`).
+What a host runs: the `enable` lines in its files and the services placed on it (`grep 'host = "<name>"' inventory.nix`).
+
+## Module or host
+
+There are no roles or host profiles: a change must not reach several machines at the same moment unless they share one mechanism. Every piece of configuration is in exactly one place, decided in this order.
+
+1. **The host's files, because the machine fixes it.** Whatever is decided when a machine is installed, is hard to change afterwards and can differ because the hardware differs stays in that host's files, duplicated, even when it looks like one mechanism: disk partitioning and everything bound to it (ESP layout and mount points, the file systems the initrd must mount, pools and how they are imported and unlocked, boot loader placement, RAID), firmware and TPM facts.
+2. **A module**, when it is one nameable mechanism whose parts must stay consistent wherever it is used. Test: if a single host changed one line of it, would that host be broken or half-configured? Then the module is the unit that changes. It is switched by `enable` or follows from an option that exists (the mesh's forwarding sysctls follow `wireguard.enable`), is used by at least two hosts, and keeps further options only under the [option test](#module-options).
+3. **The host's files, duplicated**, for everything else: values that merely coincide today and that each machine could change on its own. Kernel and ZFS pins, state versions, boot loader, firewall and network manager choice, locales, CPU governor, swap, package lists, snapshot cadence, which applications and agents a workstation has, wallpapers and launchers are of this kind. The duplication is intended: editing one host must never change another. When in doubt, duplicate.
 
 ## Inventory
 
@@ -32,7 +39,7 @@ What a host runs: the `enable` lines in its files, its roles, and the services p
 - `zone`, `mail`: the DNS zone and the address all services send mail from
 - `edge`: the host that owns every public name and proxies it to its backend
 - `authelia`: the name of the service that is the Authelia portal
-- `hosts.<name>`: hosts of this flake that other machines refer to (the edge, hosts that services run on, members of the WireGuard mesh); an entry may be `{ }`. A host's `system` and `roles` are in its manifest, not here
+- `hosts.<name>`: hosts of this flake that other machines refer to (the edge, hosts that services run on, members of the WireGuard mesh); an entry may be `{ }`. A host's `system` is in its manifest, not here
   - `lan`, `pve`: the addresses other hosts reach it at
   - `public = true`: the internet reaches it at `<name>.<zone>`; `ipv4`, `ipv6`: its public addresses when they are fixed
   - `wireguard`: its membership of the mesh. `ipv4`, `ipv6` (its addresses inside the mesh) and `publicKey` are required; `port` is where it listens, omitted for a member that only dials out; `routes` are the networks behind it
@@ -54,7 +61,7 @@ What a host runs: the `enable` lines in its files, its roles, and the services p
 ## Module Options
 
 Each option must pass one test: do two hosts set it differently, or does it describe the host itself (its disks, hardware, location)? If not, delete it and hardcode the value.
-A value shared by a group of hosts goes into that group's role; a value another host, module or flake output also needs goes into the inventory. Neither becomes an option.
+A value several hosts happen to share is written in each of them ([Module or host](#module-or-host)); a value another host, module or flake output also needs goes into the inventory. Neither becomes an option.
 Hosts needing full control use the upstream nixpkgs/home-manager module directly.
 
 - Typical options (not exhaustive): `enable`, data dirs, hardware choices
@@ -104,7 +111,7 @@ A service with an entry in `inventory.nix` `services` (see `jellyfin` for the sm
 - Run `nix fmt` before presenting changes
 - Show verification command output when claiming completion
 - For new NixOS services, persist state via `codgician.system.impermanence.extraItems` and create custom dirs via `systemd.tmpfiles.rules` (see `jellyfin`)
-- For a new host: create `hosts/<class>/<name>/default.nix` (manifest) and its modules; do not repeat what its roles set. Add it to `inventory.nix` `hosts` only when another machine refers to it: a service runs on it, it has a public name, or it joins the WireGuard mesh
+- For a new host: create `hosts/<class>/<name>/default.nix` (manifest) and its modules, and write out everything the host sets; copy from the most similar host instead of sharing a file with it. Add it to `inventory.nix` `hosts` only when another machine refers to it: a service runs on it, it has a public name, or it joins the WireGuard mesh
 - To publish a service: add one entry to `inventory.nix` `services` and write its module as under [Published services](#published-services). The edge's vhost, both certificates, the CNAME and the Authelia rule follow
 - To move a published service: change its `host` (the new host needs the address the edge connects to) and move the host-specific options (data dirs) between the two host files
 - Request approval for: deploy, `terraform apply`, `nix run .#secrets -- rekey`
