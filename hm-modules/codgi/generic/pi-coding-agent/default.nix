@@ -75,10 +75,13 @@ let
   };
 in
 {
-  options.codgician.codgi.pi-coding-agent.enable = lib.mkEnableOption "pi-coding-agent";
+  options.codgician.codgi.pi-coding-agent = {
+    enable = lib.mkEnableOption "pi-coding-agent";
+    package = lib.mkPackageOption pkgs [ "llm-agents" "pi" ] { };
+  };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ agents.packages.pi-coding-agent ];
+    home.packages = [ cfg.package ];
 
     home.file = {
       ".pi/agent/models.json".source = (pkgs.formats.json { }).generate "pi-models.json" modelsJson;

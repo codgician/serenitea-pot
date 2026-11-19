@@ -11,6 +11,7 @@ in
 {
   options.codgician.codgi.bilibili = {
     enable = lib.mkEnableOption "Bilibili desktop client";
+    package = lib.mkPackageOption pkgs "bilibili" { };
 
     gpuAcceleration = lib.mkOption {
       type =
@@ -26,7 +27,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ pkgs.bilibili ];
+    home.packages = [ cfg.package ];
 
     xdg.configFile = lib.optionalAttrs (cfg.gpuAcceleration != null) {
       "bilibili/bilibili-flags.conf".text = ''

@@ -8,7 +8,7 @@
 let
   cfg = config.codgician.codgi.herdr;
   agents = import ../../generic/agents.nix args;
-  agentPackages = [ pkgs.llm-agents.herdr ] ++ agents.enabledPackages;
+  agentPackages = [ cfg.package ] ++ agents.enabledPackages;
 in
 {
   config = lib.mkIf cfg.enable {
@@ -16,7 +16,7 @@ in
       enable = true;
       config = {
         ProgramArguments = [
-          (lib.getExe pkgs.llm-agents.herdr)
+          (lib.getExe cfg.package)
           "server"
         ];
         EnvironmentVariables = {

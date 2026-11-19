@@ -12,7 +12,10 @@ let
   herdrHook = "${configDir}/hooks/herdr-agent-state.sh";
 in
 {
-  options.codgician.codgi.claude-code.enable = lib.mkEnableOption "Claude Code";
+  options.codgician.codgi.claude-code = {
+    enable = lib.mkEnableOption "Claude Code";
+    package = lib.mkPackageOption pkgs [ "llm-agents" "claude-code" ] { };
+  };
 
   config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.llm-agents.agent-browser ];
@@ -27,7 +30,7 @@ in
       };
     programs.claude-code = {
       enable = true;
-      package = agents.packages.claude-code;
+      inherit (cfg) package;
 
       settings = {
         apiKeyHelper = lib.getExe (

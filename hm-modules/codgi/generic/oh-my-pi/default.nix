@@ -73,6 +73,8 @@ in
   options.codgician.codgi.oh-my-pi = {
     enable = lib.mkEnableOption "oh-my-pi (omp)";
 
+    package = lib.mkPackageOption pkgs [ "nur" "repos" "codgician" "oh-my-pi-bin" ] { };
+
     defaultProfile = lib.mkOption {
       type = types.enum (builtins.attrNames profiles);
       default = "dendro";
@@ -97,7 +99,7 @@ in
       Prefer an existing project development environment. For a new persistent project environment, use a flake dev shell with direnv only when the user requests it.
     '';
 
-    home.packages = [ agents.packages.oh-my-pi ];
+    home.packages = [ cfg.package ];
     home.file = {
       ".omp/.env" = {
         source = config.lib.file.mkOutOfStoreSymlink osConfig.codgician.secrets.templates."omp-env".path;

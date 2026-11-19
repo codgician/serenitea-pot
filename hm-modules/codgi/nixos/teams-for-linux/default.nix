@@ -4,12 +4,17 @@
   pkgs,
   ...
 }:
+let
+  cfg = config.codgician.codgi.teams-for-linux;
+in
 {
-  options.codgician.codgi."teams-for-linux".enable =
-    lib.mkEnableOption "teams-for-linux (Microsoft Teams for Linux)";
+  options.codgician.codgi.teams-for-linux = {
+    enable = lib.mkEnableOption "teams-for-linux (Microsoft Teams for Linux)";
+    package = lib.mkPackageOption pkgs "teams-for-linux" { };
+  };
 
-  config = lib.mkIf config.codgician.codgi."teams-for-linux".enable {
-    home.packages = [ pkgs.teams-for-linux ];
+  config = lib.mkIf cfg.enable {
+    home.packages = [ cfg.package ];
 
     xdg.configFile."teams-for-linux/config.json".text = builtins.toJSON {
       auth = {

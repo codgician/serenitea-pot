@@ -103,8 +103,8 @@ let
   ];
 
   wrappedPackage = pkgs.symlinkJoin {
-    name = "${pkgs.llm-agents.dsh.name}-dendro";
-    paths = [ pkgs.llm-agents.dsh ];
+    name = "${cfg.package.name}-dendro";
+    paths = [ cfg.package ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
       wrapProgram "$out/bin/dsh" \
@@ -116,12 +116,13 @@ let
           export ${apiKeyEnv}
         ''}
     '';
-    inherit (pkgs.llm-agents.dsh) meta;
+    inherit (cfg.package) meta;
   };
 in
 {
   options.codgician.codgi.dsh = {
     enable = lib.mkEnableOption "dsh (DeepSeek Harness)";
+    package = lib.mkPackageOption pkgs [ "llm-agents" "dsh" ] { };
 
     wrappedPackage = lib.mkOption {
       type = lib.types.package;

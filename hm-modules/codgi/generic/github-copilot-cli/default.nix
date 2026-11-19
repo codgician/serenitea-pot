@@ -12,7 +12,10 @@ let
   herdrHook = "${configDir}/hooks/herdr-agent-state.sh";
 in
 {
-  options.codgician.codgi.github-copilot-cli.enable = lib.mkEnableOption "GitHub Copilot CLI";
+  options.codgician.codgi.github-copilot-cli = {
+    enable = lib.mkEnableOption "GitHub Copilot CLI";
+    package = lib.mkPackageOption pkgs [ "llm-agents" "copilot-cli" ] { };
+  };
 
   config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.llm-agents.agent-browser ];
@@ -39,7 +42,7 @@ in
     };
     programs.github-copilot-cli = {
       enable = true;
-      package = agents.packages.github-copilot-cli;
+      inherit (cfg) package;
     };
   };
 }

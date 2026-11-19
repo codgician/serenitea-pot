@@ -10,8 +10,18 @@ let
   relayDomain = builtins.head osConfig.codgician.services.nginx.reverseProxies.ovis-relay.domains;
 in
 {
-  options.codgician.codgi.herdr.ovis.enable =
-    lib.mkEnableOption "Ovis browser and phone client for Herdr";
+  options.codgician.codgi.herdr.ovis = {
+    enable = lib.mkEnableOption "Ovis browser and phone client for Herdr";
+
+    package = lib.mkOption {
+      type = lib.types.package;
+      default = pkgs.llm-agents.ovis.override { herdr = cfg.package; };
+      defaultText = lib.literalExpression ''
+        pkgs.llm-agents.ovis.override { herdr = config.codgician.codgi.herdr.package; }
+      '';
+      description = "The Ovis package to run.";
+    };
+  };
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
@@ -23,7 +33,7 @@ in
         };
 
         Service = {
-          ExecStart = "${lib.getExe pkgs.llm-agents.herdr} server";
+          ExecStart = "${lib.getExe cfg.package} server";
           Restart = "on-failure";
           RestartSec = "2s";
         };
@@ -47,7 +57,7 @@ in
         };
 
         Service = {
-          ExecStart = lib.getExe pkgs.llm-agents.ovis;
+          ExecStart = lib.getExe cfg.ovis.package;
           Environment = [
             "HOST=127.0.0.1"
             "PORT=7317"
@@ -55,7 +65,7 @@ in
             # paired devices or the token.
             "OVIS_LAN_HTTPS_PORT=7318"
           ]
-          ++ lib.optional cfg.desktop.enable "OVIS_HC_BIN=${lib.getExe pkgs.llm-agents.herdr-core}"
+          ++ lib.optional cfg.desktop.enable "OVIS_HC_BIN=${lib.getExe cfg.desktop.corePackage}"
           # The self-hosted relay and app instead of app.ovis.sh
           ++ [
             "OVIS_RELAY_URL=wss://${relayDomain}"

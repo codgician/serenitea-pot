@@ -22,14 +22,17 @@ let
       config.programs.codex.settings;
 in
 {
-  options.codgician.codgi.codex.enable = lib.mkEnableOption "Codex";
+  options.codgician.codgi.codex = {
+    enable = lib.mkEnableOption "Codex";
+    package = lib.mkPackageOption pkgs "codex-wrapped" { };
+  };
 
   config = lib.mkIf cfg.enable {
     home.packages = [ pkgs.llm-agents.agent-browser ];
 
     programs.codex = {
       enable = true;
-      package = agents.packages.codex;
+      inherit (cfg) package;
       inherit (agents) skills;
       settings = {
         approval_policy = "never";

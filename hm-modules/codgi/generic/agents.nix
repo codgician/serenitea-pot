@@ -9,22 +9,23 @@
 }:
 let
   inherit (config.codgician) codgi;
-  herdrIntegrations = "${pkgs.llm-agents.herdr}/share/herdr/integrations";
+  herdrIntegrations = "${codgi.herdr.package}/share/herdr/integrations";
   skillSources = {
     agent-browser = pkgs.llm-agents.agent-browser.src;
   }
-  // lib.optionalAttrs codgi.herdr.enable { herdr = pkgs.llm-agents.herdr.src; };
+  // lib.optionalAttrs codgi.herdr.enable { herdr = codgi.herdr.package.src; };
 in
 rec {
-  packages = {
-    claude-code = pkgs.llm-agents.claude-code;
-    codex = pkgs.codex-wrapped;
-    droid = pkgs.droid-wrapped;
-    github-copilot-cli = pkgs.llm-agents.copilot-cli;
-    oh-my-pi = pkgs.nur.repos.codgician.oh-my-pi-bin;
-    pi-coding-agent = pkgs.llm-agents.pi;
-  };
-  enabledPackages = lib.attrValues (lib.filterAttrs (name: _: codgi.${name}.enable) packages);
+  enabledPackages = map (name: codgi.${name}.package) (
+    builtins.filter (name: codgi.${name}.enable) [
+      "claude-code"
+      "codex"
+      "droid"
+      "github-copilot-cli"
+      "oh-my-pi"
+      "pi-coding-agent"
+    ]
+  );
 
   # The LiteLLM proxy; the key is read at run time and never enters the store.
   # The litellm module names the site; a macOS host cannot read a NixOS module.
