@@ -141,7 +141,7 @@ in
     })
 
     # The site serves Element at `/` and the well-known documents itself,
-    # on the host next to the backend and on a host that fronts it alike.
+    # on every host that proxies it.
     {
       codgician.services.nginx.reverseProxies.matrix-tuwunel.domains = [ domain ];
       codgician.services.nginx.reverseProxies.matrix-tuwunel.locations =

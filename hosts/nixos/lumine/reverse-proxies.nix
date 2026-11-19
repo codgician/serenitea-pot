@@ -16,12 +16,27 @@ in
         footer = "Our paths will surely cross";
       };
 
-      # Sites of the service modules that paimon and nahida serve
-      fronts = {
+      # Sites lumine is the public entry of
+      reverseProxies = {
         authelia-main = {
           proxyPass = paimon;
           anubis = true;
         };
+
+        bubbles.proxyPass = "http://192.168.0.24:1234";
+
+        # Nothing on paimon answers for this name any more; the vhost can go
+        # with the next change to lumine's nginx configuration.
+        docling-serve.proxyPass = paimon;
+
+        dsh-web = {
+          proxyPass = nahida;
+          locations."/".extraConfig = ''
+            access_log off;
+            proxy_buffering off;
+          '';
+        };
+
         gitlab = {
           proxyPass = paimon;
           anubis = true;
@@ -31,33 +46,14 @@ in
           proxyPass = paimon;
           anubis = true;
         };
+
+        hass.proxyPass = "http://192.168.0.11:8123";
+
         jellyfin.proxyPass = paimon;
         jupyter.proxyPass = nahida;
         matrix-tuwunel.proxyPass = paimon;
         open-webui.proxyPass = paimon;
         openvscode-server.proxyPass = nahida;
-      };
-
-      # Sites no module declares
-      reverseProxies = {
-        bubbles.proxyPass = "http://192.168.0.24:1234";
-
-        # Nothing on paimon answers for this name any more; the vhost can go
-        # with the next change to lumine's nginx configuration.
-        docling-serve.proxyPass = paimon;
-
-        hass.proxyPass = "http://192.168.0.11:8123";
-
-        # The dsh Web UI on nahida.
-        # Named after the domain to keep the order of lumine's nginx.conf.
-        "moongazer.${zone}" = {
-          domains = [ "moongazer.${zone}" ];
-          proxyPass = nahida;
-          locations."/".extraConfig = ''
-            access_log off;
-            proxy_buffering off;
-          '';
-        };
 
         saw = {
           proxyPass = "https://192.168.0.28";

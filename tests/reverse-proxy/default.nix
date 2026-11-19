@@ -1,5 +1,6 @@
-# Sites served and fronted through the real nginx module, the checks it makes
-# and the access rules Authelia derives from the sites.
+# Sites served next to their backend and through an entry host by the real
+# nginx module, the checks it makes and the access rules Authelia derives
+# from the sites.
 {
   lib,
   pkgs,
@@ -90,9 +91,10 @@ let
           members.enable = true;
 
           nginx = {
-            fronts.remote.proxyPass = "http://127.0.0.1:8082";
-
             reverseProxies = {
+              # This host is the public entry of a site another host serves.
+              remote.proxyPass = "http://127.0.0.1:8082";
+
               # What a host adds to a site.
               routing.locations = {
                 "/".extraConfig = ''
@@ -151,7 +153,14 @@ let
                 port = 8083;
               }
             ];
-            locations."/".return = "403";
+            # A stand-in for the portal: it admits the session cookie
+            # `signed-in` and nothing else.
+            locations."/".extraConfig = ''
+              if ($cookie_session = signed-in) {
+                return 200;
+              }
+              return 403;
+            '';
           };
         };
 
@@ -206,20 +215,21 @@ let
       with subtest("settings of the root location keep the upstream"):
           assert "x-location-extra: preserved" in request("${domain "routing"}", flags="--head").lower()
 
-      with subtest("a fronted site goes to the host that serves it"):
-          assert request("${domain "remote"}", "/item") == "backend-two:/item"
+      signed_in = "--cookie session=signed-in"
 
-      with subtest("the locations of a site reach the host that serves it and the host that fronts it"):
+      with subtest("a site reached through an entry host goes to the host that serves it"):
+          assert request("${domain "remote"}", "/item", signed_in) == "backend-two:/item"
+
+      with subtest("the locations of a site reach the host that serves it and the entry host"):
           assert "x-shared: routing" in request("${domain "routing"}", "/shared/item", "--head").lower()
-          assert "x-shared: remote" in request("${domain "remote"}", "/shared/item", "--head").lower()
+          assert "x-shared: remote" in request("${domain "remote"}", "/shared/item", f"--head {signed_in}").lower()
 
-      with subtest("the host that serves a site with a policy asks the portal"):
+      with subtest("every host that proxies a site with a policy asks the portal"):
           assert status("${domain "auth"}") == "403"
           assert status("${domain "members"}") == "403"
           assert status("${domain "appliance"}") == "403"
-
-      with subtest("the host that fronts a site leaves the policy to the host that serves it"):
-          assert status("${domain "remote"}") == "200"
+          assert status("${domain "remote"}") == "403"
+          assert request("${domain "members"}", "/", signed_in) == "backend-two:/"
 
       with subtest("plain HTTP redirects to HTTPS"):
           redirect = machine.succeed(
@@ -284,7 +294,7 @@ let
         remote = {
           serverName = domain "remote";
           root = "http://127.0.0.1:8082";
-          asksAuthelia = false;
+          asksAuthelia = true;
           shared = true;
         };
         routing = {
@@ -335,14 +345,10 @@ let
       actual = rejected {
         codgician.services.nginx = {
           # A misspelt name: no site declares a domain for it.
-          fronts.remot.proxyPass = "http://127.0.0.1:8082";
-          reverseProxies.nameless.proxyPass = "http://127.0.0.1:8082";
+          reverseProxies.remot.proxyPass = "http://127.0.0.1:8082";
 
-          # A front that says nowhere to go.
-          fronts.remote = lib.mkForce { };
-
-          # Served and fronted by the same host.
-          fronts.routing.proxyPass = "http://127.0.0.1:8082";
+          # A "/" that says it goes nowhere.
+          reverseProxies.remote.locations."/".proxyPass = null;
 
           # Neither subjects nor `anyone`, and both.
           reverseProxies.open.authelia = { };
@@ -353,12 +359,10 @@ let
         };
       };
       expected = [
-        ''nginx: "nameless" has no domain. The module or host that owns the site sets `reverseProxies.nameless.domains`; check the spelling of the name.''
-        ''nginx: "remot" has no domain. The module or host that owns the site sets `reverseProxies.remot.domains`; check the spelling of the name.''
+        ''nginx: "remot" has no domain. The module that owns the site, or `sites.nix` in the nginx module for a site without one, sets `reverseProxies.remot.domains`; check the spelling of the name.''
         ''nginx: "remote" has nothing to serve at "/". Set `proxyPass`, or make the "/" location serve something.''
         "nginx: reverseProxies.both.authelia needs `users` or `groups`, or `anyone = true`, and not both."
         "nginx: reverseProxies.open.authelia needs `users` or `groups`, or `anyone = true`, and not both."
-        ''nginx: this host fronts "routing" and serves it as well.''
       ];
     };
   };

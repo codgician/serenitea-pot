@@ -19,21 +19,17 @@ let
     location: location ? proxyPass || location ? root || location ? alias || location ? return;
   locationsOf = vhost: { "/" = { }; } // vhost.locations;
 
-  # What this host answers for: the sites it has an upstream for, the sites
-  # it fronts, and its landing page.
+  # What this host answers for: the sites it has an upstream for and its
+  # landing page.
   served = lib.mapAttrs (_: site: {
-    inherit (site) domains proxyPass locations;
+    inherit (site)
+      domains
+      proxyPass
+      locations
+      anubis
+      ;
     authelia = site.authelia != null;
-    anubis = false;
   }) (lib.filterAttrs (_: site: site.proxyPass != null) cfg.reverseProxies);
-
-  fronted = lib.mapAttrs (name: front: {
-    domains = cfg.reverseProxies.${name}.domains or [ ];
-    locations = cfg.reverseProxies.${name}.locations or { };
-    inherit (front) proxyPass anubis;
-    # The vhost next to the backend asks Authelia.
-    authelia = false;
-  }) cfg.fronts;
 
   landing = lib.optionalAttrs (cfg.landingPage != null) {
     ${cfg.landingPage.domain} = {
@@ -54,8 +50,16 @@ let
 
   # A vhost without a domain or without anything to serve at `/` is reported
   # by an assertion below instead of failing somewhere in its consumers.
-  hasRoot = vhost: vhost.proxyPass != null || servesItself (vhost.locations."/" or { });
-  declared = landing // served // fronted;
+  hasRoot =
+    vhost:
+    let
+      root = vhost.locations."/" or { };
+    in
+    if vhost.anubis || !servesItself root then
+      vhost.proxyPass != null
+    else
+      (root.proxyPass or null) != null || root ? root || root ? alias || root ? return;
+  declared = landing // served;
   vhosts = lib.filterAttrs (_: vhost: vhost.domains != [ ] && hasRoot vhost) declared;
 
   siteModule = {
@@ -97,7 +101,7 @@ let
           groups = [ "staff" ];
         };
         description = ''
-          Who may pass. Null for no login. Otherwise the host that serves
+          Who may pass. Null for no login. Otherwise every host that proxies
           the site asks Authelia for a session before every location, and
           Authelia admits `users` and `groups` only, or `anyone` who is
           signed in. Either subjects or `anyone`.
@@ -109,9 +113,17 @@ let
         default = null;
         example = "http://127.0.0.1:8000";
         description = ''
-          Upstream of every location that does not say what else it serves.
-          The host that sets it serves the site.
+          Upstream of every location that does not say what else it serves:
+          the backend on the host next to it, or where that host is reached
+          on a host that is the public entry of the site. The host that sets
+          it has a virtual host for the site.
         '';
+      };
+
+      anubis = lib.mkOption {
+        type = types.bool;
+        default = false;
+        description = "Put Anubis in front of the upstream on this host.";
       };
 
       locations = lib.mkOption {
@@ -129,21 +141,6 @@ let
           for none), `root`, `alias` or `return`.
         '';
       };
-    };
-  };
-
-  frontModule.options = {
-    proxyPass = lib.mkOption {
-      type = types.nullOr types.str;
-      default = null;
-      example = "https://192.0.2.10";
-      description = "Where the host that serves the site is reached.";
-    };
-
-    anubis = lib.mkOption {
-      type = types.bool;
-      default = false;
-      description = "Put Anubis in front of the upstream.";
     };
   };
 
@@ -304,26 +301,12 @@ in
       description = ''
         Sites, by name. The module that owns a site says what it is
         (`domains`, `authelia`, the locations every hop needs) outside its
-        `enable`, so that every host knows it. The site is an HTTPS virtual
-        host on the host that sets `proxyPass`: the module does where the
-        service is enabled, a host does for something without a module.
-        NGINX, its firewall ports and the certificates follow.
-      '';
-    };
-
-    fronts = lib.mkOption {
-      type = types.attrsOf (types.submodule frontModule);
-      default = { };
-      example = lib.literalExpression ''
-        {
-          jellyfin.proxyPass = "https://192.0.2.10";
-        }
-      '';
-      description = ''
-        Sites of `reverseProxies` that another host serves and this host is
-        the public entry of, by the site's name. The virtual host takes its
-        domains and locations from the site and does not ask Authelia: the
-        host that serves the site does.
+        `enable`, so that every host knows it; `sites.nix` does for sites
+        without a module. The site is an HTTPS virtual host on every host
+        that sets `proxyPass`: the module does where the service is enabled,
+        a host does in its own files where it is the public entry of a site
+        another host serves, or for something without a module. NGINX, its
+        firewall ports and the certificates follow.
       '';
     };
   };
@@ -339,18 +322,12 @@ in
             nginx: reverseProxies.${name}.authelia needs `users` or `groups`, or `anyone = true`, and not both.
           '';
         }) cfg.reverseProxies
-        ++ lib.mapAttrsToList (name: _: {
-          assertion = !served ? ${name};
-          message = ''
-            nginx: this host fronts "${name}" and serves it as well.
-          '';
-        }) cfg.fronts
         ++ lib.concatLists (
           lib.mapAttrsToList (name: vhost: [
             {
               assertion = vhost.domains != [ ];
               message = ''
-                nginx: "${name}" has no domain. The module or host that owns the site sets `reverseProxies.${name}.domains`; check the spelling of the name.
+                nginx: "${name}" has no domain. The module that owns the site, or `sites.nix` in the nginx module for a site without one, sets `reverseProxies.${name}.domains`; check the spelling of the name.
               '';
             }
             {

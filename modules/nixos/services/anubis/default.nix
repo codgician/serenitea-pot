@@ -2,18 +2,18 @@
 let
   inherit (config.codgician.services) nginx;
 
-  # Fronts that ask for Anubis; nginx sends their traffic here.
-  anubisFronts = lib.filterAttrs (_: front: front.anubis) nginx.fronts;
+  # Sites this host proxies through Anubis; nginx sends their traffic here.
+  anubisSites = lib.filterAttrs (_: site: site.proxyPass != null && site.anubis) nginx.reverseProxies;
 
   # systemd service names cannot contain dots.
   sanitizeName = builtins.replaceStrings [ "." ] [ "-" ];
 
-  targetOf = name: front: nginx.reverseProxies.${name}.locations."/".proxyPass or front.proxyPass;
+  targetOf = site: site.locations."/".proxyPass or site.proxyPass;
 
   mkInstance =
-    name: front:
+    name: site:
     let
-      target = targetOf name front;
+      target = targetOf site;
       socketDir = "/run/anubis/anubis-${sanitizeName name}";
     in
     {
@@ -31,7 +31,7 @@ let
     };
 in
 {
-  config = lib.mkIf (anubisFronts != { }) {
+  config = lib.mkIf (anubisSites != { }) {
     # nginx needs access to the Anubis Unix sockets.
     users.users.nginx.extraGroups = [ "anubis" ];
 
@@ -45,8 +45,8 @@ in
       };
 
       instances = lib.mapAttrs' (
-        name: front: lib.nameValuePair (sanitizeName name) (mkInstance name front)
-      ) anubisFronts;
+        name: site: lib.nameValuePair (sanitizeName name) (mkInstance name site)
+      ) anubisSites;
     };
 
     # Inject the signing key into every Anubis instance.
@@ -55,11 +55,11 @@ in
       lib.nameValuePair "anubis-${sanitizeName name}" {
         serviceConfig.EnvironmentFile = [ config.codgician.secrets.templates."anubis-env".path ];
       }
-    ) anubisFronts;
+    ) anubisSites;
 
-    assertions = lib.mapAttrsToList (name: front: {
-      assertion = targetOf name front != null;
-      message = ''anubis: front "${name}" has no upstream for Anubis to protect.'';
-    }) anubisFronts;
+    assertions = lib.mapAttrsToList (name: site: {
+      assertion = targetOf site != null;
+      message = ''anubis: site "${name}" has no upstream for Anubis to protect.'';
+    }) anubisSites;
   };
 }

@@ -335,8 +335,8 @@ in
       }
     ))
 
-    # Locations of the site, on the host next to the backend and on a host
-    # that fronts it alike; the icons are only served next to the backend.
+    # Locations of the site, on every host that proxies it; the icons are
+    # only served next to the backend.
     {
       codgician.services.nginx.reverseProxies.open-webui.domains = [ domain ];
       codgician.services.nginx.reverseProxies.open-webui.locations =
