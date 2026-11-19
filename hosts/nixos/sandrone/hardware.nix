@@ -37,6 +37,7 @@
       # `linlondp` can allocate fbdev framebuffers
       "cma=512M"
     ];
+    kernelPackages = pkgs.linuxPackages_6_18;
     kernelPatches = import ./kernel { inherit inputs lib; };
     extraModulePackages = with config.boot.kernelPackages; [
       cix-vpu-driver
@@ -116,5 +117,13 @@
     v4l-utils
   ];
 
+  # TPM
+  security.tpm2 = {
+    enable = true;
+    pkcs11.enable = true;
+  };
+
   hardware.enableRedistributableFirmware = true;
+
+  fileSystems."/persist".neededForBoot = true;
 }

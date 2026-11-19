@@ -32,8 +32,12 @@ in
       "vfat"
       "zfs"
     ];
+    kernelPackages = pkgs.linuxPackages_6_18;
+    zfs.package = pkgs.zfs_2_4;
     kernelParams = [ "video=Virtual-1:3024x1890@120" ];
   };
+
+  fileSystems."/persist".neededForBoot = true;
 
   hardware.parallels.enable = true;
 
@@ -67,6 +71,10 @@ in
 
   # Disable until Parallels' Linux vTPM passes systemd's TPM2_TestParms AES-128-CFB capability check.
   systemd.tpm2.enable = false;
+  security.tpm2 = {
+    enable = true;
+    pkcs11.enable = true;
+  };
 
   nix.settings = {
     extra-platforms = [ "x86_64-linux" ];
