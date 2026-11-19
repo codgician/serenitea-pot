@@ -12,7 +12,6 @@ let
   cfg = config.codgician.services.authelia.instances.${name};
   inherit (lib.codgician) zone;
   inherit (config.codgician.services.postfix) sender;
-  inherit (config.codgician) inventory;
   inherit (config.codgician.services) nginx;
 in
 {
@@ -100,15 +99,36 @@ in
 
           access_control = {
             default_policy = "two_factor";
-            rules = inventory.autheliaRules ++ [
-              # Explicit catch-all matching default_policy: functionally
-              # identical to relying on default_policy, but silences
-              # Authelia's "no rules specified" startup warning.
-              {
-                domain_regex = "^.*$";
-                policy = "two_factor";
-              }
-            ];
+            # A rule for every site this host knows that names its subjects:
+            # the sites of the service modules and of this host's own files.
+            rules =
+              lib.concatLists (
+                lib.mapAttrsToList (
+                  _: site:
+                  lib.optionals (site.authelia != null && site.authelia.users ++ site.authelia.groups != [ ]) [
+                    {
+                      domain = site.domains;
+                      policy = "two_factor";
+                      subject =
+                        map (user: "user:${user}") site.authelia.users
+                        ++ map (group: "group:${group}") site.authelia.groups;
+                    }
+                    {
+                      domain = site.domains;
+                      policy = "deny";
+                    }
+                  ]
+                ) nginx.reverseProxies
+              )
+              ++ [
+                # Explicit catch-all matching default_policy: functionally
+                # identical to relying on default_policy, but silences
+                # Authelia's "no rules specified" startup warning.
+                {
+                  domain_regex = "^.*$";
+                  policy = "two_factor";
+                }
+              ];
           };
 
           notifier = {

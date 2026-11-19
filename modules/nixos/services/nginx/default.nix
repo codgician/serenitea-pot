@@ -7,7 +7,6 @@
 let
   cfg = config.codgician.services.nginx;
   types = lib.types;
-  inherit (config.codgician) inventory;
   inherit (config.networking) hostName;
   autheliaApiPath = "/internal/authelia/authz";
 
@@ -59,84 +58,79 @@ let
   declared = landing // served // fronted;
   vhosts = lib.filterAttrs (_: vhost: vhost.domains != [ ] && hasRoot vhost) declared;
 
-  siteModule =
-    { name, ... }:
-    let
-      service = inventory.services.${name} or null;
-    in
-    {
-      options = {
-        domains = lib.mkOption {
-          type = types.listOf types.str;
-          default = lib.optional (inventory.vhostDomains ? ${name}) inventory.vhostDomains.${name};
-          example = [
-            "example.com"
-            "example.org"
-          ];
-          description = "Server names; the first one names the certificate.";
-        };
+  siteModule = {
+    options = {
+      domains = lib.mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        example = [
+          "example.com"
+          "example.org"
+        ];
+        description = "Server names; the first one names the certificate.";
+      };
 
-        authelia = lib.mkOption {
-          type = types.nullOr (
-            types.submodule {
-              options = {
-                users = lib.mkOption {
-                  type = types.listOf types.str;
-                  default = [ ];
-                  description = "Only these users.";
-                };
-                groups = lib.mkOption {
-                  type = types.listOf types.str;
-                  default = [ ];
-                  description = "Only members of these groups.";
-                };
-                anyone = lib.mkOption {
-                  type = types.bool;
-                  default = false;
-                  description = "Every signed-in user.";
-                };
+      authelia = lib.mkOption {
+        type = types.nullOr (
+          types.submodule {
+            options = {
+              users = lib.mkOption {
+                type = types.listOf types.str;
+                default = [ ];
+                description = "Only these users.";
               };
-            }
-          );
-          default = if service == null then null else service.authelia;
-          example = {
-            groups = [ "staff" ];
-          };
-          description = ''
-            Who may pass. Null for no login. Otherwise the host that serves
-            the site asks Authelia for a session before every location, and
-            Authelia admits `users` and `groups` only, or `anyone` who is
-            signed in. Either subjects or `anyone`.
-          '';
+              groups = lib.mkOption {
+                type = types.listOf types.str;
+                default = [ ];
+                description = "Only members of these groups.";
+              };
+              anyone = lib.mkOption {
+                type = types.bool;
+                default = false;
+                description = "Every signed-in user.";
+              };
+            };
+          }
+        );
+        default = null;
+        example = {
+          groups = [ "staff" ];
         };
+        description = ''
+          Who may pass. Null for no login. Otherwise the host that serves
+          the site asks Authelia for a session before every location, and
+          Authelia admits `users` and `groups` only, or `anyone` who is
+          signed in. Either subjects or `anyone`.
+        '';
+      };
 
-        proxyPass = lib.mkOption {
-          type = types.nullOr types.str;
-          default = null;
-          example = "http://127.0.0.1:8000";
-          description = ''
-            Upstream of every location that does not say what else it serves.
-            The host that sets it serves the site.
-          '';
-        };
+      proxyPass = lib.mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        example = "http://127.0.0.1:8000";
+        description = ''
+          Upstream of every location that does not say what else it serves.
+          The host that sets it serves the site.
+        '';
+      };
 
-        locations = lib.mkOption {
-          type = with types; attrsOf (attrsOf anything);
-          default = { };
-          example = lib.literalExpression ''
-            {
-              "/api/".extraConfig = "proxy_buffering off;";
-              "= /favicon.ico".root = ./static;
-            }
-          '';
-          description = ''
-            Settings of `services.nginx.virtualHosts.<name>.locations`. A
-            location goes to the upstream unless it sets `proxyPass` (`null`
-            for none), `root`, `alias` or `return`.
-          '';
-        };
+      locations = lib.mkOption {
+        type = with types; attrsOf (attrsOf anything);
+        default = { };
+        example = lib.literalExpression ''
+          {
+            "/api/".extraConfig = "proxy_buffering off;";
+            "= /favicon.ico".root = ./static;
+          }
+        '';
+        description = ''
+          Settings of `services.nginx.virtualHosts.<name>.locations`. A
+          location goes to the upstream unless it sets `proxyPass` (`null`
+          for none), `root`, `alias` or `return`.
+        '';
       };
     };
+  };
 
   frontModule.options = {
     proxyPass = lib.mkOption {
@@ -220,7 +214,7 @@ let
       })
       ++ (lib.optional vhost.authelia {
         "${autheliaApiPath}" = {
-          proxyPass = inventory.autheliaUrl + "/api/authz/auth-request"; # Use auth-request endpoint
+          proxyPass = config.codgician.services.authelia.instances.main.url + "/api/authz/auth-request"; # Use auth-request endpoint
           recommendedProxySettings = false;
           extraConfig = ''
             internal;
@@ -334,9 +328,6 @@ in
 
   config = lib.mkMerge [
     {
-      # Until every module declares its own site.
-      codgician.services.nginx.reverseProxies = lib.mapAttrs (_: _: { }) inventory.services;
-
       assertions =
         lib.mapAttrsToList (name: site: {
           assertion =
