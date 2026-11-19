@@ -18,16 +18,33 @@
           };
         };
       };
+
+      # RAS hardware error monitoring (EDAC/DIMM ECC, PCIe AER, CPU MCE)
+      rasdaemon.enable = true;
     };
 
-    system.common.inChina = true;
+    system = {
+      auto-upgrade.enable = true;
+      common.inChina = true;
+      impermanence = {
+        enable = true;
+        wipeOnShutdown.zfs.enable = true;
+      };
+      secure-boot.enable = true;
+    };
 
-    users.smb = {
-      enable = true;
-      hashedPasswordSecret = "smb-qiaoying-hashed-password";
-      passwordSecret = "smb-qiaoying-password";
+    users = {
+      codgi.enable = true;
+
+      smb = {
+        enable = true;
+        hashedPasswordSecret = "smb-qiaoying-hashed-password";
+        passwordSecret = "smb-qiaoying-password";
+      };
     };
   };
+
+  services.vscode-server.enable = true;
 
   # Wireless configuration (wpa_supplicant)
   networking.wireless = {
@@ -75,9 +92,16 @@
     };
   };
 
-  home-manager.users.codgi.codgician.codgi = {
-    oh-my-pi.enable = true;
-    mcp.enable = true;
+  home-manager.users.codgi = {
+    codgician.codgi = {
+      dev.nix.enable = true;
+      oh-my-pi.enable = true;
+      mcp.enable = true;
+      pwsh.enable = true;
+      ssh.enable = true;
+    };
+
+    home.stateVersion = "26.05";
   };
 
   # Customize zfs auto snapshot cadence
@@ -91,6 +115,9 @@
   };
 
   networking.hostId = "02821ba1";
+
+  # Enable zram swap
+  zramSwap.enable = true;
 
   # Always-on server: disable all sleep states
   systemd.sleep.settings.Sleep = {
