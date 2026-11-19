@@ -1,5 +1,7 @@
 { lib, pkgs, ... }:
 {
+  codgician.virtualization.libvirt.enable = true;
+
   # libvirtd
   virtualisation.libvirtd = {
     hooks.qemu = {
@@ -68,4 +70,16 @@
     };
   };
   networking.interfaces.vs0.useDHCP = true;
+
+  # Impermanence for libvirt and swtpm state
+  codgician.system.impermanence.extraItems = [
+    {
+      type = "directory";
+      path = "/var/lib/libvirt";
+    }
+    {
+      type = "directory";
+      path = "/var/lib/swtpm-localca";
+    }
+  ];
 }

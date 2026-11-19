@@ -3,7 +3,6 @@
   roles = [
     "server"
     "hypervisor"
-    "libvirt"
   ];
   modules = [
     ./disks.nix

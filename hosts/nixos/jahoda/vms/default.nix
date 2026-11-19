@@ -1,5 +1,7 @@
 { pkgs, lib, ... }:
 {
+  codgician.virtualization.libvirt.enable = true;
+
   # OVMFFull with MS Secure Boot keys at /run/libvirt/nix-ovmffull/
   systemd.services.libvirtd-config = {
     serviceConfig.RuntimeDirectory = [ "libvirt/nix-ovmffull" ];
@@ -76,4 +78,16 @@
 
   # kvm grants access to /dev/kvmfr0
   codgician.users.codgi.extraGroups = [ "kvm" ];
+
+  # Impermanence for libvirt and swtpm state
+  codgician.system.impermanence.extraItems = [
+    {
+      type = "directory";
+      path = "/var/lib/libvirt";
+    }
+    {
+      type = "directory";
+      path = "/var/lib/swtpm-localca";
+    }
+  ];
 }
