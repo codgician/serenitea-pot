@@ -2,8 +2,7 @@
 let
   cfg = config.codgician.services.coturn;
   inherit (lib) types;
-  svc = config.codgician.inventory.services.coturn;
-  cert = config.security.acme.certs.${svc.domain};
+  cert = config.security.acme.certs.${cfg.realm};
   listeningPort = 3478;
   tlsListeningPort = 5349;
   relayPortRange = {
@@ -13,7 +12,14 @@ let
 in
 {
   options.codgician.services.coturn = {
-    enable = lib.codgician.mkPublishedEnableOption config "coturn";
+    enable = lib.mkEnableOption "the coturn TURN relay";
+
+    realm = lib.mkOption {
+      type = types.str;
+      default = "turn.${lib.codgician.zone}";
+      readOnly = true;
+      description = "Name clients reach the relay at; also names its certificate.";
+    };
 
     relay-ips = lib.mkOption {
       type = types.listOf types.str;
@@ -32,7 +38,7 @@ in
   config = lib.mkIf cfg.enable {
     services.coturn = {
       enable = true;
-      realm = svc.domain;
+      inherit (cfg) realm;
       listening-ips = [
         "0.0.0.0"
         "::"
@@ -77,14 +83,14 @@ in
       mode = "0400";
     };
 
-    codgician.acme.${svc.domain} = {
+    codgician.acme.${cfg.realm} = {
       enable = true;
       reloadServices = [ "coturn.service" ];
     };
 
     systemd.services.coturn = {
-      requires = [ "acme-${svc.domain}.service" ];
-      after = [ "acme-${svc.domain}.service" ];
+      requires = [ "acme-${cfg.realm}.service" ];
+      after = [ "acme-${cfg.realm}.service" ];
       serviceConfig.SupplementaryGroups = [ cert.group ];
     };
 

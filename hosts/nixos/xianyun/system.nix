@@ -1,19 +1,8 @@
-{ config, lib, ... }:
-let
-  inherit (config.codgician.inventory.hosts.xianyun) ipv4 ipv6;
-  # Tencent's stable DHCP address, mapped 1:1 to the public IPv4 address.
-  privateIPv4 = "10.6.4.16";
-in
+{ ... }:
 {
   codgician = {
     services = {
-      coturn = {
-        relay-ips = [
-          privateIPv4
-          ipv6
-        ];
-        external-ips = [ "${ipv4}/${privateIPv4}" ];
-      };
+      coturn.enable = true;
 
       nginx.landingPage = {
         domain = "codgi.cn";

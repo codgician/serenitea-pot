@@ -1,11 +1,10 @@
-{
-  config,
-  lib,
-  pkgs,
-  ...
-}:
+{ pkgs, ... }:
 let
-  publicIpv6 = config.codgician.inventory.hosts.xianyun.ipv6;
+  # Public addresses; the records in packages/terraform-config repeat them.
+  publicIpv4 = "129.28.44.172";
+  publicIpv6 = "2402:4e00:c000:2300:aa68:cd10:e82c:0";
+  # Tencent's stable DHCP address, mapped 1:1 to the public IPv4 address.
+  privateIpv4 = "10.6.4.16";
 in
 {
   boot = {
@@ -65,6 +64,15 @@ in
         GatewayOnLink = true;
       }
     ];
+  };
+
+  # The TURN relay binds the addresses of this interface.
+  codgician.services.coturn = {
+    relay-ips = [
+      privateIpv4
+      publicIpv6
+    ];
+    external-ips = [ "${publicIpv4}/${privateIpv4}" ];
   };
 
   # Override distro in cloud-init
