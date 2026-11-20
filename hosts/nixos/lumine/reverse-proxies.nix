@@ -32,6 +32,7 @@ in
 
         # Off while paimon does not run comfyui
         comfyui.proxyPass = lib.mkIf false paimon;
+
         dsh-web = {
           proxyPass = nahida;
           locations."/".extraConfig = ''
