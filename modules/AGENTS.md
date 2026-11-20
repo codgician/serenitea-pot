@@ -6,8 +6,9 @@ Read the root `AGENTS.md` first; this file adds what you need when you change mo
 
 - One nameable mechanism whose parts must stay consistent: if a single host changed one line of it, would that host be half-configured? Install-time and hardware configuration never becomes a module; it stays in each host.
 - Every module has a plain `enable` (`lib.mkEnableOption`), and an optional part a host may go without has its own `enable`. Never switched by the host's name. Only a helper that adds configuration to other modules and switches nothing on has none.
-- An option exists only if two hosts set it differently or it describes the host (data dirs, hardware); `enable` options are exempt from this test. Hardcode the rest: settings, env vars, listen addresses, public names, service users. No `extraConfig`/`settings` passthroughs or mirrors of upstream options.
+- An option exists only if two hosts set it differently or it describes the host (data dirs, hardware); `enable` options are exempt from this test. Hardcode the rest: settings, env vars, listen addresses, public names, service users. No `extraConfig`/`settings` passthroughs or mirrors of upstream options. This test decides what a new option may be; it never justifies deleting an existing option or capability.
 - Exception: a module that installs or runs software keeps a `package` option (`lib.mkPackageOption`, or `image` for a container), defaulting to what hosts use, so one host can run a different build.
+- Whether a host uses a module, one of its optional parts or its `package` option today is no reason to delete any of them.
 - A value another module needs stays with its owner and is read from `config.codgician.<owner>`.
 - State: persist it with `codgician.system.impermanence.extraItems`, create custom dirs with `systemd.tmpfiles.rules` (see `modules/nixos/services/jellyfin`).
 - An option several modules contribute to (`nginx.reverseProxies`, `impermanence.extraItems`, `codgician.acme`) is declared and typed by the module that consumes it; contributions are written next to the code they are about.

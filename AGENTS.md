@@ -14,7 +14,7 @@ nix develop .#terraform  # Terraform management
 
 ## Layout
 
-- `hosts/{nixos,darwin}/<name>/`: one folder per host. `default.nix` is its manifest `{ system; cudaSupport ? false; stable ? true; modules = [ … ]; }`; the order of `modules` decides how lists merge, so keep it
+- `hosts/{nixos,darwin}/<name>/`: one folder per host. `default.nix` is its manifest `{ system; cudaSupport ? false; stable ? true; modules = [ … ]; }` (`cudaSupport` on NixOS only); the order of `modules` decides how lists merge, so keep it. `stable = false` moves the host to nixpkgs-unstable, darwin-unstable and home-manager-unstable; these inputs stay even when no host uses them
 - `modules/{generic,nixos,darwin}/`: modules under `codgician.*`, loaded on every host of their class
 - `hm-modules/codgi/{generic,nixos,darwin}/<name>/`: Home Manager modules under `codgician.codgi.<name>`
 - `overlays/`, `lib/` (`lib.codgician.zone` is the DNS zone), `secrets/secrets.nix`, `packages/terraform-config/` (Terranix), `tests/` (`checks.<system>.*`)
