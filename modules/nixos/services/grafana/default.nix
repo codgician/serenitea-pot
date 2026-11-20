@@ -33,6 +33,8 @@ in
   options.codgician.services.grafana = {
     enable = lib.mkEnableOption "Grafana";
 
+    provision.prometheus.enable = lib.mkEnableOption "Provision Prometheus as a datasource";
+
     provision.dashboards = lib.mkOption {
       type = types.listOf types.path;
       default = [ ];
@@ -124,7 +126,7 @@ in
         provision = {
           enable = true;
 
-          datasources.settings.datasources = [
+          datasources.settings.datasources = lib.mkIf cfg.provision.prometheus.enable [
             {
               name = "Prometheus";
               type = "prometheus";

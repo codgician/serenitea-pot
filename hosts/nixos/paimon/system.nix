@@ -45,6 +45,7 @@
 
       sglang = {
         enable = true;
+        monitoring.enable = true;
         cacheDir = "/xpool/llm/llm-cache";
         instances.qwen-chat = {
           model = "RadixArk/Qwen3.8-27B-NVFP4";

@@ -102,14 +102,16 @@ let
         (toString c.port)
         "--mem-fraction-static"
         (toString c.memFractionStatic)
-        "--enable-metrics"
       ]
+      ++ lib.optional cfg.monitoring.enable "--enable-metrics"
       ++ c.extraArgs;
     };
 in
 {
   options.codgician.services.sglang = {
     enable = lib.mkEnableOption "SGLang inference server (container-based)";
+
+    monitoring.enable = lib.mkEnableOption "Prometheus scraping and the bundled Grafana dashboard";
 
     image = lib.mkOption {
       type = types.str;
@@ -146,6 +148,14 @@ in
           assertion = config.hardware.nvidia-container-toolkit.enable;
           message = "codgician.services.sglang requires hardware.nvidia-container-toolkit.enable.";
         }
+        {
+          assertion = !cfg.monitoring.enable || config.codgician.services.prometheus.enable;
+          message = "codgician.services.sglang.monitoring requires codgician.services.prometheus.enable.";
+        }
+        {
+          assertion = !cfg.monitoring.enable || config.codgician.services.grafana.enable;
+          message = "codgician.services.sglang.monitoring requires codgician.services.grafana.enable.";
+        }
       ];
 
     systemd.tmpfiles.rules = [ "d ${cfg.cacheDir} 0755 root root -" ];
@@ -155,22 +165,20 @@ in
       path = cfg.cacheDir;
     };
 
-    codgician.services.prometheus.scrapeConfigs.extraConfigs = [
-      {
-        job_name = serviceName;
-        scrape_interval = "2s";
-        metrics_path = "/metrics";
-        static_configs = lib.mapAttrsToList (name: c: {
-          targets = [ "${scrapeHost c.host}:${toString c.port}" ];
-          labels = {
-            instance = config.networking.hostName;
-            service = name;
-          };
-        }) cfg.instances;
-      }
-    ];
+    codgician.services.prometheus.scrapeConfigs.extraConfigs = lib.optional cfg.monitoring.enable {
+      job_name = serviceName;
+      scrape_interval = "2s";
+      metrics_path = "/metrics";
+      static_configs = lib.mapAttrsToList (name: c: {
+        targets = [ "${scrapeHost c.host}:${toString c.port}" ];
+        labels = {
+          instance = config.networking.hostName;
+          service = name;
+        };
+      }) cfg.instances;
+    };
 
-    codgician.services.grafana.provision.dashboards = [ dashboard ];
+    codgician.services.grafana.provision.dashboards = lib.optional cfg.monitoring.enable dashboard;
 
     virtualisation.oci-containers.containers = lib.mapAttrs' mkContainer cfg.instances;
   };

@@ -7,8 +7,15 @@ let
   cfg = config.codgician.services.rasdaemon;
 in
 {
-  options.codgician.services.rasdaemon.enable =
-    lib.mkEnableOption "rasdaemon RAS (Reliability, Availability, Serviceability) error logging";
+  options.codgician.services.rasdaemon = {
+    enable = lib.mkEnableOption "rasdaemon RAS (Reliability, Availability, Serviceability) error logging";
+
+    prometheus = {
+      enable = lib.mkEnableOption "Prometheus exporter for rasdaemon RAS events";
+
+      scrapeConfig = lib.mkEnableOption "Prometheus scrape config for the rasdaemon exporter";
+    };
+  };
 
   config = lib.mkIf cfg.enable (
     lib.mkMerge [
@@ -31,8 +38,7 @@ in
         ];
       }
 
-      # Export the events where a Prometheus runs to scrape them.
-      (lib.mkIf config.codgician.services.prometheus.enable {
+      (lib.mkIf cfg.prometheus.enable {
         services.prometheus.exporters.rasdaemon = {
           enable = true;
           listenAddress = "127.0.0.1";
@@ -42,7 +48,9 @@ in
             "mc" # EDAC Memory Controller / DIMM ECC errors
           ];
         };
+      })
 
+      (lib.mkIf cfg.prometheus.scrapeConfig {
         codgician.services.prometheus.scrapeConfigs.extraConfigs = [
           {
             job_name = "rasdaemon";

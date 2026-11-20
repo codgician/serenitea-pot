@@ -23,10 +23,19 @@ in
 {
   # RAS (Reliability, Availability, Serviceability) hardware error monitoring:
   # EDAC (DIMM ECC), PCIe AER (SERR), and CPU MCE events via rasdaemon.
-  codgician.services.rasdaemon.enable = true;
+  codgician.services.rasdaemon = {
+    enable = true;
+    prometheus = {
+      enable = true;
+      scrapeConfig = true;
+    };
+  };
 
   # Prometheus scrape configuration
   codgician.services.prometheus.scrapeConfigs = {
+    prometheus = true;
+    nginx = true;
+    nginxlog = true;
     extraConfigs = [
       {
         job_name = "nvidia-gpu";
@@ -74,6 +83,8 @@ in
     after = [ "nvidia-gpu-config.service" ];
     wants = [ "nvidia-gpu-config.service" ];
   };
+
+  codgician.services.grafana.provision.prometheus.enable = true;
 
   services.grafana.provision.datasources.settings.datasources = [
     {
