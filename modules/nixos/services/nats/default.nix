@@ -1,11 +1,28 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.services.nats;
   websocketPort = 9222;
+
+  # Upstream has no package option and starts pkgs.nats-server with this
+  # validated configuration; the unit is rebuilt around cfg.package.
+  configFile =
+    let
+      unvalidated = (pkgs.formats.json { }).generate "nats.conf" config.services.nats.settings;
+    in
+    pkgs.runCommand "validate-nats-conf" { nativeBuildInputs = [ cfg.package ]; } ''
+      nats-server --config "${unvalidated}" -t
+      ln -s "${unvalidated}" "$out"
+    '';
 in
 {
   options.codgician.services.nats = {
     enable = lib.mkEnableOption "authenticated NATS terminal relay";
+    package = lib.mkPackageOption pkgs "nats-server" { };
 
     openFirewall = lib.mkEnableOption "opening firewall for the NATS WebSocket listener";
   };
@@ -54,6 +71,7 @@ in
     systemd.services.nats = {
       wants = [ "network-online.target" ];
       after = [ "network-online.target" ];
+      serviceConfig.ExecStart = lib.mkForce "${lib.getExe' cfg.package "nats-server"} -c ${configFile}";
     };
 
     # Upstream creates this directory with StateDirectory; preserve it across root wipes.

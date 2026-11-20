@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -22,6 +23,7 @@ in
 {
   options.codgician.services.prometheus = {
     enable = lib.mkEnableOption "prometheus";
+    package = lib.mkPackageOption pkgs "prometheus" { };
 
     scrapeConfigs = {
       prometheus = lib.mkEnableOption "Prometheus self-scrape";
@@ -41,6 +43,7 @@ in
   config = lib.mkIf cfg.enable {
     services.prometheus = {
       enable = true;
+      inherit (cfg) package;
       listenAddress = "127.0.0.1"; # Security: bind to localhost only
       scrapeConfigs =
         lib.optional cfg.scrapeConfigs.prometheus (

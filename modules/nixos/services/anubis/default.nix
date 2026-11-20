@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.services.anubis;
   inherit (config.codgician.services) nginx;
@@ -32,7 +37,10 @@ let
     };
 in
 {
-  options.codgician.services.anubis.enable = lib.mkEnableOption "Anubis bot protection";
+  options.codgician.services.anubis = {
+    enable = lib.mkEnableOption "Anubis bot protection";
+    package = lib.mkPackageOption pkgs "anubis" { };
+  };
 
   config = lib.mkMerge [
     {
@@ -49,6 +57,7 @@ in
       users.users.nginx.extraGroups = [ "anubis" ];
 
       services.anubis = {
+        inherit (cfg) package;
         defaultOptions.settings = {
           DIFFICULTY = 4;
           OG_PASSTHROUGH = true;

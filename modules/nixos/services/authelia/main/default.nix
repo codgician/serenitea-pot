@@ -17,6 +17,7 @@ in
 {
   options.codgician.services.authelia.instances.${name} = {
     enable = lib.mkEnableOption "the Authelia portal";
+    package = lib.mkPackageOption pkgs "authelia" { };
 
     url = lib.mkOption {
       type = lib.types.str;
@@ -35,6 +36,7 @@ in
 
       services.authelia.instances.${name} = {
         enable = true;
+        inherit (cfg) package;
         inherit user group;
 
         secrets = {

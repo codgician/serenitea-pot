@@ -12,6 +12,7 @@ in
 {
   options.codgician.services.gns3-server = {
     enable = lib.mkEnableOption "GNS3 server";
+    package = lib.mkPackageOption pkgs "gns3-server" { };
 
     dataDir = lib.mkOption {
       type = lib.types.path;
@@ -27,6 +28,7 @@ in
 
       services.gns3-server = {
         enable = true;
+        inherit (cfg) package;
         auth = {
           enable = true;
           user = "gns3";

@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   serviceName = "sing-box";
   inherit (lib) types;
@@ -16,6 +21,7 @@ in
 
   options.codgician.services.${serviceName} = {
     enable = lib.mkEnableOption serviceName;
+    package = lib.mkPackageOption pkgs "sing-box" { };
 
     autoStart = lib.mkOption {
       type = types.bool;
@@ -46,6 +52,7 @@ in
   config = lib.mkIf cfg.enable {
     services.sing-box = {
       enable = true;
+      inherit (cfg) package;
       settings = {
         log = {
           disabled = false;

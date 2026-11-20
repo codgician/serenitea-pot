@@ -1,4 +1,9 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.services.jellyfin;
   domain = "fin.${lib.codgician.zone}";
@@ -7,6 +12,7 @@ in
 {
   options.codgician.services.jellyfin = {
     enable = lib.mkEnableOption "Jellyfin";
+    package = lib.mkPackageOption pkgs "jellyfin" { };
 
     dataDir = lib.mkOption {
       type = lib.types.path;
@@ -22,7 +28,7 @@ in
       services.jellyfin = {
         enable = true;
         openFirewall = true;
-        inherit (cfg) dataDir;
+        inherit (cfg) package dataDir;
       };
 
       # Ensure data directory exists (for custom paths)

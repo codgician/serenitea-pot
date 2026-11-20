@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -9,7 +10,10 @@ let
   port = 3000;
 in
 {
-  options.codgician.services.${serviceName}.enable = lib.mkEnableOption "OpenVSCode Server";
+  options.codgician.services.${serviceName} = {
+    enable = lib.mkEnableOption "OpenVSCode Server";
+    package = lib.mkPackageOption pkgs "openvscode-server" { };
+  };
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
@@ -18,6 +22,7 @@ in
 
       services.openvscode-server = {
         enable = true;
+        inherit (cfg) package;
         host = "127.0.0.1";
         inherit port;
         user = "codgi";

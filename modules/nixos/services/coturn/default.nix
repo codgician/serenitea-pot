@@ -1,4 +1,10 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  utils,
+  ...
+}:
 let
   cfg = config.codgician.services.coturn;
   inherit (lib) types;
@@ -13,6 +19,7 @@ in
 {
   options.codgician.services.coturn = {
     enable = lib.mkEnableOption "the coturn TURN relay";
+    package = lib.mkPackageOption pkgs "coturn" { };
 
     realm = lib.mkOption {
       type = types.str;
@@ -93,7 +100,17 @@ in
     systemd.services.coturn = {
       requires = [ "acme-${cfg.realm}.service" ];
       after = [ "acme-${cfg.realm}.service" ];
-      serviceConfig.SupplementaryGroups = [ cert.group ];
+      serviceConfig = {
+        SupplementaryGroups = [ cert.group ];
+        # Upstream has no package option and starts pkgs.coturn.
+        ExecStart = lib.mkForce (
+          utils.escapeSystemdExecArgs [
+            (lib.getExe' cfg.package "turnserver")
+            "-c"
+            "/run/coturn/turnserver.cfg"
+          ]
+        );
+      };
     };
 
     networking.firewall = lib.mkIf cfg.openFirewall {

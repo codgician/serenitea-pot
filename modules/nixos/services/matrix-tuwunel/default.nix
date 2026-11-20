@@ -17,6 +17,7 @@ in
 {
   options.codgician.services.matrix-tuwunel = {
     enable = lib.mkEnableOption "Tuwunel Matrix homeserver";
+    package = lib.mkPackageOption pkgs "matrix-tuwunel" { };
     elementWebPackage = lib.mkPackageOption pkgs "element-web" {
       extraDescription = "It is the client served at the homeserver's domain.";
     };
@@ -36,6 +37,7 @@ in
 
       services.matrix-tuwunel = {
         enable = true;
+        inherit (cfg) package;
         settings.global = {
           # Core settings
           server_name = domain;
