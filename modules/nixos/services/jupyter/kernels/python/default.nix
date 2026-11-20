@@ -7,10 +7,17 @@
 let
   cfg = config.codgician.services.jupyter;
 
+  # Only Jupyter expands `~`; the launcher and tmpfiles need an absolute path.
+  notebookDir =
+    if lib.hasPrefix "~" cfg.notebookDir then
+      config.users.users.${config.services.jupyter.user}.home + lib.removePrefix "~" cfg.notebookDir
+    else
+      cfg.notebookDir;
+
   # The venv and uv's cache and interpreters live next to the notebooks, on
   # storage that outlives the host's root: a venv under /var/lib would be wiped
   # and force a full reinstall.
-  stateDir = "${cfg.notebookDir}/venvs";
+  stateDir = "${lib.removeSuffix "/" notebookDir}/venvs";
 
   # Provision the venv on first launch with an uv-managed standalone CPython,
   # then exec the kernel. This script is the FHS foreground process (bubblewrap
