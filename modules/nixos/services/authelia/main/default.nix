@@ -203,7 +203,7 @@ in
       };
 
       # Add nginx to authelia group for socket access
-      users.groups.${group}.members = lib.mkIf config.services.nginx.enable [ "nginx" ];
+      users.groups.${group}.members = lib.mkIf nginx.enable [ "nginx" ];
 
       # Redis
       services.redis.servers.${serviceName} = {
