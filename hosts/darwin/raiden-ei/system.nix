@@ -2,10 +2,13 @@
 {
   codgician = {
     system = {
-      brew.casks = [
-        "bluebubbles"
-        "opencore-configurator"
-      ];
+      brew = {
+        enable = true;
+        casks = [
+          "bluebubbles"
+          "opencore-configurator"
+        ];
+      };
       common.inChina = true;
     };
 

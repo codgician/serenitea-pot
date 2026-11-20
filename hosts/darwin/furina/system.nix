@@ -1,7 +1,10 @@
 { pkgs, ... }:
 {
   codgician = {
-    system.common.inChina = true;
+    system = {
+      brew.enable = true;
+      common.inChina = true;
+    };
     users.codgi.enable = true;
   };
 
