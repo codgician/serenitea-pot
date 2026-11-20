@@ -28,6 +28,7 @@
         clients.ss-lumidouce.enable = true;
         tun = {
           enable = true;
+          outbound = "outbound-ss-lumidouce";
           routedRanges = [
             "0.0.0.0/0"
             "::/0"

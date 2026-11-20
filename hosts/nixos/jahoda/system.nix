@@ -23,6 +23,7 @@
         };
         tun = {
           enable = true;
+          outbound = "outbound-ss-lumidouce";
           routedRanges = [
             "192.168.0.0/16"
             "fd00:c0d9:1c00::/48"

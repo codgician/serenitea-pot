@@ -45,9 +45,8 @@ in
     };
 
     outbound = lib.mkOption {
-      type = types.str;
-      default = config.codgician.services.sing-box.clients.ss-lumidouce.tag;
-      defaultText = lib.literalExpression "config.codgician.services.sing-box.clients.ss-lumidouce.tag";
+      type = with types; nullOr str;
+      default = null;
       description = "Tag of the outbound to route matched traffic through.";
       example = "outbound-hysteria2";
     };
@@ -128,11 +127,15 @@ in
       ];
     };
 
-    assertions = [
-      {
-        assertion = tunCfg.outbound != "";
-        message = "An outbound tag must be specified for TUN routing.";
-      }
-    ];
+    assertions =
+      let
+        tags = map (outbound: outbound.tag) config.services.sing-box.settings.outbounds;
+      in
+      [
+        {
+          assertion = lib.elem tunCfg.outbound tags;
+          message = "codgician.services.sing-box.tun.outbound must be the tag of an enabled outbound (${lib.concatStringsSep ", " tags}), not ${builtins.toJSON tunCfg.outbound}.";
+        }
+      ];
   };
 }
