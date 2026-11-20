@@ -47,7 +47,12 @@ in
   };
 
   config = lib.mkMerge [
-    { codgician.services.nginx.reverseProxies.comfyui.domains = [ domain ]; }
+    {
+      codgician.services.nginx.reverseProxies.comfyui = {
+        domains = [ domain ];
+        authelia.groups = [ "vanarana" ];
+      };
+    }
 
     (lib.mkIf cfg.enable {
       virtualisation.oci-containers.containers.comfyui = {
