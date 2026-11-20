@@ -81,12 +81,12 @@ in
           extraDomainNames = lib.lists.unique cert.extraDomainNames;
           postRun = lib.mkIf (cert.postRun != null) cert.postRun;
         }
-      ) (lib.filterAttrs (_: cert: cert.enable) cfg);
+      ) (lib.filterAttrs (name: cert: cert.enable && zoneOf name != null) cfg);
     };
 
     assertions = lib.mapAttrsToList (name: _: {
       assertion = zoneOf name != null;
       message = "acme: no DNS challenge provider is known for the zone of ${name}.";
-    }) cfg;
+    }) (lib.filterAttrs (_: cert: cert.enable) cfg);
   };
 }
