@@ -45,6 +45,18 @@
         zfsOptimizations = true;
       };
 
+      comfyui = {
+        enable = false;
+        dataDir = "/xpool/appdata/comfyui";
+        modelDir = "/xpool/llm/comfyui";
+        userDir = "/xpool/appdata/comfyui-user";
+      };
+
+      vllm = {
+        enable = false;
+        cacheDir = "/xpool/llm/llm-cache";
+      };
+
       sglang = {
         enable = true;
         monitoring.enable = true;

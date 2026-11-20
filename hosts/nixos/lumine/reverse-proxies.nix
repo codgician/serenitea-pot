@@ -30,6 +30,8 @@ in
 
         bubbles.proxyPass = "http://192.168.0.24:1234";
 
+        # Off while paimon does not run comfyui
+        comfyui.proxyPass = lib.mkIf false paimon;
         dsh-web = {
           proxyPass = nahida;
           locations."/".extraConfig = ''
