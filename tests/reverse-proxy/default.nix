@@ -1,28 +1,14 @@
 # Sites served next to their backend and through an entry host by the real
-# nginx module, the checks it makes and the access rules Authelia derives
-# from the sites.
-{
-  lib,
-  pkgs,
-  inputs,
-  outputs,
-  ...
-}:
+# nginx module: the vhosts it generates, the checks it makes and the access
+# rules Authelia derives from the sites. Nginx itself is not run.
+{ lib, pkgs, ... }:
 let
-  system = pkgs.stdenv.hostPlatform.system;
+  inherit (pkgs.stdenv.hostPlatform) system;
   staticFiles = pkgs.writeTextDir "static/hello.txt" "static-content\n";
-  nixos-lib = import (pkgs.path + "/nixos/lib") { inherit lib; };
 
   # Ends in a zone the acme module knows.
   zone = "fixture.${lib.codgician.zone}";
   domain = name: "${name}.${zone}";
-  domains = map domain [
-    "auth"
-    "routing"
-    "members"
-    "remote"
-    "appliance"
-  ];
 
   # The shape of a service module: the site outside `enable`, with a location
   # every hop gets; the upstream inside.
@@ -53,38 +39,32 @@ let
       ];
     };
 
-  test = nixos-lib.runTest {
-    name = "reverse-proxy-routing";
-    hostPkgs = pkgs;
-    defaults = {
-      imports = lib.codgician.nixosModules;
-      nixpkgs.pkgs = pkgs;
-      _module.args = {
-        inherit inputs outputs system;
-      };
-    };
-
-    nodes.machine =
-      { lib, ... }:
+  node = lib.codgician.mkNixosSystem {
+    hostName = "reverse-proxy";
+    inherit system;
+    modules = [
+      (serviceModule "routing" { port = 8081; })
+      (serviceModule "members" {
+        port = 8082;
+        authelia.users = [ "alice" ];
+      })
+      # Served by another host; this one is its public entry.
+      (serviceModule "remote" {
+        port = 8082;
+        authelia.groups = [ "staff" ];
+      })
       {
-        imports = [
-          (serviceModule "routing" { port = 8081; })
-          (serviceModule "members" {
-            port = 8082;
-            authelia.users = [ "alice" ];
-          })
-          # Served by another host; this one is its public entry.
-          (serviceModule "remote" {
-            port = 8082;
-            authelia.groups = [ "staff" ];
-          })
-        ];
-
-        users.users.root = {
-          initialPassword = "root";
-          hashedPasswordFile = lib.mkForce null;
+        boot.loader.grub.device = "nodev";
+        fileSystems."/" = {
+          device = "/dev/vda";
+          fsType = "ext4";
         };
-        environment.systemPackages = [ pkgs.curl ];
+        system.stateVersion = "26.05";
+        codgician.secrets = {
+          enable = false;
+          files.cloudflare-credential = { };
+        };
+        security.acme.defaults.email = "reverse-proxy@example.invalid";
 
         codgician.services = {
           routing.enable = true;
@@ -118,8 +98,7 @@ let
                 proxyPass = "http://127.0.0.1:8082";
               };
 
-              # A stand-in for the portal, at the address its site gives
-              # every vhost that asks Authelia.
+              # The portal's site, here at a fixture domain.
               authelia-main = {
                 domains = lib.mkForce [ (domain "auth") ];
                 proxyPass = lib.mkForce "http://127.0.0.1:8083";
@@ -127,123 +106,16 @@ let
             };
           };
         };
-
-        networking.hosts."127.0.0.1" = [ (domain "auth") ];
-
-        services.nginx.virtualHosts = {
-          backend-one = {
-            listen = [
-              {
-                addr = "127.0.0.1";
-                port = 8081;
-              }
-            ];
-            locations."/".return = ''200 "backend-one:$request_uri"'';
-          };
-          backend-two = {
-            listen = [
-              {
-                addr = "127.0.0.1";
-                port = 8082;
-              }
-            ];
-            locations."/".return = ''200 "backend-two:$request_uri"'';
-          };
-          auth-backend = {
-            listen = [
-              {
-                addr = "127.0.0.1";
-                port = 8083;
-              }
-            ];
-            # A stand-in for the portal: it admits the session cookie
-            # `signed-in` and nothing else.
-            locations."/".extraConfig = ''
-              if ($cookie_session = signed-in) {
-                return 200;
-              }
-              return 403;
-            '';
-          };
-        };
-
-        # Keep the generated useACMEHost path and the self-signed bootstrap,
-        # without requesting production certificates or loading DNS secrets.
-        codgician.secrets = {
-          enable = false;
-          files.cloudflare-credential = { };
-        };
-        security.acme = {
-          defaults.email = "reverse-proxy@example.invalid";
-          certs = lib.genAttrs domains (_: {
-            dnsProvider = lib.mkForce null;
-            environmentFile = lib.mkForce null;
-            webroot = "/var/lib/acme/acme-challenge";
-          });
-        };
-        systemd.services = lib.genAttrs (map (name: "acme-order-renew-${name}") domains) (_: {
-          enable = lib.mkForce false;
-        });
-        systemd.timers = lib.genAttrs (map (name: "acme-renew-${name}") domains) (_: {
-          enable = lib.mkForce false;
-        });
-      };
-
-    testScript = ''
-      machine.start()
-      machine.wait_for_unit("nginx.service")
-      machine.wait_for_open_port(80)
-      machine.wait_for_open_port(443)
-
-      def curl(host, path, flags):
-          return machine.succeed(
-              f"curl --noproxy '*' --silent --show-error --insecure "
-              f"--resolve {host}:443:127.0.0.1 {flags} https://{host}{path}"
-          )
-
-      def request(host, path="/", flags=""):
-          return curl(host, path, f"--fail {flags}")
-
-      def status(host, path="/"):
-          return curl(host, path, "--output /dev/null --write-out '%{http_code}'")
-
-      with subtest("a site is served where its module is enabled"):
-          assert request("${domain "routing"}") == "backend-one:/"
-
-      with subtest("locations go to the site's upstream unless they say otherwise"):
-          assert request("${domain "routing"}", "/inherited/item") == "backend-one:/inherited/item"
-          assert request("${domain "routing"}", "/custom/item") == "backend-two:/mapped/item"
-          assert request("${domain "routing"}", "/static/hello.txt") == "static-content\n"
-
-      with subtest("settings of the root location keep the upstream"):
-          assert "x-location-extra: preserved" in request("${domain "routing"}", flags="--head").lower()
-
-      signed_in = "--cookie session=signed-in"
-
-      with subtest("a site reached through an entry host goes to the host that serves it"):
-          assert request("${domain "remote"}", "/item", signed_in) == "backend-two:/item"
-
-      with subtest("the locations of a site reach the host that serves it and the entry host"):
-          assert "x-shared: routing" in request("${domain "routing"}", "/shared/item", "--head").lower()
-          assert "x-shared: remote" in request("${domain "remote"}", "/shared/item", f"--head {signed_in}").lower()
-
-      with subtest("every host that proxies a site with a policy asks the portal"):
-          assert status("${domain "auth"}") == "403"
-          assert status("${domain "members"}") == "403"
-          assert status("${domain "appliance"}") == "403"
-          assert status("${domain "remote"}") == "403"
-          assert request("${domain "members"}", "/", signed_in) == "backend-two:/"
-
-      with subtest("plain HTTP redirects to HTTPS"):
-          redirect = machine.succeed(
-              "curl --noproxy '*' --silent --show-error --head -H 'Host: ${domain "routing"}' http://127.0.0.1/"
-          ).lower()
-          assert "location: https://${domain "routing"}/" in redirect
-    '';
+      }
+    ];
   };
 
-  # The node with `module` added to it.
-  nodeWith = module: (test.extendNixOS { inherit module; }).nodes.machine;
+  nodeWith = module: (node.extendModules { modules = [ module ]; }).config;
+  inherit (node.config.services.nginx) virtualHosts;
+  sites = removeAttrs virtualHosts [
+    "_"
+    "localhost"
+  ];
 
   # What the nginx module rejects, by the first line of its message.
   rejected =
@@ -255,62 +127,97 @@ let
       )
     );
 
+  hasLine = line: location: lib.hasInfix line (location.extraConfig or "");
+
   expectations = {
-    # Besides the catch-all, the status page and the stand-in backends.
     "vhosts of the node" = {
-      actual =
-        lib.mapAttrs
-          (_: vhost: {
-            inherit (vhost) serverName;
-            root = vhost.locations."/".proxyPass;
-            asksAuthelia = vhost.locations ? "/internal/authelia/authz";
-            shared = vhost.locations ? "/shared/";
-          })
-          (
-            removeAttrs test.nodes.machine.services.nginx.virtualHosts [
-              "_"
-              "localhost"
-              "backend-one"
-              "backend-two"
-              "auth-backend"
-            ]
-          );
+      actual = lib.mapAttrs (_: vhost: {
+        inherit (vhost) serverName forceSSL;
+        root = vhost.locations."/".proxyPass;
+        asksAuthelia = vhost.locations ? "/internal/authelia/authz";
+        shared = vhost.locations ? "/shared/";
+      }) sites;
+      expected =
+        let
+          vhost = name: root: asksAuthelia: shared: {
+            serverName = domain name;
+            forceSSL = true;
+            inherit root asksAuthelia shared;
+          };
+        in
+        {
+          appliance = vhost "appliance" "http://127.0.0.1:8082" true false;
+          authelia-main = vhost "auth" "http://127.0.0.1:8083" false false;
+          members = vhost "members" "http://127.0.0.1:8082" true true;
+          remote = vhost "remote" "http://127.0.0.1:8082" true true;
+          routing = vhost "routing" "http://127.0.0.1:8081" false true;
+        };
+    };
+
+    # Locations go to the site's upstream unless they say otherwise; the
+    # settings of "/" keep the upstream.
+    "locations of routing" = {
+      actual = lib.mapAttrs (_: location: {
+        inherit (location) proxyPass root;
+      }) (removeAttrs virtualHosts.routing.locations [ "/robots.txt" ]);
       expected = {
-        appliance = {
-          serverName = domain "appliance";
-          root = "http://127.0.0.1:8082";
-          asksAuthelia = true;
-          shared = false;
+        "/" = {
+          proxyPass = "http://127.0.0.1:8081";
+          root = null;
         };
-        authelia-main = {
-          serverName = domain "auth";
-          root = "http://127.0.0.1:8083";
-          asksAuthelia = false;
-          shared = false;
+        "/inherited/" = {
+          proxyPass = "http://127.0.0.1:8081";
+          root = null;
         };
-        members = {
-          serverName = domain "members";
-          root = "http://127.0.0.1:8082";
-          asksAuthelia = true;
-          shared = true;
+        "/custom/" = {
+          proxyPass = "http://127.0.0.1:8082/mapped/";
+          root = null;
         };
-        remote = {
-          serverName = domain "remote";
-          root = "http://127.0.0.1:8082";
-          asksAuthelia = true;
-          shared = true;
+        "/static/" = {
+          proxyPass = null;
+          root = staticFiles;
         };
-        routing = {
-          serverName = domain "routing";
-          root = "http://127.0.0.1:8081";
-          asksAuthelia = false;
-          shared = true;
+        "/shared/" = {
+          proxyPass = "http://127.0.0.1:8081";
+          root = null;
         };
       };
     };
 
+    "settings of a location" = {
+      actual = {
+        rootExtra = hasLine "X-Location-Extra preserved" virtualHosts.routing.locations."/";
+        sharedHere = hasLine "X-Shared routing" virtualHosts.routing.locations."/shared/";
+        sharedAtEntry = hasLine "X-Shared remote" virtualHosts.remote.locations."/shared/";
+        sharedAtEntryUpstream = virtualHosts.remote.locations."/shared/".proxyPass;
+      };
+      expected = {
+        rootExtra = true;
+        sharedHere = true;
+        sharedAtEntry = true;
+        sharedAtEntryUpstream = "http://127.0.0.1:8082";
+      };
+    };
+
+    # Every host that proxies a site with a policy asks the portal before
+    # every location of the site.
+    "locations that do not ask Authelia" = {
+      actual = lib.genAttrs [ "appliance" "members" "remote" ] (
+        name:
+        lib.attrNames (
+          lib.filterAttrs (
+            _: location: !hasLine "auth_request /internal/authelia/authz;" location
+          ) virtualHosts.${name}.locations
+        )
+      );
+      expected = lib.genAttrs [ "appliance" "members" "remote" ] (_: [
+        "/internal/authelia/authz"
+        "/robots.txt"
+      ]);
+    };
+
     "Authelia portal" = {
-      actual = test.nodes.machine.codgician.services.authelia.instances.main.url;
+      actual = node.config.codgician.services.authelia.instances.main.url;
       expected = "https://${domain "auth"}";
     };
 
@@ -372,7 +279,8 @@ let
 
   failures = lib.filterAttrs (_: e: e.actual != e.expected) expectations;
 in
-assert lib.assertMsg (failures == { }) "reverse-proxy: ${builtins.toJSON failures}";
 {
-  reverseProxyRouting = test;
+  checks.reverseProxyRouting =
+    assert lib.assertMsg (failures == { }) "reverse-proxy: ${builtins.toJSON failures}";
+    pkgs.runCommand "reverse-proxy-routing" { } "touch $out";
 }

@@ -66,7 +66,8 @@ let
   };
 in
 {
-  rescue = nixos-lib.runTest {
+  # Formats disks and unlocks them, so it runs on demand
+  vmTests.rescue = nixos-lib.runTest {
     name = "rescue";
     hostPkgs = pkgs;
     defaults = {

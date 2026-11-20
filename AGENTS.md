@@ -17,7 +17,7 @@ nix develop .#terraform  # Terraform management
 - `hosts/{nixos,darwin}/<name>/`: one folder per host. `default.nix` is its manifest `{ system; cudaSupport ? false; stable ? true; modules = [ … ]; }` (`cudaSupport` on NixOS only); the order of `modules` decides how lists merge, so keep it. `stable = false` moves the host to nixpkgs-unstable, darwin-unstable and home-manager-unstable; these inputs stay even when no host uses them
 - `modules/{generic,nixos,darwin}/`: modules under `codgician.*`, loaded on every host of their class
 - `hm-modules/codgi/{generic,nixos,darwin}/<name>/`: Home Manager modules under `codgician.codgi.<name>`
-- `overlays/`, `lib/` (`lib.codgician.zone` is the DNS zone), `secrets/secrets.nix`, `packages/terraform-config/` (Terranix), `tests/` (`checks.<system>.*`)
+- `overlays/`, `lib/` (`lib.codgician.zone` is the DNS zone), `secrets/secrets.nix`, `packages/terraform-config/` (Terranix), `tests/`: `checks.<system>.*`, which CI builds, and `legacyPackages.<system>.vmTests.*`, NixOS VM tests run on demand. CI time is scarce: a check evaluates what host evaluation does not already cover, and a VM test goes to `checks` only when nothing but a running machine can catch the failure and a host depends on it
 
 **Before you edit anything under `modules/`, `hm-modules/` or `overlays/`, or publish or move a service, read `modules/AGENTS.md`.**
 
@@ -53,6 +53,7 @@ What a host runs: the `enable` lines in its files. No host evaluates another; th
 - `git add` before `nix eval`/`nix build` (flakes only see tracked files)
 - `nix fmt` before presenting changes
 - Show the output of the command that verifies your change
+- Before changing what a VM test in `vmTests` covers (rescue, btrfs wipe), run it: `nix build .#legacyPackages.x86_64-linux.vmTests.<name>`
 - Ask before: deploying, `terraform apply`, `nix run .#secrets -- rekey`
 
 ## Documentation

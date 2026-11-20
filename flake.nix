@@ -153,6 +153,14 @@
         inherit inputs;
         outputs = self;
       };
+
+      tests = lib.codgician.forLinuxSystems (
+        pkgs:
+        import ./tests {
+          inherit lib pkgs inputs;
+          outputs = self;
+        }
+      );
     in
     {
       # System configurations
@@ -213,13 +221,10 @@
         }
       );
 
-      # NixOS VM tests: `nix build .#checks.<system>.<testName>`
-      checks = lib.codgician.forLinuxSystems (
-        pkgs:
-        import ./tests {
-          inherit lib pkgs inputs;
-          outputs = self;
-        }
-      );
+      # Checks `nix flake check` builds: `nix build .#checks.<system>.<name>`
+      checks = lib.mapAttrs (_: test: test.checks) tests;
+
+      # NixOS VM tests run on demand: `nix build .#legacyPackages.<system>.vmTests.<name>`
+      legacyPackages = lib.mapAttrs (_: test: { inherit (test) vmTests; }) tests;
     };
 }

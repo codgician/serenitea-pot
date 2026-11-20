@@ -1,9 +1,10 @@
-# NixOS VM tests and evaluation checks
-#
-# Run: nix build .#checks.x86_64-linux.<testName>
+# Each folder gives `checks` and, for VM tests run on demand, `vmTests`.
 args@{ lib, ... }:
 
 let
-  testNames = lib.codgician.getFolderNames ./.;
+  tests = map (name: import ./${name} args) (lib.codgician.getFolderNames ./.);
 in
-lib.mergeAttrsList (map (name: import ./${name} args) testNames)
+{
+  checks = lib.mergeAttrsList (map (test: test.checks or { }) tests);
+  vmTests = lib.mergeAttrsList (map (test: test.vmTests or { }) tests);
+}

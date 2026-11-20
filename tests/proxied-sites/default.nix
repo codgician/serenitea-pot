@@ -50,7 +50,7 @@ let
   );
 in
 {
-  proxiedSitesServed =
+  checks.proxiedSitesServed =
     assert lib.assertMsg (unserved == [ ]) ''
       A site proxied to another host is served next to its backend by no host: ${lib.concatStringsSep ", " unserved}.
       Enable the service on a host, or remove its `codgician.services.nginx.reverseProxies.<name>.proxyPass` from the host that proxies it.

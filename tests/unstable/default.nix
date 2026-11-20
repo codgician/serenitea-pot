@@ -93,9 +93,11 @@ let
   inherit (pkgs.stdenv.hostPlatform) system;
 in
 {
-  unstableNixos = evaluates "unstable-nixos" nixosHost;
-  unstableDarwin = evaluates "unstable-darwin" darwinHost;
-  unstablePackages = pkgs.writeText "unstable-packages" (
-    builtins.unsafeDiscardStringContext (lib.concatMapStringsSep "\n" (p: p.drvPath) takenFromUnstable)
-  );
+  checks = {
+    unstableNixos = evaluates "unstable-nixos" nixosHost;
+    unstableDarwin = evaluates "unstable-darwin" darwinHost;
+    unstablePackages = pkgs.writeText "unstable-packages" (
+      builtins.unsafeDiscardStringContext (lib.concatMapStringsSep "\n" (p: p.drvPath) takenFromUnstable)
+    );
+  };
 }
