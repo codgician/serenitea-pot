@@ -1,4 +1,5 @@
 {
+  options,
   config,
   lib,
   pkgs,
@@ -34,8 +35,10 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # Enable systemd in initrd
-    boot.initrd.systemd.enable = lib.mkIf (!config.boot.isContainer) true;
+    # Enable systemd in initrd; from 26.11 on it is the only initrd and the option is gone
+    boot.initrd.systemd.enable = lib.mkIf (
+      lib.versionOlder config.system.nixos.release "26.11" && !config.boot.isContainer
+    ) true;
 
     # Use zstd compression for initrd to save ESP space
     boot.initrd.compressor = "zstd";
@@ -236,10 +239,21 @@ in
     services.fail2ban.enable = config.networking.firewall.enable;
 
     # Limit journal size
-    services.journald.extraConfig = ''
-      SystemMaxUse=1G
-      SystemMaxFileSize=32M
-    '';
+    services.journald =
+      if options.services.journald ? settings then
+        {
+          settings.Journal = {
+            SystemMaxUse = "1G";
+            SystemMaxFileSize = "32M";
+          };
+        }
+      else
+        {
+          extraConfig = ''
+            SystemMaxUse=1G
+            SystemMaxFileSize=32M
+          '';
+        };
 
     # OpenSSH
     services.openssh = {
