@@ -1,4 +1,4 @@
-{ lib, ... }:
+{ ... }:
 
 final: prev:
 let
@@ -29,7 +29,10 @@ let
     };
 in
 {
+  # ollama follows `config.cudaSupport`/`rocmSupport` of the unstable set,
+  # which inherits them, and takes no override for them.
   inherit (prev.unstable)
+    ollama
     ollama-cuda
     ollama-rocm
     ollama-vulkan
@@ -38,11 +41,9 @@ in
     litellm
     ;
 
+  llama-cpp = adapt prev.unstable.llama-cpp;
+
   pythonPackagesExtensions = (prev.pythonPackagesExtensions or [ ]) ++ [
     pythonUnstableExtension
   ];
 }
-// (lib.genAttrs [
-  "ollama"
-  "llama-cpp"
-] (name: adapt prev.unstable.${name}))
