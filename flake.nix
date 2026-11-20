@@ -66,6 +66,8 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
+    noctalia.url = "github:noctalia-dev/noctalia/cachix";
+
     plasma-manager = {
       url = "github:nix-community/plasma-manager";
       inputs = {
