@@ -16,6 +16,8 @@ in
   options.codgician.services.postfix = {
     enable = lib.mkEnableOption "postfix";
 
+    verbose = lib.mkEnableOption "debugging logs";
+
     saslPackage = lib.mkPackageOption pkgs [ "nur" "repos" "codgician" "sasl-xoauth2" ] {
       extraDescription = "It is the SASL mechanism postfix signs in to the relay with.";
     };
@@ -80,6 +82,11 @@ in
           smtp_sasl_password_maps = "texthash:${saslPasswd.outPath}";
           smtp_sasl_security_options = "";
           smtp_sasl_mechanism_filter = "xoauth2";
+        };
+
+        master = lib.mkIf cfg.verbose {
+          relay.args = [ "-v" ];
+          smtp.args = [ "-v" ];
         };
       };
     };

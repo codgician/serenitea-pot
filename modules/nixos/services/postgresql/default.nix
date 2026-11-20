@@ -12,6 +12,8 @@ in
   options.codgician.services.postgresql = {
     enable = lib.mkEnableOption "PostgreSQL";
 
+    enableTCPIP = lib.mkEnableOption "TCP/IP connections";
+
     dataDir = lib.mkOption {
       type = lib.types.path;
       default = defaultDataDir;
@@ -24,6 +26,7 @@ in
   config = lib.mkIf cfg.enable {
     services.postgresql = {
       enable = true;
+      inherit (cfg) enableTCPIP;
       dataDir = "${cfg.dataDir}/${config.services.postgresql.package.psqlSchema}";
       enableJIT = true;
       settings.full_page_writes = lib.mkIf cfg.zfsOptimizations false; # Not needed for ZFS
