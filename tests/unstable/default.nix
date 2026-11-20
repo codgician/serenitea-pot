@@ -69,6 +69,8 @@ let
             "vscode"
             "linuxPackages.mstflint_access"
             "unstable.git-credential-manager"
+            "python3Packages.ollama"
+            "python3Packages.litellm"
           ]
           ++ lib.optionals (system == "x86_64-linux") [
             "docling-serve"

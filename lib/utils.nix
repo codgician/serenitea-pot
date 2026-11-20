@@ -61,8 +61,9 @@ rec {
 
   # Overlays take packages from `unstable` only through these, each an overlay
   # that does nothing in an unstable set: a package is never defined as itself.
-  # `fromUnstable names` takes top-level packages, `.python` Python packages
-  # and `.kernel` kernel modules.
+  # `fromUnstable names` takes top-level packages and `.kernel` kernel modules.
+  # Python modules stay out: a Python package set only accepts modules built
+  # for its own interpreter, so Python code from unstable uses `pkgs.unstable`.
   mkFromUnstable =
     unstable: own:
     let
@@ -70,16 +71,6 @@ rec {
     in
     {
       __functor = _: names: take (_: _: lib.genAttrs names (name: unstable.${name}));
-
-      python =
-        names:
-        take (
-          final: prev: {
-            pythonPackagesExtensions = (prev.pythonPackagesExtensions or [ ]) ++ [
-              (pyfinal: pyprev: lib.genAttrs names (name: unstable."${pyprev.python.pythonAttr}Packages".${name}))
-            ];
-          }
-        );
 
       kernel =
         names:
