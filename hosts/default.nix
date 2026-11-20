@@ -6,15 +6,12 @@ let
   # A host folder's `default.nix` is its manifest: `system`, the ordered
   # `modules` list (order decides how list options merge), `stable` (false
   # builds the host from the unstable inputs) and, on NixOS, `cudaSupport`.
-  manifestKeys = [
-    "system"
-    "cudaSupport"
-    "stable"
-    "modules"
-  ];
-
+  # The builder's arguments are the keys a manifest of its class may set.
   mkHosts =
     class: mkSystem:
+    let
+      manifestKeys = lib.attrNames (removeAttrs (lib.functionArgs mkSystem) [ "hostName" ]);
+    in
     lib.genAttrs (lib.codgician.getFolderNames (./. + "/${class}")) (
       hostName:
       let
