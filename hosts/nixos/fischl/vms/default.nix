@@ -4,6 +4,7 @@
 
   # libvirtd
   virtualisation.libvirtd = {
+    allowedBridges = [ "vs0" ];
     hooks.qemu = {
       "10-isolate-cpu" = lib.getExe (
         pkgs.writeShellApplication {

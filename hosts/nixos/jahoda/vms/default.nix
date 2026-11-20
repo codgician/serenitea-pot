@@ -12,6 +12,7 @@
 
   # libvirtd
   virtualisation.libvirtd = {
+    allowedBridges = [ "vs0" ];
     qemu = {
       vhostUserPackages = with pkgs; [ virtiofsd ];
       verbatimConfig = ''

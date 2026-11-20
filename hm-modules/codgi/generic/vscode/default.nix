@@ -10,11 +10,15 @@ let
   fontSize = 14;
 in
 {
-  options.codgician.codgi.vscode.enable = lib.mkEnableOption "Visual Studio Code";
+  options.codgician.codgi.vscode = {
+    enable = lib.mkEnableOption "Visual Studio Code";
+    package = lib.mkPackageOption pkgs "vscode" { };
+  };
 
   config = lib.mkIf cfg.enable {
     programs.vscode = {
       enable = true;
+      inherit (cfg) package;
       mutableExtensionsDir = false;
 
       profiles.default = {
