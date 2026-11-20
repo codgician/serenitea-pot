@@ -154,6 +154,18 @@ let
     else
       "/run/redis-${serviceName}/redis.sock";
 
+  # agy's User-Agent; Blaze embeds the changelist (cl) in the agy binary.
+  antigravityUserAgentEnv =
+    let
+      agy = pkgs.unstable.antigravity-cli;
+    in
+    with pkgs.stdenv.hostPlatform.go;
+    pkgs.runCommand "antigravity-user-agent.env" { } ''
+      cl=$(grep -a -o -E 'changelist [0-9]+ with baseline' ${lib.getExe agy} | head -n 1 | cut -d ' ' -f 2)
+      [[ $cl =~ ^[0-9]+$ ]] || { echo "no changelist in ${lib.getExe agy}" >&2; exit 1; }
+      echo "ANTIGRAVITY_USER_AGENT=antigravity/cli/${agy.version} (aidev_client; os_type=${GOOS}; arch=${GOARCH}; cl=$cl; auth_method=consumer)" > $out
+    '';
+
   # Environment variables
   environment = {
     "PYTHONPATH" = if cfg.backend == "nixpkgs" then "${hooksDir}" else "/";
@@ -332,6 +344,7 @@ in
         Group = group;
         # Ensure access to Redis socket
         SupplementaryGroups = [ config.services.redis.servers.${serviceName}.group ];
+        EnvironmentFile = [ antigravityUserAgentEnv ];
       };
     })
 
@@ -399,7 +412,10 @@ in
           "/config.yaml"
         ];
         inherit environment;
-        environmentFiles = [ config.codgician.secrets.templates."litellm-env".path ];
+        environmentFiles = [
+          config.codgician.secrets.templates."litellm-env".path
+          antigravityUserAgentEnv
+        ];
       };
     })
 

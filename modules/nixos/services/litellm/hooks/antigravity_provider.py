@@ -56,10 +56,6 @@ SCOPES = " ".join(
         "openid",
     )
 )
-# Backend model gating uses the hub version, not the changelist.
-USER_AGENT = (
-    "antigravity/hub/2.26.0 (aidev_client; os_type=linux; arch=amd64; cl=1005016104)"
-)
 SKIP_SIGNATURE = "skip_thought_signature_validator"
 ENCODED_SKIP_SIGNATURE = base64.b64encode(SKIP_SIGNATURE.encode()).decode()
 # Antigravity's Gemini location gate rejects lumine's Azure IPv6 egress while
@@ -86,7 +82,7 @@ def _credential_path() -> Path:
 def _headers(token: str) -> dict[str, str]:
     return {
         "Authorization": f"Bearer {token}",
-        "User-Agent": USER_AGENT,
+        "User-Agent": os.environ["ANTIGRAVITY_USER_AGENT"],
         "Accept-Encoding": "gzip",
     }
 
@@ -207,6 +203,10 @@ def _credentials() -> dict:
     with os.fdopen(lock_fd, "w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         credentials = json.loads(path.read_text())
+        if "session_id" not in credentials:
+            # agy sends one sessionId for every conversation of an installation.
+            credentials["session_id"] = "-" + str(secrets.randbits(63))
+            _save(path, credentials)
         if credentials["expires_at"] <= time.time() + 60:
             result = _refresh_token(credentials["refresh_token"])
             credentials.update(
@@ -393,7 +393,7 @@ class AntigravityProvider(CustomLLM):
         routes = info["routes"]
         wire = routes.get(
             effort,
-            routes.get("high" if effort in ("xhigh", "max", "medium") else "low"),
+            routes.get("high" if effort == "medium" else "low"),
         )
         profile = credentials["models"].get(wire)
         if not profile or profile.get("disabled") or profile.get("isInternal"):
@@ -436,6 +436,8 @@ class AntigravityProvider(CustomLLM):
                         part["thoughtSignature"] = SKIP_SIGNATURE
                 if "functionResponse" in part:
                     part["functionResponse"].pop("id", None)
+        # agy counts Gemini contents, so system messages are not steps.
+        step = max(1, len(body["contents"]))
         if body.get("tools"):
             body.setdefault(
                 "toolConfig", {"functionCallingConfig": {"mode": "VALIDATED"}}
@@ -466,7 +468,7 @@ class AntigravityProvider(CustomLLM):
             generation["maxOutputTokens"] = profile["maxOutputTokens"]
         thinking = generation.setdefault("thinkingConfig", {"includeThoughts": True})
         if len(set(routes.values())) > 1:
-            level = {1: "LOW", 2: "MEDIUM", 3: "HIGH", 100: "xhigh"}.get(
+            level = {1: "LOW", 2: "MEDIUM", 3: "HIGH", 100: "XHIGH"}.get(
                 profile.get("thinkingLevel")
             )
             if level:
@@ -475,20 +477,23 @@ class AntigravityProvider(CustomLLM):
             elif "thinkingBudget" in profile:
                 thinking.pop("thinkingLevel", None)
                 thinking["thinkingBudget"] = profile["thinkingBudget"]
-        first = next(
-            (m.get("content") for m in messages if m.get("role") == "user"), ""
-        )
+        if "thinkingLevel" in thinking:
+            # CCA's ThinkingLevel enum is uppercase; LiteLLM maps efforts to lowercase.
+            thinking["thinkingLevel"] = thinking["thinkingLevel"].upper()
+        # A conversation is identified by everything up to its first user turn.
+        opening = []
+        for message in messages:
+            opening.append(message.get("content"))
+            if message.get("role") == "user":
+                break
         identity = hashlib.sha256(
-            json.dumps(first, ensure_ascii=False).encode()
+            json.dumps(opening, ensure_ascii=False).encode()
         ).digest()
         agent, trajectory = (
             str(uuid.UUID(bytes=identity[:16])),
             str(uuid.UUID(bytes=identity[16:])),
         )
-        step = max(1, len(messages))
-        body["sessionId"] = "-" + str(
-            int.from_bytes(identity[:8], "big") & ((1 << 63) - 1)
-        )
+        body["sessionId"] = credentials["session_id"]
         labels = {"cascade_id": agent, "last_step_index": str(step - 1)}
         if profile.get("model"):
             labels["model_enum"] = profile["model"]
@@ -507,6 +512,7 @@ class AntigravityProvider(CustomLLM):
             "request": body,
             "model": wire,
             "userAgent": "antigravity",
+            "requestType": "agent",
         }
 
     async def _generate(
