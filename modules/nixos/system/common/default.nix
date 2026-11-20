@@ -14,9 +14,24 @@ let
   };
 in
 {
-  options.codgician.system.common.audio.enable = lib.mkEnableOption "PipeWire audio stack";
+  options.codgician.system.common = {
+    audio.enable = lib.mkEnableOption "PipeWire audio stack";
 
-  config = {
+    apparmor.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "AppArmor mandatory access control (enforcement with journald-visible logs).";
+    };
+
+    audit.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = !config.boot.isContainer;
+      defaultText = lib.literalExpression "!config.boot.isContainer";
+      description = "Linux kernel audit subsystem and auditd userspace daemon.";
+    };
+  };
+
+  config = lib.mkIf cfg.enable {
     # Enable systemd in initrd
     boot.initrd.systemd.enable = lib.mkIf (!config.boot.isContainer) true;
 
@@ -166,15 +181,15 @@ in
       rtkit.enable = lib.mkIf cfg.audio.enable true;
 
       audit = {
-        enable = !config.boot.isContainer;
+        enable = cfg.audit.enable;
         backlogLimit = 8192;
       };
 
-      auditd.enable = !config.boot.isContainer;
+      auditd.enable = cfg.audit.enable;
       apparmor = {
         # NixOS automatically appends "apparmor" to `security.lsm` and sets
         # `apparmor=1` when enabled, so no manual `lsm=` wiring is needed.
-        enable = true;
+        enable = cfg.apparmor.enable;
         packages = with pkgs; [ apparmor-profiles ];
         killUnconfinedConfinables = true;
       };
