@@ -91,6 +91,9 @@ let
           members.enable = true;
 
           nginx = {
+            enable = true;
+            openFirewall = true;
+
             reverseProxies = {
               # This host is the public entry of a site another host serves.
               remote.proxyPass = "http://127.0.0.1:8082";
