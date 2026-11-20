@@ -8,6 +8,10 @@ in
       jupyter = {
         enable = true;
         notebookDir = "/lab/jupyter";
+        kernels = {
+          ihaskell.enable = true;
+          python.enable = true;
+        };
       };
 
       openvscode-server.enable = true;

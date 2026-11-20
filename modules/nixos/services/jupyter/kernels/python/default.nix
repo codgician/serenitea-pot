@@ -76,7 +76,10 @@ let
   };
 in
 {
-  config = lib.mkIf cfg.enable {
+  options.codgician.services.jupyter.kernels.python.enable =
+    lib.mkEnableOption "this Python kernel instance";
+
+  config = lib.mkIf (cfg.enable && cfg.kernels.python.enable) {
     services.jupyter.kernels.python-default = {
       displayName = "Python (default)";
       language = "python";

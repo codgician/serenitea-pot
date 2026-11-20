@@ -39,20 +39,27 @@ let
   };
 in
 {
-  options.codgician.services.jupyter.kernels.ihaskell.package =
-    lib.mkPackageOption pkgs "ihaskell"
-      { };
-
-  config = lib.mkIf config.codgician.services.jupyter.enable {
-    services.jupyter.kernels.ihaskell-default = {
-      displayName = "Haskell (default)";
-      language = "haskell";
-      argv = [
-        (lib.getExe' ihaskell "ihaskell")
-        "kernel"
-        "{connection_file}"
-      ];
-      env = { };
-    };
+  options.codgician.services.jupyter.kernels.ihaskell = {
+    enable = lib.mkEnableOption "this IHaskell kernel instance";
+    package = lib.mkPackageOption pkgs "ihaskell" { };
   };
+
+  config =
+    lib.mkIf
+      (
+        config.codgician.services.jupyter.enable
+        && config.codgician.services.jupyter.kernels.ihaskell.enable
+      )
+      {
+        services.jupyter.kernels.ihaskell-default = {
+          displayName = "Haskell (default)";
+          language = "haskell";
+          argv = [
+            (lib.getExe' ihaskell "ihaskell")
+            "kernel"
+            "{connection_file}"
+          ];
+          env = { };
+        };
+      };
 }
