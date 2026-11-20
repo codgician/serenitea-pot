@@ -1,4 +1,4 @@
-{ ... }:
+{ lib, ... }:
 {
   codgician = {
     services = {
@@ -14,6 +14,7 @@
       postgresql.zfsOptimizations = true;
       sing-box = {
         enable = true;
+        domain = "lumine.${lib.codgician.zone}";
         users = [ "codgi" ];
         servers.hysteria2.enable = true;
       };

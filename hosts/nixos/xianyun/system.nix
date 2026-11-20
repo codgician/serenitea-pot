@@ -1,4 +1,4 @@
-{ ... }:
+{ lib, ... }:
 {
   codgician = {
     services = {
@@ -22,6 +22,7 @@
 
       sing-box = {
         enable = true;
+        domain = "xianyun.${lib.codgician.zone}";
         users = [
           "codgi"
           "lxm75"
