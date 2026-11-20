@@ -21,7 +21,15 @@ in
       swtpm.enable = true;
     };
 
-    # The hosts persist /var/lib/libvirt and /var/lib/swtpm-localca themselves:
-    # listed here they would merge ahead of every other persisted directory.
+    codgician.system.impermanence.extraItems = [
+      {
+        type = "directory";
+        path = "/var/lib/libvirt";
+      }
+      {
+        type = "directory";
+        path = "/var/lib/swtpm-localca";
+      }
+    ];
   };
 }

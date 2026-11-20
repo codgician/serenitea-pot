@@ -78,16 +78,4 @@
 
   # kvm grants access to /dev/kvmfr0
   codgician.users.codgi.extraGroups = [ "kvm" ];
-
-  # Impermanence for libvirt and swtpm state
-  codgician.system.impermanence.extraItems = [
-    {
-      type = "directory";
-      path = "/var/lib/libvirt";
-    }
-    {
-      type = "directory";
-      path = "/var/lib/swtpm-localca";
-    }
-  ];
 }
