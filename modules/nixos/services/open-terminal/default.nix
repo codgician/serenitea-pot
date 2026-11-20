@@ -34,7 +34,9 @@ in
     virtualisation.oci-containers.containers.open-terminal = {
       autoStart = true;
       inherit (cfg) image;
-      ports = [ "127.0.0.1:${toString port}:8000" ];
+      ports = [
+        "${if cfg.openFirewall then "0.0.0.0" else "127.0.0.1"}:${toString port}:8000"
+      ];
       volumes = [
         "${dataDir}:/home/user:U"
         "/run/${serviceName}/config.toml:/etc/open-terminal/config.toml:ro"

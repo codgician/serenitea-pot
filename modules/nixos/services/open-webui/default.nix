@@ -417,7 +417,7 @@ in
 
       services.open-webui = {
         enable = true;
-        host = "127.0.0.1";
+        host = if cfg.openFirewall then "0.0.0.0" else "127.0.0.1";
         inherit port;
         inherit (cfg)
           stateDir
