@@ -30,10 +30,6 @@ in
 
         bubbles.proxyPass = "http://192.168.0.24:1234";
 
-        # Nothing on paimon answers for this name any more; the vhost can go
-        # with the next change to lumine's nginx configuration.
-        docling-serve.proxyPass = paimon;
-
         dsh-web = {
           proxyPass = nahida;
           locations."/".extraConfig = ''

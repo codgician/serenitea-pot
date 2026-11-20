@@ -8,8 +8,6 @@ in
   codgician.services.nginx.reverseProxies = {
     bubbles.domains = [ "bubbles.${zone}" ];
 
-    docling-serve.domains = [ "vision.${zone}" ];
-
     # The dsh Web UI, a Home Manager service on nahida.
     dsh-web = {
       domains = [ "moongazer.${zone}" ];

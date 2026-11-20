@@ -24,8 +24,7 @@ in
     {
       codgician.services.nginx.reverseProxies.jupyter = {
         domains = [ "dragonspine.${lib.codgician.zone}" ];
-        # Jupyter runs without authentication of its own. No subject was
-        # ever declared for this site.
+        # Jupyter runs without authentication of its own.
         authelia.anyone = true;
       };
     }

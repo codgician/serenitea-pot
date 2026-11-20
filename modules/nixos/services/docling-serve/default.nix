@@ -8,8 +8,6 @@ let
   serviceName = "docling-serve";
   cfg = config.codgician.services.${serviceName};
   types = lib.types;
-  # The site's domain stays in nginx/sites.nix: lumine still proxies it with
-  # no backend in the fleet, which the proxied-sites check allows only there.
   host = "127.0.0.1";
   port = 5001;
   defaultStateDir = "/var/lib/${serviceName}";
@@ -95,6 +93,10 @@ in
   };
 
   config = lib.mkMerge [
+    {
+      codgician.services.nginx.reverseProxies.${serviceName}.domains = [ "vision.${lib.codgician.zone}" ];
+    }
+
     (lib.mkIf cfg.enable {
       codgician.services.nginx.reverseProxies.${serviceName}.proxyPass =
         "http://${host}:${builtins.toString port}";
