@@ -83,7 +83,15 @@ let
   self = members.${hostName};
 in
 {
-  options.codgician.services.wireguard.enable = lib.mkEnableOption "WireGuard mesh membership.";
+  options.codgician.services.wireguard = {
+    enable = lib.mkEnableOption "WireGuard mesh membership.";
+
+    openFirewall = lib.mkEnableOption "Open firewall for WireGuard ports.";
+
+    allowedIPsAsRoutes = lib.mkEnableOption ''
+      Whether to add allowed IPs as routes or not.
+    '';
+  };
 
   config = lib.mkIf cfg.enable {
     environment.systemPackages = with pkgs; [
@@ -99,7 +107,7 @@ in
             "${self.ipv6}/48"
           ];
           mtu = 1380;
-          allowedIPsAsRoutes = true;
+          inherit (cfg) allowedIPsAsRoutes;
           listenPort = self.port;
           peers = lib.mapAttrsToList (name: peer: {
             inherit name;
@@ -119,7 +127,7 @@ in
         useNetworkd = false; # See: https://github.com/systemd/systemd/issues/9911
       };
 
-      firewall.allowedUDPPorts = [ self.port ];
+      firewall.allowedUDPPorts = lib.mkIf cfg.openFirewall [ self.port ];
     };
 
     # A member routes between the mesh and its other networks and answers

@@ -17,7 +17,11 @@
         users = [ "codgi" ];
         servers.hysteria2.enable = true;
       };
-      wireguard.enable = true;
+      wireguard = {
+        enable = true;
+        openFirewall = true;
+        allowedIPsAsRoutes = true;
+      };
     };
 
     system = {

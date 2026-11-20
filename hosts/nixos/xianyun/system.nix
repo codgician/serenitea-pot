@@ -31,7 +31,11 @@
         servers.shadowsocks.enable = true;
       };
 
-      wireguard.enable = true;
+      wireguard = {
+        enable = true;
+        openFirewall = true;
+        allowedIPsAsRoutes = true;
+      };
     };
 
     system = {
