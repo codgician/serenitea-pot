@@ -1,5 +1,6 @@
 { config, lib, ... }:
 let
+  cfg = config.codgician.services.anubis;
   inherit (config.codgician.services) nginx;
 
   # Sites this host proxies through Anubis; nginx sends their traffic here.
@@ -31,35 +32,48 @@ let
     };
 in
 {
-  config = lib.mkIf (anubisSites != { }) {
-    # nginx needs access to the Anubis Unix sockets.
-    users.users.nginx.extraGroups = [ "anubis" ];
+  options.codgician.services.anubis.enable = lib.mkEnableOption "Anubis bot protection";
 
-    services.anubis = {
-      defaultOptions.settings = {
-        DIFFICULTY = 4;
-        OG_PASSTHROUGH = true;
-        SERVE_ROBOTS_TXT = false;
-        # Share challenge passes across subdomains.
-        COOKIE_DOMAIN = lib.codgician.zone;
+  config = lib.mkMerge [
+    {
+      assertions = lib.mapAttrsToList (name: _: {
+        assertion = cfg.enable;
+        message = ''
+          anubis: site "${name}" sets `anubis = true` but this host does not enable Anubis. Set `codgician.services.anubis.enable = true`.
+        '';
+      }) anubisSites;
+    }
+
+    (lib.mkIf cfg.enable {
+      # nginx needs access to the Anubis Unix sockets.
+      users.users.nginx.extraGroups = [ "anubis" ];
+
+      services.anubis = {
+        defaultOptions.settings = {
+          DIFFICULTY = 4;
+          OG_PASSTHROUGH = true;
+          SERVE_ROBOTS_TXT = false;
+          # Share challenge passes across subdomains.
+          COOKIE_DOMAIN = lib.codgician.zone;
+        };
+
+        instances = lib.mapAttrs' (
+          name: site: lib.nameValuePair (sanitizeName name) (mkInstance name site)
+        ) anubisSites;
       };
 
-      instances = lib.mapAttrs' (
-        name: site: lib.nameValuePair (sanitizeName name) (mkInstance name site)
+      # Inject the signing key into every Anubis instance.
+      systemd.services = lib.mapAttrs' (
+        name: _:
+        lib.nameValuePair "anubis-${sanitizeName name}" {
+          serviceConfig.EnvironmentFile = [ config.codgician.secrets.templates."anubis-env".path ];
+        }
       ) anubisSites;
-    };
 
-    # Inject the signing key into every Anubis instance.
-    systemd.services = lib.mapAttrs' (
-      name: _:
-      lib.nameValuePair "anubis-${sanitizeName name}" {
-        serviceConfig.EnvironmentFile = [ config.codgician.secrets.templates."anubis-env".path ];
-      }
-    ) anubisSites;
-
-    assertions = lib.mapAttrsToList (name: site: {
-      assertion = targetOf site != null;
-      message = ''anubis: site "${name}" has no upstream for Anubis to protect.'';
-    }) anubisSites;
-  };
+      assertions = lib.mapAttrsToList (name: site: {
+        assertion = targetOf site != null;
+        message = ''anubis: site "${name}" has no upstream for Anubis to protect.'';
+      }) anubisSites;
+    })
+  ];
 }

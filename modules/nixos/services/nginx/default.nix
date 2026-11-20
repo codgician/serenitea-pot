@@ -262,6 +262,10 @@ in
   imports = [ ./sites.nix ];
 
   options.codgician.services.nginx = {
+    enable = lib.mkEnableOption "nginx";
+
+    openFirewall = lib.mkEnableOption "Open port 80 and 443 in firewall configuration.";
+
     package = lib.mkPackageOption pkgs "nginx" { default = "nginxMainlineEch"; };
 
     trustedProxies = lib.mkOption {
@@ -307,8 +311,9 @@ in
         without a module. The site is an HTTPS virtual host on every host
         that sets `proxyPass`: the module does where the service is enabled,
         a host does in its own files where it is the public entry of a site
-        another host serves, or for something without a module. NGINX, its
-        firewall ports and the certificates follow.
+        another host serves, or for something without a module. Such a host
+        sets `enable` (and `openFirewall` to be reached); the certificates
+        follow.
       '';
     };
   };
@@ -339,10 +344,16 @@ in
               '';
             }
           ]) declared
-        );
+        )
+        ++ lib.mapAttrsToList (name: _: {
+          assertion = cfg.enable;
+          message = ''
+            nginx: this host serves "${name}" but does not enable NGINX. Set `codgician.services.nginx.enable = true`.
+          '';
+        }) vhosts;
     }
 
-    (lib.mkIf (vhosts != { }) {
+    (lib.mkIf cfg.enable {
       services.nginx = {
         enable = true;
         inherit (cfg) package;
@@ -380,7 +391,7 @@ in
         ];
       };
 
-      networking.firewall = {
+      networking.firewall = lib.mkIf cfg.openFirewall {
         allowedTCPPorts = [
           80
           443

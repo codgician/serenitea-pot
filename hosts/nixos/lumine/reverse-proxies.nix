@@ -10,7 +10,12 @@ in
   codgician = {
     secrets.files.saw-basic-auth.owner = "nginx";
 
+    services.anubis.enable = true;
+
     services.nginx = {
+      enable = true;
+      openFirewall = true;
+
       landingPage = {
         domain = zone;
         footer = "Our paths will surely cross";

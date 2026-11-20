@@ -4,13 +4,17 @@
     services = {
       coturn.enable = true;
 
-      nginx.landingPage = {
-        domain = "codgi.cn";
-        footer = ''
-          Coming Soon...
-          <footer>
-            <a href="https://beian.miit.gov.cn/">蜀ICP备2026006850号</a>
-          </footer>'';
+      nginx = {
+        enable = true;
+        openFirewall = true;
+        landingPage = {
+          domain = "codgi.cn";
+          footer = ''
+            Coming Soon...
+            <footer>
+              <a href="https://beian.miit.gov.cn/">蜀ICP备2026006850号</a>
+            </footer>'';
+        };
       };
 
       sing-box = {

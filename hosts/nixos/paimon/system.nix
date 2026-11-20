@@ -4,6 +4,11 @@
     services = {
       nats.enable = true;
 
+      nginx = {
+        enable = true;
+        openFirewall = true;
+      };
+
       mcpo = {
         enable = true;
         dataDir = "/xpool/appdata/mcpo";

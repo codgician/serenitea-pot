@@ -16,15 +16,20 @@ in
 
       openvscode-server.enable = true;
 
-      # The dsh Web UI is a Home Manager service; its site is in the nginx module.
-      nginx.reverseProxies.dsh-web = {
-        proxyPass = "http://127.0.0.1:${toString dshPort}";
-        locations."/".extraConfig = ''
-          # dsh's initial URL contains a browser login token.
-          access_log off;
-          proxy_cookie_flags ~^dsh-auth- secure;
-          proxy_buffering off;
-        '';
+      nginx = {
+        enable = true;
+        openFirewall = true;
+
+        # The dsh Web UI is a Home Manager service; its site is in the nginx module.
+        reverseProxies.dsh-web = {
+          proxyPass = "http://127.0.0.1:${toString dshPort}";
+          locations."/".extraConfig = ''
+            # dsh's initial URL contains a browser login token.
+            access_log off;
+            proxy_cookie_flags ~^dsh-auth- secure;
+            proxy_buffering off;
+          '';
+        };
       };
     };
 
