@@ -19,6 +19,8 @@ in
       example = "/mnt/gitlab";
       description = "Path to store GitLab state data.";
     };
+
+    pages.enable = lib.mkEnableOption "GitLab Pages";
   };
 
   config = lib.mkMerge [
@@ -72,7 +74,8 @@ in
           };
 
           pages = {
-            enabled = false;
+            enabled = cfg.pages.enable;
+            host = lib.mkIf cfg.pages.enable "pages.${lib.codgician.zone}";
             port = 443;
             https = true;
             external_https = [ "127.0.0.1:443" ];
