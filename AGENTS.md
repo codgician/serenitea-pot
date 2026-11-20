@@ -43,7 +43,7 @@ What a host runs: the `enable` lines in its files. No host evaluates another; th
 - Reference secrets by path (`"/run/secrets/..."`); use `config.codgician.secrets.files.<name>.path` or `templates."<name>".path`
 - Write raw `.tf` files, or `${...}` interpolation in Terranix (use `config.resource.X.Y "attr"`)
 - Build a host other than through its folder and manifest under `hosts/`
-- Add a table of facts no module owns, an option whose default depends on the host name, or a file shared between hosts
+- Add a table of facts no module owns, a named group of hosts (in `secrets/secrets.nix` or anywhere else), an option whose default depends on the host name, or a file shared between hosts
 - Type the zone in new Nix code; use `lib.codgician.zone`
 - Use `config.services.*` where `config.codgician.*` exists
 - Create or edit any `*.md` file, unless the user asks for it or the Documentation section allows it
