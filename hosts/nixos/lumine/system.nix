@@ -22,7 +22,16 @@
       wireguard = {
         enable = true;
         openFirewall = true;
-        allowedIPsAsRoutes = true;
+        interfaces.wg0 = {
+          host = "lumine";
+          peers = [
+            "furina"
+            "lumidouce"
+            "qiaoying"
+            "xianyun"
+          ];
+          allowedIPsAsRoutes = true;
+        };
       };
     };
 

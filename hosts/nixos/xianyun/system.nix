@@ -37,7 +37,16 @@
       wireguard = {
         enable = true;
         openFirewall = true;
-        allowedIPsAsRoutes = true;
+        interfaces.wg0 = {
+          host = "xianyun";
+          peers = [
+            "furina"
+            "lumidouce"
+            "lumine"
+            "qiaoying"
+          ];
+          allowedIPsAsRoutes = true;
+        };
       };
     };
 
