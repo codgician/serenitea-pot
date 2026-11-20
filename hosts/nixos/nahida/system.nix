@@ -31,6 +31,8 @@ in
           '';
         };
       };
+
+      nixos-vscode-server.enable = true;
     };
 
     system = {
@@ -41,8 +43,6 @@ in
 
     users.codgi.enable = true;
   };
-
-  services.vscode-server.enable = true;
 
   home-manager.users.codgi = {
     codgician.codgi = {

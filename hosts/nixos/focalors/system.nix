@@ -3,6 +3,7 @@
   codgician = {
     services = {
       fcitx5.enable = true;
+      nixos-vscode-server.enable = true;
       plasma = {
         enable = true;
         wallpaper =
@@ -25,8 +26,6 @@
 
     users.codgi.enable = true;
   };
-
-  services.vscode-server.enable = true;
 
   home-manager.users.codgi = {
     codgician.codgi = {

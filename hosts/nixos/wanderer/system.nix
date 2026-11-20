@@ -1,5 +1,7 @@
 {
   codgician = {
+    services.nixos-vscode-server.enable = true;
+
     system = {
       auto-upgrade.enable = true;
       wsl = {
@@ -10,8 +12,6 @@
 
     users.codgi.enable = true;
   };
-
-  services.vscode-server.enable = true;
 
   home-manager.users.codgi = {
     codgician.codgi = {

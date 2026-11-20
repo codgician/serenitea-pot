@@ -20,6 +20,8 @@
         };
       };
 
+      nixos-vscode-server.enable = true;
+
       sing-box = {
         enable = true;
         domain = "xianyun.${lib.codgician.zone}";
@@ -50,8 +52,6 @@
 
     users.codgi.enable = true;
   };
-
-  services.vscode-server.enable = true;
 
   home-manager.users.codgi = {
     codgician.codgi = {

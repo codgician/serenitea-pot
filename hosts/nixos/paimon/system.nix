@@ -12,6 +12,8 @@
         openFirewall = true;
       };
 
+      nixos-vscode-server.enable = true;
+
       mcpo = {
         enable = true;
         dataDir = "/xpool/appdata/mcpo";
@@ -221,8 +223,6 @@
       };
     };
   };
-
-  services.vscode-server.enable = true;
 
   home-manager.users.codgi = {
     codgician.codgi = {

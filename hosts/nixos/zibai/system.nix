@@ -19,6 +19,8 @@
         };
       };
 
+      nixos-vscode-server.enable = true;
+
       # RAS hardware error monitoring (EDAC/DIMM ECC, PCIe AER, CPU MCE)
       rasdaemon.enable = true;
     };
@@ -43,8 +45,6 @@
       };
     };
   };
-
-  services.vscode-server.enable = true;
 
   # Wireless configuration (wpa_supplicant)
   networking.wireless = {

@@ -10,6 +10,7 @@
           authelia.enable = true;
         };
       };
+      nixos-vscode-server.enable = true;
       ovis-relay.enable = true;
       postgresql.zfsOptimizations = true;
       sing-box = {
@@ -35,8 +36,6 @@
 
     users.codgi.enable = true;
   };
-
-  services.vscode-server.enable = true;
 
   home-manager.users.codgi = {
     codgician.codgi = {
