@@ -130,6 +130,7 @@ rec {
     ++ (with inputs; [
       impermanence.nixosModules.impermanence
       disko.nixosModules.disko
+      noctalia.nixosModules.default
       sops-nix.nixosModules.sops
       lanzaboote.nixosModules.lanzaboote
       nixos-wsl.nixosModules.wsl
