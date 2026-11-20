@@ -9,6 +9,10 @@ let
   inherit (lib) types;
 
   defaultCacheDir = "/var/lib/llm-cache";
+  containerKernelConfigDir = "/sgl-workspace/sglang/python/sglang/kernels/ops/quantization/configs";
+  containerAdaptiveSpeculativeConfigPath = "/tmp/sglang-adaptive-speculative.json";
+  hasNvidia = config.hardware.nvidia-container-toolkit.enable or false;
+  inChina = config.codgician.system.common.inChina;
   scrapeHost =
     host:
     if
@@ -47,10 +51,27 @@ let
       description = "SGLang HTTP server port inside and outside the container.";
     };
 
+    device = lib.mkOption {
+      type = types.enum [
+        "cuda"
+        "cpu"
+      ];
+      default = if hasNvidia then "cuda" else "cpu";
+      defaultText = lib.literalExpression ''if config.hardware.nvidia-container-toolkit.enable then "cuda" else "cpu"'';
+      description = "Inference device. CUDA instances receive every NVIDIA GPU through CDI.";
+    };
+
     memFractionStatic = lib.mkOption {
       type = types.float;
       default = 0.9;
       description = "Fraction of GPU memory reserved for model weights and the KV cache pool.";
+    };
+
+    useModelScope = lib.mkOption {
+      type = types.bool;
+      default = inChina;
+      defaultText = lib.literalExpression "config.codgician.system.common.inChina";
+      description = "Download models from ModelScope instead of Hugging Face.";
     };
 
     environmentVariables = lib.mkOption {
@@ -68,6 +89,25 @@ let
         "fp8_e4m3"
       ];
     };
+
+    adaptiveSpeculativeConfig = lib.mkOption {
+      type = types.nullOr types.path;
+      default = null;
+      description = ''
+        JSON configuration for `--speculative-adaptive-config`. The file is
+        mounted read-only inside the container when set.
+      '';
+    };
+
+    kernelConfigDir = lib.mkOption {
+      type = types.nullOr types.path;
+      default = null;
+      description = ''
+        Directory containing per-shape W8A8 kernel tuning configurations.
+        The files must match the image's SGLang, Triton, CUDA, GPU, and
+        quantization versions.
+      '';
+    };
   };
 
   mkContainer =
@@ -78,18 +118,32 @@ let
       environment = {
         HF_HUB_DOWNLOAD_TIMEOUT = "600";
       }
-      // lib.optionalAttrs config.codgician.system.common.inChina {
+      // lib.optionalAttrs c.useModelScope {
         SGLANG_USE_MODELSCOPE = "true";
       }
       // c.environmentVariables;
-      volumes = [ "${cfg.cacheDir}:/root/.cache:rw" ];
+      volumes = [
+        "${cfg.cacheDir}:/root/.cache:rw"
+      ]
+      ++ lib.optionals (c.kernelConfigDir != null) (
+        map (
+          file:
+          let
+            targetName = lib.replaceStrings [ "[128,128]" ] [ "[128, 128]" ] file;
+          in
+          "${c.kernelConfigDir}/${file}:${containerKernelConfigDir}/${targetName}:ro"
+        ) (builtins.attrNames (builtins.readDir c.kernelConfigDir))
+      )
+      ++ lib.optionals (c.adaptiveSpeculativeConfig != null) [
+        "${c.adaptiveSpeculativeConfig}:${containerAdaptiveSpeculativeConfigPath}:ro"
+      ];
       ports = [ "${c.host}:${toString c.port}:${toString c.port}" ];
       extraOptions = [
         "--pull=newer"
         "--ipc=host"
         "--ulimit=memlock=-1"
-        "--device=nvidia.com/gpu=all"
-      ];
+      ]
+      ++ lib.optionals (c.device == "cuda") [ "--device=nvidia.com/gpu=all" ];
       cmd = [
         "python3"
         "-m"
@@ -100,10 +154,16 @@ let
         "0.0.0.0"
         "--port"
         (toString c.port)
+      ]
+      ++ lib.optionals (c.device == "cuda") [
         "--mem-fraction-static"
         (toString c.memFractionStatic)
       ]
       ++ lib.optional cfg.monitoring.enable "--enable-metrics"
+      ++ lib.optionals (c.adaptiveSpeculativeConfig != null) [
+        "--speculative-adaptive-config"
+        containerAdaptiveSpeculativeConfigPath
+      ]
       ++ c.extraArgs;
     };
 in
@@ -128,7 +188,7 @@ in
     instances = lib.mkOption {
       type = types.attrsOf (types.submodule instanceModule);
       default = { };
-      description = "SGLang server instances. Each receives every NVIDIA GPU through CDI.";
+      description = "SGLang server instances.";
     };
   };
 
@@ -143,11 +203,11 @@ in
         assertion = builtins.length names == 1;
         message = "codgician.services.sglang: multiple instances bind to ${key} (${lib.concatStringsSep ", " names}).";
       }) grouped
+      ++ lib.mapAttrsToList (name: c: {
+        assertion = c.device != "cuda" || hasNvidia;
+        message = "codgician.services.sglang.instances.${name}.device is \"cuda\" but hardware.nvidia-container-toolkit is disabled.";
+      }) cfg.instances
       ++ [
-        {
-          assertion = config.hardware.nvidia-container-toolkit.enable;
-          message = "codgician.services.sglang requires hardware.nvidia-container-toolkit.enable.";
-        }
         {
           assertion = !cfg.monitoring.enable || config.codgician.services.prometheus.enable;
           message = "codgician.services.sglang.monitoring requires codgician.services.prometheus.enable.";
