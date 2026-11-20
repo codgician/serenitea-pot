@@ -159,9 +159,14 @@ let
   # The container reaches Redis and PostgreSQL through sockets mounted from the host.
   redisSocketPath = "/run/redis-${serviceName}/redis.sock";
 
+  # Where the hooks and the token directories are, as the server sees them
+  isContainer = cfg.backend == "container";
+  hooksPath = if isContainer then "/" else "${hooksDir}";
+  tokenDir = if isContainer then "/config" else stateDir;
+
   # Environment variables
   environment = {
-    "PYTHONPATH" = "/";
+    "PYTHONPATH" = hooksPath;
     # Require pending PR: https://github.com/BerriAI/litellm/pull/34889
     "GITHUB_COPILOT_CLIENT_ID" = "Ov23li8tweQw6odWQebz";
     "GITHUB_COPILOT_USER_AGENT" = "opencode/${pkgs.llm-agents.opencode.version}";
@@ -172,10 +177,10 @@ let
     "GITHUB_COPILOT_OPENAI_INTENT" = "conversation-edits";
     "AUTO_REDIRECT_UI_LOGIN_TO_SSO" = "True";
     "DO_NOT_TRACK" = "True";
-    "GITHUB_COPILOT_TOKEN_DIR" = "/config/github";
-    "CHATGPT_TOKEN_DIR" = "/config/chatgpt";
-    "XAI_OAUTH_TOKEN_DIR" = "/config/xai";
-    "ANTIGRAVITY_TOKEN_DIR" = "/config/antigravity";
+    "GITHUB_COPILOT_TOKEN_DIR" = "${tokenDir}/github";
+    "CHATGPT_TOKEN_DIR" = "${tokenDir}/chatgpt";
+    "XAI_OAUTH_TOKEN_DIR" = "${tokenDir}/xai";
+    "ANTIGRAVITY_TOKEN_DIR" = "${tokenDir}/antigravity";
     "REDIS_URL" = "unix://${redisSocketPath}";
   }
   // lib.optionalAttrs cfg.adminUi.enable {
@@ -203,6 +208,21 @@ in
   options.codgician.services.litellm = {
     enable = lib.mkEnableOption "LiteLLM proxy";
 
+    backend = lib.mkOption {
+      type = lib.types.enum [
+        "nixpkgs"
+        "container"
+      ];
+      default = "container";
+      description = ''
+        Backend to use for deploying ${serviceName}.
+      '';
+    };
+
+    package = lib.mkPackageOption pkgs "litellm" {
+      extraDescription = "Used by the `nixpkgs` backend.";
+    };
+
     adminUi = {
       enable = lib.mkEnableOption "${serviceName} Admin UI";
 
@@ -212,7 +232,7 @@ in
     image = lib.mkOption {
       type = lib.types.str;
       default = "ghcr.io/codgician/litellm:my";
-      description = "Container image for LiteLLM.";
+      description = "Container image used by the `container` backend.";
     };
   };
 
@@ -221,14 +241,7 @@ in
       codgician.services.nginx.reverseProxies.litellm.proxyPass = "http://127.0.0.1:${toString port}";
 
       # Ensure litellm user is created
-      codgician.users.${serviceName} = {
-        enable = true;
-        home = containerHome;
-      };
-      users.users.${user} = {
-        autoSubUidGidRange = true;
-        linger = true;
-      };
+      codgician.users.${serviceName}.enable = true;
 
       # Set up Redis (use litellm user/group for socket access)
       services.redis.servers.${serviceName} = {
@@ -247,6 +260,36 @@ in
           inherit user group;
         }
       ];
+    })
+
+    # Nixpkgs backend
+    (lib.mkIf (cfg.enable && cfg.backend == "nixpkgs") {
+      services.litellm = {
+        enable = true;
+        host = "127.0.0.1";
+        inherit port stateDir;
+        inherit (cfg) package;
+        environmentFile = config.codgician.secrets.templates."litellm-env".path;
+        inherit environment settings;
+      };
+
+      systemd.services.litellm.serviceConfig = {
+        # Disable dynamic user
+        DynamicUser = lib.mkForce false;
+        User = user;
+        Group = group;
+        # Ensure access to Redis socket
+        SupplementaryGroups = [ config.services.redis.servers.${serviceName}.group ];
+      };
+    })
+
+    # Container backend
+    (lib.mkIf (cfg.enable && cfg.backend == "container") {
+      codgician.users.${serviceName}.home = containerHome;
+      users.users.${user} = {
+        autoSubUidGidRange = true;
+        linger = true;
+      };
 
       sops.templates."litellm-env" = {
         owner = user;
