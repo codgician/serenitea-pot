@@ -120,6 +120,12 @@
       open-webui = {
         enable = true;
         stateDir = "/xpool/appdata/open-webui";
+
+        # Run Qwen3 embeddings locally in Open WebUI on CPU.
+        embedding = {
+          engine = "local";
+          model = "Qwen/Qwen3-Embedding-0.6B";
+        };
       };
 
       # File server

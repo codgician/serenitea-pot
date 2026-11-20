@@ -7,6 +7,7 @@
 let
   serviceName = "open-webui";
   cfg = config.codgician.services.open-webui;
+  types = lib.types;
   domain = "akasha.${lib.codgician.zone}";
   port = 3010;
   defaultStateDir = "/var/lib/${serviceName}";
@@ -15,7 +16,11 @@ let
 
   webuiUrl = "https://${domain}";
 
+  ollamaCfg = config.codgician.services.ollama;
+  vllmCfg = config.codgician.services.vllm;
   mcpoCfg = config.codgician.services.mcpo;
+  ollamaUrl = "http://127.0.0.1:11434";
+  ollamaEmbeddingModel = "hf.co/Qwen/Qwen3-Embedding-4B-GGUF:Q4_K_M";
   pgDbName = "open-webui";
   pgDbHost = "/run/postgresql";
 
@@ -123,6 +128,17 @@ let
     image_generation = true;
   };
 
+  doclingParams = {
+    do_ocr = true;
+    ocr_engine = "auto";
+    table_mode = "accurate";
+    pdf_backend = "dlparse_v4";
+    do_code_enrichment = true;
+    do_formula_enrichment = true;
+    do_picture_description = true;
+    picture_description_preset = "default";
+  };
+
   environment = {
     # The NixOS service has no GPU passthrough; keep local inference on CPU.
     USE_CUDA_DOCKER = "False";
@@ -169,7 +185,9 @@ let
     ENABLE_MESSAGE_RATING = "True";
     ENABLE_COMMUNITY_SHARING = "True";
     ENABLE_TAGS_GENERATION = "True";
-    ENABLE_OLLAMA_API = "False";
+    # Ollama
+    ENABLE_OLLAMA_API = if ollamaCfg.enable then "True" else "False";
+    OLLAMA_BASE_URL = lib.mkIf ollamaCfg.enable ollamaUrl;
     # OpenAI (LiteLLM)
     ENABLE_OPENAI_API = "True";
     # OPENAI_API_BASE_URLS, OPENAI_API_KEYS defined in environment
@@ -201,9 +219,14 @@ let
     ENABLE_SEARCH_QUERY = "True";
     ENABLE_RAG_WEB_SEARCH = "True";
     RAG_WEB_SEARCH_ENGINE = "exa";
-    # Qwen3 embeddings run inside Open WebUI on CPU.
-    RAG_EMBEDDING_ENGINE = "";
-    RAG_EMBEDDING_MODEL = "Qwen/Qwen3-Embedding-0.6B";
+    RAG_EMBEDDING_ENGINE =
+      if cfg.embedding.engine == "local" then
+        ""
+      else if cfg.embedding.engine == "vllm" then
+        "openai"
+      else
+        cfg.embedding.engine;
+    RAG_EMBEDDING_MODEL = cfg.embedding.model;
     SENTENCE_TRANSFORMERS_HOME = "${cfg.stateDir}/cache/embedding/models";
     RAG_EMBEDDING_MODEL_AUTO_UPDATE = "False";
     # RAG_OPENAI_API_KEY provided in env
@@ -240,9 +263,31 @@ let
     ENABLE_REALTIME_CHAT_SAVE = "True";
     ENABLE_CHAT_RESPONSE_BASE64_IMAGE_URL_CONVERSION = "True";
   }
+  // (lib.optionalAttrs (cfg.embedding.engine == "ollama") {
+    RAG_OLLAMA_BASE_URL = ollamaUrl;
+  })
+  // (lib.optionalAttrs (cfg.embedding.engine == "openai") {
+    RAG_OPENAI_API_BASE_URL = cfg.embedding.openai.baseUrl;
+  })
+  // (lib.optionalAttrs (cfg.embedding.engine == "vllm" && cfg.embedding.vllm.instance != null) {
+    # The embedding backend is always co-located with open-webui.
+    RAG_OPENAI_API_BASE_URL =
+      let
+        inst = vllmCfg.instances.${cfg.embedding.vllm.instance};
+      in
+      "http://127.0.0.1:${builtins.toString inst.port}/v1";
+  })
   // (lib.optionalAttrs mcpoCfg.enable {
     # Tool servers (MCP endpoints exposed by mcpo)
     TOOL_SERVER_CONNECTIONS = builtins.toJSON toolServerConnections;
+  })
+  // (lib.optionalAttrs config.codgician.services.docling-serve.enable {
+    # Docling (PDF extraction engine)
+    CONTENT_EXTRACTION_ENGINE = "docling";
+    DOCLING_SERVER_URL = "http://127.0.0.1:5001";
+    DOCLING_OCR_ENGINE = "rapidocr";
+    DOCLING_OCR_LANG = "english,chinese";
+    DOCLING_PARAMS = builtins.toJSON doclingParams;
   });
 in
 {
@@ -251,16 +296,123 @@ in
     package = lib.mkPackageOption pkgs "open-webui" { default = "open-webui-akasha"; };
 
     stateDir = lib.mkOption {
-      type = lib.types.path;
+      type = types.path;
       default = defaultStateDir;
       description = "Directory to store open-webui data.";
     };
 
     openFirewall = lib.mkEnableOption "Open firewall for ${serviceName}";
+
+    embedding = lib.mkOption {
+      type = types.submodule {
+        options = {
+          engine = lib.mkOption {
+            type = types.enum [
+              "local"
+              "ollama"
+              "openai"
+              "vllm"
+            ];
+            default = "ollama";
+            description = ''
+              Embedding backend engine for RAG.
+              - "local": Run a SentenceTransformers model inside Open WebUI
+              - "ollama": Use Ollama embeddings (requires ollama service enabled)
+              - "openai": Use OpenAI-compatible embeddings with manual URL configuration
+              - "vllm": Use vLLM embeddings (auto-configures URL from vLLM instance)
+            '';
+          };
+
+          model = lib.mkOption {
+            type = types.str;
+            default = ollamaEmbeddingModel;
+            description = ''
+              Embedding model to use. Default preserves Ollama behavior.
+              For local inference, use a SentenceTransformers model ID or path.
+              For openai/vllm, use e.g. "Qwen/Qwen3-Embedding-4B".
+            '';
+          };
+
+          openai = lib.mkOption {
+            type = types.submodule {
+              options = {
+                baseUrl = lib.mkOption {
+                  type = with types; nullOr str;
+                  default = null;
+                  description = ''
+                    OpenAI-compatible API base URL for embeddings.
+                    Required when engine = "openai". Example: http://127.0.0.1:8001/v1
+                  '';
+                };
+
+                apiKey = lib.mkOption {
+                  type = types.str;
+                  default = "no_api_key";
+                  description = ''
+                    API key for OpenAI-compatible embedding endpoint.
+                  '';
+                };
+              };
+            };
+            default = { };
+            description = "OpenAI-compatible embedding configuration (for engine = 'openai').";
+          };
+
+          vllm = lib.mkOption {
+            type = types.submodule {
+              options = {
+                instance = lib.mkOption {
+                  type = with types; nullOr str;
+                  default = null;
+                  example = "embedding";
+                  description = ''
+                    Name of the vLLM instance to use for embeddings.
+                    The endpoint URL will be automatically configured from the instance's host and port.
+                    Required when engine = "vllm".
+                  '';
+                };
+
+                apiKey = lib.mkOption {
+                  type = types.str;
+                  default = "no_api_key";
+                  description = "API key for vLLM embedding endpoint.";
+                };
+              };
+            };
+            default = { };
+            description = "vLLM embedding configuration (for engine = 'vllm').";
+          };
+        };
+      };
+      default = { };
+      description = "Embedding backend configuration for RAG.";
+    };
   };
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
+      assertions = [
+        {
+          assertion = cfg.embedding.engine != "openai" || cfg.embedding.openai.baseUrl != null;
+          message = "codgician.services.open-webui.embedding.openai.baseUrl is required when embedding.engine is 'openai'";
+        }
+        {
+          assertion = cfg.embedding.engine != "vllm" || cfg.embedding.vllm.instance != null;
+          message = "codgician.services.open-webui.embedding.vllm.instance is required when embedding.engine is 'vllm'";
+        }
+        {
+          assertion =
+            cfg.embedding.engine != "vllm"
+            || (cfg.embedding.vllm.instance != null && vllmCfg.instances ? ${cfg.embedding.vllm.instance});
+          message = "codgician.services.open-webui.embedding.vllm.instance must reference a valid vLLM instance defined in codgician.services.vllm.instances";
+        }
+      ];
+
+      # Add embedding model to ollama
+      codgician.services.ollama.loadModels = lib.mkIf (cfg.embedding.engine == "ollama") [
+        cfg.embedding.model
+      ];
+
       codgician.services.nginx.reverseProxies.open-webui.proxyPass = "http://127.0.0.1:${toString port}";
 
       services.open-webui = {
