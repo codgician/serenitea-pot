@@ -2,7 +2,10 @@
   codgician = {
     system = {
       auto-upgrade.enable = true;
-      wsl.enable = true;
+      wsl = {
+        enable = true;
+        docker-desktop.enable = true;
+      };
     };
 
     users.codgi.enable = true;

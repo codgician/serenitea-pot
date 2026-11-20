@@ -16,13 +16,17 @@ let
   };
 in
 {
-  options.codgician.system.wsl.enable = lib.mkEnableOption "NixOS WSL";
+  options.codgician.system.wsl = {
+    enable = lib.mkEnableOption "NixOS WSL";
+
+    docker-desktop.enable = lib.mkEnableOption "Docker Desktop";
+  };
 
   config = lib.mkIf cfg.enable {
     wsl = {
       enable = true;
       defaultUser = "codgi";
-      docker-desktop.enable = true;
+      docker-desktop.enable = cfg.docker-desktop.enable;
       ssh-agent.enable = true;
       interop.register = true;
       usbip.enable = true;
