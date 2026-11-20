@@ -59,8 +59,8 @@ in
       enable = lib.mkEnableOption "Wipe ZFS root datasets on shutdown.";
 
       datasets = lib.mkOption {
-        type = types.listOf types.str;
-        default = [ "zroot/root" ];
+        type = types.nonEmptyListOf types.str;
+        example = [ "zroot/root" ];
         description = ''
           ZFS datasets to rollback on shutdown. If @empty exists, rolls back to it.
           Otherwise bootstraps by destroying and recreating the dataset with @empty.

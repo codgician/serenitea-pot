@@ -55,7 +55,10 @@
       common.inChina = true;
       impermanence = {
         enable = true;
-        wipeOnShutdown.zfs.enable = true;
+        wipeOnShutdown.zfs = {
+          enable = true;
+          datasets = [ "zroot/root" ];
+        };
       };
     };
 
