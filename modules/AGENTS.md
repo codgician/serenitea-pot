@@ -17,6 +17,8 @@ Read the root `AGENTS.md` first; this file adds what you need when you change mo
 
 An overlay that takes a package from another package set or overrides it covers the whole package family (`vscode` with `vscode-extensions`, `vscode-fhs`, `vscode-with-extensions`, `vscodium`, `vscodium-fhs`). Whether hosts use a member today is no reason to leave it out or remove an overlay.
 
+`pkgs.unstable` is the package set an unstable host uses; in an unstable set it is the set itself. An overlay takes packages from it only through `fromUnstable` (`fromUnstable [ … ]`, `.python`, `.kernel`), as the last part of a `lib.composeManyExtensions` list, and patches a package it takes as a plain `prev.<name>` override before that part; it never defines a name from `pkgs.unstable.<same name>`.
+
 ## Sites (`codgician.services.nginx.reverseProxies.<name>`)
 
 One option per site; the option descriptions in `modules/nixos/services/nginx/default.nix` define it.

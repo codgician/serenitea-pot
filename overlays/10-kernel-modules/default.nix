@@ -1,22 +1,8 @@
 # Use version from unstable for specified kernel modules
 
-{ lib, ... }:
+{ lib, fromUnstable, ... }:
 
-final: prev: {
-  inherit (prev.unstable) mstflint;
-  linuxKernel = prev.linuxKernel // {
-    packagesFor =
-      kernel:
-      (prev.linuxKernel.packagesFor kernel).extend (
-        lpself: lpsuper:
-        lib.genAttrs
-          [
-            "mstflint_access"
-          ]
-          (
-            pkgName:
-            prev.unstable.linuxPackages.${pkgName}.override { inherit (lpsuper) kernel kernelModuleMakeFlags; }
-          )
-      );
-  };
-}
+lib.composeManyExtensions [
+  (fromUnstable [ "mstflint" ])
+  (fromUnstable.kernel [ "mstflint_access" ])
+]

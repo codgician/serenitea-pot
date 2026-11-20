@@ -33,26 +33,21 @@ rec {
     };
   };
 
-  # Overlays applied to every package set, including `pkgs.master` and
-  # `pkgs.unstable` themselves
+  # Overlays applied to every package set, including `pkgs.master`
   getCommonOverlays =
     system:
     [
       (final: prev: { nur.repos.codgician = import inputs.nur-codgician { pkgs = prev; }; })
       inputs.nix-vscode-extensions.overlays.default
     ]
-    ++ (lib.optional (isLinuxSystem system) inputs.proxmox-nixos.overlays.${system})
-    ++ [
-      (mkBranchOverlay "master" inputs.nixpkgs-master system)
-      (mkBranchOverlay "unstable" inputs.nixpkgs-unstable system)
-    ];
+    ++ lib.optional (isLinuxSystem system) inputs.proxmox-nixos.overlays.${system};
 
-  # `pkgs.<name>` is the package set of another nixpkgs branch, imported apart
-  # even when it is the host's own branch: overlays redirect packages to it.
   # nixpkgs unstable and master no longer support x86_64-darwin after 26.05,
-  # so that system keeps resolving them to the release input.
-  mkBranchOverlay = name: branch: system: final: prev: {
-    ${name} = import (if system == "x86_64-darwin" then inputs.nixpkgs else branch) {
+  # so there they resolve to the release, which is then its own unstable.
+  isUnstable = channelName: system: channelName == "unstable" || system == "x86_64-darwin";
+
+  masterOverlay = system: final: prev: {
+    master = import (if system == "x86_64-darwin" then inputs.nixpkgs else inputs.nixpkgs-master) {
       inherit system;
       config = {
         allowUnfree = true;
@@ -64,28 +59,81 @@ rec {
     };
   };
 
-  # The overlays of a channel's package set, given that channel's `lib`
-  mkOverlays =
-    channel: system:
-    (getCommonOverlays system)
-    ++ (builtins.map (
-      x:
-      import x {
-        inherit (channel) lib;
-        inherit
-          inputs
-          system
-          outputs
-          ;
-      }
-    ) (lib.codgician.getFolderPaths ../overlays))
-    ++ [ inputs.nur-codgician.overlays.kernel-modules ];
+  # Overlays take packages from `unstable` only through these, each an overlay
+  # that does nothing in an unstable set: a package is never defined as itself.
+  # `fromUnstable names` takes top-level packages, `.python` Python packages
+  # and `.kernel` kernel modules.
+  mkFromUnstable =
+    unstable: own:
+    let
+      take = overlay: if own then (_: _: { }) else overlay;
+    in
+    {
+      __functor = _: names: take (_: _: lib.genAttrs names (name: unstable.${name}));
 
+      python =
+        names:
+        take (
+          final: prev: {
+            pythonPackagesExtensions = (prev.pythonPackagesExtensions or [ ]) ++ [
+              (pyfinal: pyprev: lib.genAttrs names (name: unstable."${pyprev.python.pythonAttr}Packages".${name}))
+            ];
+          }
+        );
+
+      kernel =
+        names:
+        take (
+          final: prev: {
+            linuxKernel = prev.linuxKernel // {
+              packagesFor =
+                kernel:
+                (prev.linuxKernel.packagesFor kernel).extend (
+                  lpfinal: lpprev:
+                  lib.genAttrs names (
+                    name: unstable.linuxPackages.${name}.override { inherit (lpprev) kernel kernelModuleMakeFlags; }
+                  )
+                );
+            };
+          }
+        );
+    };
+
+  # `pkgs.unstable` is the package set an unstable host uses, overlays
+  # included; in an unstable set it is the set itself.
   mkPkgs =
-    channel: system: config:
+    channelName: system: config:
+    let
+      channel = channels.${channelName};
+      own = isUnstable channelName system;
+      unstable =
+        if own then
+          null
+        else
+          packageSets.unstable.${system}.${if config.cudaSupport or false then "cuda" else "default"};
+      fromUnstable = mkFromUnstable unstable own;
+    in
     import channel.nixpkgs {
       inherit system;
-      overlays = mkOverlays channel system;
+      overlays =
+        getCommonOverlays system
+        ++ [
+          (masterOverlay system)
+          (final: prev: { unstable = if own then final else unstable; })
+        ]
+        ++ map (
+          path:
+          import path {
+            inherit (channel) lib;
+            inherit
+              inputs
+              system
+              outputs
+              fromUnstable
+              ;
+          }
+        ) (lib.codgician.getFolderPaths ../overlays)
+        ++ [ inputs.nur-codgician.overlays.kernel-modules ];
       config = {
         allowUnfree = true;
       }
@@ -97,10 +145,10 @@ rec {
   # it embeds evaluate nixpkgs once instead of once each. A set is only
   # instantiated when something reads it.
   packageSets = lib.mapAttrs (
-    _: channel:
+    channelName: _:
     lib.genAttrs allSystems (system: {
-      default = mkPkgs channel system { };
-      cuda = mkPkgs channel system { cudaSupport = true; };
+      default = mkPkgs channelName system { };
+      cuda = mkPkgs channelName system { cudaSupport = true; };
     })
   ) channels;
   pkgsFor = lib.mapAttrs (_: sets: sets.default) packageSets.stable;

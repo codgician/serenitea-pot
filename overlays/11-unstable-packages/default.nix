@@ -1,23 +1,22 @@
-{ ... }:
+{ lib, fromUnstable, ... }:
 
-final: prev: {
-  # Patch the one package without `extend`, which would instantiate the whole
-  # unstable package set a second time.
-  unstable = prev.unstable // {
+lib.composeManyExtensions [
+  (final: prev: {
     # cargoSetupHook requires system AWS-LC for aws-lc-sys >= 0.42;
     # SPlayer's OpenSSL dependency cannot provide that library.
-    splayer-next = prev.unstable.splayer-next.overrideAttrs (old: {
-      buildInputs = old.buildInputs ++ [ prev.unstable.aws-lc ];
+    splayer-next = prev.splayer-next.overrideAttrs (old: {
+      buildInputs = old.buildInputs ++ [ final.aws-lc ];
     });
-  };
+  })
 
-  inherit (prev.unstable)
-    prl-tools
-    sing-box
-    sing-geoip
-    nexttrace
-    zfs_unstable
-    matrix-tuwunel
-    looking-glass-client
-    ;
-}
+  (fromUnstable [
+    "splayer-next"
+    "prl-tools"
+    "sing-box"
+    "sing-geoip"
+    "nexttrace"
+    "zfs_unstable"
+    "matrix-tuwunel"
+    "looking-glass-client"
+  ])
+]
