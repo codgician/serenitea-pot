@@ -27,7 +27,7 @@ in
   ];
 
   options.codgician.services.intune = {
-    enable = lib.mkEnableOption "Microsoft Intune enrollment (identity broker, Intune daemon/agent, Defender for Endpoint, VPN)";
+    enable = lib.mkEnableOption "Microsoft Intune enrollment (identity broker, Intune daemon/agent, and compliance tooling)";
 
     packages = {
       intune-portal = lib.mkPackageOption pkgs "intune-portal" {

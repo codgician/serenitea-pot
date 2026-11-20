@@ -110,7 +110,11 @@ let
   };
 in
 {
-  config = lib.mkIf cfg.enable (
+  options.codgician.services.intune.mdatp = {
+    enable = lib.mkEnableOption "Microsoft Defender for Endpoint (mdatp), onboarded to the Intune tenant";
+  };
+
+  config = lib.mkIf (cfg.enable && cfg.mdatp.enable) (
     {
       environment.systemPackages = [ mdatp ];
 

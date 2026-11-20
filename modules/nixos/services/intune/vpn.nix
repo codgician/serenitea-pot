@@ -40,7 +40,11 @@ let
     "${name} (${city}.msftvpn-alt.ras.microsoft.com)";
 in
 {
-  config = lib.mkIf cfg.enable {
+  options.codgician.services.intune.vpn = {
+    enable = lib.mkEnableOption "NetworkManager GlobalProtect VPN with Microsoft Edge authentication";
+  };
+
+  config = lib.mkIf (cfg.enable && cfg.vpn.enable) {
     networking.networkmanager = {
       enable = true;
       plugins = [ plugin ];
