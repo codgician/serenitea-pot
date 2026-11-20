@@ -177,16 +177,16 @@ let
     "XAI_OAUTH_TOKEN_DIR" = "/config/xai";
     "ANTIGRAVITY_TOKEN_DIR" = "/config/antigravity";
     "REDIS_URL" = "unix://${redisSocketPath}";
-
-    # Admin UI
+  }
+  // lib.optionalAttrs cfg.adminUi.enable {
     PGHOST = dbHost; # Hack for prisma to connect postgres with unix socket
     # Prisma reads the socket from `?host=`; litellm's psycopg migration lock strips
     # that param, so also encode the socket dir as the URI host for libpq.
     DATABASE_URL = "postgres://${user}@${
       builtins.replaceStrings [ "/" ] [ "%2F" ] dbHost
     }/${dbName}?host=${dbHost}";
-
-    # Admin UI login through Authelia
+  }
+  // lib.optionalAttrs cfg.adminUi.authelia.enable {
     PROXY_BASE_URL = "https://${domain}";
     GENERIC_CLIENT_ID = "dendro";
     # GENERIC_CLIENT_SECRET in environment file
@@ -202,6 +202,12 @@ in
 {
   options.codgician.services.litellm = {
     enable = lib.mkEnableOption "LiteLLM proxy";
+
+    adminUi = {
+      enable = lib.mkEnableOption "${serviceName} Admin UI";
+
+      authelia.enable = lib.mkEnableOption "Authelia";
+    };
 
     image = lib.mkOption {
       type = lib.types.str;
@@ -260,13 +266,13 @@ in
         requires = [
           "user@${builtins.toString uid}.service"
           "redis-${serviceName}.service"
-          "postgresql.service"
-        ];
+        ]
+        ++ lib.optional cfg.adminUi.enable "postgresql.service";
         after = [
           "user@${builtins.toString uid}.service"
           "redis-${serviceName}.service"
-          "postgresql.service"
-        ];
+        ]
+        ++ lib.optional cfg.adminUi.enable "postgresql.service";
       };
 
       virtualisation.oci-containers.containers.${serviceName} = {
@@ -283,8 +289,8 @@ in
           "${hooksDir}/antigravity_provider.py:/antigravity_provider.py:ro"
           "${stateDir}:/config"
           "/run/redis-${serviceName}:/run/redis-${serviceName}:ro"
-          "${dbHost}:${dbHost}:ro"
-        ];
+        ]
+        ++ lib.optional cfg.adminUi.enable "${dbHost}:${dbHost}:ro";
         extraOptions = [
           "--net=host"
           # Keep the host identity for state and Unix-socket peer credentials.
@@ -300,8 +306,10 @@ in
         inherit environment;
         environmentFiles = [ config.codgician.secrets.templates."litellm-env".path ];
       };
+    })
 
-      # PostgreSQL backs the Admin UI
+    # PostgreSQL backs the Admin UI
+    (lib.mkIf (cfg.enable && cfg.adminUi.enable) {
       codgician.services.postgresql.enable = true;
       services.postgresql = {
         ensureDatabases = [ dbName ];

@@ -3,7 +3,13 @@
   codgician = {
     services = {
       fcitx5.enable = true;
-      litellm.enable = true;
+      litellm = {
+        enable = true;
+        adminUi = {
+          enable = true;
+          authelia.enable = true;
+        };
+      };
       ovis-relay.enable = true;
       postgresql.zfsOptimizations = true;
       sing-box = {
