@@ -15,25 +15,24 @@ let
 
   dashboardsDir = pkgs.runCommand "grafana-dashboards" { } ''
     mkdir -p $out
-    ${lib.concatMapStrings
-      (dashboard: ''
-        cp ${dashboard} $out/
-      '')
-      (
-        cfg.provision.dashboards
-        ++ [
-          ./dashboards/nginx.json
-          ./dashboards/rasdaemon.json
-        ]
-      )
-    }
+    ${lib.concatMapStrings (dashboard: ''
+      cp ${dashboard} $out/
+    '') cfg.provision.dashboards}
   '';
 in
 {
   options.codgician.services.grafana = {
     enable = lib.mkEnableOption "Grafana";
 
-    provision.prometheus.enable = lib.mkEnableOption "Provision Prometheus as a datasource";
+    provision.prometheus = {
+      enable = lib.mkEnableOption "Provision Prometheus as a datasource";
+
+      timeInterval = lib.mkOption {
+        type = types.str;
+        default = "1m";
+        description = "Minimum Prometheus query and scrape interval used by Grafana.";
+      };
+    };
 
     provision.dashboards = lib.mkOption {
       type = types.listOf types.path;
@@ -135,8 +134,7 @@ in
               isDefault = true;
               editable = false;
               jsonData = {
-                # sglang is scraped every 2s
-                timeInterval = "2s";
+                inherit (cfg.provision.prometheus) timeInterval;
                 httpMethod = "POST";
               };
             }

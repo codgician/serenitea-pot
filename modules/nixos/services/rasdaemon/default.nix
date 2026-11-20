@@ -64,6 +64,10 @@ in
             ];
           }
         ];
+
+        codgician.services.grafana.provision.dashboards = lib.mkAfter [
+          ../grafana/dashboards/rasdaemon.json
+        ];
       })
     ]
   );

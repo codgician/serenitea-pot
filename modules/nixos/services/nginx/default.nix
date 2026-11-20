@@ -407,6 +407,8 @@ in
         nginx.enable = true;
       };
 
+      codgician.services.grafana.provision.dashboards = [ ../grafana/dashboards/nginx.json ];
+
       codgician.acme = lib.mapAttrs' (
         _: vhost:
         lib.nameValuePair (builtins.head vhost.domains) {

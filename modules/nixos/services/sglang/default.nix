@@ -238,6 +238,8 @@ in
       }) cfg.instances;
     };
 
+    codgician.services.grafana.provision.prometheus.timeInterval = lib.mkIf cfg.monitoring.enable "2s";
+
     codgician.services.grafana.provision.dashboards = lib.optional cfg.monitoring.enable dashboard;
 
     virtualisation.oci-containers.containers = lib.mapAttrs' mkContainer cfg.instances;
