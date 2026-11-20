@@ -33,52 +33,41 @@ rec {
     };
   };
 
-  # Overlays applied to every package set built from `nixpkgs`, including
-  # `pkgs.master` and `pkgs.unstable` themselves
+  # Overlays applied to every package set, including `pkgs.master` and
+  # `pkgs.unstable` themselves
   getCommonOverlays =
-    nixpkgs: system:
+    system:
     [
       (final: prev: { nur.repos.codgician = import inputs.nur-codgician { pkgs = prev; }; })
       inputs.nix-vscode-extensions.overlays.default
     ]
     ++ (lib.optional (isLinuxSystem system) inputs.proxmox-nixos.overlays.${system})
     ++ [
-      (mkBranchOverlay "master" inputs.nixpkgs-master nixpkgs system)
-      (mkBranchOverlay "unstable" inputs.nixpkgs-unstable nixpkgs system)
+      (mkBranchOverlay "master" inputs.nixpkgs-master system)
+      (mkBranchOverlay "unstable" inputs.nixpkgs-unstable system)
     ];
 
-  # `pkgs.<name>` is the package set of another nixpkgs branch. In a set built
-  # from that branch it is the set itself (`prev`: `final` would loop through
-  # overlays that read `prev.unstable`), so a host on unstable does not
-  # instantiate nixpkgs twice. nixpkgs unstable and master no longer support
-  # x86_64-darwin after 26.05, so that system keeps resolving them to the
-  # release input.
-  mkBranchOverlay =
-    name: branch: nixpkgs: system: final: prev:
-    let
-      source = if system == "x86_64-darwin" then inputs.nixpkgs else branch;
-    in
-    {
-      ${name} =
-        if source.outPath == nixpkgs.outPath then
-          prev
-        else
-          import source {
-            inherit system;
-            config = {
-              allowUnfree = true;
-              # Inherit CUDA/ROCm config from the package set it is added to
-              cudaSupport = prev.config.cudaSupport or false;
-              rocmSupport = prev.config.rocmSupport or false;
-            };
-            overlays = getCommonOverlays source system;
-          };
+  # `pkgs.<name>` is the package set of another nixpkgs branch, imported apart
+  # even when it is the host's own branch: overlays redirect packages to it.
+  # nixpkgs unstable and master no longer support x86_64-darwin after 26.05,
+  # so that system keeps resolving them to the release input.
+  mkBranchOverlay = name: branch: system: final: prev: {
+    ${name} = import (if system == "x86_64-darwin" then inputs.nixpkgs else branch) {
+      inherit system;
+      config = {
+        allowUnfree = true;
+        # Inherit CUDA/ROCm config from the package set it is added to
+        cudaSupport = prev.config.cudaSupport or false;
+        rocmSupport = prev.config.rocmSupport or false;
+      };
+      overlays = getCommonOverlays system;
     };
+  };
 
   # The overlays of a channel's package set, given that channel's `lib`
   mkOverlays =
     channel: system:
-    (getCommonOverlays channel.nixpkgs system)
+    (getCommonOverlays system)
     ++ (builtins.map (
       x:
       import x {
