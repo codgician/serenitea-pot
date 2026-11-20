@@ -255,6 +255,8 @@ in
       default = defaultStateDir;
       description = "Directory to store open-webui data.";
     };
+
+    openFirewall = lib.mkEnableOption "Open firewall for ${serviceName}";
   };
 
   config = lib.mkMerge [
@@ -265,7 +267,11 @@ in
         enable = true;
         host = "127.0.0.1";
         inherit port;
-        inherit (cfg) stateDir package;
+        inherit (cfg)
+          stateDir
+          openFirewall
+          package
+          ;
         inherit environment;
         environmentFile = config.codgician.secrets.templates."open-webui-env".path;
       };

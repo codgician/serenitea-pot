@@ -4,7 +4,11 @@ let
   websocketPort = 9222;
 in
 {
-  options.codgician.services.nats.enable = lib.mkEnableOption "authenticated NATS terminal relay";
+  options.codgician.services.nats = {
+    enable = lib.mkEnableOption "authenticated NATS terminal relay";
+
+    openFirewall = lib.mkEnableOption "opening firewall for the NATS WebSocket listener";
+  };
 
   config = lib.mkIf cfg.enable {
     services.nats = {
@@ -45,7 +49,7 @@ in
       };
     };
 
-    networking.firewall.allowedTCPPorts = [ websocketPort ];
+    networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [ websocketPort ];
 
     systemd.services.nats = {
       wants = [ "network-online.target" ];

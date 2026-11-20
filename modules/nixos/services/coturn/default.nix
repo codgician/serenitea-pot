@@ -33,6 +33,8 @@ in
       example = [ "203.0.113.1/10.0.0.1" ];
       description = "Public/private address mappings for relay addresses behind port-preserving NAT.";
     };
+
+    openFirewall = lib.mkEnableOption "opening the TURN listener and UDP relay ports";
   };
 
   config = lib.mkIf cfg.enable {
@@ -94,7 +96,7 @@ in
       serviceConfig.SupplementaryGroups = [ cert.group ];
     };
 
-    networking.firewall = {
+    networking.firewall = lib.mkIf cfg.openFirewall {
       allowedTCPPorts = [
         listeningPort
         tlsListeningPort

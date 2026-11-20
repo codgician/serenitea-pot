@@ -2,7 +2,10 @@
 {
   codgician = {
     services = {
-      nats.enable = true;
+      nats = {
+        enable = true;
+        openFirewall = true;
+      };
 
       nginx = {
         enable = true;

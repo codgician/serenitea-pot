@@ -2,7 +2,10 @@
 {
   codgician = {
     services = {
-      coturn.enable = true;
+      coturn = {
+        enable = true;
+        openFirewall = true;
+      };
 
       nginx = {
         enable = true;
