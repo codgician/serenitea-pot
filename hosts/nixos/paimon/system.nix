@@ -213,12 +213,15 @@
     codgician.codgi = {
       dev.nix.enable = true;
       codex.enable = true;
+      git.enable = true;
       herdr.enable = true;
       mcp.enable = true;
       pi-coding-agent.enable = true;
       oh-my-pi.enable = true;
       pwsh.enable = true;
       ssh.enable = true;
+      tmux.enable = true;
+      zsh.enable = true;
     };
 
     home.stateVersion = "26.05";

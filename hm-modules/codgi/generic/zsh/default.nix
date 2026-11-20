@@ -1,38 +1,46 @@
 {
+  config,
   osConfig,
   lib,
   pkgs,
   ...
 }:
+let
+  cfg = config.codgician.codgi.zsh;
+in
 {
-  programs.zsh = {
-    enable = true;
-    oh-my-zsh = {
+  options.codgician.codgi.zsh.enable = lib.mkEnableOption "Zsh user profiles.";
+
+  config = lib.mkIf cfg.enable {
+    programs.zsh = {
       enable = true;
-      plugins = [
-        "git"
-      ]
-      ++ lib.optionals pkgs.stdenvNoCC.isDarwin [
-        "macos"
-      ];
-      theme = "half-life";
+      oh-my-zsh = {
+        enable = true;
+        plugins = [
+          "git"
+        ]
+        ++ lib.optionals pkgs.stdenvNoCC.isDarwin [
+          "macos"
+        ];
+        theme = "half-life";
+      };
+
+      initContent = ''
+        zstyle :omz:plugins:ssh-agent quiet yes
+      ''
+      + lib.optionalString pkgs.stdenvNoCC.isDarwin (
+        lib.optionalString osConfig.homebrew.enable ''
+          if [ -f /opt/homebrew/bin/brew ]; then 
+            eval "$(/opt/homebrew/bin/brew shellenv)"
+          fi
+        ''
+      );
     };
 
-    initContent = ''
-      zstyle :omz:plugins:ssh-agent quiet yes
-    ''
-    + lib.optionalString pkgs.stdenvNoCC.isDarwin (
-      lib.optionalString osConfig.homebrew.enable ''
-        if [ -f /opt/homebrew/bin/brew ]; then 
-          eval "$(/opt/homebrew/bin/brew shellenv)"
-        fi
-      ''
-    );
-  };
-
-  # Also enable direnv
-  programs.direnv = {
-    enable = true;
-    nix-direnv.enable = true;
+    # Also enable direnv
+    programs.direnv = {
+      enable = true;
+      nix-direnv.enable = true;
+    };
   };
 }

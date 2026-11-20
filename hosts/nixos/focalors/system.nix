@@ -35,12 +35,15 @@
         nix.enable = true;
         rust.enable = true;
       };
+      git.enable = true;
       mcp.enable = true;
       oh-my-pi.enable = true;
       plasma.scale = 2;
       pwsh.enable = true;
       ssh.enable = true;
+      tmux.enable = true;
       vscode.enable = true;
+      zsh.enable = true;
     };
 
     home.stateVersion = "26.05";

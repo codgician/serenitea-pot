@@ -50,12 +50,15 @@ in
           port = dshPort;
         };
       };
+      git.enable = true;
       github-copilot-cli.enable = true;
       mcp.enable = true;
       pi-coding-agent.enable = true;
       oh-my-pi.enable = true;
       pwsh.enable = true;
       ssh.enable = true;
+      tmux.enable = true;
+      zsh.enable = true;
     };
 
     home.stateVersion = "26.05";

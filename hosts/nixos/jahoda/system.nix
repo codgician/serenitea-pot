@@ -130,9 +130,12 @@
           defaultProfile = "github-copilot";
         };
         github-copilot-cli.enable = true;
-        git.directoryIdentities = {
-          "/code/" = "work";
-          "~/GitHub/" = "personal";
+        git = {
+          enable = true;
+          directoryIdentities = {
+            "/code/" = "work";
+            "~/GitHub/" = "personal";
+          };
         };
         herdr = {
           enable = true;
@@ -156,7 +159,9 @@
         teams-for-linux.enable = true;
         pwsh.enable = true;
         ssh.enable = true;
+        tmux.enable = true;
         vscode.enable = true;
+        zsh.enable = true;
       };
 
       # Set Microsoft Edge as default browser

@@ -63,6 +63,7 @@
 
       pi-coding-agent.enable = true;
       git = {
+        enable = true;
         directoryIdentities = {
           "~/Work/" = "work";
           "~/GitHub/" = "personal";
@@ -88,7 +89,9 @@
       pwsh.enable = true;
       ssh.enable = true;
       teams-for-linux.enable = true;
+      tmux.enable = true;
       vscode.enable = true;
+      zsh.enable = true;
     };
 
     # Set Microsoft Edge as default browser

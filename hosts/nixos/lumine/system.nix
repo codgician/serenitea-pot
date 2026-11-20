@@ -30,9 +30,12 @@
   home-manager.users.codgi = {
     codgician.codgi = {
       dev.nix.enable = true;
+      git.enable = true;
       github-copilot-cli.enable = true;
       pwsh.enable = true;
       ssh.enable = true;
+      tmux.enable = true;
+      zsh.enable = true;
     };
 
     home.stateVersion = "26.05";

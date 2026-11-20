@@ -37,6 +37,8 @@ let
 in
 {
   options.codgician.codgi.git = {
+    enable = lib.mkEnableOption "Git user configurations.";
+
     package = lib.mkPackageOption pkgs "git" { default = "gitFull"; };
 
     directoryIdentities = lib.mkOption {
@@ -60,7 +62,7 @@ in
     send-email.enable = lib.mkEnableOption "git send-email via git-credential-email";
   };
 
-  config = {
+  config = lib.mkIf cfg.enable {
     programs.delta.enable = true;
     programs.git = {
       enable = true;

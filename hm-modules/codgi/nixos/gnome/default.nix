@@ -5,8 +5,17 @@
   pkgs,
   ...
 }:
+let
+  cfg = config.codgician.codgi.gnome;
+in
 {
-  config = lib.mkIf osConfig.services.desktopManager.gnome.enable {
+  options.codgician.codgi.gnome.enable = lib.mkOption {
+    type = lib.types.bool;
+    default = osConfig.services.desktopManager.gnome.enable or false;
+    description = "Enable dotfiles for GNOME desktop.";
+  };
+
+  config = lib.mkIf cfg.enable {
     # GNOME Shell extensions
     programs.gnome-shell = {
       enable = true;

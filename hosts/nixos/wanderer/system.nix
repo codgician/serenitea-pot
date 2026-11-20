@@ -15,10 +15,13 @@
       claude-code.enable = true;
       codex.enable = true;
       dev.nix.enable = true;
+      git.enable = true;
       oh-my-pi.enable = true;
       mcp.enable = true;
       pwsh.enable = true;
       ssh.enable = true;
+      tmux.enable = true;
+      zsh.enable = true;
     };
 
     home.stateVersion = "26.05";
