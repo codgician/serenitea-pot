@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -12,6 +13,12 @@ in
 
   options.codgician.services.jupyter = {
     enable = lib.mkEnableOption "Jupyter";
+
+    package = lib.mkPackageOption pkgs [
+      "python3"
+      "pkgs"
+      "jupyter"
+    ] { };
 
     notebookDir = lib.mkOption {
       type = lib.types.str;
@@ -34,6 +41,7 @@ in
 
       services.jupyter = {
         enable = true;
+        inherit (cfg) package;
         ip = "127.0.0.1";
         inherit port;
         inherit (cfg) notebookDir;

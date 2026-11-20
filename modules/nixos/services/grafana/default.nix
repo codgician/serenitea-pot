@@ -24,6 +24,8 @@ in
   options.codgician.services.grafana = {
     enable = lib.mkEnableOption "Grafana";
 
+    package = lib.mkPackageOption pkgs "grafana" { };
+
     provision.prometheus = {
       enable = lib.mkEnableOption "Provision Prometheus as a datasource";
 
@@ -49,6 +51,7 @@ in
 
       services.grafana = {
         enable = true;
+        inherit (cfg) package;
         settings = {
           database = {
             host = "/run/postgresql";
