@@ -41,6 +41,18 @@ in
       ];
       description = "List of users authorized to interact with postfix.";
     };
+
+    user = lib.mkOption {
+      type = types.str;
+      default = "postfix";
+      description = "User under which postfix runs.";
+    };
+
+    group = lib.mkOption {
+      type = types.str;
+      default = "postfix";
+      description = "Group under which postfix runs.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -53,6 +65,7 @@ in
     # Configure postfix
     services.postfix = {
       enable = true;
+      inherit (cfg) user group;
 
       settings = {
         main = rec {
@@ -92,8 +105,8 @@ in
     };
 
     codgician.secrets.files."sasl-xoauth2" = {
-      owner = "postfix";
-      group = "postfix";
+      owner = cfg.user;
+      inherit (cfg) group;
       mode = "0600";
     };
 
@@ -103,8 +116,7 @@ in
         {
           type = "directory";
           path = "/var/lib/postfix";
-          user = "postfix";
-          group = "postfix";
+          inherit (cfg) user group;
           mode = "0600";
         }
       ];
@@ -127,7 +139,7 @@ in
         if [ ! -f "${tokenFile}" ]; then
           echo -e "\033[0;33m[postfix] WARNING: Token file not found at ${tokenFile}, use sasl-xoauth2-tool to create it.\033[0m"
         else
-          chown postfix:postfix '${tokenFile}'
+          chown ${cfg.user}:${cfg.group} '${tokenFile}'
           chmod 0600 '${tokenFile}'
         fi
       '';
