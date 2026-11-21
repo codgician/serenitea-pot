@@ -18,13 +18,6 @@ let
   # `ihaskell.default` never collide in the flat `services.jupyter.kernels`.
   mkId = name: "${kind}-${name}";
 
-  # Only Jupyter expands `~`; the launcher and tmpfiles need an absolute path.
-  notebookDir =
-    if lib.hasPrefix "~" jupyterCfg.notebookDir then
-      config.users.users.${jupyterCfg.user}.home + lib.removePrefix "~" jupyterCfg.notebookDir
-    else
-      jupyterCfg.notebookDir;
-
   # Libraries that manylinux wheels may dlopen at runtime. The FHS sandbox
   # presents them as a normal /usr/lib tree, so the loader resolves them like on
   # any other distro. Add per-instance ones via `extraLibraries`.
@@ -159,14 +152,14 @@ in
 
             venvPath = lib.mkOption {
               type = types.str;
-              default = "${lib.removeSuffix "/" notebookDir}/venvs/${mkId name}";
-              defaultText = lib.literalExpression ''"''${notebookDir}/venvs/python-<name>"'';
+              default = "/lab/jupyter/venvs/${mkId name}";
+              defaultText = lib.literalExpression ''"/lab/jupyter/venvs/python-<name>"'';
               description = ''
                 Where this instance's venv (and uv's cache/interpreters) are
                 created on first launch. Must be persistent, writable storage:
-                a venv under /var/lib on a host whose root does not survive a
-                reboot would be wiped and force a full reinstall. Each instance
-                must use a distinct path.
+                nahida is an ephemeral container, so a venv under /var/lib would
+                be wiped and force a full reinstall. Each instance must use a
+                distinct path.
               '';
             };
 
