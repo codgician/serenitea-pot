@@ -142,7 +142,11 @@
         herdr = {
           enable = true;
           desktop.enable = true;
-          ovis.enable = true;
+          ovis = {
+            enable = true;
+            lanHttpsPort = 7318;
+            relayDomain = "euthymia.${lib.codgician.zone}";
+          };
         };
 
         plasma = {
