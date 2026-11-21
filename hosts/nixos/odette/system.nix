@@ -59,7 +59,10 @@ in
         gpuAcceleration = "intel";
       };
       claude-code.enable = true;
-      codex.enable = true;
+      codex = {
+        enable = true;
+        package = pkgs.codex-wrapped;
+      };
       dev = {
         haskell.enable = true;
         nix.enable = true;

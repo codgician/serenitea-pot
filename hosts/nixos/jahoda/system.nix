@@ -123,7 +123,10 @@ in
           enable = true;
           gpuAcceleration = "nvidia";
         };
-        codex.enable = true;
+        codex = {
+          enable = true;
+          package = pkgs.codex-wrapped;
+        };
         claude-code.enable = true;
         dev = {
           dotnet.enable = true;

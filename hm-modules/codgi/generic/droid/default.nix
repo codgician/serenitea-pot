@@ -40,7 +40,7 @@ in
 {
   options.codgician.codgi.droid = {
     enable = lib.mkEnableOption "Droid configuration";
-    package = lib.mkPackageOption pkgs "droid-wrapped" { };
+    package = lib.mkPackageOption pkgs [ "llm-agents" "droid" ] { };
   };
 
   config = lib.mkIf cfg.enable {

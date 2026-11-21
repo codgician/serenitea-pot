@@ -242,7 +242,10 @@
   home-manager.users.codgi = {
     codgician.codgi = {
       dev.nix.enable = true;
-      codex.enable = true;
+      codex = {
+        enable = true;
+        package = pkgs.codex-wrapped;
+      };
       git.enable = true;
       herdr.enable = true;
       mcp.enable = true;

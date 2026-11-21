@@ -15,14 +15,20 @@
     {
       codgician.codgi = {
         claude-code.enable = true;
-        codex.enable = true;
+        codex = {
+          enable = true;
+          package = pkgs.codex-wrapped;
+        };
         dev = {
           haskell.enable = true;
           nix.enable = true;
           rust.enable = true;
         };
         dsh.enable = true;
-        droid.enable = true;
+        droid = {
+          enable = true;
+          package = pkgs.droid-wrapped;
+        };
         git.enable = true;
         github-copilot-cli.enable = true;
         herdr.enable = true;

@@ -1,3 +1,4 @@
+{ pkgs, ... }:
 {
   codgician = {
     services.nixos-vscode-server.enable = true;
@@ -16,7 +17,10 @@
   home-manager.users.codgi = {
     codgician.codgi = {
       claude-code.enable = true;
-      codex.enable = true;
+      codex = {
+        enable = true;
+        package = pkgs.codex-wrapped;
+      };
       dev.nix.enable = true;
       git.enable = true;
       oh-my-pi.enable = true;

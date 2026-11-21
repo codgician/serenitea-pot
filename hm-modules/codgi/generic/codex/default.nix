@@ -24,7 +24,7 @@ in
 {
   options.codgician.codgi.codex = {
     enable = lib.mkEnableOption "Codex";
-    package = lib.mkPackageOption pkgs "codex-wrapped" { };
+    package = lib.mkPackageOption pkgs [ "llm-agents" "codex" ] { };
   };
 
   config = lib.mkIf cfg.enable {
