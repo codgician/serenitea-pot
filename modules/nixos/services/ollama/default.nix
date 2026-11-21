@@ -13,6 +13,22 @@ in
   options.codgician.services.ollama = {
     enable = lib.mkEnableOption "Ollama";
 
+    host = lib.mkOption {
+      type = types.str;
+      default = "127.0.0.1";
+      description = ''
+        Host for ollama to listen on.
+      '';
+    };
+
+    port = lib.mkOption {
+      type = types.port;
+      default = 11434;
+      description = ''
+        Port for ollama to listen on.
+      '';
+    };
+
     acceleration = lib.mkOption {
       type = types.nullOr (
         types.enum [
@@ -44,6 +60,18 @@ in
       description = "Directory for ollama to store models.";
     };
 
+    user = lib.mkOption {
+      type = types.str;
+      default = serviceName;
+      description = "User under which ollama runs.";
+    };
+
+    group = lib.mkOption {
+      type = types.str;
+      default = serviceName;
+      description = "Group under which ollama runs.";
+    };
+
     loadModels = lib.mkOption {
       type = types.listOf types.str;
       default = [ ];
@@ -57,11 +85,14 @@ in
   config = lib.mkIf cfg.enable {
     services.ollama = {
       enable = true;
-      host = "127.0.0.1";
-      port = 11434;
-      user = serviceName;
-      group = serviceName;
-      inherit (cfg) package loadModels;
+      inherit (cfg)
+        host
+        port
+        user
+        group
+        package
+        loadModels
+        ;
       home = cfg.dataDir;
       models = cfg.modelDir;
       environmentVariables = {
