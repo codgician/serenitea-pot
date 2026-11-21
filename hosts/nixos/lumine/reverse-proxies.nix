@@ -12,6 +12,8 @@ in
 
     services.anubis.enable = true;
 
+    services.matrix-tuwunel.elementWeb = true;
+
     services.nginx = {
       enable = true;
       openFirewall = true;

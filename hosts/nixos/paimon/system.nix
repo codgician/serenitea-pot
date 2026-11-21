@@ -43,6 +43,7 @@
         enable = true;
         dataPath = "/opool/tuwunel";
         zfsOptimizations = true;
+        elementWeb = true;
       };
 
       comfyui = {

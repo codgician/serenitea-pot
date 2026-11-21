@@ -5,6 +5,10 @@
       coturn = {
         enable = true;
         openFirewall = true;
+        listening-ips = [
+          "0.0.0.0"
+          "::"
+        ];
       };
 
       nginx = {

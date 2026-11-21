@@ -8,7 +8,7 @@
 let
   cfg = config.codgician.services.coturn;
   inherit (lib) types;
-  cert = config.security.acme.certs.${cfg.realm};
+  cert = config.security.acme.certs.${cfg.domain};
   listeningPort = 3478;
   tlsListeningPort = 5349;
   relayPortRange = {
@@ -21,11 +21,17 @@ in
     enable = lib.mkEnableOption "the coturn TURN relay";
     package = lib.mkPackageOption pkgs "coturn" { };
 
-    realm = lib.mkOption {
+    domain = lib.mkOption {
       type = types.str;
       default = "turn.${lib.codgician.zone}";
-      readOnly = true;
-      description = "Name clients reach the relay at; also names its certificate.";
+      defaultText = lib.literalExpression ''"turn.''${lib.codgician.zone}"'';
+      description = "TURN realm and ACME certificate domain.";
+      example = "turn.example.org";
+    };
+
+    listening-ips = lib.mkOption {
+      type = types.listOf types.str;
+      description = "Local listener addresses. Use wildcard addresses to listen on all interfaces.";
     };
 
     relay-ips = lib.mkOption {
@@ -45,14 +51,17 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    assertions = [
+      {
+        assertion = cfg.listening-ips != [ ];
+        message = "coturn: listening-ips must contain at least one listener address.";
+      }
+    ];
+
     services.coturn = {
       enable = true;
-      inherit (cfg) realm;
-      listening-ips = [
-        "0.0.0.0"
-        "::"
-      ];
-      inherit (cfg) relay-ips;
+      realm = cfg.domain;
+      inherit (cfg) listening-ips relay-ips;
       listening-port = listeningPort;
       tls-listening-port = tlsListeningPort;
       min-port = relayPortRange.from;
@@ -92,14 +101,14 @@ in
       mode = "0400";
     };
 
-    codgician.acme.${cfg.realm} = {
+    codgician.acme.${cfg.domain} = {
       enable = true;
       reloadServices = [ "coturn.service" ];
     };
 
     systemd.services.coturn = {
-      requires = [ "acme-${cfg.realm}.service" ];
-      after = [ "acme-${cfg.realm}.service" ];
+      requires = [ "acme-${cfg.domain}.service" ];
+      after = [ "acme-${cfg.domain}.service" ];
       serviceConfig = {
         SupplementaryGroups = [ cert.group ];
         # Upstream has no package option and starts pkgs.coturn.

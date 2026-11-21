@@ -9,7 +9,7 @@ let
   serviceUser = "tuwunel"; # Match upstream NixOS module
   cfg = config.codgician.services.matrix-tuwunel;
   types = lib.types;
-  domain = "matrix.${lib.codgician.zone}";
+  inherit (cfg) domain;
 
   # Unix socket path
   socketPath = "/run/tuwunel/tuwunel.sock";
@@ -21,6 +21,18 @@ in
     elementWebPackage = lib.mkPackageOption pkgs "element-web" {
       extraDescription = "It is the client served at the homeserver's domain.";
     };
+
+    domain = lib.mkOption {
+      type = types.str;
+      default = "matrix.${lib.codgician.zone}";
+      defaultText = lib.literalExpression ''"matrix.''${lib.codgician.zone}"'';
+      example = "matrix.example.org";
+      description = "Domain name for the Tuwunel server (server_name).";
+    };
+
+    elementWeb = lib.mkEnableOption ''
+      Host Element web client at `/`.
+    '';
 
     dataPath = lib.mkOption {
       type = types.str;
@@ -63,7 +75,7 @@ in
           # TURN server run by the coturn module
           turn_uris =
             let
-              turn = config.codgician.services.coturn.realm;
+              turn = config.codgician.services.coturn.domain;
             in
             [
               "turn:${turn}?transport=udp"
@@ -145,8 +157,8 @@ in
       };
     })
 
-    # The site serves Element at `/` and the well-known documents itself,
-    # on every host that proxies it.
+    # The site serves the well-known documents itself, and Element at `/`
+    # if enabled, on every host that proxies it.
     {
       codgician.services.nginx.reverseProxies.matrix-tuwunel.domains = [ domain ];
       codgician.services.nginx.reverseProxies.matrix-tuwunel.locations =
@@ -160,10 +172,12 @@ in
           };
         in
         {
-          "/".root = import ./element-web.nix {
-            inherit pkgs clientConfig;
-            element-web = cfg.elementWebPackage;
-            domains = [ domain ];
+          "/" = lib.mkIf cfg.elementWeb {
+            root = import ./element-web.nix {
+              inherit pkgs clientConfig;
+              element-web = cfg.elementWebPackage;
+              domains = [ domain ];
+            };
           };
 
           # Matrix C-S and S-S API endpoints
