@@ -30,10 +30,20 @@ in
     enable = lib.mkEnableOption "Microsoft Intune enrollment (identity broker, Intune daemon/agent, and compliance tooling)";
 
     packages = {
-      intune-portal = lib.mkPackageOption pkgs "intune-portal" {
-        extraDescription = "It provides intune-daemon and intune-agent.";
+      intune-portal = lib.mkOption {
+        type = lib.types.package;
+        default = pkgs.intune-portal;
+        defaultText = lib.literalExpression "pkgs.intune-portal";
+        description = "Intune Portal package (provides intune-daemon and intune-agent).";
       };
-      microsoft-identity-broker = lib.mkPackageOption pkgs "microsoft-identity-broker" { };
+
+      microsoft-identity-broker = lib.mkOption {
+        type = lib.types.package;
+        default = pkgs.microsoft-identity-broker;
+        defaultText = lib.literalExpression "pkgs.microsoft-identity-broker";
+        description = "Microsoft Identity Device Broker package.";
+      };
+
       mdatp = lib.mkPackageOption pkgs "mdatp" {
         extraDescription = "Microsoft Defender for Endpoint.";
       };
