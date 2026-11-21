@@ -36,7 +36,10 @@
 
       redis.rootDir = "/opool/redis";
 
-      authelia.instances.main.enable = true;
+      authelia.instances.main = {
+        enable = true;
+        database = "postgresql";
+      };
 
       # Chat
       matrix-tuwunel = {

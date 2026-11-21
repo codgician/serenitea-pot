@@ -7,9 +7,8 @@ args@{
 let
   name = "main";
   serviceName = "authelia-${name}";
-  user = serviceName;
-  group = serviceName;
   cfg = config.codgician.services.authelia.instances.${name};
+  types = lib.types;
   inherit (lib.codgician) zone;
   inherit (config.codgician.services.postfix) sender;
   inherit (config.codgician.services) nginx;
@@ -19,8 +18,46 @@ in
     enable = lib.mkEnableOption "the Authelia portal";
     package = lib.mkPackageOption pkgs "authelia" { };
 
+    sessionDomain = lib.mkOption {
+      type = types.str;
+      default = zone;
+      defaultText = lib.literalExpression "lib.codgician.zone";
+      example = "example.com";
+      description = "The session domain for Authelia instance ${name}.";
+    };
+
+    domain = lib.mkOption {
+      type = types.str;
+      default = "auth.${cfg.sessionDomain}";
+      defaultText = lib.literalExpression ''"auth.''${config.codgician.services.authelia.instances.${name}.sessionDomain}"'';
+      example = "auth.example.com";
+      description = "The authentication domain for Authelia instance ${name}.";
+    };
+
+    user = lib.mkOption {
+      type = types.str;
+      default = serviceName;
+      description = "User under which Authelia instance ${name} runs.";
+    };
+
+    group = lib.mkOption {
+      type = types.str;
+      default = serviceName;
+      description = "Group under which Authelia instance ${name} runs.";
+    };
+
+    database = lib.mkOption {
+      type = types.enum [
+        "sqlite"
+        "postgresql"
+      ];
+      default = "sqlite";
+      example = "postgresql";
+      description = "Database backend for Authelia instance ${name}.";
+    };
+
     url = lib.mkOption {
-      type = lib.types.str;
+      type = types.str;
       default = "https://${builtins.head nginx.reverseProxies.${serviceName}.domains}";
       readOnly = true;
       description = "URL of the portal, which is where its site is.";
@@ -28,7 +65,7 @@ in
   };
 
   config = lib.mkMerge [
-    { codgician.services.nginx.reverseProxies.${serviceName}.domains = [ "auth.${zone}" ]; }
+    { codgician.services.nginx.reverseProxies.${serviceName}.domains = [ cfg.domain ]; }
 
     (lib.mkIf cfg.enable {
       codgician.services.nginx.reverseProxies.${serviceName}.proxyPass =
@@ -36,8 +73,11 @@ in
 
       services.authelia.instances.${name} = {
         enable = true;
-        inherit (cfg) package;
-        inherit user group;
+        inherit (cfg)
+          package
+          user
+          group
+          ;
 
         secrets = {
           jwtSecretFile = config.codgician.secrets.files."authelia-main-jwt".path;
@@ -82,7 +122,7 @@ in
             remember_me = "1M";
             cookies = [
               {
-                domain = zone;
+                domain = cfg.sessionDomain;
                 authelia_url = cfg.url;
               }
             ];
@@ -92,7 +132,7 @@ in
           };
 
           storage = {
-            postgres = {
+            postgres = lib.mkIf (cfg.database == "postgresql") {
               address = "unix:///run/postgresql";
               database = "authelia-${name}";
               username = "authelia-${name}";
@@ -101,25 +141,34 @@ in
 
           access_control = {
             default_policy = "two_factor";
-            # A rule for every site this host knows that names its subjects:
+            # A rule for every site this host knows that names who may pass:
             # the sites of the service modules and of this host's own files.
             rules =
               lib.concatLists (
                 lib.mapAttrsToList (
                   _: site:
-                  lib.optionals (site.authelia != null && site.authelia.users ++ site.authelia.groups != [ ]) [
-                    {
-                      domain = site.domains;
-                      policy = "two_factor";
-                      subject =
-                        map (user: "user:${user}") site.authelia.users
-                        ++ map (group: "group:${group}") site.authelia.groups;
-                    }
-                    {
-                      domain = site.domains;
-                      policy = "deny";
-                    }
-                  ]
+                  lib.optionals (site.authelia != null) (
+                    if site.authelia.anyone then
+                      # The catch-all below already asks anyone for two factors.
+                      lib.optional (site.authelia.policy != "two_factor") {
+                        domain = site.domains;
+                        inherit (site.authelia) policy;
+                      }
+                    else
+                      lib.optionals (site.authelia.users ++ site.authelia.groups != [ ]) [
+                        {
+                          domain = site.domains;
+                          inherit (site.authelia) policy;
+                          subject =
+                            map (user: "user:${user}") site.authelia.users
+                            ++ map (group: "group:${group}") site.authelia.groups;
+                        }
+                        {
+                          domain = site.domains;
+                          policy = "deny";
+                        }
+                      ]
+                  )
                 ) nginx.reverseProxies
               )
               ++ [
@@ -138,7 +187,7 @@ in
               address = "smtp://localhost:25";
               inherit sender;
               subject = "[Authelia] {title}";
-              identifier = zone;
+              identifier = cfg.sessionDomain;
               timeout = "15s";
               startup_check_address = sender;
               # Local smtp relay (postfix on localhost:25) doesn't offer
@@ -205,12 +254,12 @@ in
       };
 
       # Add nginx to authelia group for socket access
-      users.groups.${group}.members = lib.mkIf nginx.enable [ "nginx" ];
+      users.groups.${cfg.group}.members = lib.mkIf nginx.enable [ "nginx" ];
 
       # Redis
       services.redis.servers.${serviceName} = {
         enable = true;
-        inherit user group;
+        inherit (cfg) user group;
         unixSocketPerm = 660;
       };
 
@@ -224,8 +273,8 @@ in
             "authelia-main-jwks"
           ]
           (name: {
-            owner = user;
-            inherit group;
+            owner = cfg.user;
+            inherit (cfg) group;
             mode = "0600";
           });
 
@@ -234,11 +283,13 @@ in
         {
           type = "directory";
           path = "/var/lib/${serviceName}";
-          inherit user group;
+          inherit (cfg) user group;
         }
       ];
+    })
 
-      # PostgreSQL
+    # PostgreSQL
+    (lib.mkIf (cfg.enable && cfg.database == "postgresql") {
       codgician.services.postgresql.enable = true;
       services.postgresql = {
         ensureDatabases = [ "authelia-${name}" ];
