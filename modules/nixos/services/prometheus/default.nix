@@ -6,6 +6,7 @@
 }:
 let
   cfg = config.codgician.services.prometheus;
+  defaultDataDir = "/var/lib/prometheus2";
 
   # Explicit 127.0.0.1 matches the listen addresses (avoids IPv6 resolution issues)
   mkLocalScrape = job_name: port: {
@@ -24,6 +25,12 @@ in
   options.codgician.services.prometheus = {
     enable = lib.mkEnableOption "prometheus";
     package = lib.mkPackageOption pkgs "prometheus" { };
+
+    dataDir = lib.mkOption {
+      type = lib.types.path;
+      default = defaultDataDir;
+      description = "Path where Prometheus stores its metrics data.";
+    };
 
     scrapeConfigs = {
       prometheus = lib.mkEnableOption "Prometheus self-scrape";
@@ -58,10 +65,16 @@ in
         ++ cfg.scrapeConfigs.extraConfigs;
     };
 
-    codgician.system.impermanence.extraItems = [
+    # BindPaths for custom data directory
+    systemd.services.prometheus.serviceConfig.BindPaths = lib.mkIf (cfg.dataDir != defaultDataDir) [
+      "${cfg.dataDir}:${defaultDataDir}"
+    ];
+
+    # Persist data directory (only when using default location)
+    codgician.system.impermanence.extraItems = lib.mkIf (cfg.dataDir == defaultDataDir) [
       {
         type = "directory";
-        path = "/var/lib/prometheus2";
+        path = cfg.dataDir;
       }
     ];
   };
