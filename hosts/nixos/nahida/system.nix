@@ -19,7 +19,11 @@ in
         };
       };
 
-      openvscode-server.enable = true;
+      openvscode-server = {
+        enable = true;
+        user = "codgi";
+        group = "users";
+      };
 
       nginx = {
         enable = true;
