@@ -21,12 +21,13 @@ in
     domain = lib.mkOption {
       type = types.nullOr types.str;
       default = null;
-      description = "Domain the host's reverse proxy serves the dsh Web UI at; null for no Web UI.";
+      description = "HTTPS domain of the authenticated proxy for the dsh Web UI; null disables it.";
     };
 
     port = lib.mkOption {
       type = types.port;
-      description = "Loopback port of the dsh Web UI.";
+      default = 3080;
+      description = "Loopback port for the dsh Web UI.";
     };
   };
 
