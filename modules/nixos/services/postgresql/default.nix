@@ -16,6 +16,12 @@ in
 
     enableTCPIP = lib.mkEnableOption "TCP/IP connections";
 
+    port = lib.mkOption {
+      type = lib.types.port;
+      default = 5432;
+      description = "Port for PostgreSQL to listen on.";
+    };
+
     dataDir = lib.mkOption {
       type = lib.types.path;
       default = defaultDataDir;
@@ -32,7 +38,10 @@ in
       inherit (cfg) enableTCPIP;
       dataDir = "${cfg.dataDir}/${config.services.postgresql.package.psqlSchema}";
       enableJIT = true;
-      settings.full_page_writes = lib.mkIf cfg.zfsOptimizations false; # Not needed for ZFS
+      settings = {
+        inherit (cfg) port;
+        full_page_writes = lib.mkIf cfg.zfsOptimizations false; # Not needed for ZFS
+      };
     };
 
     # Ensure data directory exists (for custom paths)
