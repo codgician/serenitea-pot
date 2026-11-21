@@ -7,6 +7,7 @@
       auto-upgrade.enable = true;
       wsl = {
         enable = true;
+        defaultUser = "codgi";
         docker-desktop.enable = true;
       };
     };
