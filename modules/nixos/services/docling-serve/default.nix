@@ -8,8 +8,6 @@ let
   serviceName = "docling-serve";
   cfg = config.codgician.services.${serviceName};
   types = lib.types;
-  host = "127.0.0.1";
-  port = 5001;
   defaultStateDir = "/var/lib/${serviceName}";
 
   environment =
@@ -30,7 +28,7 @@ let
       DOCLING_SERVE_SINGLE_USE_RESULTS = "true";
       DOCLING_SERVE_MAX_SYNC_WAIT = "1200"; # 20 minutes
       DOCLING_SERVE_RESULT_REMOVAL_DELAY = "600"; # 10 minutes
-      DOCLING_DEVICE = if cfg.cuda then "cuda:0" else "cpu";
+      DOCLING_DEVICE = cfg.device;
     };
 in
 {
@@ -55,6 +53,13 @@ in
       description = "Enable CUDA support for ${serviceName}.";
     };
 
+    device = lib.mkOption {
+      type = types.str;
+      default = if cfg.cuda then "cuda:0" else "cpu";
+      defaultText = ''if cuda then "cuda:0" else "cpu"'';
+      description = "Device for Docling inference (e.g., cuda:0, cpu).";
+    };
+
     package = lib.mkPackageOption pkgs "docling-serve" {
       extraDescription = "Used by the `nixpkgs` backend.";
     };
@@ -71,6 +76,18 @@ in
         else "ghcr.io/docling-project/docling-serve:latest"
       '';
       description = "Container image used by the `container` backend.";
+    };
+
+    host = lib.mkOption {
+      type = types.str;
+      default = "127.0.0.1";
+      description = "Host for ${serviceName} to listen on.";
+    };
+
+    port = lib.mkOption {
+      type = types.port;
+      default = 5001;
+      description = "Port for ${serviceName} to listen on.";
     };
 
     artifactsDir = lib.mkOption {
@@ -99,7 +116,7 @@ in
 
     (lib.mkIf cfg.enable {
       codgician.services.nginx.reverseProxies.${serviceName}.proxyPass =
-        "http://${host}:${builtins.toString port}";
+        "http://${cfg.host}:${builtins.toString cfg.port}";
 
       # Persist state directory (only when using default location)
       codgician.system.impermanence.extraItems = lib.mkIf (cfg.stateDir == defaultStateDir) [
@@ -114,8 +131,7 @@ in
     (lib.mkIf (cfg.enable && cfg.backend == "nixpkgs") {
       services.docling-serve = {
         enable = true;
-        inherit host port;
-        inherit (cfg) stateDir;
+        inherit (cfg) host port stateDir;
 
         # Enable optional features
         package = cfg.package.override {
@@ -190,9 +206,9 @@ in
             "docling-serve"
             "run"
             "--port"
-            "${builtins.toString port}"
+            "${builtins.toString cfg.port}"
             "--host"
-            host
+            cfg.host
           ];
         };
     })
