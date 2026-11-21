@@ -10,7 +10,10 @@ in
   codgician = {
     secrets.files.saw-basic-auth.owner = "nginx";
 
-    services.anubis.enable = true;
+    services.anubis = {
+      enable = true;
+      cookieDomain = zone;
+    };
 
     services.matrix-tuwunel.elementWeb = true;
 
@@ -27,7 +30,7 @@ in
       reverseProxies = {
         authelia-main = {
           proxyPass = paimon;
-          anubis = true;
+          anubis.enable = true;
         };
 
         bubbles.proxyPass = "http://192.168.0.24:1234";
@@ -45,12 +48,12 @@ in
 
         gitlab = {
           proxyPass = paimon;
-          anubis = true;
+          anubis.enable = true;
         };
         gns3-server.proxyPass = paimon;
         grafana = {
           proxyPass = paimon;
-          anubis = true;
+          anubis.enable = true;
         };
 
         hass.proxyPass = "http://192.168.0.11:8123";

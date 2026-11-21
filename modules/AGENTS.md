@@ -24,7 +24,7 @@ An overlay that takes a package from another package set or overrides it covers 
 One option per site; the option descriptions in `modules/nixos/services/nginx/default.nix` define it.
 
 - The module that owns the service declares what the site is outside `lib.mkIf cfg.enable`, so every host knows it: `domains` (from `lib.codgician.zone`), `authelia`, and locations every hop needs. A site with no module goes in `modules/nixos/services/nginx/sites.nix`.
-- Every host that sets `proxyPass` gets a vhost and a certificate, and asks Authelia according to the site's policy. The module sets the local upstream inside `mkIf cfg.enable`; a host that is the public entry for a site served elsewhere sets `proxyPass` to that host in its own files (lumine: `hosts/nixos/lumine/reverse-proxies.nix`). `anubis = true` is the entry host's decision.
+- Every host that sets `proxyPass` gets a vhost and a certificate, and asks Authelia according to the site's policy. The module sets the local upstream inside `mkIf cfg.enable`; a host that is the public entry for a site served elsewhere sets `proxyPass` to that host in its own files (lumine: `hosts/nixos/lumine/reverse-proxies.nix`). `anubis.enable = true` is the entry host's decision.
 - `authelia.users` / `authelia.groups` restrict, `authelia.anyone = true` admits any signed-in user, unset means no login. Authelia builds its rules from these.
 
 ## Walkthroughs

@@ -17,7 +17,6 @@ let
   # the vhost's upstream.
   servesItself =
     location: location ? proxyPass || location ? root || location ? alias || location ? return;
-  locationsOf = vhost: { "/" = { }; } // vhost.locations;
 
   # What this host answers for: the sites it has an upstream for and its
   # landing page.
@@ -27,6 +26,8 @@ let
       proxyPass
       locations
       anubis
+      https
+      robots
       ;
     authelia = site.authelia != null;
   }) (lib.filterAttrs (_: site: site.proxyPass != null) cfg.reverseProxies);
@@ -38,13 +39,18 @@ let
         "*.${cfg.landingPage.domain}"
       ];
       proxyPass = null;
-      locations."/".root = import ./landing-page.nix {
-        inherit lib pkgs;
-        inherit (cfg.landingPage) footer;
-        name = "${hostName}-web";
+      locations."/" = {
+        root = import ./landing-page.nix {
+          inherit lib pkgs;
+          inherit (cfg.landingPage) footer;
+          name = "${hostName}-web";
+        };
+        lanOnly = false;
       };
       authelia = false;
-      anubis = false;
+      anubis.enable = false;
+      https = true;
+      robots = "";
     };
   };
 
@@ -55,12 +61,43 @@ let
     let
       root = vhost.locations."/" or { };
     in
-    if vhost.anubis || !servesItself root then
+    if vhost.anubis.enable || !servesItself root then
       vhost.proxyPass != null
     else
       (root.proxyPass or null) != null || root ? root || root ? alias || root ? return;
   declared = landing // served;
   vhosts = lib.filterAttrs (_: vhost: vhost.domains != [ ] && hasRoot vhost) declared;
+
+  locationModule = {
+    freeformType = with types; attrsOf anything;
+
+    options = {
+      lanOnly = lib.mkEnableOption ''
+        Only allow requests from LAN clients.
+      '';
+
+      ssl = {
+        verify = lib.mkOption {
+          type = types.bool;
+          default = true;
+          description = "Enable SSL verification for the reverse proxy.";
+        };
+
+        proxySslName = lib.mkOption {
+          type = types.bool;
+          default = true;
+          description = "Enable Proxy ssl server name.";
+        };
+
+        trustedCertificate = lib.mkOption {
+          type = types.path;
+          default = "/etc/ssl/certs/ca-certificates.crt";
+          example = "/etc/ssl/certs/mycert.pem";
+          description = "Path to the trusted certificate for SSL verification.";
+        };
+      };
+    };
+  };
 
   siteModule = {
     options = {
@@ -93,6 +130,16 @@ let
                 default = false;
                 description = "Every signed-in user.";
               };
+              policy = lib.mkOption {
+                type = types.enum [
+                  "bypass"
+                  "one_factor"
+                  "two_factor"
+                  "deny"
+                ];
+                default = "two_factor";
+                description = "Policy Authelia applies to those it admits.";
+              };
             };
           }
         );
@@ -120,14 +167,52 @@ let
         '';
       };
 
-      anubis = lib.mkOption {
+      anubis = {
+        enable = lib.mkEnableOption "Anubis in front of the upstream on this host";
+
+        difficulty = lib.mkOption {
+          type = types.nullOr (types.ints.between 1 7);
+          default = null;
+          example = 4;
+          description = ''
+            Override the global Anubis difficulty for this service.
+            Higher values require more proof-of-work from clients.
+            Set to null to use the global default.
+          '';
+        };
+
+        ogPassthrough = lib.mkOption {
+          type = types.nullOr types.bool;
+          default = null;
+          example = true;
+          description = ''
+            Override Open Graph passthrough for this service.
+            When enabled, social media preview bots can access content without challenges.
+            Set to null to use the global default.
+          '';
+        };
+      };
+
+      https = lib.mkOption {
         type = types.bool;
-        default = false;
-        description = "Put Anubis in front of the upstream on this host.";
+        default = true;
+        description = "Use https and auto-renew certificates.";
+      };
+
+      robots = lib.mkOption {
+        type = types.str;
+        example = ''
+          User-agent: *
+          Disallow: *
+        '';
+        default = "";
+        description = ''
+          Content of `/robots.txt`.
+        '';
       };
 
       locations = lib.mkOption {
-        type = with types; attrsOf (attrsOf anything);
+        type = types.attrsOf (types.submodule locationModule);
         default = { };
         example = lib.literalExpression ''
           {
@@ -136,19 +221,21 @@ let
           }
         '';
         description = ''
-          Settings of `services.nginx.virtualHosts.<name>.locations`. A
-          location goes to the upstream unless it sets `proxyPass` (`null`
-          for none), `root`, `alias` or `return`.
+          Settings of `services.nginx.virtualHosts.<name>.locations`, besides
+          `lanOnly` and `ssl`. A location goes to the upstream unless it sets
+          `proxyPass` (`null` for none), `root`, `alias` or `return`.
         '';
       };
     };
+
+    config.locations."/" = { };
   };
 
   mkLocationConfig =
     name: vhost: location:
     let
       proxyPass =
-        if vhost.anubis then
+        if vhost.anubis.enable then
           anubisSocket name
         else if servesItself location then
           location.proxyPass or null
@@ -156,19 +243,38 @@ let
           vhost.proxyPass;
     in
     lib.mkMerge [
-      (location // { inherit proxyPass; })
+      (
+        (removeAttrs location [
+          "lanOnly"
+          "ssl"
+        ])
+        // {
+          inherit proxyPass;
+        }
+      )
       {
         proxyWebsockets = true;
         extraConfig =
           # Anubis is reached over a local socket, never over https
-          (lib.optionalString (proxyPass != null && lib.hasPrefix "https://" proxyPass) ''
-            proxy_ssl_server_name on;
-            proxy_ssl_name $host;
-            proxy_ssl_protocols TLSv1.3;
-            proxy_ssl_verify on;
-            proxy_ssl_trusted_certificate /etc/ssl/certs/ca-certificates.crt;
-            proxy_ssl_verify_depth 2;
-            proxy_ssl_session_reuse off;
+          (lib.optionalString (proxyPass != null && lib.hasPrefix "https://" proxyPass) (
+            lib.optionalString location.ssl.proxySslName ''
+              proxy_ssl_server_name on;
+              proxy_ssl_name $host;
+              proxy_ssl_protocols TLSv1.3;
+            ''
+            + lib.optionalString location.ssl.verify ''
+              proxy_ssl_verify on;
+              proxy_ssl_trusted_certificate ${location.ssl.trustedCertificate};
+              proxy_ssl_verify_depth 2;
+              proxy_ssl_session_reuse off;
+            ''
+          ))
+          + (lib.optionalString location.lanOnly ''
+            allow 10.0.0.0/8;
+            allow 172.16.0.0/12;
+            allow 192.168.0.0/16;
+            allow fc00::/7;
+            deny all;
           '')
           + (lib.optionalString vhost.authelia ''
             auth_request ${autheliaApiPath};
@@ -199,11 +305,11 @@ let
     serverAliases = builtins.tail vhost.domains;
     locations = lib.mkMerge (
       [
-        (builtins.mapAttrs (_: mkLocationConfig name vhost) (locationsOf vhost))
-        { "/robots.txt".return = ''200 ""''; }
+        (builtins.mapAttrs (_: mkLocationConfig name vhost) vhost.locations)
+        { "/robots.txt".return = ''200 "${lib.replaceStrings [ "\n" ] [ "\\n" ] vhost.robots}"''; }
       ]
       # Anubis static assets - must be proxied to Anubis
-      ++ (lib.optional vhost.anubis {
+      ++ (lib.optional vhost.anubis.enable {
         "/.within.website/" = {
           proxyPass = anubisSocket name;
           proxyWebsockets = true;
@@ -248,8 +354,8 @@ let
         };
       })
     );
-    forceSSL = true;
-    useACMEHost = serverName;
+    forceSSL = vhost.https;
+    useACMEHost = lib.mkIf vhost.https serverName;
     http2 = true;
     http3 = true;
     http3_hq = true;
@@ -415,7 +521,7 @@ in
           enable = true;
           extraDomainNames = builtins.tail vhost.domains;
         }
-      ) vhosts;
+      ) (lib.filterAttrs (_: vhost: vhost.https) vhosts);
 
       # Add nginx user to www-data group
       users.groups."www-data".members = [ "nginx" ];
