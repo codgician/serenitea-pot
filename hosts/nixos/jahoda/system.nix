@@ -1,4 +1,11 @@
 { lib, pkgs, ... }:
+let
+  wallpaper =
+    (pkgs.fetchurl {
+      url = "https://media.githubusercontent.com/media/codgician/assets/refs/heads/main/images/wallpapers/genshin-luna-viii.jpg";
+      sha256 = "sha256-VjoCRP8AENaUlItKCn2751GY+WtF0ncwcBWYuJHmCWE=";
+    }).outPath;
+in
 {
   codgician = {
     secrets.files.nats-controller-seed.owner = "codgi";
@@ -8,11 +15,7 @@
       nixos-vscode-server.enable = true;
       plasma = {
         enable = true;
-        wallpaper =
-          (pkgs.fetchurl {
-            url = "https://media.githubusercontent.com/media/codgician/assets/refs/heads/main/images/wallpapers/genshin-luna-viii.jpg";
-            sha256 = "sha256-VjoCRP8AENaUlItKCn2751GY+WtF0ncwcBWYuJHmCWE=";
-          }).outPath;
+        inherit wallpaper;
       };
 
       sing-box = {
@@ -150,8 +153,13 @@
         };
 
         plasma = {
+          inherit wallpaper;
           scale = 1.5;
-          krdp.enable = true;
+          krdp = {
+            enable = true;
+            port = 3389;
+            quality = 75;
+          };
           launchers = [
             "applications:org.kde.dolphin.desktop"
             "applications:microsoft-edge.desktop"

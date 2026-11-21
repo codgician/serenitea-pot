@@ -1,4 +1,11 @@
 { pkgs, ... }:
+let
+  wallpaper =
+    (pkgs.fetchurl {
+      url = "https://media.githubusercontent.com/media/codgician/assets/refs/heads/main/images/wallpapers/genshin-luna-viii.jpg";
+      sha256 = "sha256-VjoCRP8AENaUlItKCn2751GY+WtF0ncwcBWYuJHmCWE=";
+    }).outPath;
+in
 {
   codgician = {
     services = {
@@ -6,11 +13,7 @@
       nixos-vscode-server.enable = true;
       plasma = {
         enable = true;
-        wallpaper =
-          (pkgs.fetchurl {
-            url = "https://media.githubusercontent.com/media/codgician/assets/refs/heads/main/images/wallpapers/genshin-luna-viii.jpg";
-            sha256 = "sha256-VjoCRP8AENaUlItKCn2751GY+WtF0ncwcBWYuJHmCWE=";
-          }).outPath;
+        inherit wallpaper;
       };
       rasdaemon.enable = true;
       intune = {
@@ -79,6 +82,7 @@
         defaultProfile = "github-copilot";
       };
       plasma = {
+        inherit wallpaper;
         scale = 1.5;
         launchers = [
           "applications:org.kde.dolphin.desktop"

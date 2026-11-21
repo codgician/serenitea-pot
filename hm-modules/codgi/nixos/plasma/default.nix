@@ -8,14 +8,6 @@
 let
   cfg = config.codgician.codgi.plasma;
   types = lib.types;
-
-  # The host sets one wallpaper in the NixOS Plasma module; the greeter, the
-  # desktop and the lock screen all show it.
-  wallpaper =
-    if osConfig.codgician.services.plasma.wallpaper != null then
-      osConfig.codgician.services.plasma.wallpaper
-    else
-      "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers/Flow";
   uniform = names: value: lib.genAttrs names (_: value);
   allSides = uniform [
     "top"
@@ -146,7 +138,21 @@ in
       description = "Enable dotfiles for KDE plasma desktop.";
     };
 
-    krdp.enable = lib.mkEnableOption "the KRDP server for this Plasma session";
+    krdp = {
+      enable = lib.mkEnableOption "the KRDP server for this Plasma session";
+
+      port = lib.mkOption {
+        type = types.port;
+        default = 3389;
+        description = "TCP port on which KRDP listens.";
+      };
+
+      quality = lib.mkOption {
+        type = types.ints.between 0 100;
+        default = 75;
+        description = "Video encoding quality from 0 (lowest) to 100 (highest).";
+      };
+    };
 
     launchers = lib.mkOption {
       type = with types; listOf str;
@@ -159,11 +165,33 @@ in
       description = "Items to pin in launcher.";
     };
 
+    wallpaper = lib.mkOption {
+      type = with types; nullOr path;
+      default = "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers/Flow";
+      description = "Wallpaper shared by the Plasma desktop and lock screen.";
+    };
+
     scale = lib.mkOption {
       type = types.nullOr (types.addCheck types.number (x: x > 0));
       default = null;
       example = 2;
       description = "Global display scale for Plasma and XWayland applications.";
+    };
+
+    wallpaperFillMode = lib.mkOption {
+      type =
+        with types;
+        nullOr (enum [
+          "stretch"
+          "preserveAspectFit"
+          "preserveAspectCrop"
+          "tile"
+          "tileVertically"
+          "tileHorizontally"
+          "pad"
+        ]);
+      default = "preserveAspectCrop";
+      description = "How Plasma scales the configured wallpaper.";
     };
   };
 
@@ -171,7 +199,7 @@ in
     programs.plasma = {
       enable = true;
       # Plasma stores desktop and lock-screen wallpapers separately.
-      kscreenlocker.appearance.wallpaper = wallpaper;
+      kscreenlocker.appearance.wallpaper = lib.mkIf (cfg.wallpaper != null) cfg.wallpaper;
 
       fonts = {
         general = {
@@ -362,8 +390,8 @@ in
       };
 
       workspace = {
-        inherit wallpaper;
-        wallpaperFillMode = "preserveAspectCrop";
+        wallpaper = lib.mkIf (cfg.wallpaper != null) cfg.wallpaper;
+        wallpaperFillMode = lib.mkIf (cfg.wallpaperFillMode != null) cfg.wallpaperFillMode;
         cursor = {
           theme = "Breeze";
           size = 24;
@@ -387,11 +415,13 @@ in
         breezerc.Style.MenuOpacity = 60;
         kdeglobals.KScreen.ScaleFactor = lib.mkIf (cfg.scale != null) cfg.scale;
         # Keep System Settings' lock-screen preview in sync with the active image.
-        kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General".PreviewImage = wallpaper;
+        kscreenlockerrc."Greeter/Wallpaper/org.kde.image/General".PreviewImage = lib.mkIf (
+          cfg.wallpaper != null
+        ) cfg.wallpaper;
         krdpserverrc.General = {
           Autostart = cfg.krdp.enable;
-          ListenPort = 3389;
-          Quality = 75;
+          ListenPort = cfg.krdp.port;
+          Quality = cfg.krdp.quality;
           SystemUserEnabled = cfg.krdp.enable;
         };
 

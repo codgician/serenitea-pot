@@ -18,7 +18,7 @@ in
     wallpaper = lib.mkOption {
       type = types.nullOr types.path;
       default = null;
-      description = "Wallpaper of the login greeter, the desktop and the lock screen; `null` keeps Plasma's own.";
+      description = "Wallpaper of the login greeter; `null` keeps Plasma's own.";
     };
   };
 

@@ -1,4 +1,11 @@
 { pkgs, ... }:
+let
+  wallpaper =
+    (pkgs.fetchurl {
+      url = "https://web.archive.org/web/20240727142306if_/https://cdn.dynamicwallpaper.club/wallpapers/zt6aeujg1pn/Furina.heic";
+      sha256 = "1n8ckyhkbsadilwx171kyw44ivp0z7dhz837p1f5jy3zh811bab6";
+    }).outPath;
+in
 {
   codgician = {
     services = {
@@ -6,11 +13,7 @@
       nixos-vscode-server.enable = true;
       plasma = {
         enable = true;
-        wallpaper =
-          (pkgs.fetchurl {
-            url = "https://web.archive.org/web/20240727142306if_/https://cdn.dynamicwallpaper.club/wallpapers/zt6aeujg1pn/Furina.heic";
-            sha256 = "1n8ckyhkbsadilwx171kyw44ivp0z7dhz837p1f5jy3zh811bab6";
-          }).outPath;
+        inherit wallpaper;
       };
     };
 
@@ -37,7 +40,10 @@
       git.enable = true;
       mcp.enable = true;
       oh-my-pi.enable = true;
-      plasma.scale = 2;
+      plasma = {
+        inherit wallpaper;
+        scale = 2;
+      };
       pwsh.enable = true;
       ssh.enable = true;
       tmux.enable = true;
