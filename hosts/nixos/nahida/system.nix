@@ -13,9 +13,60 @@ in
       jupyter = {
         enable = true;
         notebookDir = "/lab/jupyter";
-        kernels = {
-          ihaskell.enable = true;
-          python.enable = true;
+        user = "codgi";
+
+        # Haskell kernel (Nix-managed)
+        kernels.ihaskell.default = {
+          enable = true;
+          extraPackages =
+            ps: with ps; [
+              # Core utilities (note: text, bytestring, containers, mtl, transformers, time
+              # are GHC core libraries - already included, don't need to be specified)
+              lens
+              lens-aeson
+              aeson
+              vector
+
+              # Data visualization
+              ihaskell-hvega
+              hvega
+              diagrams
+              diagrams-cairo
+              diagrams-svg
+
+              # Web & HTTP
+              wreq
+              http-client
+              http-client-tls
+
+              # Scientific computing
+              statistics
+              scientific
+
+              # Utilities
+              unordered-containers
+              hashable
+              uuid
+            ];
+        };
+
+        # Python kernel (uv/pip inside an FHS sandbox for agile experimentation).
+        # The venv lives on /lab (persistent bind mount) and is provisioned with
+        # an uv-managed standalone CPython on first launch, so it behaves like a
+        # vanilla pip/uv environment on any other Linux distribution.
+        kernels.python.default = {
+          enable = true;
+          # Default packages installed on first kernel launch.
+          # Add more later via !uv pip install in notebooks.
+          defaultPackages = [
+            "numpy"
+            "pandas"
+            "matplotlib"
+            "scipy"
+            "scikit-learn"
+            "torch"
+            "transformers"
+          ];
         };
       };
 
