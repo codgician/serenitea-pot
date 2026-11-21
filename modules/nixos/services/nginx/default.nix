@@ -76,6 +76,17 @@ let
         Only allow requests from LAN clients.
       '';
 
+      authelia = {
+        enable = lib.mkOption {
+          type = types.bool;
+          default = true;
+          description = ''
+            Enable Authelia authentication for this location.
+            This is only effective when the site has an `authelia` policy.
+          '';
+        };
+      };
+
       ssl = {
         verify = lib.mkOption {
           type = types.bool;
@@ -222,7 +233,7 @@ let
         '';
         description = ''
           Settings of `services.nginx.virtualHosts.<name>.locations`, besides
-          `lanOnly` and `ssl`. A location goes to the upstream unless it sets
+          `lanOnly`, `authelia` and `ssl`. A location goes to the upstream unless it sets
           `proxyPass` (`null` for none), `root`, `alias` or `return`.
         '';
       };
@@ -246,6 +257,7 @@ let
       (
         (removeAttrs location [
           "lanOnly"
+          "authelia"
           "ssl"
         ])
         // {
@@ -276,7 +288,7 @@ let
             allow fc00::/7;
             deny all;
           '')
-          + (lib.optionalString vhost.authelia ''
+          + (lib.optionalString (vhost.authelia && location.authelia.enable) ''
             auth_request ${autheliaApiPath};
 
             ## Save the upstream metadata response headers from Authelia to variables.
