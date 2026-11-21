@@ -142,6 +142,22 @@ rec {
   basicModelType = types.submodule { options = commonOptions; };
   generatedModelType = types.submodule { options = generatedOptions; };
 
+  mkProviderType =
+    modelType:
+    types.submodule {
+      options = {
+        transformer = mkOption {
+          type = types.raw;
+          description = "Function that transforms a model spec into a registry entry";
+        };
+        models = mkOption {
+          type = types.attrsOf modelType;
+          default = { };
+          description = "Model definitions for this provider";
+        };
+      };
+    };
+
   mkModel =
     {
       modelPrefix,

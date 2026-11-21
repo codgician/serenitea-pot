@@ -24,7 +24,9 @@ let
     }
   );
 
-  registry = lib.mapAttrs (name: lib.mapAttrs providers.${name}.provider.transformer) cfg.providers;
+  registry = lib.mapAttrs (
+    _: providerCfg: lib.mapAttrs providerCfg.transformer providerCfg.models
+  ) cfg.providers;
   flatModels = lib.concatLists (
     lib.mapAttrsToList (
       provider: models: lib.mapAttrsToList (model: attrs: attrs // { inherit provider model; }) models
@@ -36,7 +38,7 @@ in
     providers = lib.mapAttrs (
       _: definition:
       mkOption {
-        type = types.attrsOf definition.modelType;
+        type = modelLib.mkProviderType definition.modelType;
         inherit (definition) description;
       }
     ) providers;
@@ -59,7 +61,7 @@ in
   };
 
   config.codgician.models = {
-    providers = lib.mapAttrs (_: definition: definition.provider.models) providers;
+    providers = lib.mapAttrs (_: definition: definition.provider) providers;
     byProvider = registry;
     all = flatModels;
     textGenerationModels = builtins.filter (
