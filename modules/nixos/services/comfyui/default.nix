@@ -8,7 +8,6 @@ let
   inherit (lib) types;
   cfg = config.codgician.services.comfyui;
   domain = "vanarana.${lib.codgician.zone}";
-  port = 8188;
   defaultDataDir = "/var/lib/comfyui";
 
   # See: https://github.com/llm-d/llm-d/issues/117
@@ -21,10 +20,16 @@ in
   options.codgician.services.comfyui = {
     enable = lib.mkEnableOption "ComfyUI container";
 
-    image = lib.mkOption {
+    imageTag = lib.mkOption {
       type = types.str;
-      default = "docker.io/yanwk/comfyui-boot:cu130-slim";
-      description = "Container image for ComfyUI.";
+      default = "cu130-slim";
+      description = "Container image tag.";
+    };
+
+    port = lib.mkOption {
+      type = types.port;
+      default = 8188;
+      description = "Port for ComfyUI to listen on.";
     };
 
     dataDir = lib.mkOption {
@@ -57,8 +62,8 @@ in
     (lib.mkIf cfg.enable {
       virtualisation.oci-containers.containers.comfyui = {
         autoStart = true;
-        inherit (cfg) image;
-        ports = [ "${toString port}:8188" ];
+        image = "docker.io/yanwk/comfyui-boot:${cfg.imageTag}";
+        ports = [ "${toString cfg.port}:8188" ];
         volumes = [
           "${cfg.dataDir}:/root:rw"
           "${ldSoConfFile}:/etc/ld.so.conf.d/00-system-libs.conf:ro"
@@ -86,7 +91,7 @@ in
         }
       ];
 
-      codgician.services.nginx.reverseProxies.comfyui.proxyPass = "http://127.0.0.1:${toString port}";
+      codgician.services.nginx.reverseProxies.comfyui.proxyPass = "http://127.0.0.1:${toString cfg.port}";
     })
   ];
 }
