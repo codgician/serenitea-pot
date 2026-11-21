@@ -138,6 +138,7 @@
 
       open-webui = {
         enable = true;
+        database = "postgresql";
         stateDir = "/xpool/appdata/open-webui";
 
         # Run Qwen3 embeddings locally in Open WebUI on CPU.

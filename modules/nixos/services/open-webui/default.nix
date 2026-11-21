@@ -9,7 +9,6 @@ let
   cfg = config.codgician.services.open-webui;
   types = lib.types;
   domain = "akasha.${lib.codgician.zone}";
-  port = 3010;
   defaultStateDir = "/var/lib/${serviceName}";
   # Kept in its own directory: nginx serves the manifest's parent directory.
   pwaManifest = ./static/pwa-manifest.json;
@@ -19,7 +18,7 @@ let
   ollamaCfg = config.codgician.services.ollama;
   vllmCfg = config.codgician.services.vllm;
   mcpoCfg = config.codgician.services.mcpo;
-  ollamaUrl = "http://127.0.0.1:11434";
+  ollamaUrl = "http://${ollamaCfg.host}:${builtins.toString ollamaCfg.port}";
   ollamaEmbeddingModel = "hf.co/Qwen/Qwen3-Embedding-4B-GGUF:Q4_K_M";
   pgDbName = "open-webui";
   pgDbHost = "/run/postgresql";
@@ -238,9 +237,9 @@ let
     WEBSOCKET_MANAGER = "redis";
     WEBSOCKET_REDIS_URL = "unix://${config.services.redis.servers.open-webui.unixSocket}";
     # Database
-    DATABASE_URL = "postgresql:///${pgDbName}?host=${pgDbHost}";
+    DATABASE_URL = lib.mkIf (cfg.database == "postgresql") "postgresql:///${pgDbName}?host=${pgDbHost}";
     # Vector Database
-    VECTOR_DB = "pgvector";
+    VECTOR_DB = lib.mkIf (cfg.database == "postgresql") "pgvector";
     # Image generation (OpenAI-compatible engine via LiteLLM)
     ENABLE_IMAGE_GENERATION = "True";
     IMAGE_GENERATION_ENGINE = "openai";
@@ -284,7 +283,9 @@ let
   // (lib.optionalAttrs config.codgician.services.docling-serve.enable {
     # Docling (PDF extraction engine)
     CONTENT_EXTRACTION_ENGINE = "docling";
-    DOCLING_SERVER_URL = "http://127.0.0.1:5001";
+    DOCLING_SERVER_URL =
+      with config.codgician.services.docling-serve;
+      "http://${host}:${builtins.toString port}";
     DOCLING_OCR_ENGINE = "rapidocr";
     DOCLING_OCR_LANG = "english,chinese";
     DOCLING_PARAMS = builtins.toJSON doclingParams;
@@ -293,7 +294,42 @@ in
 {
   options.codgician.services.open-webui = {
     enable = lib.mkEnableOption "Open WebUI";
+
+    backend = lib.mkOption {
+      type = types.enum [ "nixpkgs" ];
+      default = "nixpkgs";
+      description = ''
+        Backend to use for deploying open-webui.
+      '';
+    };
+
     package = lib.mkPackageOption pkgs "open-webui" { default = "open-webui-akasha"; };
+
+    host = lib.mkOption {
+      type = types.str;
+      default = "127.0.0.1";
+      description = ''
+        Host for ${serviceName} to listen on.
+      '';
+    };
+
+    port = lib.mkOption {
+      type = types.port;
+      default = 3010;
+      description = ''
+        Port for ${serviceName} to listen on.
+      '';
+    };
+
+    database = lib.mkOption {
+      type = types.enum [
+        "sqlite"
+        "postgresql"
+      ];
+      default = "sqlite";
+      example = "postgresql";
+      description = "Database backend for open-webui.";
+    };
 
     stateDir = lib.mkOption {
       type = types.path;
@@ -413,34 +449,8 @@ in
         cfg.embedding.model
       ];
 
-      codgician.services.nginx.reverseProxies.open-webui.proxyPass = "http://127.0.0.1:${toString port}";
-
-      services.open-webui = {
-        enable = true;
-        host = if cfg.openFirewall then "0.0.0.0" else "127.0.0.1";
-        inherit port;
-        inherit (cfg)
-          stateDir
-          openFirewall
-          package
-          ;
-        inherit environment;
-        environmentFile = config.codgician.secrets.templates."open-webui-env".path;
-      };
-
-      systemd.services.open-webui = {
-        serviceConfig = {
-          SupplementaryGroups = [
-            # Ensure access to Redis
-            config.services.redis.servers.open-webui.group
-          ];
-
-          # Disable dynamic user
-          DynamicUser = lib.mkForce false;
-          User = serviceName;
-          Group = serviceName;
-        };
-      };
+      codgician.services.nginx.reverseProxies.open-webui.proxyPass =
+        "http://${cfg.host}:${toString cfg.port}";
 
       # Set up Redis
       services.redis.servers.${serviceName} = {
@@ -462,8 +472,40 @@ in
           group = serviceName;
         }
       ];
+    })
 
-      # PostgreSQL
+    # Nixpkgs backend
+    (lib.mkIf (cfg.enable && cfg.backend == "nixpkgs") {
+      services.open-webui = {
+        enable = true;
+        inherit (cfg)
+          host
+          port
+          stateDir
+          openFirewall
+          package
+          ;
+        inherit environment;
+        environmentFile = config.codgician.secrets.templates."open-webui-env".path;
+      };
+
+      systemd.services.open-webui = {
+        serviceConfig = {
+          SupplementaryGroups = [
+            # Ensure access to Redis
+            config.services.redis.servers.open-webui.group
+          ];
+
+          # Disable dynamic user
+          DynamicUser = lib.mkForce false;
+          User = serviceName;
+          Group = serviceName;
+        };
+      };
+    })
+
+    # PostgreSQL
+    (lib.mkIf (cfg.enable && cfg.database == "postgresql") {
       codgician.services.postgresql.enable = true;
       services.postgresql = {
         extensions =
