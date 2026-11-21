@@ -6,24 +6,45 @@
 }:
 let
   cfg = config.codgician.codgi.vscode;
-  fontFamily = "'Cascadia Code NF', 'Cascadia Code', 'monospace'";
-  fontSize = 14;
+  fontFamily = builtins.concatStringsSep ", " (builtins.map (x: "'${x}'") cfg.fontFamily);
 in
 {
   options.codgician.codgi.vscode = {
     enable = lib.mkEnableOption "Visual Studio Code";
     package = lib.mkPackageOption pkgs "vscode" { };
+
+    fontFamily = lib.mkOption {
+      type = with lib.types; listOf str;
+      default = [
+        "Cascadia Code NF"
+        "Cascadia Code"
+        "monospace"
+      ];
+      description = "List of font families for VSCode editor.";
+    };
+
+    fontSize = lib.mkOption {
+      type = lib.types.int;
+      default = 14;
+      description = "Font size for VSCode editor.";
+    };
+
+    immutableExtensions = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Make extensions immutable.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
     programs.vscode = {
       enable = true;
       inherit (cfg) package;
-      mutableExtensionsDir = false;
+      mutableExtensionsDir = !cfg.immutableExtensions;
 
       profiles.default = {
         enableUpdateCheck = false;
-        enableExtensionUpdateCheck = false;
+        enableExtensionUpdateCheck = !cfg.immutableExtensions;
 
         extensions =
           with pkgs.vscode-marketplace;
@@ -63,8 +84,14 @@ in
               gallery.enabled = true;
             };
           };
-          editor = { inherit fontFamily fontSize; };
-          terminal.integrated = { inherit fontFamily fontSize; };
+          editor = {
+            inherit fontFamily;
+            inherit (cfg) fontSize;
+          };
+          terminal.integrated = {
+            inherit fontFamily;
+            inherit (cfg) fontSize;
+          };
           remote.SSH = {
             defaultExtensions = builtins.map (
               ext: ext.vscodeExtUniqueId
