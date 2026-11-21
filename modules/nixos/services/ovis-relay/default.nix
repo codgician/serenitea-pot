@@ -7,7 +7,7 @@
 let
   serviceName = "ovis-relay";
   cfg = config.codgician.services.${serviceName};
-  port = 8787;
+  types = lib.types;
 
   ovis = cfg.package;
 
@@ -95,6 +95,12 @@ in
     package = lib.mkPackageOption pkgs [ "llm-agents" "ovis" "unwrapped" ] {
       extraDescription = "The relay and the hosted app are built from its source.";
     };
+
+    port = lib.mkOption {
+      type = types.port;
+      default = 8787;
+      description = "Port for the Ovis relay to listen on (loopback only).";
+    };
   };
 
   config = lib.mkMerge [
@@ -113,7 +119,7 @@ in
           RELAY_MAX_SOCKETS_PER_ADDRESS = "1024";
         };
         serviceConfig = {
-          ExecStart = "${lib.getExe pkgs.bun} ${relay}/share/ovis-relay/relay/bun.ts --port ${toString port} --hostname 127.0.0.1";
+          ExecStart = "${lib.getExe pkgs.bun} ${relay}/share/ovis-relay/relay/bun.ts --port ${toString cfg.port} --hostname 127.0.0.1";
           DynamicUser = true;
           Restart = "on-failure";
           RestartSec = "5s";
@@ -136,7 +142,8 @@ in
       };
 
       # The relay is the upstream; the hosted app is served from the store.
-      codgician.services.nginx.reverseProxies.ovis-relay.proxyPass = "http://127.0.0.1:${toString port}";
+      codgician.services.nginx.reverseProxies.ovis-relay.proxyPass =
+        "http://127.0.0.1:${toString cfg.port}";
       codgician.services.nginx.reverseProxies.ovis-relay.locations = {
         # Relay
         "= /health" = relayLocation;
