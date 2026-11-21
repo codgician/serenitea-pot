@@ -6,7 +6,7 @@
 }:
 let
   cfg = config.codgician.services.gns3-server;
-  port = 3080;
+  types = lib.types;
   stateDir = "/var/lib/gns3";
 in
 {
@@ -14,8 +14,22 @@ in
     enable = lib.mkEnableOption "GNS3 server";
     package = lib.mkPackageOption pkgs "gns3-server" { };
 
+    host = lib.mkOption {
+      type = types.str;
+      default = "127.0.0.1";
+      description = ''
+        Address GNS3 Server listens on. Device consoles bind to the same address.
+      '';
+    };
+
+    port = lib.mkOption {
+      type = types.port;
+      default = 3080;
+      description = "TCP port GNS3 Server listens on.";
+    };
+
     dataDir = lib.mkOption {
-      type = lib.types.path;
+      type = types.path;
       default = stateDir;
       example = "/xpool/appdata/gns3";
       description = "Directory holding GNS3 images, projects, appliances, configs and symbols.";
@@ -24,7 +38,8 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
-      codgician.services.nginx.reverseProxies.gns3-server.proxyPass = "http://127.0.0.1:${toString port}";
+      codgician.services.nginx.reverseProxies.gns3-server.proxyPass =
+        "http://${cfg.host}:${toString cfg.port}";
 
       services.gns3-server = {
         enable = true;
@@ -37,9 +52,7 @@ in
         ubridge.enable = true;
         settings = {
           Server = {
-            # Device consoles bind to the same address.
-            host = "127.0.0.1";
-            inherit port;
+            inherit (cfg) host port;
             report_errors = false;
             appliances_path = "${cfg.dataDir}/appliances";
             configs_path = "${cfg.dataDir}/configs";
