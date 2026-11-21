@@ -10,14 +10,21 @@ let
   types = lib.types;
   authelia = config.codgician.services.authelia.instances.main.url;
   domain = "lumenstone.${lib.codgician.zone}";
+  defaultDataDir = "/var/lib/grafana";
 
   url = "https://${domain}";
 
   dashboardsDir = pkgs.runCommand "grafana-dashboards" { } ''
     mkdir -p $out
-    ${lib.concatMapStrings (dashboard: ''
-      cp ${dashboard} $out/
-    '') cfg.provision.dashboards}
+    ${lib.concatMapStrings (
+      dashboard:
+      let
+        dashboardFile = if builtins.isAttrs dashboard then dashboard.path else dashboard;
+      in
+      ''
+        cp ${dashboardFile} $out/
+      ''
+    ) cfg.provision.dashboards}
   '';
 in
 {
@@ -26,20 +33,58 @@ in
 
     package = lib.mkPackageOption pkgs "grafana" { };
 
-    provision.prometheus = {
-      enable = lib.mkEnableOption "Provision Prometheus as a datasource";
-
-      timeInterval = lib.mkOption {
-        type = types.str;
-        default = "1m";
-        description = "Minimum Prometheus query and scrape interval used by Grafana.";
-      };
+    dataDir = lib.mkOption {
+      type = types.path;
+      default = defaultDataDir;
+      description = "Data directory for Grafana.";
     };
 
-    provision.dashboards = lib.mkOption {
-      type = types.listOf types.path;
-      default = [ ];
-      description = "Dashboard JSON files of other modules to provision.";
+    provision = {
+      prometheus = {
+        enable = lib.mkEnableOption "Provision Prometheus as a datasource";
+
+        url = lib.mkOption {
+          type = types.str;
+          default = "http://localhost:${toString config.services.prometheus.port}";
+          defaultText = lib.literalExpression ''"http://localhost:''${toString config.services.prometheus.port}"'';
+          description = "URL of the Prometheus server.";
+        };
+
+        isDefault = lib.mkOption {
+          type = types.bool;
+          default = true;
+          description = "Whether Prometheus should be the default datasource.";
+        };
+
+        timeInterval = lib.mkOption {
+          type = types.str;
+          default = "1m";
+          description = "Minimum Prometheus query and scrape interval used by Grafana.";
+        };
+      };
+
+      dashboards = lib.mkOption {
+        type = types.listOf (
+          types.either types.path (
+            types.submodule {
+              options = {
+                path = lib.mkOption {
+                  type = types.path;
+                  description = "Path to the dashboard JSON file.";
+                };
+              };
+            }
+          )
+        );
+        default = [ ];
+        description = "List of dashboard JSON files to provision.";
+        example = lib.literalExpression ''
+          [
+            ./dashboards/nginx.json
+            { path = ./dashboards/node.json; }
+          ]
+        '';
+      };
     };
   };
 
@@ -51,7 +96,7 @@ in
 
       services.grafana = {
         enable = true;
-        inherit (cfg) package;
+        inherit (cfg) package dataDir;
         settings = {
           database = {
             host = "/run/postgresql";
@@ -133,8 +178,7 @@ in
               name = "Prometheus";
               type = "prometheus";
               access = "proxy";
-              url = "http://localhost:${toString config.services.prometheus.port}";
-              isDefault = true;
+              inherit (cfg.provision.prometheus) url isDefault;
               editable = false;
               jsonData = {
                 inherit (cfg.provision.prometheus) timeInterval;
@@ -169,10 +213,11 @@ in
         ];
       };
 
-      codgician.system.impermanence.extraItems = [
+      # Persist data when dataDir is default value
+      codgician.system.impermanence.extraItems = lib.mkIf (cfg.dataDir == defaultDataDir) [
         {
           type = "directory";
-          path = "/var/lib/grafana";
+          path = cfg.dataDir;
           user = serviceName;
           group = serviceName;
         }
