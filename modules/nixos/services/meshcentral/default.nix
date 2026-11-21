@@ -7,19 +7,34 @@
 }:
 let
   cfg = config.codgician.services.meshcentral;
+  types = lib.types;
   domain = "amt.${lib.codgician.zone}";
-  port = 3001;
 in
 {
   options.codgician.services.meshcentral = {
     enable = lib.mkEnableOption "MeshCentral";
     package = lib.mkPackageOption pkgs "meshcentral" { };
+
+    host = lib.mkOption {
+      type = types.str;
+      default = "127.0.0.1";
+      description = ''
+        Host for meshcentral to listen on.
+      '';
+    };
+
+    port = lib.mkOption {
+      type = types.port;
+      default = 3001;
+      description = "TCP port for meshcentral to listen.";
+    };
   };
 
   config = lib.mkMerge [
     # Meshcentral configurations
     (lib.mkIf cfg.enable {
-      codgician.services.nginx.reverseProxies.meshcentral.proxyPass = "http://127.0.0.1:${toString port}";
+      codgician.services.nginx.reverseProxies.meshcentral.proxyPass =
+        "http://${cfg.host}:${toString cfg.port}";
 
       services.meshcentral = {
         enable = true;
@@ -58,8 +73,8 @@ in
             };
           };
           settings = {
-            PortBind = "127.0.0.1";
-            Port = port;
+            PortBind = cfg.host;
+            Port = cfg.port;
             TlsOffload = "127.0.0.1,::1";
           };
         };
