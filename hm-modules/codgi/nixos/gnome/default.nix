@@ -7,12 +7,26 @@
 }:
 let
   cfg = config.codgician.codgi.gnome;
+  types = lib.types;
 in
 {
-  options.codgician.codgi.gnome.enable = lib.mkOption {
-    type = lib.types.bool;
-    default = osConfig.services.desktopManager.gnome.enable or false;
-    description = "Enable dotfiles for GNOME desktop.";
+  options.codgician.codgi.gnome = {
+    enable = lib.mkOption {
+      type = types.bool;
+      default = osConfig.services.desktopManager.gnome.enable or false;
+      description = "Enable dotfiles for GNOME desktop.";
+    };
+
+    favoriteApps = lib.mkOption {
+      type = types.listOf types.str;
+      default = [
+        "org.gnome.Nautilus.desktop"
+        "firefox.desktop"
+        "org.gnome.Console.desktop"
+      ]
+      ++ (lib.optional (config.codgician.codgi.vscode.enable or false) "code.desktop");
+      description = "List of .desktop file names to pin in the GNOME dock.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -45,12 +59,9 @@ in
       };
 
       # Favorite apps in dock (equivalent to plasma taskbar pinned apps)
-      "org/gnome/shell".favorite-apps = [
-        "org.gnome.Nautilus.desktop"
-        "firefox.desktop"
-        "org.gnome.Console.desktop"
-      ]
-      ++ lib.optional config.codgician.codgi.vscode.enable "code.desktop";
+      "org/gnome/shell" = {
+        favorite-apps = cfg.favoriteApps;
+      };
 
       # Dash-to-dock settings (macOS-like behavior)
       "org/gnome/shell/extensions/dash-to-dock" = {
