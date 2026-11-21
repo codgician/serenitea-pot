@@ -1,4 +1,9 @@
-{ config, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   dshPort = 3080;
 in
@@ -41,7 +46,10 @@ in
       impermanence.enable = true;
     };
 
-    users.codgi.enable = true;
+    users.codgi = with lib.codgician; {
+      enable = true;
+      hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
+    };
   };
 
   home-manager.users.codgi = {

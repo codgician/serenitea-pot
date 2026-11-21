@@ -46,7 +46,10 @@
       };
     };
 
-    users.codgi.enable = true;
+    users.codgi = with lib.codgician; {
+      enable = true;
+      hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
+    };
   };
 
   home-manager.users.codgi = {

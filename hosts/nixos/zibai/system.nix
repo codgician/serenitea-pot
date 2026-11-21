@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, lib, ... }:
 {
   codgician = {
     services = {
@@ -38,13 +38,16 @@
       secure-boot.enable = true;
     };
 
-    users = {
-      codgi.enable = true;
+    users = with lib.codgician; {
+      codgi = {
+        enable = true;
+        hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
+      };
 
       smb = {
         enable = true;
-        hashedPasswordSecret = "smb-qiaoying-hashed-password";
-        passwordSecret = "smb-qiaoying-password";
+        hashedPasswordAgeFile = getAgeSecretPathFromName "smb-qiaoying-hashed-password";
+        passwordAgeFile = getAgeSecretPathFromName "smb-qiaoying-password";
       };
     };
   };

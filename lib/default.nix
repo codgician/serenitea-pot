@@ -12,6 +12,7 @@ let
             ./image.nix
             ./io.nix
             ./nginx.nix
+            ./secrets.nix
             ./service.nix
             ./utils.nix
           ]

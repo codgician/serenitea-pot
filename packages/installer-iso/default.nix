@@ -54,7 +54,6 @@ let
           users.users.codgi.hashedPassword = "";
           codgician.users.codgi = {
             enable = true;
-            hashedPasswordSecret = null;
             extraGroups = [ "networkmanager" ];
           };
           services.getty.autologinUser = lib.mkForce "codgi";

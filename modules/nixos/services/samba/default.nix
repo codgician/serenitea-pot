@@ -97,7 +97,10 @@ in
             mkCommand =
               user:
               let
-                passwordFile = config.codgician.secrets.files.${userCfg.${user}.passwordSecret}.path;
+                passwordFile =
+                  config.codgician.secrets.files."${lib.codgician.getAgeSecretNameFromPath
+                    userCfg.${user}.passwordAgeFile
+                  }".path;
               in
               ''
                 echo "Refreshing samba password for: ${user}"
@@ -134,9 +137,9 @@ in
     assertions =
       let
         mkUserAssertion = user: {
-          assertion = userCfg ? ${user} && userCfg.${user}.passwordSecret != null;
+          assertion = userCfg ? ${user} && userCfg.${user}.passwordAgeFile != null;
           message = ''
-            User "${user}" must have `passwordSecret` set when samba is enabled.
+            User "${user}" must have plain password file configured when samba is enabled.
           '';
         };
       in

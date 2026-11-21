@@ -98,9 +98,10 @@ in
 
     virtualization.podman.enable = true;
 
-    users.codgi = {
+    users.codgi = with lib.codgician; {
       enable = true;
-      passwordSecret = "codgi-password";
+      hashedPasswordAgeFile = getAgeSecretPathFromName "codgi-hashed-password";
+      passwordAgeFile = getAgeSecretPathFromName "codgi-password";
     };
   };
 
