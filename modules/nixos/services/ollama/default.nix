@@ -29,6 +29,24 @@ in
       '';
     };
 
+    acceleration = lib.mkOption {
+      type = types.nullOr (
+        types.enum [
+          false
+          "cuda"
+          "rocm"
+          "vulkan"
+        ]
+      );
+      default = null;
+      description = "Acceleration backend for ollama; selects the default package.";
+    };
+
+    package = lib.mkPackageOption pkgs "ollama" {
+      default = if builtins.isString cfg.acceleration then "ollama-${cfg.acceleration}" else "ollama";
+      extraDescription = "Defaults to the `ollama` variant built for `acceleration`.";
+    };
+
     dataDir = lib.mkOption {
       type = types.path;
       default = "/var/lib/ollama";
@@ -38,6 +56,7 @@ in
     modelDir = lib.mkOption {
       type = types.path;
       default = "${cfg.dataDir}/models";
+      defaultText = lib.literalExpression ''"''${dataDir}/models"'';
       description = "Directory for ollama to store models.";
     };
 
@@ -61,70 +80,30 @@ in
         Search for models of your choice from: https://ollama.com/library
       '';
     };
-
-    acceleration = lib.mkOption {
-      type = types.nullOr (
-        types.enum [
-          false
-          "cuda"
-          "rocm"
-          "vulkan"
-        ]
-      );
-      default = null;
-      description = "Acceleration backend for ollama.";
-    };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://${cfg.host}:${builtins.toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.ollama; http://$\{host}:$\{builtins.toString port}'';
-    };
   };
 
-  config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
-      services.ollama = {
-        enable = true;
-        inherit (cfg)
-          host
-          port
-          loadModels
-          user
-          group
-          acceleration
-          ;
-        home = cfg.dataDir;
-        models = cfg.modelDir;
-        environmentVariables = {
-          OLLAMA_FLASH_ATTENTION = lib.mkIf (cfg.acceleration != false) "1";
-          OLLAMA_KV_CACHE_TYPE = "q8_0";
-          OLLAMA_NEW_ENGINE = "1";
-          # Increase default context length to 32K
-          OLLAMA_CONTEXT_LENGTH = "32768";
-          # Keep alive
-          OLLAMA_KEEP_ALIVE = "-1";
-        };
-
-        # Override package to save build time
-        package =
-          if cfg.acceleration == "rocm" then
-            pkgs.ollama-rocm
-          else if cfg.acceleration == "cuda" then
-            pkgs.ollama-cuda
-          else if cfg.acceleration == "vulkan" then
-            pkgs.ollama-vulkan
-          else
-            pkgs.ollama;
+  config = lib.mkIf cfg.enable {
+    services.ollama = {
+      enable = true;
+      inherit (cfg)
+        host
+        port
+        user
+        group
+        package
+        loadModels
+        ;
+      home = cfg.dataDir;
+      models = cfg.modelDir;
+      environmentVariables = {
+        OLLAMA_FLASH_ATTENTION = lib.mkIf (cfg.acceleration != false) "1";
+        OLLAMA_KV_CACHE_TYPE = "q8_0";
+        OLLAMA_NEW_ENGINE = "1";
+        # Increase default context length to 32K
+        OLLAMA_CONTEXT_LENGTH = "32768";
+        # Keep alive
+        OLLAMA_KEEP_ALIVE = "-1";
       };
-    })
-
-    # Reverse proxy profile
-    {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-      };
-    }
-  ];
+    };
+  };
 }

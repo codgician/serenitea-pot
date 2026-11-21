@@ -1,7 +1,6 @@
 { config, lib, ... }:
 let
-  cfg = config.codgician.services.sing-box;
-  tunCfg = cfg.tun;
+  tunCfg = config.codgician.services.sing-box.tun;
   inherit (lib) types;
 in
 {
@@ -68,11 +67,13 @@ in
       inbounds = [
         {
           type = "tun";
-          tag = tunCfg.tag;
+          inherit (tunCfg)
+            tag
+            address
+            mtu
+            stack
+            ;
           interface_name = tunCfg.interfaceName;
-          address = tunCfg.address;
-          mtu = tunCfg.mtu;
-          stack = tunCfg.stack;
           auto_route = true;
           strict_route = true;
           route_address = tunCfg.routedRanges;
@@ -84,7 +85,7 @@ in
         default_domain_resolver.server = "local";
         rules = lib.optional (tunCfg.routedRanges != [ ]) {
           ip_cidr = tunCfg.routedRanges;
-          outbound = tunCfg.outbound;
+          inherit (tunCfg) outbound;
         };
         auto_detect_interface = true;
       };
@@ -125,11 +126,15 @@ in
       ];
     };
 
-    assertions = [
-      {
-        assertion = tunCfg.enable -> tunCfg.outbound != "";
-        message = "An outbound tag must be specified for TUN routing.";
-      }
-    ];
+    assertions =
+      let
+        tags = map (outbound: outbound.tag) config.services.sing-box.settings.outbounds;
+      in
+      [
+        {
+          assertion = lib.elem tunCfg.outbound tags;
+          message = "codgician.services.sing-box.tun.outbound must be the tag of an enabled outbound (${lib.concatStringsSep ", " tags}), not ${builtins.toJSON tunCfg.outbound}.";
+        }
+      ];
   };
 }

@@ -1,6 +1,5 @@
 { pkgs, ... }:
 {
-  # My settings
   codgician = {
     system = {
       brew = {
@@ -9,9 +8,7 @@
           "bluebubbles"
           "opencore-configurator"
         ];
-        masApps = { };
       };
-      common.enable = true;
       common.inChina = true;
     };
 
@@ -50,7 +47,6 @@
 
   system.primaryUser = "codgi";
 
-  # Home manager
   home-manager.users.codgi =
     { pkgs, ... }:
     {
@@ -76,11 +72,9 @@
     openssl
   ];
 
-  # zsh
-  programs.zsh = {
-    enable = true;
-    promptInit = "";
-  };
+  # The darwin common module sets the same empty prompt; the second
+  # definition adds one line to /etc/zshrc.
+  programs.zsh.promptInit = "";
 
   system.defaults = {
     dock = {

@@ -34,7 +34,7 @@ let
   consistent = lib.all (names: names == [ ]) (lib.attrValues differences);
 in
 {
-  azureModelConsistency =
+  checks.azureModelConsistency =
     assert lib.assertMsg consistent "Azure model metadata mismatch: ${builtins.toJSON differences}";
     pkgs.runCommand "azure-model-consistency" { } ''
       touch "$out"

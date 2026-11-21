@@ -8,7 +8,8 @@ let
   inherit (lib) types;
 
   kind = "python";
-  cfg = config.codgician.services.jupyter.kernels.${kind};
+  jupyterCfg = config.codgician.services.jupyter;
+  cfg = jupyterCfg.kernels.${kind};
 
   # Only instances that are turned on.
   enabledKernels = lib.filterAttrs (_: icfg: icfg.enable) cfg;
@@ -43,9 +44,10 @@ let
     let
       stateDir = builtins.dirOf icfg.venvPath;
 
-      # Provision the venv on first launch, then exec the kernel. This script is
-      # the FHS foreground process (bubblewrap runs --die-with-parent), so we
-      # exec ipykernel directly. {connection_file} is passed by Jupyter as $1.
+      # Provision the venv on first launch with an uv-managed standalone CPython,
+      # then exec the kernel. This script is the FHS foreground process
+      # (bubblewrap runs --die-with-parent), so we exec ipykernel directly.
+      # {connection_file} is passed by Jupyter as $1.
       launcher = pkgs.writeShellScript "jupyter-${mkId name}-launcher" ''
         set -euo pipefail
         venv="${icfg.venvPath}"
@@ -199,14 +201,13 @@ in
     );
   };
 
-  config = lib.mkIf (enabledKernels != { }) {
+  config = lib.mkIf (jupyterCfg.enable && enabledKernels != { }) {
     services.jupyter.kernels = lib.mapAttrs' mkKernel enabledKernels;
 
-    # Create each instance's state dir owned by the jupyter user. They live on a
-    # persistent mount, so no impermanence entry is needed.
+    # Create each instance's state dir owned by the jupyter user. They live on
+    # persistent storage, so no impermanence entry is needed.
     systemd.tmpfiles.rules = lib.mapAttrsToList (
-      _: icfg:
-      "d ${builtins.dirOf icfg.venvPath} 0755 ${config.codgician.services.jupyter.user} ${config.codgician.services.jupyter.group} -"
+      _: icfg: "d ${builtins.dirOf icfg.venvPath} 0755 ${jupyterCfg.user} ${jupyterCfg.group} -"
     ) enabledKernels;
 
     # Instance names become part of an on-disk kernel id, so keep them tame.

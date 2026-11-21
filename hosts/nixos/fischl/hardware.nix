@@ -1,8 +1,4 @@
-{
-  lib,
-  pkgs,
-  ...
-}:
+{ lib, pkgs, ... }:
 {
   # TPM2-based ZFS root unlock
   # Generate credential: nix run .#mkzfscreds -- zroot > zroot.cred
@@ -39,12 +35,6 @@
       "hugepages=6"
       "pcie_aspm=off"
       "pcie_port_pm=off"
-    ];
-
-    # ZFS on root boot configs
-    supportedFilesystems = [
-      "vfat"
-      "zfs"
     ];
   };
 
@@ -90,8 +80,6 @@
     nvtopPackages.intel
   ];
 
-  networking.useDHCP = lib.mkDefault true;
-
   hardware = {
     enableRedistributableFirmware = true;
     cpu.intel.updateMicrocode = true;
@@ -100,6 +88,4 @@
   services.thermald.enable = true;
 
   powerManagement.cpuFreqGovernor = "powersave";
-
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

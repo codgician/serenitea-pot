@@ -1,15 +1,22 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.codgician.services.rustdesk-server;
 in
 {
   options.codgician.services.rustdesk-server = {
-    enable = lib.mkEnableOption "RustDesk.";
+    enable = lib.mkEnableOption "RustDesk";
+    package = lib.mkPackageOption pkgs "rustdesk-server" { };
   };
 
   config = lib.mkIf cfg.enable {
     services.rustdesk-server = {
       enable = true;
+      inherit (cfg) package;
       openFirewall = true;
       signal = {
         enable = true;

@@ -1,19 +1,26 @@
 {
   config,
-  pkgs,
   lib,
+  pkgs,
   ...
 }:
 let
   serviceName = "jupyter";
   cfg = config.codgician.services.jupyter;
   types = lib.types;
+  autheliaEnabled = config.codgician.services.nginx.reverseProxies.jupyter.authelia != null;
 in
 {
   imports = [ ./kernels ];
 
   options.codgician.services.jupyter = {
     enable = lib.mkEnableOption "Jupyter";
+
+    package = lib.mkPackageOption pkgs [
+      "python3"
+      "pkgs"
+      "jupyter"
+    ] { };
 
     ip = lib.mkOption {
       type = types.str;
@@ -51,8 +58,9 @@ in
       example = "argon2:$argon2id$v=19$m=10240,t=10,p=8$...";
       description = ''
         Hashed password for Jupyter authentication.
-        When null and reverseProxy.authelia.enable = true, Jupyter auth is disabled.
-        When null and authelia is not enabled, an assertion will fail.
+        When null and the site `codgician.services.nginx.reverseProxies.jupyter`
+        has Authelia, Jupyter auth is disabled.
+        When null and the site has no Authelia, an assertion will fail.
 
         Generate with: `jupyter server password` or
         `python3 -c "from jupyter_server.auth import passwd; print(passwd('your-password'))"`
@@ -73,26 +81,29 @@ in
         making them available ONLY in Jupyter context, not system-wide.
       '';
     };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://${cfg.ip}:${builtins.toString cfg.port}";
-      defaultProxyPassText = "with config.codgician.services.jupyter; http://\${ip}:\${builtins.toString port}";
-    };
   };
 
   config =
     let
       # Disable Jupyter auth when Authelia handles it
-      disableJupyterAuth = cfg.password == null && cfg.reverseProxy.authelia.enable;
+      disableJupyterAuth = cfg.password == null && autheliaEnabled;
     in
     lib.mkMerge [
-      # Jupyter configurations
+      {
+        codgician.services.nginx.reverseProxies.jupyter = {
+          domains = [ "dragonspine.${lib.codgician.zone}" ];
+          # Without `password` Jupyter has no authentication of its own.
+          authelia.anyone = true;
+        };
+      }
+
       (lib.mkIf cfg.enable {
+        codgician.services.nginx.reverseProxies.jupyter.proxyPass = "http://${cfg.ip}:${toString cfg.port}";
+
         services.jupyter = {
           enable = true;
           inherit (cfg)
+            package
             ip
             port
             user
@@ -104,18 +115,16 @@ in
           # but we disable token via notebookConfig when using Authelia)
           password = if cfg.password != null then cfg.password else "";
 
-          notebookConfig =
-            # Base config for reverse proxy
-            (lib.optionalString cfg.reverseProxy.enable ''
-              c.ServerApp.allow_remote_access = True
-              c.ServerApp.trust_xheaders = True
-            '')
-            # Disable token/password auth when Authelia handles it
-            + (lib.optionalString disableJupyterAuth ''
-              # Disable built-in authentication - Authelia handles auth
-              c.ServerApp.token = ""
-              c.PasswordIdentityProvider.hashed_password = ""
-            '');
+          notebookConfig = ''
+            c.ServerApp.allow_remote_access = True
+            c.ServerApp.trust_xheaders = True
+          ''
+          # Disable token/password auth when Authelia handles it
+          + lib.optionalString disableJupyterAuth ''
+            # Disable built-in authentication - Authelia handles auth
+            c.ServerApp.token = ""
+            c.PasswordIdentityProvider.hashed_password = ""
+          '';
         };
 
         # Add extra tools to Jupyter service PATH
@@ -124,23 +133,16 @@ in
         # Ensure authentication is configured
         assertions = [
           {
-            assertion = cfg.password != null || cfg.reverseProxy.authelia.enable;
+            assertion = cfg.password != null || autheliaEnabled;
             message = ''
               jupyter: Authentication is required.
 
               Either:
-              1. Enable Authelia: reverseProxy.authelia.enable = true (recommended)
+              1. Keep Authelia on the site: codgician.services.nginx.reverseProxies.jupyter.authelia (recommended)
               2. Provide a password hash: password = "argon2:..."
             '';
           }
         ];
       })
-
-      # Reverse proxy profile
-      {
-        codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-          inherit serviceName cfg;
-        };
-      }
     ];
 }

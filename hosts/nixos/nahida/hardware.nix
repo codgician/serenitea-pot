@@ -8,16 +8,10 @@
     # Use systemd-resolved inside the container
     # Workaround for bug https://github.com/NixOS/nixpkgs/issues/162686
     useHostResolvConf = lib.mkForce false;
-    useNetworkd = true;
   };
 
   # Keep this selection in sync with Paimon's hardware.nvidia.package.
   environment.systemPackages = [
     pkgs.unstable.linuxPackages_6_18.nvidiaPackages.new_feature.bin
   ];
-
-  services.resolved.enable = true;
-
-  nixpkgs.config.cudaSupport = true;
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

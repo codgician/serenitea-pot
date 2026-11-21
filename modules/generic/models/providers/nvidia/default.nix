@@ -1,6 +1,6 @@
 { lib, modelLib, ... }:
 let
-  data = builtins.fromJSON (builtins.readFile ./models.json);
+  data = lib.importJSON ./models.json;
   metadata = {
     "minimaxai/minimax-m2.7" = {
       contextWindow = 204800;

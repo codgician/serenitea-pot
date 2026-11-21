@@ -1,65 +1,30 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
-  serviceName = "prometheus";
-  cfg = config.codgician.services.${serviceName};
+  cfg = config.codgician.services.prometheus;
   defaultDataDir = "/var/lib/prometheus2";
-  # Default scrape configs when self-monitoring is enabled
-  # Use explicit 127.0.0.1 to match listenAddress binding (avoids IPv6 resolution issues)
-  defaultScrapeConfigs = lib.optionals cfg.scrapeConfigs.prometheus [
-    {
-      job_name = "prometheus";
-      static_configs = [
-        {
-          targets = [ "127.0.0.1:${toString config.services.prometheus.port}" ];
-          labels = {
-            instance = config.networking.hostName;
-          };
-        }
-      ];
-    }
-  ];
 
-  # Nginx exporter scrape config
-  nginxScrapeConfigs = lib.optionals cfg.scrapeConfigs.nginx [
-    {
-      job_name = "nginx";
-      static_configs = [
-        {
-          targets = [
-            "127.0.0.1:${toString config.services.prometheus.exporters.nginx.port}"
-          ];
-          labels = {
-            instance = config.networking.hostName;
-          };
-        }
-      ];
-    }
-  ];
-
-  # Nginxlog exporter scrape config
-  nginxlogScrapeConfigs = lib.optionals cfg.scrapeConfigs.nginxlog [
-    {
-      job_name = "nginxlog";
-      static_configs = [
-        {
-          targets = [
-            "127.0.0.1:${toString config.services.prometheus.exporters.nginxlog.port}"
-          ];
-          labels = {
-            instance = config.networking.hostName;
-          };
-        }
-      ];
-    }
-  ];
+  # Explicit 127.0.0.1 matches the listen addresses (avoids IPv6 resolution issues)
+  mkLocalScrape = job_name: port: {
+    inherit job_name;
+    static_configs = [
+      {
+        targets = [ "127.0.0.1:${toString port}" ];
+        labels = {
+          instance = config.networking.hostName;
+        };
+      }
+    ];
+  };
 in
 {
-  options.codgician.services.${serviceName} = {
+  options.codgician.services.prometheus = {
     enable = lib.mkEnableOption "prometheus";
+    package = lib.mkPackageOption pkgs "prometheus" { };
 
     dataDir = lib.mkOption {
       type = lib.types.path;
@@ -77,15 +42,7 @@ in
       extraConfigs = lib.mkOption {
         type = lib.types.listOf lib.types.attrs;
         default = [ ];
-        description = "Additional scrape configurations to add.";
-        example = lib.literalExpression ''
-          [
-            {
-              job_name = "node";
-              static_configs = [{ targets = [ "localhost:9100" ]; }];
-            }
-          ]
-        '';
+        description = "Scrape configurations added after those of Prometheus itself and of nginx.";
       };
     };
   };
@@ -93,11 +50,18 @@ in
   config = lib.mkIf cfg.enable {
     services.prometheus = {
       enable = true;
+      inherit (cfg) package;
       listenAddress = "127.0.0.1"; # Security: bind to localhost only
       scrapeConfigs =
-        defaultScrapeConfigs
-        ++ nginxScrapeConfigs
-        ++ nginxlogScrapeConfigs
+        lib.optional cfg.scrapeConfigs.prometheus (
+          mkLocalScrape "prometheus" config.services.prometheus.port
+        )
+        ++ lib.optional cfg.scrapeConfigs.nginx (
+          mkLocalScrape "nginx" config.services.prometheus.exporters.nginx.port
+        )
+        ++ lib.optional cfg.scrapeConfigs.nginxlog (
+          mkLocalScrape "nginxlog" config.services.prometheus.exporters.nginxlog.port
+        )
         ++ cfg.scrapeConfigs.extraConfigs;
     };
 

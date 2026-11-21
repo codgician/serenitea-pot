@@ -9,8 +9,7 @@ let
   cfg = config.codgician.services.${serviceName};
   types = lib.types;
 
-  # The CLI is only a wrapper; source, dependencies, and build hooks live here.
-  ovis = pkgs.llm-agents.ovis.unwrapped;
+  ovis = cfg.package;
 
   # The relay ships in Ovis' source but not in its package; its dependencies resolve
   # through the packaged node_modules.
@@ -78,44 +77,37 @@ let
       extraConfig ? "",
     }:
     {
-      authelia.enable = false;
-      passthru = {
-        inherit root tryFiles;
-        extraConfig =
-          include csp + lib.optionalString (cache != null) "\n${include cache}" + "\n" + extraConfig;
-      };
+      inherit root tryFiles;
+      extraConfig =
+        include csp + lib.optionalString (cache != null) "\n${include cache}" + "\n" + extraConfig;
     };
 
-  relayLocation = {
-    authelia.enable = false;
-    passthru = {
-      inherit (cfg.reverseProxy) proxyPass;
-      extraConfig = ''
-        proxy_read_timeout 300s;
-        proxy_buffering off;
-      '';
-    };
-  };
+  relayLocation.extraConfig = ''
+    proxy_read_timeout 300s;
+    proxy_buffering off;
+  '';
 in
 {
   options.codgician.services.${serviceName} = {
-    enable = lib.mkEnableOption "Ovis relay and self-hosted Ovis app";
+    enable = lib.mkEnableOption "Ovis relay";
+
+    # The CLI is only a wrapper; source, dependencies, and build hooks live in the unwrapped package.
+    package = lib.mkPackageOption pkgs [ "llm-agents" "ovis" "unwrapped" ] {
+      extraDescription = "The relay and the hosted app are built from its source.";
+    };
 
     port = lib.mkOption {
       type = types.port;
       default = 8787;
       description = "Port for the Ovis relay to listen on (loopback only).";
     };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://127.0.0.1:${toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.${serviceName}; http://127.0.0.1:$\{toString port}'';
-    };
   };
 
   config = lib.mkMerge [
+    {
+      codgician.services.nginx.reverseProxies.ovis-relay.domains = [ "euthymia.${lib.codgician.zone}" ];
+    }
+
     (lib.mkIf cfg.enable {
       systemd.services.${serviceName} = {
         description = "Ovis relay";
@@ -148,53 +140,49 @@ in
           LockPersonality = true;
         };
       };
-    })
 
-    {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-        extraVhostConfig.locations = {
-          # Relay
-          "= /health" = relayLocation;
-          "/v1/" = relayLocation;
+      # The relay is the upstream; the hosted app is served from the store.
+      codgician.services.nginx.reverseProxies.ovis-relay.proxyPass =
+        "http://127.0.0.1:${toString cfg.port}";
+      codgician.services.nginx.reverseProxies.ovis-relay.locations = {
+        # Relay
+        "= /health" = relayLocation;
+        "/v1/" = relayLocation;
 
-          # Hosted app
-          "/" = lib.recursiveUpdate (staticLocation { tryFiles = "$uri =404"; }) {
-            passthru.proxyPass = lib.mkForce null;
-          };
-          "= /" = staticLocation {
-            tryFiles = "/index.html =404";
-            cache = "cache-revalidate";
-          };
-          "~ ^/(index\\.html|sw\\.js|manifest\\.webmanifest)$" = staticLocation {
-            cache = "cache-revalidate";
-          };
-          "/assets/" = staticLocation { cache = "cache-immutable"; };
-          "/.well-known/" = staticLocation { extraConfig = "default_type application/json;"; };
-          # Quote regexes containing braces so nginx does not parse them as blocks.
-          "~ \"^(${scope})$\"" = staticLocation {
-            # Redirect from the validated capture, not the decoded and untrusted $uri.
-            extraConfig = "return 301 $1/;";
-          };
-          "~ \"^${scope}/manifest\\.webmanifest$\"" = staticLocation {
-            tryFiles = "/manifest.webmanifest =404";
-            cache = "cache-revalidate";
-          };
-          "~ \"^${scope}/sw\\.js$\"" = staticLocation {
-            tryFiles = "/sw.js =404";
-            cache = "cache-revalidate";
-          };
-          "~ \"^${scope}/~render$\"" = staticLocation {
-            tryFiles = "/render.html =404";
-            csp = "csp-render";
-            cache = "cache-revalidate";
-          };
-          "/s/" = staticLocation {
-            tryFiles = "/index.html =404";
-            cache = "cache-revalidate";
-          };
+        # Hosted app
+        "/" = staticLocation { tryFiles = "$uri =404"; };
+        "= /" = staticLocation {
+          tryFiles = "/index.html =404";
+          cache = "cache-revalidate";
+        };
+        "~ ^/(index\\.html|sw\\.js|manifest\\.webmanifest)$" = staticLocation {
+          cache = "cache-revalidate";
+        };
+        "/assets/" = staticLocation { cache = "cache-immutable"; };
+        "/.well-known/" = staticLocation { extraConfig = "default_type application/json;"; };
+        # Quote regexes containing braces so nginx does not parse them as blocks.
+        "~ \"^(${scope})$\"" = staticLocation {
+          # Redirect from the validated capture, not the decoded and untrusted $uri.
+          extraConfig = "return 301 $1/;";
+        };
+        "~ \"^${scope}/manifest\\.webmanifest$\"" = staticLocation {
+          tryFiles = "/manifest.webmanifest =404";
+          cache = "cache-revalidate";
+        };
+        "~ \"^${scope}/sw\\.js$\"" = staticLocation {
+          tryFiles = "/sw.js =404";
+          cache = "cache-revalidate";
+        };
+        "~ \"^${scope}/~render$\"" = staticLocation {
+          tryFiles = "/render.html =404";
+          csp = "csp-render";
+          cache = "cache-revalidate";
+        };
+        "/s/" = staticLocation {
+          tryFiles = "/index.html =404";
+          cache = "cache-revalidate";
         };
       };
-    }
+    })
   ];
 }

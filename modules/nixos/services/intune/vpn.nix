@@ -7,7 +7,7 @@
 let
   cfg = config.codgician.services.intune;
   connectionUuid = "b77a07c7-41b1-4932-b47e-c0d8fdd84c1e";
-  plugin = pkgs.nur.repos.codgician.networkmanager-gpclient;
+  plugin = cfg.packages.networkmanager-gpclient;
   singBoxTun = config.codgician.services.sing-box.tun;
   edge = pkgs.writeShellScript "msftvpn-edge" ''
     exec ${pkgs.microsoft-edge}/bin/microsoft-edge-stable --profile-directory='Profile 1' "$@"

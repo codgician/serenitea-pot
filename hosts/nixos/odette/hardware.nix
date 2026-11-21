@@ -82,7 +82,6 @@ in
       }
     ];
     zfs.package = pkgs.zfs_unstable;
-    supportedFilesystems = [ "vfat" ];
   };
 
   # flashrom's PCI ECAM access needs relaxed /dev/mem checks, only for updates.
@@ -318,8 +317,4 @@ in
   };
 
   fileSystems."/persist".neededForBoot = true;
-
-  networking.useDHCP = lib.mkDefault true;
-
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

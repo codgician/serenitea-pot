@@ -6,6 +6,12 @@
 }:
 let
   cfg = config.codgician.codgi.ssh;
+  # Host name -> domain suffix.
+  mkHosts = attrs: lib.mapAttrs (name: domain: { hostname = "${name}.${domain}"; } // attrs);
+  trusted = {
+    user = "codgi";
+    ForwardAgent = true;
+  };
 in
 {
   options.codgician.codgi.ssh.enable = lib.mkEnableOption "Ssh user configurations.";
@@ -22,69 +28,26 @@ in
         UseKeychain yes
       '';
       settings = {
-        "*" = {
-          addKeysToAgent = "yes";
-        };
-        "fischl" = {
-          hostname = "fischl.lan";
-          user = "codgi";
-          ForwardAgent = true;
-        };
-        "focalors" = {
-          hostname = "focalors.lan";
-          user = "codgi";
-          ForwardAgent = true;
-        };
-        "furina" = {
-          hostname = "furina.lan";
-          user = "codgi";
-        };
-        "lumine" = {
-          hostname = "lumine.codgician.me";
-          user = "codgi";
-          ForwardAgent = true;
-        };
-        "lumidouce" = {
-          hostname = "lumidouce.lan";
-          user = "root";
-        };
-        "odette" = {
-          hostname = "odette.lan";
-          user = "codgi";
-        };
-        "qiaoying" = {
-          hostname = "qiaoying.cdu";
-          user = "root";
-        };
-        "nahida" = {
-          hostname = "nahida.lan";
-          user = "codgi";
-          ForwardAgent = true;
-        };
-        "paimon" = {
-          hostname = "paimon.lan";
-          user = "codgi";
-          ForwardAgent = true;
-        };
-        "raiden-ei" = {
-          hostname = "raiden-ei.lan";
-          user = "codgi";
-        };
-        "sandrone" = {
-          hostname = "sandrone.lan";
-          user = "codgi";
-          ForwardAgent = true;
-        };
-        "xianyun" = {
-          hostname = "xianyun.codgician.me";
-          user = "codgi";
-          ForwardAgent = true;
-        };
-        "zibai" = {
-          hostname = "zibai.cdu";
-          user = "codgi";
-          ForwardAgent = true;
-        };
+        "*".addKeysToAgent = "yes";
+      }
+      // mkHosts trusted {
+        lumine = lib.codgician.zone;
+        xianyun = lib.codgician.zone;
+        fischl = "lan";
+        focalors = "lan";
+        nahida = "lan";
+        paimon = "lan";
+        sandrone = "lan";
+        zibai = "cdu";
+      }
+      // mkHosts { user = "codgi"; } {
+        furina = "lan";
+        odette = "lan";
+        raiden-ei = "lan";
+      }
+      // mkHosts { user = "root"; } {
+        lumidouce = "lan";
+        qiaoying = "cdu";
       };
     };
 

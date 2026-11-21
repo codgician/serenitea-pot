@@ -1,4 +1,10 @@
-{ pkgs }:
+# Static page served on the apex domain of a public host.
+{
+  lib,
+  pkgs,
+  name,
+  footer,
+}:
 let
   index = pkgs.writeText "index.html" ''
     <html lang="en" style="text-align:center;">
@@ -41,12 +47,12 @@ let
     ⠀⠀⠀⠀⠀⠀⢀⣾⠁⠀⠀⣸⠁⠀⠀⠀⢀⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⢷⡄⠀⠀⠀⠀⠀⢸⠆⠀⠀⠀⢸⡷⠀⠀⠀⠀⠀⠀⠀⠀
         </pre>
         <hr>
-        Our paths will surely cross
+    ${lib.concatMapStringsSep "\n" (line: "    ${line}") (lib.splitString "\n" footer)}
       </body>
     </html>
   '';
 in
-pkgs.runCommand "lumine-web" { } ''
+pkgs.runCommand name { } ''
   mkdir -p $out
   cp ${index} $out/index.html
 ''

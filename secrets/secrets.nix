@@ -8,226 +8,153 @@ let
   hosts = builtins.mapAttrs (mkRecipient "sops-host") pubkeys.hosts;
   users = builtins.mapAttrs (mkRecipient "sops-user") pubkeys.users;
 
-  rawSecrets = {
-    amap-api-key = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    anthropic-api-key = {
-      hosts = with hosts; [
-        furina
-        lumine
-        paimon
-        wanderer
-      ];
-      users = with users; [ codgi ];
-    };
-    antigravity-oauth-client-id = {
-      hosts = with hosts; [
-        furina
-        lumine
-        paimon
-        wanderer
-      ];
-      users = with users; [ codgi ];
-    };
-    antigravity-oauth-client-secret = {
-      hosts = with hosts; [
-        furina
-        lumine
-        paimon
-        wanderer
-      ];
-      users = with users; [ codgi ];
-    };
-    anubis-ed25519-private-key-hex = {
-      hosts = with hosts; [ lumine ];
-      users = with users; [ codgi ];
-    };
-    arm-access-key = {
-      users = with users; [ codgi ];
-      key = "ARM_ACCESS_KEY";
-    };
+  # Every secret is also encrypted to `users.codgi` unless it sets `users`.
+  rawSecrets = with hosts; {
+    amap-api-key.hosts = [ paimon ];
+    anthropic-api-key.hosts = [
+      furina
+      lumine
+      paimon
+      wanderer
+    ];
+    antigravity-oauth-client-id.hosts = [
+      furina
+      lumine
+      paimon
+      wanderer
+    ];
+    antigravity-oauth-client-secret.hosts = [
+      furina
+      lumine
+      paimon
+      wanderer
+    ];
+    anubis-ed25519-private-key-hex.hosts = [ lumine ];
+    arm-access-key.key = "ARM_ACCESS_KEY";
     arm-client-secret = {
-      users = with users; [ codgi ];
       key = "ARM_CLIENT_SECRET";
       expires = "2027-02-04";
     };
-    authelia-main-jwks = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    authelia-main-jwt = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    authelia-main-session = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    authelia-main-storage = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    azure-akasha-api-key = {
-      hosts = with hosts; [
-        furina
-        lumine
-        paimon
-        wanderer
-      ];
-      users = with users; [ codgi ];
-    };
-    binary-cache-cname = {
-      users = with users; [ codgi ];
-      key = "TF_VAR_binary_cache_cname";
-    };
+    authelia-main-jwks.hosts = [ paimon ];
+    authelia-main-jwt.hosts = [ paimon ];
+    authelia-main-session.hosts = [ paimon ];
+    authelia-main-storage.hosts = [ paimon ];
+    azure-akasha-api-key.hosts = [
+      furina
+      lumine
+      paimon
+      wanderer
+    ];
+    binary-cache-cname.key = "TF_VAR_binary_cache_cname";
     claude-code-oauth-token = {
-      hosts = with hosts; [
+      hosts = [
         furina
         lumine
         paimon
         wanderer
       ];
-      users = with users; [ codgi ];
       expires = "2027-08-05";
     };
-    cloudflare-api-token = {
-      users = with users; [ codgi ];
-      key = "CLOUDFLARE_API_TOKEN";
-    };
-    cloudflare-credential = {
-      hosts = with hosts; [
-        fischl
-        lumine
-        nahida
-        paimon
-        raiden-ei
-        xianyun
-      ];
-      users = with users; [ codgi ];
-    };
-    coturn-auth-secret = {
-      hosts = with hosts; [
-        paimon
-        xianyun
-      ];
-      users = with users; [ codgi ];
-    };
-    codex-openai-api-key = {
-      hosts = with hosts; [
-        fischl
-        focalors
-        furina
-        jahoda
-        lumine
-        nahida
-        odette
-        paimon
-        raiden-ei
-        sandrone
-        wanderer
-        xianyun
-        zibai
-      ];
-      users = with users; [ codgi ];
-    };
-    codgi-hashed-password = {
-      hosts = with hosts; [
-        fischl
-        focalors
-        furina
-        jahoda
-        lumine
-        nahida
-        odette
-        paimon
-        raiden-ei
-        sandrone
-        wanderer
-        xianyun
-        zibai
-      ];
-      users = with users; [ codgi ];
-    };
-    codgi-password = {
-      hosts = with hosts; [
-        jahoda
-        paimon
-      ];
-      users = with users; [ codgi ];
-    };
-    context7-api-key = {
-      hosts = with hosts; [
-        fischl
-        focalors
-        furina
-        jahoda
-        lumine
-        nahida
-        odette
-        paimon
-        raiden-ei
-        sandrone
-        wanderer
-        xianyun
-        zibai
-      ];
-      users = with users; [ codgi ];
-    };
-    deepseek-api-key = {
-      hosts = with hosts; [
-        furina
-        lumine
-        paimon
-        wanderer
-      ];
-      users = with users; [ codgi ];
-    };
-    docker-pat = {
-      hosts = with hosts; [
-        fischl
-        lumine
-        nahida
-        paimon
-        raiden-ei
-        xianyun
-      ];
-      users = with users; [ codgi ];
-    };
-    exa-api-key = {
-      hosts = with hosts; [
-        fischl
-        focalors
-        furina
-        jahoda
-        lumine
-        nahida
-        odette
-        paimon
-        raiden-ei
-        sandrone
-        wanderer
-        xianyun
-        zibai
-      ];
-      users = with users; [ codgi ];
-    };
-    gcp-credentials = {
-      users = with users; [ codgi ];
-      key = "GOOGLE_CREDENTIALS";
-    };
-    gemini-api-key = {
-      hosts = with hosts; [
-        furina
-        lumine
-        paimon
-        wanderer
-      ];
-      users = with users; [ codgi ];
-    };
+    cloudflare-api-token.key = "CLOUDFLARE_API_TOKEN";
+    cloudflare-credential.hosts = [
+      fischl
+      lumine
+      nahida
+      paimon
+      raiden-ei
+      xianyun
+    ];
+    codex-openai-api-key.hosts = [
+      fischl
+      focalors
+      furina
+      jahoda
+      lumine
+      nahida
+      odette
+      paimon
+      raiden-ei
+      sandrone
+      wanderer
+      xianyun
+      zibai
+    ];
+    codgi-hashed-password.hosts = [
+      fischl
+      focalors
+      furina
+      jahoda
+      lumine
+      nahida
+      odette
+      paimon
+      raiden-ei
+      sandrone
+      wanderer
+      xianyun
+      zibai
+    ];
+    codgi-password.hosts = [
+      jahoda
+      paimon
+    ];
+    context7-api-key.hosts = [
+      fischl
+      focalors
+      furina
+      jahoda
+      lumine
+      nahida
+      odette
+      paimon
+      raiden-ei
+      sandrone
+      wanderer
+      xianyun
+      zibai
+    ];
+    coturn-auth-secret.hosts = [
+      paimon
+      xianyun
+    ];
+    deepseek-api-key.hosts = [
+      furina
+      lumine
+      paimon
+      wanderer
+    ];
+    docker-pat.hosts = [
+      fischl
+      lumine
+      nahida
+      paimon
+      raiden-ei
+      xianyun
+    ];
+    exa-api-key.hosts = [
+      fischl
+      focalors
+      furina
+      jahoda
+      lumine
+      nahida
+      odette
+      paimon
+      raiden-ei
+      sandrone
+      wanderer
+      xianyun
+      zibai
+    ];
+    gcp-credentials.key = "GOOGLE_CREDENTIALS";
+    gemini-api-key.hosts = [
+      furina
+      lumine
+      paimon
+      wanderer
+    ];
     github-access-token = {
-      hosts = with hosts; [
+      hosts = [
         fischl
         focalors
         furina
@@ -242,203 +169,105 @@ let
         xianyun
         zibai
       ];
-      users = with users; [ codgi ];
       expires = "2026-12-25";
     };
-    github-auth-header = {
-      hosts = with hosts; [
-        fischl
-        focalors
-        furina
-        jahoda
-        lumine
-        nahida
-        odette
-        paimon
-        raiden-ei
-        sandrone
-        wanderer
-        xianyun
-        zibai
-      ];
-      users = with users; [ codgi ];
-    };
-    gitlab-active-record-deterministic-key = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    gitlab-active-record-primary-key = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    gitlab-active-record-salt = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    gitlab-db = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    gitlab-init-root-password = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    gitlab-jws = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    gitlab-oidc-secret-authelia-main = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    gitlab-otp = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    gitlab-secret = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    gns3-server-password = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    google-maps-api-key = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    grafana-admin-password = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    grafana-oidc-secret-authelia-main = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    grafana-secret-key = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    jellyfin-oidc-secret-authelia-main = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    kiosk-hashed-password = {
-      users = with users; [ codgi ];
-    };
-    litellm-akasha-api-key = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    litellm-master-key = {
-      hosts = with hosts; [
-        furina
-        lumine
-        paimon
-        wanderer
-      ];
-      users = with users; [ codgi ];
-    };
-    litellm-oidc-client-secret = {
-      hosts = with hosts; [
-        furina
-        lumine
-        paimon
-        wanderer
-      ];
-      users = with users; [ codgi ];
-    };
-    litellm-proxy-admin-id = {
-      hosts = with hosts; [
-        furina
-        lumine
-        paimon
-        wanderer
-      ];
-      users = with users; [ codgi ];
-    };
-    litellm-ui-password = {
-      hosts = with hosts; [
-        furina
-        lumine
-        paimon
-        wanderer
-      ];
-      users = with users; [ codgi ];
-    };
-    litellm-user-api-key = {
-      hosts = with hosts; [
-        fischl
-        focalors
-        furina
-        jahoda
-        lumine
-        nahida
-        odette
-        paimon
-        raiden-ei
-        sandrone
-        wanderer
-        xianyun
-        zibai
-      ];
-      users = with users; [ codgi ];
-    };
-    mdatp-onboard = {
-      hosts = with hosts; [
-        jahoda
-        odette
-      ];
-      users = with users; [ codgi ];
-    };
-    meshcentral-oidc-secret-authelia-main = {
-      hosts = with hosts; [ fischl ];
-      users = with users; [ codgi ];
-    };
-    nats-controller-seed = {
-      hosts = with hosts; [
-        jahoda
-        odette
-      ];
-      users = with users; [ codgi ];
-    };
-    nats-extension-seed = {
-      users = with users; [ codgi ];
-    };
-    nut-password = {
-      hosts = with hosts; [
-        fischl
-        paimon
-      ];
-      users = with users; [ codgi ];
-    };
-    nvidia-nim-api-key = {
-      hosts = with hosts; [
-        furina
-        lumine
-        paimon
-        wanderer
-      ];
-      users = with users; [ codgi ];
-    };
-    open-terminal-api-key = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    open-webui-oauth-client-secret = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    open-webui-secret-key = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    proxmox-ve-oidc-secret-authelia-main = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
+    github-auth-header.hosts = [
+      fischl
+      focalors
+      furina
+      jahoda
+      lumine
+      nahida
+      odette
+      paimon
+      raiden-ei
+      sandrone
+      wanderer
+      xianyun
+      zibai
+    ];
+    gitlab-active-record-deterministic-key.hosts = [ paimon ];
+    gitlab-active-record-primary-key.hosts = [ paimon ];
+    gitlab-active-record-salt.hosts = [ paimon ];
+    gitlab-db.hosts = [ paimon ];
+    gitlab-init-root-password.hosts = [ paimon ];
+    gitlab-jws.hosts = [ paimon ];
+    gitlab-oidc-secret-authelia-main.hosts = [ paimon ];
+    gitlab-otp.hosts = [ paimon ];
+    gitlab-secret.hosts = [ paimon ];
+    gns3-server-password.hosts = [ paimon ];
+    google-maps-api-key.hosts = [ paimon ];
+    grafana-admin-password.hosts = [ paimon ];
+    grafana-oidc-secret-authelia-main.hosts = [ paimon ];
+    grafana-secret-key.hosts = [ paimon ];
+    jellyfin-oidc-secret-authelia-main.hosts = [ paimon ];
+    kiosk-hashed-password = { };
+    litellm-akasha-api-key.hosts = [ paimon ];
+    litellm-master-key.hosts = [
+      furina
+      lumine
+      paimon
+      wanderer
+    ];
+    litellm-oidc-client-secret.hosts = [
+      furina
+      lumine
+      paimon
+      wanderer
+    ];
+    litellm-proxy-admin-id.hosts = [
+      furina
+      lumine
+      paimon
+      wanderer
+    ];
+    litellm-ui-password.hosts = [
+      furina
+      lumine
+      paimon
+      wanderer
+    ];
+    litellm-user-api-key.hosts = [
+      fischl
+      focalors
+      furina
+      jahoda
+      lumine
+      nahida
+      odette
+      paimon
+      raiden-ei
+      sandrone
+      wanderer
+      xianyun
+      zibai
+    ];
+    mdatp-onboard.hosts = [
+      jahoda
+      odette
+    ];
+    meshcentral-oidc-secret-authelia-main.hosts = [ fischl ];
+    nats-controller-seed.hosts = [
+      jahoda
+      odette
+    ];
+    nats-extension-seed = { };
+    nut-password.hosts = [
+      fischl
+      paimon
+    ];
+    nvidia-nim-api-key.hosts = [
+      furina
+      lumine
+      paimon
+      wanderer
+    ];
+    open-terminal-api-key.hosts = [ paimon ];
+    open-webui-oauth-client-secret.hosts = [ paimon ];
+    open-webui-secret-key.hosts = [ paimon ];
+    proxmox-ve-oidc-secret-authelia-main.hosts = [ paimon ];
     sasl-xoauth2 = {
-      hosts = with hosts; [
+      hosts = [
         fischl
         lumine
         nahida
@@ -446,192 +275,103 @@ let
         raiden-ei
         xianyun
       ];
-      users = with users; [ codgi ];
       expires = "2027-08-10";
     };
-    saw-basic-auth = {
-      hosts = with hosts; [ lumine ];
-      users = with users; [ codgi ];
-    };
+    saw-basic-auth.hosts = [ lumine ];
     sing-codgi-password = {
+      hosts = [
+        jahoda
+        lumine
+        xianyun
+      ];
       key = "sing-codgi-proxy-password";
-      hosts = with hosts; [
-        jahoda
-        lumine
-        xianyun
-      ];
-      users = with users; [ codgi ];
     };
-    sing-codgi-ss-password = {
-      hosts = with hosts; [
-        jahoda
-        lumine
-        xianyun
-      ];
-      users = with users; [ codgi ];
-    };
-    sing-ech-keys = {
-      hosts = with hosts; [
-        lumine
-        xianyun
-      ];
-      users = with users; [ codgi ];
-    };
+    sing-codgi-ss-password.hosts = [
+      jahoda
+      lumine
+      xianyun
+    ];
+    sing-ech-keys.hosts = [
+      lumine
+      xianyun
+    ];
     sing-itscd-password = {
+      hosts = [
+        lumine
+        xianyun
+      ];
       key = "sing-itscd-proxy-password";
-      hosts = with hosts; [
-        lumine
-        xianyun
-      ];
-      users = with users; [ codgi ];
     };
-    sing-itscd-ss-password = {
-      hosts = with hosts; [
-        lumine
-        xianyun
-      ];
-      users = with users; [ codgi ];
-    };
+    sing-itscd-ss-password.hosts = [
+      lumine
+      xianyun
+    ];
     sing-lxm75-password = {
+      hosts = [
+        lumine
+        xianyun
+      ];
       key = "sing-lxm75-proxy-password";
-      hosts = with hosts; [
-        lumine
-        xianyun
-      ];
-      users = with users; [ codgi ];
     };
-    sing-lxm75-ss-password = {
-      hosts = with hosts; [
-        lumine
-        xianyun
-      ];
-      users = with users; [ codgi ];
-    };
-    sing-ss-lumidouce-password = {
-      hosts = with hosts; [
-        jahoda
-        odette
-      ];
-      users = with users; [ codgi ];
-    };
-    sing-ss-password = {
-      hosts = with hosts; [
-        jahoda
-        lumine
-        xianyun
-      ];
-      users = with users; [ codgi ];
-    };
-    smb-hashed-password = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    smb-password = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    smb-qiaoying-hashed-password = {
-      hosts = with hosts; [ zibai ];
-      users = with users; [ codgi ];
-    };
-    smb-qiaoying-password = {
-      hosts = with hosts; [ zibai ];
-      users = with users; [ codgi ];
-    };
-    tencent-dns-credential = {
-      hosts = with hosts; [ xianyun ];
-      users = with users; [ codgi ];
-    };
-    tuwunel-oidc-secret-authelia-main = {
-      hosts = with hosts; [ paimon ];
-      users = with users; [ codgi ];
-    };
-    upsmon-password = {
-      hosts = with hosts; [
-        fischl
-        paimon
-      ];
-      users = with users; [ codgi ];
-    };
-    vllm-api-key = {
-      hosts = with hosts; [
-        furina
-        lumine
-        paimon
-        wanderer
-      ];
-      users = with users; [ codgi ];
-    };
-    wg-preshared-key-furina-lumine = {
-      hosts = with hosts; [
-        furina
-        lumine
-      ];
-      users = with users; [ codgi ];
-    };
-    wg-preshared-key-furina-xianyun = {
-      hosts = with hosts; [
-        furina
-        xianyun
-      ];
-      users = with users; [ codgi ];
-    };
-    wg-preshared-key-lumidouce-lumine = {
-      hosts = with hosts; [ lumine ];
-      users = with users; [ codgi ];
-    };
-    wg-preshared-key-lumidouce-xianyun = {
-      hosts = with hosts; [ xianyun ];
-      users = with users; [ codgi ];
-    };
-    wg-preshared-key-lumine-qiaoying = {
-      hosts = with hosts; [ lumine ];
-      users = with users; [ codgi ];
-    };
-    wg-preshared-key-lumine-xianyun = {
-      hosts = with hosts; [
-        lumine
-        xianyun
-      ];
-      users = with users; [ codgi ];
-    };
-    wg-preshared-key-qiaoying-xianyun = {
-      hosts = with hosts; [ xianyun ];
-      users = with users; [ codgi ];
-    };
-    wg-private-key-furina = {
-      hosts = with hosts; [ furina ];
-      users = with users; [ codgi ];
-    };
-    wg-private-key-lumidouce = {
-      users = with users; [ codgi ];
-    };
-    wg-private-key-lumine = {
-      hosts = with hosts; [ lumine ];
-      users = with users; [ codgi ];
-    };
-    wg-private-key-qiaoying = {
-      users = with users; [ codgi ];
-    };
-    wg-private-key-xianyun = {
-      hosts = with hosts; [ xianyun ];
-      users = with users; [ codgi ];
-    };
-    wireless-codgi-pass = {
-      hosts = with hosts; [ zibai ];
-      users = with users; [ codgi ];
-    };
-    wireless-grassland-pass = {
-      hosts = with hosts; [ zibai ];
-      users = with users; [ codgi ];
-    };
+    sing-lxm75-ss-password.hosts = [
+      lumine
+      xianyun
+    ];
+    sing-ss-lumidouce-password.hosts = [
+      jahoda
+      odette
+    ];
+    sing-ss-password.hosts = [
+      jahoda
+      lumine
+      xianyun
+    ];
+    smb-hashed-password.hosts = [ paimon ];
+    smb-password.hosts = [ paimon ];
+    smb-qiaoying-hashed-password.hosts = [ zibai ];
+    smb-qiaoying-password.hosts = [ zibai ];
+    tencent-dns-credential.hosts = [ xianyun ];
+    tuwunel-oidc-secret-authelia-main.hosts = [ paimon ];
+    upsmon-password.hosts = [
+      fischl
+      paimon
+    ];
+    vllm-api-key.hosts = [
+      furina
+      lumine
+      paimon
+      wanderer
+    ];
+    wg-preshared-key-furina-lumine.hosts = [
+      furina
+      lumine
+    ];
+    wg-preshared-key-furina-xianyun.hosts = [
+      furina
+      xianyun
+    ];
+    wg-preshared-key-lumidouce-lumine.hosts = [ lumine ];
+    wg-preshared-key-lumidouce-xianyun.hosts = [ xianyun ];
+    wg-preshared-key-lumine-qiaoying.hosts = [ lumine ];
+    wg-preshared-key-lumine-xianyun.hosts = [
+      lumine
+      xianyun
+    ];
+    wg-preshared-key-qiaoying-xianyun.hosts = [ xianyun ];
+    wg-private-key-furina.hosts = [ furina ];
+    wg-private-key-lumidouce = { };
+    wg-private-key-lumine.hosts = [ lumine ];
+    wg-private-key-qiaoying = { };
+    wg-private-key-xianyun.hosts = [ xianyun ];
+    wireless-codgi-pass.hosts = [ zibai ];
+    wireless-grassland-pass.hosts = [ zibai ];
   };
 
   normalize =
     name: secret:
     let
       secretHosts = secret.hosts or [ ];
-      secretUsers = secret.users or [ ];
+      secretUsers = secret.users or [ users.codgi ];
     in
     assert builtins.all (recipient: (recipient._type or null) == "sops-host") secretHosts;
     assert builtins.all (recipient: (recipient._type or null) == "sops-user") secretUsers;

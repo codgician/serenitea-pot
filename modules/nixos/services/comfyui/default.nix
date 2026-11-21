@@ -5,9 +5,9 @@
   ...
 }:
 let
-  serviceName = "comfyui";
   inherit (lib) types;
   cfg = config.codgician.services.comfyui;
+  domain = "vanarana.${lib.codgician.zone}";
   defaultDataDir = "/var/lib/comfyui";
 
   # See: https://github.com/llm-d/llm-d/issues/117
@@ -18,7 +18,7 @@ let
 in
 {
   options.codgician.services.comfyui = {
-    enable = lib.mkEnableOption "ComfyUI container.";
+    enable = lib.mkEnableOption "ComfyUI container";
 
     imageTag = lib.mkOption {
       type = types.str;
@@ -49,21 +49,21 @@ in
       default = null;
       description = "User directory for ComfyUI.";
     };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://127.0.0.1:${toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.comfyui; http://127.0.0.1:$\{toString port}'';
-    };
   };
 
   config = lib.mkMerge [
+    {
+      codgician.services.nginx.reverseProxies.comfyui = {
+        domains = [ domain ];
+        authelia.groups = [ "vanarana" ];
+      };
+    }
+
     (lib.mkIf cfg.enable {
       virtualisation.oci-containers.containers.comfyui = {
         autoStart = true;
         image = "docker.io/yanwk/comfyui-boot:${cfg.imageTag}";
-        ports = [ "${builtins.toString cfg.port}:8188" ];
+        ports = [ "${toString cfg.port}:8188" ];
         volumes = [
           "${cfg.dataDir}:/root:rw"
           "${ldSoConfFile}:/etc/ld.so.conf.d/00-system-libs.conf:ro"
@@ -90,13 +90,8 @@ in
           path = cfg.dataDir;
         }
       ];
-    })
 
-    # Reverse proxy profile
-    {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-      };
-    }
+      codgician.services.nginx.reverseProxies.comfyui.proxyPass = "http://127.0.0.1:${toString cfg.port}";
+    })
   ];
 }

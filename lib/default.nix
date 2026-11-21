@@ -1,31 +1,23 @@
-args@{
-  inputs,
-  ...
-}:
-
+args@{ inputs, ... }:
 let
-  # Decide which nixpkgs input to use
-  nixpkgs = inputs.nixpkgs;
-
-  # Concat attributes
-  concatAttrs = attrList: builtins.foldl' (x: y: x // y) { } attrList;
-
-  # Extend lib with custom functions
-  mkMyLib =
-    { lib }:
-    concatAttrs (
-      builtins.map (x: import x (args // { inherit lib nixpkgs; })) [
-        ./consts.nix
-        ./image.nix
-        ./io.nix
-        ./reverse-proxy.nix
-        ./secrets.nix
-        ./service.nix
-        ./utils.nix
-      ]
-    )
-    // {
-      inherit concatAttrs;
-    };
+  # `lib` of a nixpkgs branch with `lib.codgician` added; a host built from
+  # another branch gets that branch's `lib`, which its NixOS modules expect.
+  mkLib =
+    nixpkgs:
+    nixpkgs.lib.extend (
+      lib: _: {
+        codgician = lib.mergeAttrsList (
+          map (file: import file (args // { inherit lib nixpkgs mkLib; })) [
+            ./consts.nix
+            ./image.nix
+            ./io.nix
+            ./nginx.nix
+            ./secrets.nix
+            ./service.nix
+            ./utils.nix
+          ]
+        );
+      }
+    );
 in
-nixpkgs.lib.extend (self: super: { codgician = mkMyLib { lib = self; }; })
+mkLib inputs.nixpkgs

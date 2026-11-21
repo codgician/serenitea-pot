@@ -4,21 +4,17 @@
   osConfig,
   pkgs,
   ...
-}:
+}@args:
 let
   cfg = config.codgician.codgi.dsh;
-  inherit (lib) types;
-
-  yamlFormat = pkgs.formats.yaml { };
+  agents = import ../agents.nix args;
 
   # Resolve the credential at launch without putting it in the Nix store.
   apiKeyEnv = "DENDRO_API_KEY";
-  apiKeyPath = osConfig.codgician.secrets.files."litellm-user-api-key".path;
 
-  # Providers routed through the dendro LiteLLM proxy. `deepseek` is preferred
-  # over `azure` because both serve the same model names and only the native
-  # route declares reasoning efforts.
-  allowedProviders = [
+  # `deepseek` is preferred over `azure` because both serve the same model
+  # names and only the native route declares reasoning efforts.
+  dendroModels = agents.modelsFrom [
     "chatgpt"
     "claude"
     "deepseek"
@@ -28,22 +24,16 @@ let
     "xai"
   ];
 
-  filteredModels = builtins.filter (
-    m: builtins.elem m.provider allowedProviders
-  ) osConfig.codgician.models.textGenerationModels;
-
   # dsh sets the wire protocol per route, so each registry mode gets its own
   # route and every model talks to its native LiteLLM surface.
   routes = {
     chat = {
       name = "dendro";
       displayName = "Dendro";
-      api = "openai-completions";
     };
     responses = {
       name = "dendro-responses";
       displayName = "Dendro Responses";
-      api = "openai-responses";
     };
   };
 
@@ -72,17 +62,11 @@ let
   # Registry model -> dsh model entry. `id` matches the LiteLLM model name.
   mkDshModel =
     m:
-    let
-      contextWindow = m.contextWindow or null;
-      maxTokens = m.maxOutputTokens or null;
-      input = m.input or null;
-    in
     {
       id = m.model;
     }
-    // lib.optionalAttrs (contextWindow != null) { inherit contextWindow; }
-    // lib.optionalAttrs (maxTokens != null) { inherit maxTokens; }
-    // lib.optionalAttrs (input != null) { inherit input; }
+    // agents.modelLimits m
+    // lib.optionalAttrs ((m.input or null) != null) { inherit (m) input; }
     // lib.optionalAttrs (m.reasoningEfforts != [ ]) {
       reasoningEfforts = mkReasoningEfforts m.reasoningEfforts;
     };
@@ -90,13 +74,14 @@ let
   mkRoute =
     mode: route:
     let
-      models = builtins.filter (m: m.mode == mode) filteredModels;
+      models = builtins.filter (m: m.mode == mode) dendroModels;
     in
     lib.optionalAttrs (models != [ ]) {
       ${route.name} = {
-        inherit (route) displayName api;
+        inherit (route) displayName;
         inherit apiKeyEnv;
-        baseURL = "https://dendro.codgician.me/v1";
+        api = agents.modeToApi.${mode};
+        baseURL = "${agents.dendroUrl}/v1";
         models = map mkDshModel models;
       };
     };
@@ -124,7 +109,7 @@ let
     postBuild = ''
       wrapProgram "$out/bin/dsh" \
         --run ${lib.escapeShellArg ''
-          if ! ${apiKeyEnv}="$(<${lib.escapeShellArg apiKeyPath})" || [ -z "${"$" + apiKeyEnv}" ]; then
+          if ! ${apiKeyEnv}="$(<${lib.escapeShellArg agents.apiKeyPath})" || [ -z "${"$" + apiKeyEnv}" ]; then
             echo 'dsh: cannot load the Dendro API key' >&2
             exit 1
           fi
@@ -137,18 +122,10 @@ in
 {
   options.codgician.codgi.dsh = {
     enable = lib.mkEnableOption "dsh (DeepSeek Harness)";
-
-    package = lib.mkOption {
-      type = types.package;
-      default = pkgs.llm-agents.dsh;
-      defaultText = lib.literalExpression "pkgs.llm-agents.dsh";
-      description = ''
-        The dsh package to install.
-      '';
-    };
+    package = lib.mkPackageOption pkgs [ "llm-agents" "dsh" ] { };
 
     wrappedPackage = lib.mkOption {
-      type = types.package;
+      type = lib.types.package;
       default = wrappedPackage;
       readOnly = true;
       internal = true;
@@ -158,6 +135,8 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = [ cfg.wrappedPackage ];
 
-    home.file.".dsh/cordis.patch.yml".source = yamlFormat.generate "dsh-cordis.patch.yml" patch;
+    home.file.".dsh/cordis.patch.yml".source =
+      (pkgs.formats.yaml { }).generate "dsh-cordis.patch.yml"
+        patch;
   };
 }

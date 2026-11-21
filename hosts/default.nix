@@ -2,18 +2,28 @@
 
 let
   inherit (outputs) lib;
-  getConfigurations =
-    path:
-    lib.pipe path [
-      (lib.codgician.getFolderNames)
-      (builtins.map (name: {
-        inherit name;
-        value = import (path + "/${name}") { inherit lib; };
-      }))
-      builtins.listToAttrs
-    ];
+
+  # A host folder's `default.nix` is its manifest: `system`, the ordered
+  # `modules` list (order decides how list options merge), `stable` (false
+  # builds the host from the unstable inputs) and, on NixOS, `cudaSupport`.
+  # The builder's arguments are the keys a manifest of its class may set.
+  mkHosts =
+    class: mkSystem:
+    let
+      manifestKeys = lib.attrNames (removeAttrs (lib.functionArgs mkSystem) [ "hostName" ]);
+    in
+    lib.genAttrs (lib.codgician.getFolderNames (./. + "/${class}")) (
+      hostName:
+      let
+        where = "hosts/${class}/${hostName}";
+        host = import (./. + "/${class}/${hostName}");
+        unknown = lib.attrNames (removeAttrs host manifestKeys);
+      in
+      assert lib.assertMsg (unknown == [ ]) "${where}: unknown manifest attributes: ${toString unknown}";
+      mkSystem (host // { inherit hostName; })
+    );
 in
 {
-  darwinConfigurations = getConfigurations ./darwin;
-  nixosConfigurations = getConfigurations ./nixos;
+  darwinConfigurations = mkHosts "darwin" lib.codgician.mkDarwinSystem;
+  nixosConfigurations = mkHosts "nixos" lib.codgician.mkNixosSystem;
 }

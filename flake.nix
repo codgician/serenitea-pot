@@ -29,10 +29,6 @@
         nixpkgs.follows = "nixpkgs-unstable";
       };
     };
-    nixos-generators = {
-      url = "github:nix-community/nixos-generators";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
 
     flake-compat = {
       url = "github:edolstra/flake-compat";
@@ -106,12 +102,9 @@
       };
     };
 
-    nur = {
-      url = "github:nix-community/NUR";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        flake-parts.follows = "flake-parts";
-      };
+    nur-codgician = {
+      url = "github:codgician/nur-packages";
+      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     lanzaboote = {
@@ -160,6 +153,14 @@
         inherit inputs;
         outputs = self;
       };
+
+      tests = lib.codgician.forLinuxSystems (
+        pkgs:
+        import ./tests {
+          inherit lib pkgs inputs;
+          outputs = self;
+        }
+      );
     in
     {
       # System configurations
@@ -211,21 +212,19 @@
       );
 
       # Packages: `nix build .#pkgName`
-      packages = lib.codgician.forAllSystems (
-        pkgs:
+      packages = lib.genAttrs lib.codgician.allSystems (
+        system:
         import ./packages {
-          inherit lib pkgs inputs;
+          inherit lib inputs system;
+          pkgs = lib.codgician.pkgsFor.${system};
           outputs = self;
         }
       );
 
-      # NixOS VM tests: `nix build .#checks.<system>.<testName>`
-      checks = lib.codgician.forLinuxSystems (
-        pkgs:
-        import ./tests {
-          inherit lib pkgs inputs;
-          outputs = self;
-        }
-      );
+      # Checks `nix flake check` builds: `nix build .#checks.<system>.<name>`
+      checks = lib.mapAttrs (_: test: test.checks) tests;
+
+      # NixOS VM tests run on demand: `nix build .#legacyPackages.<system>.vmTests.<name>`
+      legacyPackages = lib.mapAttrs (_: test: { inherit (test) vmTests; }) tests;
     };
 }

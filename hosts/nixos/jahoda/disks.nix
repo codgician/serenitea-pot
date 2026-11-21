@@ -1,14 +1,7 @@
 {
-  disks ? [
-    "disk/by-id/nvme-KXG6AZNV512G_TOSHIBA_41GF71D3FDP3"
-    "disk/by-id/nvme-PM9A1_NVMe_Samsung_1024GB_S65VNE0R502376"
-  ],
-  ...
-}:
-{
   disko.devices.disk = {
     main = {
-      device = "/dev/${builtins.elemAt disks 0}";
+      device = "/dev/disk/by-id/nvme-KXG6AZNV512G_TOSHIBA_41GF71D3FDP3";
       type = "disk";
       content = {
         type = "gpt";
@@ -81,7 +74,7 @@
     };
 
     code = {
-      device = "/dev/${builtins.elemAt disks 1}";
+      device = "/dev/disk/by-id/nvme-PM9A1_NVMe_Samsung_1024GB_S65VNE0R502376";
       type = "disk";
       content = {
         type = "gpt";

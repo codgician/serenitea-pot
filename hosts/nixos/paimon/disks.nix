@@ -1,17 +1,9 @@
 # Only OS disks are managed by disko
 
-{
-  disks ? [
-    "disk/by-id/nvme-SKHynix_HFS001TEM4X182N_5SDAN42221030AG17-part2"
-    "disk/by-id/nvme-SKHynix_HFS001TEM4X182N_5SDAN42221030AG2H-part2"
-  ],
-  ...
-}:
-
 let
-  mkDiskConfig = id: {
+  mkDiskConfig = id: device: {
     type = "disk";
-    device = "/dev/${builtins.elemAt disks id}";
+    inherit device;
     content = {
       type = "gpt";
       partitions = {
@@ -44,8 +36,8 @@ in
     devices = {
       # Disks: mirrored ZFS root
       disk = {
-        zroot-0 = mkDiskConfig 0;
-        zroot-1 = mkDiskConfig 1;
+        zroot-0 = mkDiskConfig 0 "/dev/disk/by-id/nvme-SKHynix_HFS001TEM4X182N_5SDAN42221030AG17-part2";
+        zroot-1 = mkDiskConfig 1 "/dev/disk/by-id/nvme-SKHynix_HFS001TEM4X182N_5SDAN42221030AG2H-part2";
       };
 
       # zpool settings

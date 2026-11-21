@@ -4,11 +4,10 @@
   ...
 }:
 let
-  serviceName = "rasdaemon";
-  cfg = config.codgician.services.${serviceName};
+  cfg = config.codgician.services.rasdaemon;
 in
 {
-  options.codgician.services.${serviceName} = {
+  options.codgician.services.rasdaemon = {
     enable = lib.mkEnableOption "rasdaemon RAS (Reliability, Availability, Serviceability) error logging";
 
     prometheus = {
@@ -42,8 +41,6 @@ in
       (lib.mkIf cfg.prometheus.enable {
         services.prometheus.exporters.rasdaemon = {
           enable = true;
-          # Bind to localhost only; scrape locally or over an already-trusted
-          # network boundary (e.g. Prometheus running on the same host).
           listenAddress = "127.0.0.1";
           enabledCollectors = [
             "aer" # PCIe Advanced Error Reporting (e.g. PCI SERR)
@@ -66,6 +63,10 @@ in
               }
             ];
           }
+        ];
+
+        codgician.services.grafana.provision.dashboards = lib.mkAfter [
+          ../grafana/dashboards/rasdaemon.json
         ];
       })
     ]

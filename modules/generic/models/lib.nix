@@ -2,31 +2,74 @@
 let
   inherit (lib) mkOption types;
 
+  # What every provider's model spec may say.
   commonOptions = {
     aliases = mkOption {
       type = types.listOf types.str;
       default = [ ];
-      description = "Alternative names for this model";
+      description = "Alternative names for this model.";
     };
     mode = mkOption {
       type = types.str;
       default = "chat";
-      description = "Model mode (chat, image_generation, embedding, etc.)";
+      description = "LiteLLM mode: chat, responses, image_generation, embedding, …";
     };
     variants = mkOption {
       type = types.attrsOf (types.attrsOf types.anything);
       default = { };
-      description = "Model variants (e.g., reasoning effort levels)";
+      description = "Request parameters by reasoning effort, where the provider wants more than the effort itself.";
     };
     reasoningEfforts = mkOption {
       type = types.listOf types.str;
       default = [ ];
-      description = "Reasoning effort levels supported by the provider";
+      description = "Reasoning efforts the provider accepts.";
     };
     path = mkOption {
       type = types.nullOr types.str;
       default = null;
-      description = "Provider-local model path override; defaults to the model name.";
+      description = "Name of the model at the provider; null for the registry name.";
+    };
+  };
+
+  # What a spec refreshed from a provider's model list (`models.json`) adds.
+  generatedOptions = commonOptions // {
+    contextWindow = mkOption {
+      type = types.nullOr types.int;
+      default = null;
+      description = "Tokens of prompt and output together.";
+    };
+    maxInputTokens = mkOption {
+      type = types.nullOr types.int;
+      default = null;
+      description = "Largest prompt in tokens.";
+    };
+    maxOutputTokens = mkOption {
+      type = types.nullOr types.int;
+      default = null;
+      description = "Largest output in tokens.";
+    };
+    cost = mkOption {
+      type = types.nullOr types.attrs;
+      default = null;
+      description = "Prices per million tokens: `input`, `output`, `cacheRead`, `cacheWrite`, and `tiers` above a prompt size.";
+    };
+    supportedEndpoints = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = "API paths the model is served at.";
+    };
+    supports = mkOption {
+      type = types.listOf (
+        types.enum [
+          "toolCalls"
+          "parallelToolCalls"
+          "structuredOutputs"
+          "vision"
+          "reasoning"
+        ]
+      );
+      default = [ ];
+      description = "Capabilities of the model.";
     };
   };
 
@@ -96,46 +139,8 @@ in
 rec {
   inherit commonOptions;
 
-  basicModelType = types.submodule {
-    options = commonOptions;
-  };
-
-  generatedModelType = types.submodule {
-    options = commonOptions // {
-      contextWindow = mkOption {
-        type = types.nullOr types.int;
-        default = null;
-      };
-      maxInputTokens = mkOption {
-        type = types.nullOr types.int;
-        default = null;
-      };
-      maxOutputTokens = mkOption {
-        type = types.nullOr types.int;
-        default = null;
-      };
-      cost = mkOption {
-        type = types.nullOr types.attrs;
-        default = null;
-      };
-      supportedEndpoints = mkOption {
-        type = types.listOf types.str;
-        default = [ ];
-      };
-      supports = mkOption {
-        type = types.listOf (
-          types.enum [
-            "toolCalls"
-            "parallelToolCalls"
-            "structuredOutputs"
-            "vision"
-            "reasoning"
-          ]
-        );
-        default = [ ];
-      };
-    };
-  };
+  basicModelType = types.submodule { options = commonOptions; };
+  generatedModelType = types.submodule { options = generatedOptions; };
 
   mkProviderType =
     modelType:
@@ -203,12 +208,4 @@ rec {
         ;
       input = [ "text" ] ++ lib.optional (builtins.elem "vision" spec.supports) "image";
     };
-
-  flattenRegistry =
-    registry:
-    lib.concatLists (
-      lib.mapAttrsToList (
-        provider: models: lib.mapAttrsToList (model: attrs: attrs // { inherit provider model; }) models
-      ) registry
-    );
 }

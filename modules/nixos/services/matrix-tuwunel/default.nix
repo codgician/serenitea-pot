@@ -9,25 +9,30 @@ let
   serviceUser = "tuwunel"; # Match upstream NixOS module
   cfg = config.codgician.services.matrix-tuwunel;
   types = lib.types;
+  inherit (cfg) domain;
 
   # Unix socket path
   socketPath = "/run/tuwunel/tuwunel.sock";
-
-  # Authelia OIDC config
-  autheliaInstance = "main";
-  autheliaSessionDomain =
-    config.codgician.services.authelia.instances.${autheliaInstance}.sessionDomain;
-  autheliaUrl = "https://auth.${autheliaSessionDomain}";
 in
 {
   options.codgician.services.matrix-tuwunel = {
-    enable = lib.mkEnableOption "Tuwunel Matrix server.";
+    enable = lib.mkEnableOption "Tuwunel Matrix homeserver";
+    package = lib.mkPackageOption pkgs "matrix-tuwunel" { };
+    elementWebPackage = lib.mkPackageOption pkgs "element-web" {
+      extraDescription = "It is the client served at the homeserver's domain.";
+    };
 
     domain = lib.mkOption {
       type = types.str;
+      default = "matrix.${lib.codgician.zone}";
+      defaultText = lib.literalExpression ''"matrix.''${lib.codgician.zone}"'';
       example = "matrix.example.org";
       description = "Domain name for the Tuwunel server (server_name).";
     };
+
+    elementWeb = lib.mkEnableOption ''
+      Host Element web client at `/`.
+    '';
 
     dataPath = lib.mkOption {
       type = types.str;
@@ -36,30 +41,18 @@ in
     };
 
     zfsOptimizations = lib.mkEnableOption "RocksDB optimizations for ZFS (disables direct I/O, uses zstd compression).";
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultDomains = [ cfg.domain ];
-      defaultDomainsText = "[ config.codgician.services.matrix-tuwunel.domain ]";
-      defaultProxyPass = "http://unix:${socketPath}";
-      defaultProxyPassText = "http://unix:/run/tuwunel/tuwunel.sock";
-      extraOptions = {
-        elementWeb = lib.mkEnableOption ''
-          Host Element web client at `/`.
-        '';
-      };
-    };
   };
 
   config = lib.mkMerge [
-    # Tuwunel service configuration (only when service is enabled locally)
     (lib.mkIf cfg.enable {
+      codgician.services.nginx.reverseProxies.matrix-tuwunel.proxyPass = "http://unix:${socketPath}";
+
       services.matrix-tuwunel = {
         enable = true;
+        inherit (cfg) package;
         settings.global = {
           # Core settings
-          server_name = cfg.domain;
+          server_name = domain;
           # database_path defaults to /var/lib/tuwunel, BindPaths redirects to cfg.dataPath
           # Use unix socket instead of TCP (more efficient, more secure)
           unix_socket_path = socketPath;
@@ -79,12 +72,16 @@ in
           # Max request size (24MB)
           max_request_size = 25165824;
 
-          # TURN configuration (hardcoded to turn.codgician.me)
-          turn_uris = [
-            "turn:turn.codgician.me?transport=udp"
-            "turn:turn.codgician.me?transport=tcp"
-            "turns:turn.codgician.me:5349?transport=tcp"
-          ];
+          # TURN server run by the coturn module
+          turn_uris =
+            let
+              turn = config.codgician.services.coturn.domain;
+            in
+            [
+              "turn:${turn}?transport=udp"
+              "turn:${turn}?transport=tcp"
+              "turns:${turn}:5349?transport=tcp"
+            ];
           turn_secret_file = config.codgician.secrets.files.coturn-auth-secret.path;
           turn_ttl = 86400;
         }
@@ -100,8 +97,8 @@ in
               brand = "authelia";
               client_id = serviceName;
               client_secret_file = config.codgician.secrets.files.tuwunel-oidc-secret-authelia-main.path;
-              issuer_url = autheliaUrl;
-              callback_url = "https://${cfg.domain}/_matrix/client/unstable/login/sso/callback/${serviceName}";
+              issuer_url = config.codgician.services.authelia.instances.main.url;
+              callback_url = "https://${domain}/_matrix/client/unstable/login/sso/callback/${serviceName}";
               default = true;
               name = "Authelia";
               scope = [
@@ -160,80 +157,58 @@ in
       };
     })
 
-    # Reverse proxy profile (can be enabled independently for external proxies)
+    # The site serves the well-known documents itself, and Element at `/`
+    # if enabled, on every host that proxies it.
     {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-        extraVhostConfig =
-          let
-            clientConfig = {
-              "m.homeserver".base_url = "https://${cfg.domain}";
-              "org.matrix.msc3575.proxy".url = "https://${cfg.domain}"; # Sliding sync
-            };
-            serverConfig = {
-              "m.server" = "${cfg.domain}:443";
-            };
-          in
-          {
-            locations = {
-              "/" = lib.mkIf cfg.reverseProxy.elementWeb {
-                passthru = {
-                  proxyPass = lib.mkForce null;
-                  root = import ./element-web.nix {
-                    inherit pkgs clientConfig;
-                    domains = cfg.reverseProxy.domains;
-                  };
-                };
-              };
-
-              # Matrix C-S and S-S API endpoints
-              "~ ^/_matrix/" = {
-                inherit (cfg.reverseProxy) lanOnly;
-                passthru = {
-                  inherit (cfg.reverseProxy) proxyPass;
-                  extraConfig = ''
-                    # Allow large media uploads (0 = unlimited)
-                    client_max_body_size 0;
-
-                    # Matrix sync can be long-polling
-                    proxy_read_timeout 300;
-                  '';
-                };
-              };
-
-              # Tuwunel-specific endpoints (health check, version, admin)
-              "~ ^/_conduwuit/" = {
-                inherit (cfg.reverseProxy) lanOnly;
-                passthru = {
-                  inherit (cfg.reverseProxy) proxyPass;
-                };
-              };
-
-              # Well-known endpoints for federation and client discovery
-              "= /.well-known/matrix/server" = {
-                inherit (cfg.reverseProxy) lanOnly;
-                passthru = {
-                  return = "200 '${builtins.toJSON serverConfig}' ";
-                  extraConfig = ''
-                    add_header Content-Type application/json;
-                    add_header Access-Control-Allow-Origin *;
-                  '';
-                };
-              };
-
-              "= /.well-known/matrix/client" = {
-                inherit (cfg.reverseProxy) lanOnly;
-                passthru = {
-                  return = "200 '${builtins.toJSON clientConfig}' ";
-                  extraConfig = ''
-                    add_header Content-Type application/json;
-                    add_header Access-Control-Allow-Origin *;
-                  '';
-                };
-              };
+      codgician.services.nginx.reverseProxies.matrix-tuwunel.domains = [ domain ];
+      codgician.services.nginx.reverseProxies.matrix-tuwunel.locations =
+        let
+          clientConfig = {
+            "m.homeserver".base_url = "https://${domain}";
+            "org.matrix.msc3575.proxy".url = "https://${domain}"; # Sliding sync
+          };
+          serverConfig = {
+            "m.server" = "${domain}:443";
+          };
+        in
+        {
+          "/" = lib.mkIf cfg.elementWeb {
+            root = import ./element-web.nix {
+              inherit pkgs clientConfig;
+              element-web = cfg.elementWebPackage;
+              domains = [ domain ];
             };
           };
-      };
+
+          # Matrix C-S and S-S API endpoints
+          "~ ^/_matrix/".extraConfig = ''
+            # Allow large media uploads (0 = unlimited)
+            client_max_body_size 0;
+
+            # Matrix sync can be long-polling
+            proxy_read_timeout 300;
+          '';
+
+          # Tuwunel-specific endpoints (health check, version, admin)
+          "~ ^/_conduwuit/" = { };
+
+          # Well-known endpoints for federation and client discovery
+          "= /.well-known/matrix/server" = {
+            return = "200 '${builtins.toJSON serverConfig}' ";
+            extraConfig = ''
+              add_header Content-Type application/json;
+              add_header Access-Control-Allow-Origin *;
+            '';
+          };
+
+          "= /.well-known/matrix/client" = {
+            return = "200 '${builtins.toJSON clientConfig}' ";
+            extraConfig = ''
+              add_header Content-Type application/json;
+              add_header Access-Control-Allow-Origin *;
+            '';
+          };
+        };
     }
   ];
 }

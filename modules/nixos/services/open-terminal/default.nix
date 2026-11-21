@@ -11,11 +11,9 @@ let
   cfg = config.codgician.services.open-terminal;
   defaultDataDir = "/var/lib/open-terminal";
 
-  # TOML format for settings type
   tomlFormat = pkgs.formats.toml { };
 
-  # Configuration with ._secret for API key
-  # Note: use container defaults (0.0.0.0:8000) inside, only remap port on host
+  # The container keeps its defaults (0.0.0.0:8000); only the host port is remapped
   settings = {
     api_key._secret = config.codgician.secrets.files.open-terminal-api-key.path;
   }
@@ -38,6 +36,12 @@ in
     };
 
     openFirewall = lib.mkEnableOption "opening firewall for ${serviceName}";
+
+    image = lib.mkOption {
+      type = types.str;
+      default = "ghcr.io/open-webui/open-terminal:latest";
+      description = "Container image for open-terminal.";
+    };
 
     dataDir = lib.mkOption {
       type = types.path;
@@ -63,62 +67,45 @@ in
         See https://github.com/open-webui/open-terminal for available options.
       '';
     };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://127.0.0.1:${toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.open-terminal; http://127.0.0.1:$\{toString port}'';
-    };
   };
 
-  config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
-      virtualisation.oci-containers.containers.open-terminal = {
-        autoStart = true;
-        image = "ghcr.io/open-webui/open-terminal:latest";
-        ports = [ "${cfg.host}:${builtins.toString cfg.port}:8000" ];
-        volumes = [
-          "${cfg.dataDir}:/home/user:U"
-          "/run/${serviceName}/config.toml:/etc/open-terminal/config.toml:ro"
-        ];
-        extraOptions = [ "--pull=newer" ];
-      };
-
-      virtualisation.podman.enable = true;
-
-      # Generate config.toml with secrets replacement before container starts
-      systemd.services.podman-open-terminal = {
-        preStart = lib.mkBefore ''
-          ${utils.genJqSecretsReplacementSnippet settings "/run/${serviceName}/config.json"}
-          ${lib.getExe pkgs.yj} -jt < /run/${serviceName}/config.json > /run/${serviceName}/config.toml
-          rm /run/${serviceName}/config.json
-        '';
-        serviceConfig.RuntimeDirectory = serviceName;
-      };
-
-      # Open firewall if requested
-      networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [ cfg.port ];
-
-      # Ensure data directory exists (for custom paths)
-      systemd.tmpfiles.rules = lib.mkIf (cfg.dataDir != defaultDataDir) [
-        "d ${cfg.dataDir} 0755 root root -"
+  config = lib.mkIf cfg.enable {
+    virtualisation.oci-containers.containers.open-terminal = {
+      autoStart = true;
+      inherit (cfg) image;
+      ports = [ "${cfg.host}:${toString cfg.port}:8000" ];
+      volumes = [
+        "${cfg.dataDir}:/home/user:U"
+        "/run/${serviceName}/config.toml:/etc/open-terminal/config.toml:ro"
       ];
+      extraOptions = [ "--pull=newer" ];
+    };
 
-      # Persist data directory (only when using default location)
-      codgician.system.impermanence.extraItems = lib.mkIf (cfg.dataDir == defaultDataDir) [
-        {
-          type = "directory";
-          path = cfg.dataDir;
-        }
-      ];
-    })
+    virtualisation.podman.enable = true;
 
-    # Reverse proxy profile
-    {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-      };
-    }
-  ];
+    # Generate config.toml with secrets replacement before container starts
+    systemd.services.podman-open-terminal = {
+      preStart = lib.mkBefore ''
+        ${utils.genJqSecretsReplacementSnippet settings "/run/${serviceName}/config.json"}
+        ${lib.getExe pkgs.yj} -jt < /run/${serviceName}/config.json > /run/${serviceName}/config.toml
+        rm /run/${serviceName}/config.json
+      '';
+      serviceConfig.RuntimeDirectory = serviceName;
+    };
+
+    networking.firewall.allowedTCPPorts = lib.mkIf cfg.openFirewall [ cfg.port ];
+
+    # Ensure data directory exists (for custom paths)
+    systemd.tmpfiles.rules = lib.mkIf (cfg.dataDir != defaultDataDir) [
+      "d ${cfg.dataDir} 0755 root root -"
+    ];
+
+    # Persist data directory (only when using default location)
+    codgician.system.impermanence.extraItems = lib.mkIf (cfg.dataDir == defaultDataDir) [
+      {
+        type = "directory";
+        path = cfg.dataDir;
+      }
+    ];
+  };
 }

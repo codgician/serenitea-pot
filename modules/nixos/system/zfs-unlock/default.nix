@@ -157,7 +157,7 @@ in
         }
       );
       default = { };
-      description = "ZFS datasets for PCR 15 fingerprint extension and optional TPM unlock.";
+      description = "ZFS datasets unlocked through the TPM2, with PCR 15 fingerprint extension against filesystem confusion.";
       example = lib.literalExpression "{ zroot.credentialFile = ./zroot.cred; }";
     };
   };
@@ -182,7 +182,8 @@ in
     );
 
     boot.initrd.systemd = {
-      enable = true;
+      # From 26.11 on the systemd initrd is the only one and the option is gone
+      enable = lib.mkIf (lib.versionOlder config.system.nixos.release "26.11") true;
       tpm2.enable = true;
 
       storePaths = [

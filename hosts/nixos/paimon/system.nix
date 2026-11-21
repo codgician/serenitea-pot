@@ -1,11 +1,5 @@
+{ lib, pkgs, ... }:
 {
-  lib,
-  pkgs,
-  ...
-}:
-{
-
-  # My settings
   codgician = {
     services = {
       nats = {
@@ -14,25 +8,13 @@
         host = "0.0.0.0";
       };
 
-      comfyui = {
-        enable = false;
-        dataDir = "/xpool/appdata/comfyui";
-        modelDir = "/xpool/llm/comfyui";
-        userDir = "/xpool/appdata/comfyui-user";
-        reverseProxy = {
-          enable = false;
-          domains = [ "vanarana.codgician.me" ];
-          authelia = {
-            enable = true;
-            rules = [
-              {
-                groups = [ "vanarana" ];
-                policy = "two_factor";
-              }
-            ];
-          };
-        };
+      nginx = {
+        enable = true;
+        openFirewall = true;
       };
+
+      nixos-vscode-server.enable = true;
+
       mcpo = {
         enable = true;
         dataDir = "/xpool/appdata/mcpo";
@@ -40,17 +22,9 @@
 
       open-terminal.enable = true;
 
-      # Auth
-      authelia.instances.main = {
-        enable = true;
-        sessionDomain = "codgician.me";
-        domain = "auth.codgician.me";
-        database = "postgresql";
-        reverseProxy.enable = true;
-      };
-
       # Monitor
       prometheus.enable = true;
+      grafana.enable = true;
 
       # Email
       postfix.enable = true;
@@ -63,18 +37,24 @@
 
       redis.rootDir = "/opool/redis";
 
-      nixos-vscode-server.enable = true;
+      authelia.instances.main = {
+        enable = true;
+        database = "postgresql";
+      };
 
       # Chat
       matrix-tuwunel = {
         enable = true;
-        domain = "matrix.codgician.me";
         dataPath = "/opool/tuwunel";
         zfsOptimizations = true;
-        reverseProxy = {
-          enable = true;
-          elementWeb = true;
-        };
+        elementWeb = true;
+      };
+
+      comfyui = {
+        enable = false;
+        dataDir = "/xpool/appdata/comfyui";
+        modelDir = "/xpool/llm/comfyui";
+        userDir = "/xpool/appdata/comfyui-user";
       };
 
       vllm = {
@@ -85,14 +65,12 @@
       sglang = {
         enable = true;
         monitoring.enable = true;
-        # Share the engine-neutral ModelScope cache with vLLM.
         cacheDir = "/xpool/llm/llm-cache";
         instances.qwen-chat = {
           model = "RadixArk/Qwen3.8-27B-NVFP4";
           host = "0.0.0.0";
           port = 8000;
           memFractionStatic = 0.95;
-          image = "lmsysorg/sglang:latest";
           environmentVariables = {
             SGLANG_DISABLE_SILU_FP4_QUANT_FUSION = "1";
             # Drop one mamba slot per running request (lazy: 4 -> 3).
@@ -164,35 +142,11 @@
         package = pkgs.open-webui-akasha;
         database = "postgresql";
         stateDir = "/xpool/appdata/open-webui";
-        reverseProxy = rec {
-          enable = true;
-          domains = [ "akasha.codgician.me" ];
-          appIcon =
-            (pkgs.fetchurl {
-              url = "https://media.githubusercontent.com/media/codgician/assets/465dc48eabca23c08f1e07ba8b0cf07fd7cf53d6/images/akasha/logo.png";
-              sha256 = "sha256-aXa2So5dcthDY8B1UXvfu4Ym8RSTAmR+XWPRokVC9oA=";
-            }).outPath;
-          favicon =
-            (pkgs.fetchurl {
-              url = "https://media.githubusercontent.com/media/codgician/assets/465dc48eabca23c08f1e07ba8b0cf07fd7cf53d6/images/akasha/logo-round.png";
-              sha256 = "sha256-qty11SyWzNgxkOsUvy1BUI5NgydUdXN1V6p7FvHhvTk=";
-            }).outPath;
-          splash = favicon;
-        };
 
         # Run Qwen3 embeddings locally in Open WebUI on CPU.
         embedding = {
           engine = "local";
           model = "Qwen/Qwen3-Embedding-0.6B";
-        };
-      };
-
-      # Monitoring
-      grafana = {
-        enable = true;
-        reverseProxy = {
-          enable = true;
-          domains = [ "lumenstone.codgician.me" ];
         };
       };
 
@@ -250,36 +204,17 @@
       gitlab = {
         enable = true;
         statePath = "/fpool/gitlab";
-        host = "git.codgician.me";
-        reverseProxy.enable = true;
       };
 
       jellyfin = {
         enable = true;
         dataDir = "/xpool/appdata/jellyfin";
-        reverseProxy = {
-          enable = true;
-          domains = [ "fin.codgician.me" ];
-        };
       };
 
       # Network lab
       gns3-server = {
         enable = true;
         dataDir = "/xpool/appdata/gns3";
-        reverseProxy = {
-          enable = true;
-          domains = [ "miliastra.codgician.me" ];
-          authelia = {
-            enable = true;
-            rules = [
-              {
-                groups = [ "gns3" ];
-                policy = "two_factor";
-              }
-            ];
-          };
-        };
       };
     };
 
@@ -313,32 +248,30 @@
     };
   };
 
-  # Home manager
-  home-manager.users.codgi =
-    { ... }:
-    {
-      codgician.codgi = {
-        dev.nix.enable = true;
-        codex = {
-          enable = true;
-          package = pkgs.codex-wrapped;
-        };
-        git.enable = true;
-        herdr.enable = true;
-        mcp.enable = true;
-        pi-coding-agent.enable = true;
-        oh-my-pi.enable = true;
-        pwsh.enable = true;
-        ssh.enable = true;
-        tmux.enable = true;
-        zsh.enable = true;
+  home-manager.users.codgi = {
+    codgician.codgi = {
+      dev.nix.enable = true;
+      codex = {
+        enable = true;
+        package = pkgs.codex-wrapped;
       };
-
-      home.stateVersion = "26.05";
-      home.packages = with pkgs; [
-        nur.repos.codgician.gddr6
-      ];
+      git.enable = true;
+      herdr.enable = true;
+      mcp.enable = true;
+      pi-coding-agent.enable = true;
+      oh-my-pi.enable = true;
+      pwsh.enable = true;
+      ssh.enable = true;
+      tmux.enable = true;
+      zsh.enable = true;
     };
+
+    home.stateVersion = "26.05";
+
+    home.packages = with pkgs; [
+      nur.repos.codgician.gddr6
+    ];
+  };
 
   # Use systemd-boot boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -364,14 +297,5 @@
   # Use networkd
   networking.useNetworkd = true;
 
-  # Firewall
-  networking.firewall.enable = true;
-
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It's perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "26.05"; # Did you read the comment?
+  system.stateVersion = "26.05";
 }

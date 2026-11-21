@@ -21,7 +21,7 @@ in
         Whether this machine is located in mainland China. Consumed by
         modules that need region-specific behavior, e.g. preferring CN
         mirrors for the nix binary cache, or downloading models from
-        ModelScope instead of Hugging Face for vLLM.
+        ModelScope instead of Hugging Face.
       '';
     };
   };

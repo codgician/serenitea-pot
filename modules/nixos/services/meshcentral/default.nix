@@ -6,14 +6,13 @@
   ...
 }:
 let
-  serviceName = "meshcentral";
   cfg = config.codgician.services.meshcentral;
   types = lib.types;
+  domain = "amt.${lib.codgician.zone}";
 in
 {
   options.codgician.services.meshcentral = {
-    enable = lib.mkEnableOption "meshcentral";
-
+    enable = lib.mkEnableOption "MeshCentral";
     package = lib.mkPackageOption pkgs "meshcentral" { };
 
     host = lib.mkOption {
@@ -29,30 +28,25 @@ in
       default = 3001;
       description = "TCP port for meshcentral to listen.";
     };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://${cfg.host}:${toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.meshcentral; http://$\{host}:$\{toString port}'';
-    };
   };
 
   config = lib.mkMerge [
     # Meshcentral configurations
     (lib.mkIf cfg.enable {
+      codgician.services.nginx.reverseProxies.meshcentral.proxyPass =
+        "http://${cfg.host}:${toString cfg.port}";
+
       services.meshcentral = {
         enable = true;
         settings = {
           domains."" = {
             showPasswordLogin = false;
-            allowedOrigin = lib.mkIf cfg.reverseProxy.enable cfg.reverseProxy.domains;
-            authStrategies.oidc = lib.mkIf cfg.reverseProxy.enable {
-              issuer = "https://auth.codgician.me";
+            allowedOrigin = [ domain ];
+            authStrategies.oidc = {
+              issuer = config.codgician.services.authelia.instances.main.url;
               client =
                 let
-                  scheme = if cfg.reverseProxy.https then "https" else "http";
-                  url = "${scheme}://${builtins.head cfg.reverseProxy.domains}";
+                  url = "https://${domain}";
                 in
                 {
                   client_id = "meshcentral";
@@ -97,20 +91,12 @@ in
       };
     })
 
-    # Reverse proxy profiles
     {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-        extraVhostConfig.locations."/" = {
-          inherit (cfg.reverseProxy) lanOnly;
-          authelia.enable = cfg.reverseProxy.authelia.enable;
-          passthru = {
-            inherit (cfg.reverseProxy) proxyPass;
-            extraConfig = ''
-              proxy_buffering off;
-            '';
-          };
-        };
+      codgician.services.nginx.reverseProxies.meshcentral = {
+        domains = [ domain ];
+        locations."/".extraConfig = ''
+          proxy_buffering off;
+        '';
       };
     }
   ];

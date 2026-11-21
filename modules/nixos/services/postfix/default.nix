@@ -5,12 +5,11 @@
   ...
 }:
 let
-  serviceName = "postfix";
-  cfg = config.codgician.services.${serviceName};
+  cfg = config.codgician.services.postfix;
   types = lib.types;
-  tokenFile = "/var/lib/postfix/tokens/bot@codgician.me";
+  tokenFile = "/var/lib/postfix/tokens/${cfg.sender}";
   saslPasswd = pkgs.writeText "sasl_passwd" ''
-    [smtp.office365.com]:587 bot@codgician.me:${tokenFile}
+    [smtp.office365.com]:587 ${cfg.sender}:${tokenFile}
   '';
 in
 {
@@ -18,6 +17,17 @@ in
     enable = lib.mkEnableOption "postfix";
 
     verbose = lib.mkEnableOption "debugging logs";
+
+    saslPackage = lib.mkPackageOption pkgs [ "nur" "repos" "codgician" "sasl-xoauth2" ] {
+      extraDescription = "It is the SASL mechanism postfix signs in to the relay with.";
+    };
+
+    sender = lib.mkOption {
+      type = types.str;
+      default = "bot@${lib.codgician.zone}";
+      readOnly = true;
+      description = "Mailbox the relay signs in as; every service sends its mail from it.";
+    };
 
     authorizedUsers = lib.mkOption {
       type = with types; listOf str;
@@ -48,7 +58,7 @@ in
   config = lib.mkIf cfg.enable {
     # Make debugging easier
     environment.systemPackages = with pkgs; [
-      pkgs.nur.repos.codgician.sasl-xoauth2
+      cfg.saslPackage
       cyrus_sasl
     ];
 
@@ -69,7 +79,7 @@ in
           import_environment = "SASL_PATH";
           inet_interfaces = "loopback-only";
           inet_protocols = "all";
-          sender_canonical_maps = "static:bot@codgician.me";
+          sender_canonical_maps = "static:${cfg.sender}";
 
           # Access control
           authorized_submit_users = builtins.concatStringsSep ", " (lib.unique cfg.authorizedUsers);
@@ -96,7 +106,7 @@ in
 
     codgician.secrets.files."sasl-xoauth2" = {
       owner = cfg.user;
-      group = cfg.group;
+      inherit (cfg) group;
       mode = "0600";
     };
 
@@ -106,15 +116,14 @@ in
         {
           type = "directory";
           path = "/var/lib/postfix";
-          user = cfg.user;
-          group = cfg.group;
+          inherit (cfg) user group;
           mode = "0600";
         }
       ];
     };
 
     systemd.services.postfix.environment.SASL_PATH = lib.makeSearchPath "lib/sasl2" [
-      pkgs.nur.repos.codgician.sasl-xoauth2
+      cfg.saslPackage
     ];
 
     environment.etc."sasl-xoauth2.conf" = {

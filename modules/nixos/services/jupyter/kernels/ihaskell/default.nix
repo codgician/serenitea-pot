@@ -107,7 +107,7 @@ in
     );
   };
 
-  config = lib.mkIf (enabledKernels != { }) {
+  config = lib.mkIf (config.codgician.services.jupyter.enable && enabledKernels != { }) {
     services.jupyter.kernels = lib.mapAttrs' mkKernel enabledKernels;
 
     assertions = lib.mapAttrsToList (name: _: {

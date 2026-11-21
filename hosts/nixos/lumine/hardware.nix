@@ -2,12 +2,7 @@
 {
   imports = [ (modulesPath + "/virtualisation/azure-common.nix") ];
 
-  # ZFS boot configs
   boot = {
-    supportedFilesystems = [
-      "vfat"
-      "zfs"
-    ];
     kernelPackages = pkgs.linuxPackages_6_18;
     zfs.package = pkgs.zfs_2_4;
   };

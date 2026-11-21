@@ -38,4 +38,4 @@ Persistent state lives under the path `rescue status` reports as `Persist`. Copy
 
 ## Maintenance
 
-The ISO deploys only secrets granted to every host with its own disks (`codgician.secrets.hosts`), so any host's key unlocks them all. A new bare-metal or VM host must therefore receive codgi's shared secrets, or the ISO fails to evaluate. The rescue flow is covered by `nix build .#checks.x86_64-linux.rescue`.
+The ISO deploys only secrets granted to every host with its own disks (`codgician.secrets.hosts`), so any host's key unlocks them all. A new bare-metal or VM host must therefore receive codgi's shared secrets, or the ISO fails to evaluate. The rescue flow is covered by `nix build .#legacyPackages.x86_64-linux.vmTests.rescue`.

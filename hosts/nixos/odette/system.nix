@@ -11,7 +11,10 @@ in
     services = {
       fcitx5.enable = true;
       nixos-vscode-server.enable = true;
-      plasma.enable = true;
+      plasma = {
+        enable = true;
+        inherit wallpaper;
+      };
       rasdaemon.enable = true;
       intune = {
         enable = true;
@@ -40,6 +43,7 @@ in
 
     system = {
       auto-upgrade.enable = true;
+      common.audio.enable = true;
       impermanence.enable = true;
       secure-boot.enable = true;
     };
@@ -52,128 +56,122 @@ in
     };
   };
 
-  # Home manager
-  home-manager.users.codgi =
-    { ... }:
-    {
-      codgician.codgi = {
-        bilibili = {
-          enable = true;
-          gpuAcceleration = "intel";
-        };
-        claude-code.enable = true;
-        codex = {
-          enable = true;
-          package = pkgs.codex-wrapped;
-        };
-        dev = {
-          haskell.enable = true;
-          nix.enable = true;
-          rust.enable = true;
-        };
-
-        pi-coding-agent.enable = true;
-        git = {
-          enable = true;
-          directoryIdentities = {
-            "~/Work/" = "work";
-            "~/GitHub/" = "personal";
-          };
-          send-email.enable = true;
-        };
-        herdr.enable = true;
-        mcp.enable = true;
-        oh-my-pi = {
-          enable = true;
-          defaultProfile = "github-copilot";
-        };
-        plasma = {
-          inherit wallpaper;
-          scale = 1.5;
-          launchers = [
-            "applications:org.kde.dolphin.desktop"
-            "applications:microsoft-edge.desktop"
-            "applications:org.kde.konsole.desktop"
-            "applications:code.desktop"
-            "applications:teams-for-linux.desktop"
-          ];
-        };
-        pwsh.enable = true;
-        ssh.enable = true;
-        teams-for-linux.enable = true;
-        tmux.enable = true;
-        vscode.enable = true;
-        zsh.enable = true;
-
-      };
-
-      # Set Microsoft Edge as default browser
-      xdg.mimeApps = {
+  home-manager.users.codgi = {
+    codgician.codgi = {
+      bilibili = {
         enable = true;
-        defaultApplications = {
-          "text/html" = "microsoft-edge.desktop";
-          "x-scheme-handler/http" = "microsoft-edge.desktop";
-          "x-scheme-handler/https" = "microsoft-edge.desktop";
-          "x-scheme-handler/about" = "microsoft-edge.desktop";
-          "x-scheme-handler/unknown" = "microsoft-edge.desktop";
+        gpuAcceleration = "intel";
+      };
+      claude-code.enable = true;
+      codex = {
+        enable = true;
+        package = pkgs.codex-wrapped;
+      };
+      dev = {
+        haskell.enable = true;
+        nix.enable = true;
+        rust.enable = true;
+      };
+
+      pi-coding-agent.enable = true;
+      git = {
+        enable = true;
+        directoryIdentities = {
+          "~/Work/" = "work";
+          "~/GitHub/" = "personal";
         };
+        send-email.enable = true;
       };
-      xdg.configFile."mimeapps.list".force = true;
-
-      # HP Elite Dragonfly Chromebook's ELAN touchpad. Plasma on Wayland
-      # reads input settings from kcminputrc (via KWin/libinput), not from
-      # `services.libinput.*`, which only applies under Xorg.
-      programs.plasma.input.touchpads = [
-        {
-          name = "ELAN2703:00 04F3:323B Touchpad";
-          vendorId = "04F3";
-          productId = "323B";
-          naturalScroll = true;
-          tapToClick = false;
-        }
-      ];
-
-      # Keep existing lid/idle policies, but use battery-aware sleep in every profile.
-      programs.plasma.powerdevil = {
-        AC.whenSleepingEnter = "standbyThenHibernate";
-        battery.whenSleepingEnter = "standbyThenHibernate";
-        lowBattery.whenSleepingEnter = "standbyThenHibernate";
+      herdr.enable = true;
+      mcp.enable = true;
+      oh-my-pi = {
+        enable = true;
+        defaultProfile = "github-copilot";
       };
-
-      home.stateVersion = "26.05";
-      home.packages = with pkgs; [
-        yubikey-manager
-        yubico-piv-tool
-        unstable.cider-2
-        unstable.splayer-next
-        telegram-desktop
-        nextcloud-talk-desktop
-        element-desktop
-        discord
-        voxtype-onnx
-        moonlight-qt
-        gimp
-        kdePackages.cantor
-        kdePackages.kalgebra
-        drawy
-        chatgpt-wrapped
-        azure-cli
-        # QCAD replaces Qt's plugin paths at startup; expose QtWayland in its own plugin directory.
-        (unstable.qcad.overrideAttrs (old: {
-          buildInputs = old.buildInputs ++ [ unstable.qt5.qtwayland ];
-          postInstall = (old.postInstall or "") + ''
-            for plugin in wayland-shell-integration wayland-graphics-integration-client wayland-decoration-client; do
-              ln -s ${unstable.qt5.qtwayland.bin}/${unstable.qt5.qtbase.qtPluginPrefix}/$plugin $out/lib/plugins/$plugin
-            done
-          '';
-        }))
-      ];
+      plasma = {
+        inherit wallpaper;
+        scale = 1.5;
+        launchers = [
+          "applications:org.kde.dolphin.desktop"
+          "applications:microsoft-edge.desktop"
+          "applications:org.kde.konsole.desktop"
+          "applications:code.desktop"
+          "applications:teams-for-linux.desktop"
+        ];
+      };
+      pwsh.enable = true;
+      ssh.enable = true;
+      teams-for-linux.enable = true;
+      tmux.enable = true;
+      vscode.enable = true;
+      zsh.enable = true;
     };
 
-  # Enable Network Manager
+    # Set Microsoft Edge as default browser
+    xdg.mimeApps = {
+      enable = true;
+      defaultApplications = {
+        "text/html" = "microsoft-edge.desktop";
+        "x-scheme-handler/http" = "microsoft-edge.desktop";
+        "x-scheme-handler/https" = "microsoft-edge.desktop";
+        "x-scheme-handler/about" = "microsoft-edge.desktop";
+        "x-scheme-handler/unknown" = "microsoft-edge.desktop";
+      };
+    };
+    xdg.configFile."mimeapps.list".force = true;
+
+    # HP Elite Dragonfly Chromebook's ELAN touchpad. Plasma on Wayland
+    # reads input settings from kcminputrc (via KWin/libinput), not from
+    # `services.libinput.*`, which only applies under Xorg.
+    programs.plasma.input.touchpads = [
+      {
+        name = "ELAN2703:00 04F3:323B Touchpad";
+        vendorId = "04F3";
+        productId = "323B";
+        naturalScroll = true;
+        tapToClick = false;
+      }
+    ];
+
+    # Keep existing lid/idle policies, but use battery-aware sleep in every profile.
+    programs.plasma.powerdevil = {
+      AC.whenSleepingEnter = "standbyThenHibernate";
+      battery.whenSleepingEnter = "standbyThenHibernate";
+      lowBattery.whenSleepingEnter = "standbyThenHibernate";
+    };
+
+    home.stateVersion = "26.05";
+    home.packages = with pkgs; [
+      yubikey-manager
+      yubico-piv-tool
+      unstable.cider-2
+      unstable.splayer-next
+      telegram-desktop
+      nextcloud-talk-desktop
+      element-desktop
+      discord
+      voxtype-onnx
+      moonlight-qt
+      gimp
+      kdePackages.cantor
+      kdePackages.kalgebra
+      drawy
+      chatgpt-wrapped
+      azure-cli
+      # QCAD replaces Qt's plugin paths at startup; expose QtWayland in its own plugin directory.
+      (unstable.qcad.overrideAttrs (old: {
+        buildInputs = old.buildInputs ++ [ unstable.qt5.qtwayland ];
+        postInstall = (old.postInstall or "") + ''
+          for plugin in wayland-shell-integration wayland-graphics-integration-client wayland-decoration-client; do
+            ln -s ${unstable.qt5.qtwayland.bin}/${unstable.qt5.qtbase.qtPluginPrefix}/$plugin $out/lib/plugins/$plugin
+          done
+        '';
+      }))
+    ];
+  };
+
   networking.networkmanager.enable = true;
 
-  # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.plymouth = {
@@ -188,20 +186,13 @@ in
     '';
   };
 
-  # Select internationalisation properties.
-  i18n = {
-    defaultLocale = "en_US.UTF-8";
-    supportedLocales = [
-      "en_US.UTF-8/UTF-8"
-      "zh_CN.UTF-8/UTF-8"
-    ];
-  };
+  i18n.supportedLocales = [
+    "en_US.UTF-8/UTF-8"
+    "zh_CN.UTF-8/UTF-8"
+  ];
 
-  codgician.system.common.audio.enable = true;
-
-  # Security
-  users.mutableUsers = false;
-  users.users.root.hashedPassword = "!";
+  # Already set by the common module; the second definition repeats both
+  # entries in nix.conf.
   nix.settings.trusted-users = [
     "root"
     "@wheel"
@@ -209,19 +200,12 @@ in
 
   networking.hostId = "000de77e";
 
-  # Plasma Login Manager currently reads wallpaper configuration from the main file.
-  environment.etc."plasmalogin.conf".text = ''
-    [Greeter][Wallpaper][org.kde.image][General]
-    Image=file://${wallpaper}
-  '';
-
   # Global packages
   environment.systemPackages = with pkgs; [
     google-chrome
     microsoft-edge
   ];
 
-  # Enable zram swap
   zramSwap.enable = true;
 
   # Outside Plasma, logind handles lid and suspend-key requests directly.
@@ -231,14 +215,7 @@ in
     HandleSuspendKey = "suspend-then-hibernate";
   };
 
-  # Firewall
   networking.firewall.enable = false;
 
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It's perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "26.05"; # Did you read the comment?
+  system.stateVersion = "26.05";
 }

@@ -48,7 +48,7 @@ let
     ++ c.extraArgs;
 
   instanceModule =
-    { config, name, ... }:
+    { ... }:
     {
       options = {
         model = lib.mkOption {
@@ -139,12 +139,6 @@ let
             read-only into the container. Configurations must match the image's
             vLLM, Triton, CUDA, GPU, quantization, and tensor-parallel setup.
           '';
-        };
-
-        reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-          serviceName = "${serviceName}@${name}";
-          defaultProxyPass = "http://${config.host}:${toString config.port}";
-          defaultProxyPassText = "http://\${host}:\${port}";
         };
       };
     };
@@ -281,15 +275,5 @@ in
       lib.optional cfg.monitoring.enable ../grafana/dashboards/vllm.json;
 
     virtualisation.oci-containers.containers = lib.mkMerge (map mkContainer instances);
-
-    codgician.services.nginx = lib.mkMerge (
-      map (
-        i:
-        lib.codgician.mkServiceReverseProxyConfig {
-          serviceName = "${serviceName}@${i}";
-          cfg = cfg.instances.${i};
-        }
-      ) instances
-    );
   };
 }

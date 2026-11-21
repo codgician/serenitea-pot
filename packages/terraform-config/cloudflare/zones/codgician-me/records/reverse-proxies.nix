@@ -1,11 +1,16 @@
-{ config, ... }:
+{ config, lib, ... }:
 let
   zone_id = config.resource.cloudflare_zone.codgician-me "id";
   zone_name = config.resource.cloudflare_zone.codgician-me.name;
+
+  # Host the names below resolve to
+  edge = "lumine";
+
+  # A name is listed here when a site gets it, whichever host serves the site.
   cnames = [
-    "astrolabe"
     "akasha"
     "amt"
+    "astrolabe"
     "auth"
     "books"
     "bubbles"
@@ -28,18 +33,16 @@ let
   ];
 in
 {
-  resource.cloudflare_dns_record = builtins.listToAttrs (
-    builtins.map (name: {
-      name = "${name}-cname";
-      value = {
-        name = "${name}.${zone_name}";
-        proxied = false;
-        ttl = 120;
-        comment = "Reverse proxied by lumine";
-        type = "CNAME";
-        content = "lumine.codgician.me";
-        inherit zone_id;
-      };
-    }) cnames
+  resource.cloudflare_dns_record = lib.genAttrs' cnames (
+    name:
+    lib.nameValuePair "${name}-cname" {
+      name = "${name}.${zone_name}";
+      proxied = false;
+      ttl = 120;
+      comment = "Reverse proxied by ${edge}";
+      type = "CNAME";
+      content = config.resource.cloudflare_dns_record."${edge}-a".name;
+      inherit zone_id;
+    }
   );
 }

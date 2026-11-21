@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 let
@@ -11,6 +12,7 @@ in
 {
   options.codgician.services.${serviceName} = {
     enable = lib.mkEnableOption "OpenVSCode Server";
+    package = lib.mkPackageOption pkgs "openvscode-server" { };
 
     user = lib.mkOption {
       type = types.str;
@@ -72,20 +74,17 @@ in
       example = [ "--log=debug" ];
       description = "Additional arguments to pass to openvscode-server.";
     };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://${cfg.host}:${builtins.toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.${serviceName}; http://$\{host}:$\{builtins.toString port}'';
-    };
   };
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
+      codgician.services.nginx.reverseProxies.openvscode-server.proxyPass =
+        "http://${cfg.host}:${toString cfg.port}";
+
       services.openvscode-server = {
         enable = true;
         inherit (cfg)
+          package
           user
           group
           host
@@ -110,53 +109,51 @@ in
             lib.optional (cfg.serverDataDir != null) {
               type = "directory";
               path = cfg.serverDataDir;
-              user = cfg.user;
-              group = cfg.group;
+              inherit (cfg) user group;
             }
             ++ lib.optional (cfg.userDataDir != null && cfg.userDataDir != cfg.serverDataDir) {
               type = "directory";
               path = cfg.userDataDir;
-              user = cfg.user;
-              group = cfg.group;
+              inherit (cfg) user group;
             }
             ++ lib.optional (cfg.extensionsDir != null && cfg.extensionsDir != cfg.serverDataDir) {
               type = "directory";
               path = cfg.extensionsDir;
-              user = cfg.user;
-              group = cfg.group;
+              inherit (cfg) user group;
             }
           );
 
       # Ensure authentication is configured
       assertions = [
         {
-          assertion = cfg.connectionTokenFile != null || cfg.reverseProxy.authelia.enable;
+          assertion =
+            cfg.connectionTokenFile != null
+            || config.codgician.services.nginx.reverseProxies.openvscode-server.authelia != null;
           message = ''
             openvscode-server: Authentication is required.
 
             Either:
-            1. Enable Authelia: reverseProxy.authelia.enable = true (recommended)
+            1. Keep Authelia on the site: codgician.services.nginx.reverseProxies.openvscode-server.authelia (recommended)
             2. Provide a connection token: connectionTokenFile = "/path/to/token"
           '';
         }
       ];
     })
 
-    # Reverse proxy profile (with long timeouts for WebSocket)
     {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-        extraVhostConfig = {
-          locations."/".passthru.extraConfig = ''
-            # Long timeouts for IDE (terminals, LSPs can idle)
-            proxy_read_timeout 3600s;
-            proxy_send_timeout 3600s;
-            send_timeout 3600s;
+      codgician.services.nginx.reverseProxies.openvscode-server = {
+        domains = [ "leyline.${lib.codgician.zone}" ];
+        # Without connectionTokenFile the server has no authentication of its own.
+        authelia.users = [ "leyline" ];
+        locations."/".extraConfig = ''
+          # Long timeouts for IDE (terminals, LSPs can idle)
+          proxy_read_timeout 3600s;
+          proxy_send_timeout 3600s;
+          send_timeout 3600s;
 
-            # Disable buffering for real-time IDE updates
-            proxy_buffering off;
-          '';
-        };
+          # Disable buffering for real-time IDE updates
+          proxy_buffering off;
+        '';
       };
     }
   ];

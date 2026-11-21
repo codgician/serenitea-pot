@@ -44,7 +44,8 @@ in
       "video"
       "render"
     ]
-    ++ lib.optional config.codgician.virtualization.podman.enable "podman";
+    ++ lib.optional config.codgician.virtualization.podman.enable "podman"
+    ++ lib.optional config.codgician.virtualization.libvirt.enable "libvirtd";
   };
 
   # Trust me

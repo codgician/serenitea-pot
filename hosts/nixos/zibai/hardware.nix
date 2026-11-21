@@ -41,7 +41,6 @@
     zfs = {
       extraPools = [ "dpool" ];
       forceImportAll = true;
-      forceImportRoot = true;
     };
   };
 
@@ -101,12 +100,8 @@
     pkcs11.enable = true;
   };
 
-  networking.useDHCP = lib.mkDefault true;
-
   hardware = {
     enableRedistributableFirmware = true;
     cpu.intel.updateMicrocode = true;
   };
-
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

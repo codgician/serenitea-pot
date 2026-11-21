@@ -5,7 +5,7 @@
   ...
 }:
 let
-  data = builtins.fromJSON (builtins.readFile ./models.json);
+  data = lib.importJSON ./models.json;
   modelName =
     id:
     if id == "mai-code-1-flash-picker" then

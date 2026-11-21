@@ -1,13 +1,20 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   serviceName = "jellyfin";
   cfg = config.codgician.services.jellyfin;
   types = lib.types;
+  domain = "fin.${lib.codgician.zone}";
   defaultDataDir = "/var/lib/jellyfin";
 in
-rec {
+{
   options.codgician.services.jellyfin = {
     enable = lib.mkEnableOption "Jellyfin";
+    package = lib.mkPackageOption pkgs "jellyfin" { };
 
     user = lib.mkOption {
       type = types.str;
@@ -29,24 +36,20 @@ rec {
 
     dataDir = lib.mkOption {
       type = types.path;
-      default = "/var/lib/jellyfin";
+      default = defaultDataDir;
       description = "Data directory for jellyfin";
-    };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://127.0.0.1:8096";
     };
   };
 
   config = lib.mkMerge [
-    # Jellyfin configurations
+    { codgician.services.nginx.reverseProxies.jellyfin.domains = [ domain ]; }
+
     (lib.mkIf cfg.enable {
       services.jellyfin = {
         enable = true;
         openFirewall = true;
         inherit (cfg)
+          package
           user
           group
           cacheDir
@@ -67,13 +70,8 @@ rec {
           inherit (cfg) user group;
         }
       ];
-    })
 
-    # Reverse proxy profile
-    {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-      };
-    }
+      codgician.services.nginx.reverseProxies.jellyfin.proxyPass = "http://127.0.0.1:8096";
+    })
   ];
 }

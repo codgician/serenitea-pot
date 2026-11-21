@@ -1,31 +1,14 @@
 {
   config,
   lib,
+  osConfig,
+  pkgs,
   ...
-}:
+}@args:
 let
   cfg = config.codgician.codgi.herdr;
-  agentPackages = [
-    cfg.package
-  ]
-  ++ lib.optionals (config.codgician.codgi.claude-code.enable or false) [
-    config.codgician.codgi.claude-code.package
-  ]
-  ++ lib.optionals (config.codgician.codgi.codex.enable or false) [
-    config.codgician.codgi.codex.package
-  ]
-  ++ lib.optionals (config.codgician.codgi.droid.enable or false) [
-    config.codgician.codgi.droid.package
-  ]
-  ++ lib.optionals (config.codgician.codgi.github-copilot-cli.enable or false) [
-    config.codgician.codgi.github-copilot-cli.package
-  ]
-  ++ lib.optionals (config.codgician.codgi.oh-my-pi.enable or false) [
-    config.codgician.codgi.oh-my-pi.package
-  ]
-  ++ lib.optionals (config.codgician.codgi.pi-coding-agent.enable or false) [
-    config.codgician.codgi.pi-coding-agent.package
-  ];
+  agents = import ../../generic/agents.nix args;
+  agentPackages = [ cfg.package ] ++ agents.enabledPackages;
 in
 {
   config = lib.mkIf cfg.enable {

@@ -6,7 +6,7 @@
 }:
 let
   cfg = config.codgician.services.intune;
-  inherit (pkgs) mdatp;
+  mdatp = cfg.packages.mdatp;
 
   installDir = "/opt/microsoft/mdatp";
   stateDir = "/var/opt/microsoft/mdatp";
@@ -192,27 +192,25 @@ in
         ];
       };
 
-      codgician.system.impermanence.extraItems =
-        lib.optionals config.codgician.system.impermanence.enable
-          [
-            # The daemon's unprivileged (mdatp) workers traverse these.
-            {
-              path = configDir;
-              type = "directory";
-              mode = "0755";
-            }
-            {
-              path = stateDir;
-              type = "directory";
-              mode = "0755";
-            }
-            {
-              path = logDir;
-              type = "directory";
-              group = "mdatp";
-              mode = "0775";
-            }
-          ];
+      codgician.system.impermanence.extraItems = [
+        # The daemon's unprivileged (mdatp) workers traverse these.
+        {
+          path = configDir;
+          type = "directory";
+          mode = "0755";
+        }
+        {
+          path = stateDir;
+          type = "directory";
+          mode = "0755";
+        }
+        {
+          path = logDir;
+          type = "directory";
+          group = "mdatp";
+          mode = "0775";
+        }
+      ];
     }
     // (lib.codgician.mkServiceUserGroupLinux "mdatp" { })
   );

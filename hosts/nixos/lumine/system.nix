@@ -1,7 +1,5 @@
-{ lib, pkgs, ... }:
+{ lib, ... }:
 {
-
-  # My settings
   codgician = {
     services = {
       fcitx5.enable = true;
@@ -12,22 +10,13 @@
           enable = true;
           authelia.enable = true;
         };
-        reverseProxy = {
-          enable = true;
-          domains = [ "dendro.codgician.me" ];
-          favicon =
-            (pkgs.fetchurl {
-              url = "https://media.githubusercontent.com/media/codgician/assets/f541d8f18215690ed7b7bbc3b97aa54c6ef2f51e/images/dendro/logo.png";
-              sha256 = "sha256-XSikOX3CM4VvwzWkRsETYBLha2VgUHh5m/uxTzm2UQI=";
-            }).outPath;
-        };
       };
-
-      postgresql.zfsOptimizations = true;
       nixos-vscode-server.enable = true;
+      ovis-relay.enable = true;
+      postgresql.zfsOptimizations = true;
       sing-box = {
         enable = true;
-        domain = "lumine.codgician.me";
+        domain = "lumine.${lib.codgician.zone}";
         users = [ "codgi" ];
         servers.hysteria2.enable = true;
       };
@@ -64,26 +53,19 @@
     };
   };
 
-  # Home manager
-  home-manager.users.codgi =
-    { ... }:
-    {
-      codgician.codgi = {
-        dev.nix.enable = true;
-        git.enable = true;
-        github-copilot-cli.enable = true;
-        pwsh.enable = true;
-        ssh.enable = true;
-        tmux.enable = true;
-        zsh.enable = true;
-      };
-
-      home.stateVersion = "26.05";
+  home-manager.users.codgi = {
+    codgician.codgi = {
+      dev.nix.enable = true;
+      git.enable = true;
+      github-copilot-cli.enable = true;
+      pwsh.enable = true;
+      ssh.enable = true;
+      tmux.enable = true;
+      zsh.enable = true;
     };
 
-  # Use the systemd-boot EFI boot loader
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
+    home.stateVersion = "26.05";
+  };
 
   # Customize zfs auto snapshot cadence
   services.zfs.autoSnapshot = {
@@ -97,40 +79,22 @@
 
   networking.hostId = "2b4cf168";
 
-  # Enable zram swap
   zramSwap.enable = true;
 
-  # Use networkd
   networking.useNetworkd = true;
-
-  # Firewall
-  networking.firewall.enable = true;
 
   boot.kernel.sysctl = {
     "net.core.default_qdisc" = "fq_pie";
     "net.ipv4.tcp_congestion_control" = "bbr";
-
-    # Enable forwarding for WireGuard
-    "net.ipv4.conf.all.forwarding" = "1";
-    "net.ipv4.conf.all.proxy_arp" = "1";
-    "net.ipv6.conf.all.forwarding" = "1";
-    "net.ipv6.conf.all.proxy_ndp" = "1";
   };
 
   # Select internationalisation properties.
   i18n = {
-    defaultLocale = "en_US.UTF-8";
     supportedLocales = [
       "en_US.UTF-8/UTF-8"
       "zh_CN.UTF-8/UTF-8"
     ];
   };
 
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It's perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "26.05"; # Did you read the comment?
+  system.stateVersion = "26.05";
 }

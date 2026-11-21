@@ -12,6 +12,15 @@ in
   options.codgician.codgi.herdr.ovis = {
     enable = lib.mkEnableOption "Ovis browser and phone client for Herdr";
 
+    package = lib.mkOption {
+      type = lib.types.package;
+      default = pkgs.llm-agents.ovis.override { herdr = cfg.package; };
+      defaultText = lib.literalExpression ''
+        pkgs.llm-agents.ovis.override { herdr = config.codgician.codgi.herdr.package; }
+      '';
+      description = "The Ovis package to run.";
+    };
+
     hostname = lib.mkOption {
       type = types.str;
       default = "127.0.0.1";
@@ -38,7 +47,7 @@ in
     relayDomain = lib.mkOption {
       type = types.nullOr types.str;
       default = null;
-      example = "euthymia.codgician.me";
+      example = "euthymia.${lib.codgician.zone}";
       description = ''
         Domain serving a self-hosted Ovis relay and app (see `codgician.services.ovis-relay`).
         When set, Ovis uses only this relay, and its pairing links open this app instead of app.ovis.sh.
@@ -81,7 +90,7 @@ in
         };
 
         Service = {
-          ExecStart = lib.getExe (pkgs.llm-agents.ovis.override { herdr = cfg.package; });
+          ExecStart = lib.getExe cfg.ovis.package;
           Environment = [
             "HOST=${cfg.ovis.hostname}"
             "PORT=${toString cfg.ovis.port}"

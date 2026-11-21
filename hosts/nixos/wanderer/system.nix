@@ -1,11 +1,7 @@
 { lib, pkgs, ... }:
 {
-
-  # My settings
   codgician = {
-    services = {
-      nixos-vscode-server.enable = true;
-    };
+    services.nixos-vscode-server.enable = true;
 
     system = {
       auto-upgrade.enable = true;
@@ -22,43 +18,29 @@
     };
   };
 
-  # Home manager
-  home-manager.users.codgi =
-    { ... }:
-    {
-      codgician.codgi = {
-        claude-code.enable = true;
-        codex = {
-          enable = true;
-          package = pkgs.codex-wrapped;
-        };
-        dev.nix.enable = true;
-        oh-my-pi.enable = true;
-        mcp.enable = true;
-        git.enable = true;
-        pwsh.enable = true;
-        ssh.enable = true;
-        tmux.enable = true;
-        zsh.enable = true;
+  home-manager.users.codgi = {
+    codgician.codgi = {
+      claude-code.enable = true;
+      codex = {
+        enable = true;
+        package = pkgs.codex-wrapped;
       };
-
-      home.stateVersion = "26.05";
+      dev.nix.enable = true;
+      git.enable = true;
+      oh-my-pi.enable = true;
+      mcp.enable = true;
+      pwsh.enable = true;
+      ssh.enable = true;
+      tmux.enable = true;
+      zsh.enable = true;
     };
 
-  # Global packages
-  environment.systemPackages = [ ];
+    home.stateVersion = "26.05";
+  };
 
-  # Enable zram swap
   zramSwap.enable = true;
 
-  # Firewall
   networking.firewall.enable = false;
 
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It's perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "26.05"; # Did you read the comment?
+  system.stateVersion = "26.05";
 }

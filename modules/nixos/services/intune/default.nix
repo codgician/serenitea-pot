@@ -44,6 +44,15 @@ in
         description = "Microsoft Identity Device Broker package.";
       };
 
+      mdatp = lib.mkPackageOption pkgs "mdatp" {
+        extraDescription = "Microsoft Defender for Endpoint.";
+      };
+      networkmanager-gpclient = lib.mkPackageOption pkgs [
+        "nur"
+        "repos"
+        "codgician"
+        "networkmanager-gpclient"
+      ] { extraDescription = "The NetworkManager plugin the corporate VPN connects with."; };
     };
   };
 
@@ -181,28 +190,26 @@ in
 
       # Persist Intune daemon state and identity broker data, including the
       # device identity created during Entra join, across reboots/wipes.
-      codgician.system.impermanence.extraItems =
-        lib.optionals config.codgician.system.impermanence.enable
-          [
-            {
-              path = "/var/lib/intune";
-              type = "directory";
-            }
-            {
-              path = "/var/lib/microsoft-identity-device-broker";
-              type = "directory";
-            }
-            {
-              path = "/etc/microsoft/identity-broker/private";
-              type = "directory";
-              mode = "0700";
-            }
-            {
-              path = "/etc/microsoft/identity-broker/certs";
-              type = "directory";
-              mode = "0700";
-            }
-          ];
+      codgician.system.impermanence.extraItems = [
+        {
+          path = "/var/lib/intune";
+          type = "directory";
+        }
+        {
+          path = "/var/lib/microsoft-identity-device-broker";
+          type = "directory";
+        }
+        {
+          path = "/etc/microsoft/identity-broker/private";
+          type = "directory";
+          mode = "0700";
+        }
+        {
+          path = "/etc/microsoft/identity-broker/certs";
+          type = "directory";
+          mode = "0700";
+        }
+      ];
 
     }
     // (lib.codgician.mkServiceUserGroupLinux "microsoft-identity-broker" { })

@@ -1,8 +1,4 @@
-{
-  pkgs,
-  osConfig,
-  extraSkillDirectories ? [ ],
-}:
+{ lib, agents }:
 let
   commonProfile = {
     composer.shape = "box";
@@ -35,10 +31,7 @@ let
       enablePiProject = true;
       enableAgentsUser = false;
       enableAgentsProject = true;
-      customDirectories = [
-        "${pkgs.llm-agents.agent-browser.src}/skills"
-      ]
-      ++ extraSkillDirectories;
+      customDirectories = agents.skillRoots;
     };
     advisor = {
       enabled = false;
@@ -63,10 +56,7 @@ let
     };
   };
 
-  dendroProfile = import ./dendro.nix {
-    inherit (pkgs) lib;
-    inherit osConfig;
-  };
+  dendroProfile = import ./dendro.nix { inherit lib agents; };
 
   familyProfileOverrides = {
     china = import ./china.nix;
@@ -79,7 +69,7 @@ builtins.mapAttrs
     profile
     // {
       # Deep merge so profile model roles add to the shared web role.
-      "config.yml" = pkgs.lib.recursiveUpdate commonProfile profile."config.yml";
+      "config.yml" = lib.recursiveUpdate commonProfile profile."config.yml";
     }
   )
   (

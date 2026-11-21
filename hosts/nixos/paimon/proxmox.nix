@@ -1,8 +1,4 @@
-{
-  lib,
-  pkgs,
-  ...
-}:
+{ lib, pkgs, ... }:
 let
   mkHookScript =
     {
@@ -117,21 +113,10 @@ in
   # Enable dm-thin-pool kernel module for LVM thin provisioning
   boot.kernelModules = [ "dm-thin-pool" ];
 
-  # Reverse proxy
   codgician = {
-    services.nginx = {
-      enable = true;
-      openFirewall = true;
-      reverseProxies = {
-        "simulanka.codgician.me" = {
-          enable = true;
-          https = true;
-          domains = [ "simulanka.codgician.me" ];
-          locations."/".passthru.proxyPass = "https://127.0.0.1:8006";
-        };
-      };
-    };
-    acme."simulanka.codgician.me".postRun = ''
+    # The Proxmox VE UI; lumine is its public entry.
+    services.nginx.reverseProxies.simulanka.proxyPass = "https://127.0.0.1:8006";
+    acme."simulanka.${lib.codgician.zone}".postRun = ''
       cp -f cert.pem /etc/pve/local/pveproxy-ssl.pem
       cp -f key.pem /etc/pve/local/pveproxy-ssl.key
       systemctl restart pveproxy.service

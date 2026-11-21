@@ -11,6 +11,8 @@ in
 {
   options.codgician.services.postgresql = {
     enable = lib.mkEnableOption "PostgreSQL";
+    # Pinned: another major version starts an empty cluster in its own data directory.
+    package = lib.mkPackageOption pkgs "postgresql_17" { };
 
     enableTCPIP = lib.mkEnableOption "TCP/IP connections";
 
@@ -31,7 +33,9 @@ in
 
   config = lib.mkIf cfg.enable {
     services.postgresql = {
-      inherit (cfg) enable enableTCPIP;
+      enable = true;
+      package = cfg.package.withJIT;
+      inherit (cfg) enableTCPIP;
       dataDir = "${cfg.dataDir}/${config.services.postgresql.package.psqlSchema}";
       enableJIT = true;
       settings = {

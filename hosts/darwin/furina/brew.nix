@@ -1,6 +1,7 @@
+{ lib, ... }:
 {
-  # GUI applications from Mac AppStore
-  masApps = {
+  # Not installed; drop `lib.mkIf false` to install them.
+  codgician.system.brew.masApps = lib.mkIf false {
     "Xcode" = 497799835;
 
     "Pages" = 361309726;
@@ -50,8 +51,7 @@
     "CrystalFetch" = 6454431289;
   };
 
-  # Homebrew casks
-  casks = [
+  codgician.system.brew.casks = [
     "appcleaner"
     "calibre"
     "microsoft-edge"

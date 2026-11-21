@@ -1,14 +1,9 @@
 {
-  disks ? [ "disk/by-id/ata-KIOXIA-EXCERIA_SATA_SSD_X1PB713BKLS4" ],
-  ...
-}:
-
-{
   disko = {
     devices = {
       disk.main = {
         type = "disk";
-        device = "/dev/${builtins.elemAt disks 0}";
+        device = "/dev/disk/by-id/ata-KIOXIA-EXCERIA_SATA_SSD_X1PB713BKLS4";
         content = {
           type = "gpt";
           partitions = {

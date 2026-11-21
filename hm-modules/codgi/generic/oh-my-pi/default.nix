@@ -4,19 +4,15 @@
   osConfig,
   pkgs,
   ...
-}:
+}@args:
 let
   cfg = config.codgician.codgi.oh-my-pi;
   inherit (lib) types;
+  agents = import ../agents.nix args;
 
   yamlFormat = pkgs.formats.yaml { };
 
-  profiles = import ./profiles {
-    inherit pkgs osConfig;
-    extraSkillDirectories = lib.optionals (config.codgician.codgi.herdr.enable or false) [
-      "${config.codgician.codgi.herdr.package.src}/skills"
-    ];
-  };
+  profiles = import ./profiles { inherit lib agents; };
 
   # Initial values omp owns afterwards: the setup wizard advances
   # setupVersion itself, so it is seeded once and never reasserted.
@@ -68,21 +64,16 @@ let
         '';
         force = true;
       };
+    }
+    // lib.optionalAttrs agents.herdr.enable {
+      "${agentDir}/extensions/herdr-omp-agent-state.ts".source = agents.herdr.extension "omp";
     };
-
 in
 {
   options.codgician.codgi.oh-my-pi = {
     enable = lib.mkEnableOption "oh-my-pi (omp)";
 
-    package = lib.mkOption {
-      type = types.package;
-      default = pkgs.nur.repos.codgician.oh-my-pi-bin;
-      defaultText = lib.literalExpression "pkgs.nur.repos.codgician.oh-my-pi-bin";
-      description = ''
-        The oh-my-pi package to install.
-      '';
-    };
+    package = lib.mkPackageOption pkgs [ "nur" "repos" "codgician" "oh-my-pi-bin" ] { };
 
     defaultProfile = lib.mkOption {
       type = types.enum (builtins.attrNames profiles);

@@ -6,29 +6,24 @@
 }:
 let
   cfg = config.codgician.services.anubis;
-  nginxCfg = config.codgician.services.nginx;
-  inherit (lib)
-    types
-    optionalAttrs
-    mkIf
-    mkOption
-    mkEnableOption
-    ;
+  inherit (config.codgician.services) nginx;
+  inherit (lib) types optionalAttrs;
   jsonFormat = pkgs.formats.json { };
 
-  # Reverse proxies with Anubis enabled.
-  anubisProxies = lib.filterAttrs (_: h: h.enable && h.anubis.enable) nginxCfg.reverseProxies;
+  # Sites this host proxies through Anubis; nginx sends their traffic here.
+  anubisSites = lib.filterAttrs (
+    _: site: site.proxyPass != null && site.anubis.enable
+  ) nginx.reverseProxies;
 
   # systemd service names cannot contain dots.
   sanitizeName = builtins.replaceStrings [ "." ] [ "-" ];
 
-  # Extract proxyPass target from the root location, if any.
-  proxyTarget = hostCfg: hostCfg.locations."/".passthru.proxyPass or null;
+  targetOf = site: site.locations."/".proxyPass or site.proxyPass;
 
   mkInstance =
-    name: hostCfg:
+    name: site:
     let
-      target = proxyTarget hostCfg;
+      target = targetOf site;
       socketDir = "/run/anubis/anubis-${sanitizeName name}";
     in
     {
@@ -43,35 +38,36 @@ let
         # HTTPS backends usually have valid certs for their own hostname.
         TARGET_SNI = if target != null && lib.hasPrefix "https://" target then "auto" else null;
       }
-      // optionalAttrs (hostCfg.anubis.difficulty != null) { DIFFICULTY = hostCfg.anubis.difficulty; }
-      // optionalAttrs (hostCfg.anubis.ogPassthrough != null) {
-        OG_PASSTHROUGH = hostCfg.anubis.ogPassthrough;
+      // optionalAttrs (site.anubis.difficulty != null) { DIFFICULTY = site.anubis.difficulty; }
+      // optionalAttrs (site.anubis.ogPassthrough != null) {
+        OG_PASSTHROUGH = site.anubis.ogPassthrough;
       };
     };
 in
 {
   options.codgician.services.anubis = {
-    enable = mkEnableOption "Anubis bot protection";
+    enable = lib.mkEnableOption "Anubis bot protection";
+    package = lib.mkPackageOption pkgs "anubis" { };
 
-    defaultDifficulty = mkOption {
+    defaultDifficulty = lib.mkOption {
       type = types.ints.between 1 7;
       default = 4;
       description = "Default proof-of-work difficulty for all Anubis instances.";
     };
 
-    defaultOgPassthrough = mkOption {
+    defaultOgPassthrough = lib.mkOption {
       type = types.bool;
       default = true;
       description = "Allow social media preview bots (Open Graph) by default.";
     };
 
-    defaultServeRobotsTxt = mkOption {
+    defaultServeRobotsTxt = lib.mkOption {
       type = types.bool;
       default = false;
       description = "Serve a restrictive robots.txt that disallows AI scrapers by default.";
     };
 
-    cookieDomain = mkOption {
+    cookieDomain = lib.mkOption {
       type = types.nullOr types.str;
       default = null;
       example = "codgician.me";
@@ -81,14 +77,14 @@ in
       '';
     };
 
-    webmasterEmail = mkOption {
+    webmasterEmail = lib.mkOption {
       type = types.nullOr types.str;
       default = null;
       example = "admin@codgician.me";
       description = "Contact email shown on Anubis error pages.";
     };
 
-    botPolicy = mkOption {
+    botPolicy = lib.mkOption {
       type = types.nullOr jsonFormat.type;
       default = null;
       example = lib.literalExpression ''
@@ -105,41 +101,50 @@ in
     };
   };
 
-  config = mkIf cfg.enable {
-    # nginx needs access to the Anubis Unix sockets.
-    users.users.nginx.extraGroups = [ "anubis" ];
+  config = lib.mkMerge [
+    {
+      assertions = lib.mapAttrsToList (name: _: {
+        assertion = cfg.enable;
+        message = ''
+          anubis: site "${name}" sets `anubis.enable = true` but this host does not enable Anubis. Set `codgician.services.anubis.enable = true`.
+        '';
+      }) anubisSites;
+    }
 
-    services.anubis = {
-      defaultOptions = {
-        settings = {
-          DIFFICULTY = cfg.defaultDifficulty;
-          OG_PASSTHROUGH = cfg.defaultOgPassthrough;
-          SERVE_ROBOTS_TXT = cfg.defaultServeRobotsTxt;
+    (lib.mkIf cfg.enable {
+      # nginx needs access to the Anubis Unix sockets.
+      users.users.nginx.extraGroups = [ "anubis" ];
+
+      services.anubis = {
+        inherit (cfg) package;
+        defaultOptions = {
+          settings = {
+            DIFFICULTY = cfg.defaultDifficulty;
+            OG_PASSTHROUGH = cfg.defaultOgPassthrough;
+            SERVE_ROBOTS_TXT = cfg.defaultServeRobotsTxt;
+          }
+          // optionalAttrs (cfg.cookieDomain != null) { COOKIE_DOMAIN = cfg.cookieDomain; }
+          // optionalAttrs (cfg.webmasterEmail != null) { WEBMASTER_EMAIL = cfg.webmasterEmail; };
         }
-        // optionalAttrs (cfg.cookieDomain != null) { COOKIE_DOMAIN = cfg.cookieDomain; }
-        // optionalAttrs (cfg.webmasterEmail != null) { WEBMASTER_EMAIL = cfg.webmasterEmail; };
-      }
-      // optionalAttrs (cfg.botPolicy != null) { policy.settings = cfg.botPolicy; };
+        // optionalAttrs (cfg.botPolicy != null) { policy.settings = cfg.botPolicy; };
 
-      instances = lib.mapAttrs' (
-        name: hostCfg: lib.nameValuePair (sanitizeName name) (mkInstance name hostCfg)
-      ) anubisProxies;
-    };
+        instances = lib.mapAttrs' (
+          name: site: lib.nameValuePair (sanitizeName name) (mkInstance name site)
+        ) anubisSites;
+      };
 
-    # Inject the signing key into every Anubis instance.
-    systemd.services = lib.mapAttrs' (
-      name: _:
-      lib.nameValuePair "anubis-${sanitizeName name}" {
-        serviceConfig.EnvironmentFile = [ config.codgician.secrets.templates."anubis-env".path ];
-      }
-    ) anubisProxies;
+      # Inject the signing key into every Anubis instance.
+      systemd.services = lib.mapAttrs' (
+        name: _:
+        lib.nameValuePair "anubis-${sanitizeName name}" {
+          serviceConfig.EnvironmentFile = [ config.codgician.secrets.templates."anubis-env".path ];
+        }
+      ) anubisSites;
 
-    assertions = lib.mapAttrsToList (name: hostCfg: {
-      assertion = !hostCfg.anubis.enable || proxyTarget hostCfg != null;
-      message = ''
-        anubis: Reverse proxy "${name}" has anubis.enable = true but no proxyPass
-        configured in locations."/".passthru. Anubis needs a target to protect.
-      '';
-    }) nginxCfg.reverseProxies;
-  };
+      assertions = lib.mapAttrsToList (name: site: {
+        assertion = targetOf site != null;
+        message = ''anubis: site "${name}" has no upstream for Anubis to protect.'';
+      }) anubisSites;
+    })
+  ];
 }

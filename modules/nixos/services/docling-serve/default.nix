@@ -49,7 +49,7 @@ in
     cuda = lib.mkOption {
       type = types.bool;
       default = config.hardware.nvidia-container-toolkit.enable;
-      defaultText = "config.hardware.nvidia-container-toolkit.enable";
+      defaultText = lib.literalExpression "config.hardware.nvidia-container-toolkit.enable";
       description = "Enable CUDA support for ${serviceName}.";
     };
 
@@ -60,7 +60,23 @@ in
       description = "Device for Docling inference (e.g., cuda:0, cpu).";
     };
 
-    package = lib.mkPackageOption pkgs "docling-serve" { };
+    package = lib.mkPackageOption pkgs "docling-serve" {
+      extraDescription = "Used by the `nixpkgs` backend.";
+    };
+
+    image = lib.mkOption {
+      type = types.str;
+      default =
+        if cfg.cuda then
+          "ghcr.io/docling-project/docling-serve-cu130:main"
+        else
+          "ghcr.io/docling-project/docling-serve:latest";
+      defaultText = lib.literalExpression ''
+        if cuda then "ghcr.io/docling-project/docling-serve-cu130:main"
+        else "ghcr.io/docling-project/docling-serve:latest"
+      '';
+      description = "Container image used by the `container` backend.";
+    };
 
     host = lib.mkOption {
       type = types.str;
@@ -91,16 +107,26 @@ in
       default = defaultStateDir;
       description = "Directory for ${serviceName} to store state data.";
     };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://${cfg.host}:${builtins.toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.${serviceName}; http://$\{host}:$\{builtins.toString port}'';
-    };
   };
 
   config = lib.mkMerge [
+    {
+      codgician.services.nginx.reverseProxies.${serviceName}.domains = [ "vision.${lib.codgician.zone}" ];
+    }
+
+    (lib.mkIf cfg.enable {
+      codgician.services.nginx.reverseProxies.${serviceName}.proxyPass =
+        "http://${cfg.host}:${builtins.toString cfg.port}";
+
+      # Persist state directory (only when using default location)
+      codgician.system.impermanence.extraItems = lib.mkIf (cfg.stateDir == defaultStateDir) [
+        {
+          type = "directory";
+          path = cfg.stateDir;
+        }
+      ];
+    })
+
     # Nixpkgs backend
     (lib.mkIf (cfg.enable && cfg.backend == "nixpkgs") {
       services.docling-serve = {
@@ -148,14 +174,6 @@ in
       systemd.tmpfiles.rules = lib.mkIf (cfg.stateDir != defaultStateDir) [
         "d ${cfg.stateDir} 0750 docling-serve docling-serve -"
       ];
-
-      # Persist state directory (only when using default location)
-      codgician.system.impermanence.extraItems = lib.mkIf (cfg.stateDir == defaultStateDir) [
-        {
-          type = "directory";
-          path = cfg.stateDir;
-        }
-      ];
     })
 
     # Container backend
@@ -170,11 +188,7 @@ in
         in
         {
           autoStart = true;
-          image =
-            if cfg.cuda then
-              "ghcr.io/docling-project/docling-serve-cu130:main"
-            else
-              "ghcr.io/docling-project/docling-serve:latest";
+          inherit (cfg) image;
           volumes =
             lib.optionals cfg.cuda [
               "${ldSoConfFile}:/etc/ld.so.conf.d/00-system-libs.conf:ro"
@@ -194,24 +208,9 @@ in
             "--port"
             "${builtins.toString cfg.port}"
             "--host"
-            "${cfg.host}"
+            cfg.host
           ];
         };
-
-      # Persist state directory (only when using default location)
-      codgician.system.impermanence.extraItems = lib.mkIf (cfg.stateDir == defaultStateDir) [
-        {
-          type = "directory";
-          path = cfg.stateDir;
-        }
-      ];
     })
-
-    # Reverse proxy profile
-    {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-      };
-    }
   ];
 }

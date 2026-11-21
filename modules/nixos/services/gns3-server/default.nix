@@ -5,14 +5,14 @@
   ...
 }:
 let
-  serviceName = "gns3-server";
   cfg = config.codgician.services.gns3-server;
   types = lib.types;
   stateDir = "/var/lib/gns3";
 in
 {
   options.codgician.services.gns3-server = {
-    enable = lib.mkEnableOption "GNS3 Server";
+    enable = lib.mkEnableOption "GNS3 server";
+    package = lib.mkPackageOption pkgs "gns3-server" { };
 
     host = lib.mkOption {
       type = types.str;
@@ -34,19 +34,16 @@ in
       example = "/xpool/appdata/gns3";
       description = "Directory holding GNS3 images, projects, appliances, configs and symbols.";
     };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://${cfg.host}:${toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.gns3-server; http://$\{host}:$\{toString port}'';
-    };
   };
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
+      codgician.services.nginx.reverseProxies.gns3-server.proxyPass =
+        "http://${cfg.host}:${toString cfg.port}";
+
       services.gns3-server = {
         enable = true;
+        inherit (cfg) package;
         auth = {
           enable = true;
           user = "gns3";
@@ -100,11 +97,11 @@ in
       ];
     })
 
-    # Reverse proxy profile
     {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-        extraVhostConfig.locations."/".passthru.extraConfig = ''
+      codgician.services.nginx.reverseProxies.gns3-server = {
+        domains = [ "miliastra.${lib.codgician.zone}" ];
+        authelia.groups = [ "gns3" ];
+        locations."/".extraConfig = ''
           # Appliance images can be several GB
           client_max_body_size 0;
           proxy_request_buffering off;

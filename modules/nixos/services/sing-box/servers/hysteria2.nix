@@ -4,7 +4,7 @@ let
   cfg = config.codgician.services.sing-box;
   serverCfg = cfg.servers.${profileName};
   inherit (lib) types;
-  certDir = config.security.acme.certs."${cfg.domain}".directory;
+  certDir = config.security.acme.certs.${cfg.domain}.directory;
 in
 {
   options.codgician.services.sing-box.servers.${profileName} = {
@@ -13,11 +13,8 @@ in
     users = lib.mkOption {
       type = with types; listOf (enum cfg.users);
       default = cfg.users;
-      defaultText = "config.codgician.services.sing-box.users";
-      description = ''
-        List of user names that can access this server.
-        should exist under secrets folder.
-      '';
+      defaultText = lib.literalExpression "config.codgician.services.sing-box.users";
+      description = "List of user names that can access this server.";
     };
 
     ip = lib.mkOption {
@@ -71,7 +68,7 @@ in
     services.sing-box.settings.inbounds = [
       {
         type = "hysteria2";
-        tag = serverCfg.tag;
+        inherit (serverCfg) tag;
         listen = serverCfg.ip;
         listen_port = serverCfg.port;
         down_mbps = lib.mkIf (serverCfg.downMbps != null) serverCfg.downMbps;
@@ -102,7 +99,6 @@ in
       }
     ];
 
-    # Open firewall
     networking.firewall = lib.mkIf serverCfg.openFirewall {
       allowedTCPPorts = [ serverCfg.port ];
       allowedUDPPorts = [ serverCfg.port ];

@@ -10,9 +10,16 @@ let
   group = serviceName;
   uid = config.users.users.${user}.uid;
   cfg = config.codgician.services.litellm;
+  authelia = config.codgician.services.authelia.instances.main.url;
+  domain = "dendro.${lib.codgician.zone}";
   types = lib.types;
   defaultStateDir = "/var/lib/${serviceName}";
   hooksDir = ./hooks;
+  favicon =
+    (pkgs.fetchurl {
+      url = "https://media.githubusercontent.com/media/codgician/assets/f541d8f18215690ed7b7bbc3b97aa54c6ef2f51e/images/dendro/logo.png";
+      sha256 = "sha256-XSikOX3CM4VvwzWkRsETYBLha2VgUHh5m/uxTzm2UQI=";
+    }).outPath;
   containerHome = "/var/lib/${serviceName}-podman";
   containerStorageConfig = (pkgs.formats.toml { }).generate "litellm-storage.conf" {
     storage = {
@@ -147,12 +154,13 @@ let
     model_list = allModels;
   };
 
-  # Redis socket path (different for container vs nixpkgs)
-  redisSocketPath =
-    if cfg.backend == "nixpkgs" then
-      config.services.redis.servers.${serviceName}.unixSocket
-    else
-      "/run/redis-${serviceName}/redis.sock";
+  # The container reaches Redis and PostgreSQL through sockets mounted from the host.
+  redisSocketPath = "/run/redis-${serviceName}/redis.sock";
+
+  # Where the hooks and the token directories are, as the server sees them
+  isContainer = cfg.backend == "container";
+  hooksPath = if isContainer then "/" else "${hooksDir}";
+  tokenDir = if isContainer then "/config" else cfg.stateDir;
 
   # agy's User-Agent; Blaze embeds the changelist (cl) in the agy binary.
   antigravityUserAgentEnv =
@@ -168,7 +176,7 @@ let
 
   # Environment variables
   environment = {
-    "PYTHONPATH" = if cfg.backend == "nixpkgs" then "${hooksDir}" else "/";
+    "PYTHONPATH" = hooksPath;
     # Require pending PR: https://github.com/BerriAI/litellm/pull/34889
     "GITHUB_COPILOT_CLIENT_ID" = "Ov23li8tweQw6odWQebz";
     "GITHUB_COPILOT_USER_AGENT" = "opencode/${pkgs.llm-agents.opencode.version}";
@@ -179,41 +187,36 @@ let
     "GITHUB_COPILOT_OPENAI_INTENT" = "conversation-edits";
     "AUTO_REDIRECT_UI_LOGIN_TO_SSO" = "True";
     "DO_NOT_TRACK" = "True";
-    "GITHUB_COPILOT_TOKEN_DIR" =
-      if cfg.backend == "nixpkgs" then "${cfg.stateDir}/github" else "/config/github";
-    "CHATGPT_TOKEN_DIR" =
-      if cfg.backend == "nixpkgs" then "${cfg.stateDir}/chatgpt" else "/config/chatgpt";
-    "XAI_OAUTH_TOKEN_DIR" = if cfg.backend == "nixpkgs" then "${cfg.stateDir}/xai" else "/config/xai";
-    "ANTIGRAVITY_TOKEN_DIR" =
-      if cfg.backend == "nixpkgs" then "${cfg.stateDir}/antigravity" else "/config/antigravity";
+    "GITHUB_COPILOT_TOKEN_DIR" = "${tokenDir}/github";
+    "CHATGPT_TOKEN_DIR" = "${tokenDir}/chatgpt";
+    "XAI_OAUTH_TOKEN_DIR" = "${tokenDir}/xai";
+    "ANTIGRAVITY_TOKEN_DIR" = "${tokenDir}/antigravity";
     "REDIS_URL" = "unix://${redisSocketPath}";
   }
-  // (lib.optionalAttrs (cfg.adminUi.enable) {
+  // lib.optionalAttrs cfg.adminUi.enable {
     PGHOST = cfg.adminUi.dbHost; # Hack for prisma to connect postgres with unix socket
     # Prisma reads the socket from `?host=`; litellm's psycopg migration lock strips
     # that param, so also encode the socket dir as the URI host for libpq.
     DATABASE_URL = "postgres://${user}@${
       builtins.replaceStrings [ "/" ] [ "%2F" ] cfg.adminUi.dbHost
     }/${cfg.adminUi.dbName}?host=${cfg.adminUi.dbHost}";
-  })
-  // (lib.optionalAttrs (cfg.adminUi.authelia.enable) {
-    PROXY_BASE_URL = "https://${builtins.head cfg.reverseProxy.domains}";
+  }
+  // lib.optionalAttrs cfg.adminUi.authelia.enable {
+    PROXY_BASE_URL = "https://${domain}";
     GENERIC_CLIENT_ID = "dendro";
     # GENERIC_CLIENT_SECRET in environment file
-    GENERIC_AUTHORIZATION_ENDPOINT = "https://auth.codgician.me/api/oidc/authorization";
-    GENERIC_TOKEN_ENDPOINT = "https://auth.codgician.me/api/oidc/token";
-    GENERIC_USERINFO_ENDPOINT = "https://auth.codgician.me/api/oidc/userinfo";
+    GENERIC_AUTHORIZATION_ENDPOINT = "${authelia}/api/oidc/authorization";
+    GENERIC_TOKEN_ENDPOINT = "${authelia}/api/oidc/token";
+    GENERIC_USERINFO_ENDPOINT = "${authelia}/api/oidc/userinfo";
     GENERIC_INCLUDE_CLIENT_ID = "true";
     # GENERIC_CLIENT_USE_PKCE = "true"; problematic with authelia
     GENERIC_SCOPE = "openid email profile groups";
     GENERIC_USER_ROLE_ATTRIBUTE = "groups";
-    # JWT_PUBLIC_KEY_URL = "https://auth.codgician.me/jwks.json";
-    # JWT_AUDIENCE = "dendro";
-  });
+  };
 in
 {
   options.codgician.services.litellm = {
-    enable = lib.mkEnableOption serviceName;
+    enable = lib.mkEnableOption "LiteLLM proxy";
 
     backend = lib.mkOption {
       type = lib.types.enum [
@@ -226,12 +229,8 @@ in
       '';
     };
 
-    image = lib.mkOption {
-      type = lib.types.str;
-      default = "ghcr.io/codgician/litellm:my";
-      description = ''
-        Container image for ${serviceName}.
-      '';
+    package = lib.mkPackageOption pkgs "litellm" {
+      extraDescription = "Used by the `nixpkgs` backend.";
     };
 
     host = lib.mkOption {
@@ -250,18 +249,14 @@ in
       '';
     };
 
-    package = lib.mkPackageOption pkgs "litellm" { };
-
     stateDir = lib.mkOption {
       type = types.path;
-      default = "/var/lib/${serviceName}";
+      default = defaultStateDir;
       description = ''
         Directory for ${serviceName} to store state data.
       '';
     };
 
-    # Note: this is not working in nix variant
-    # See: https://github.com/NixOS/nixpkgs/issues/432925
     adminUi = {
       enable = lib.mkEnableOption "${serviceName} Admin UI";
 
@@ -280,26 +275,18 @@ in
       };
     };
 
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://${cfg.host}:${builtins.toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.${serviceName}; http://$\{host}:$\{builtins.toString port}'';
-      extraOptions = {
-        # Custom favicon
-        favicon = lib.mkOption {
-          type = with types; nullOr path;
-          default = null;
-          example = "/path/to/favicon.png";
-          description = "Custom favicon.png for ${serviceName}.";
-        };
-      };
+    image = lib.mkOption {
+      type = lib.types.str;
+      default = "ghcr.io/codgician/litellm:my";
+      description = "Container image used by the `container` backend.";
     };
   };
 
   config = lib.mkMerge [
-    # Common configuration
     (lib.mkIf cfg.enable {
+      codgician.services.nginx.reverseProxies.litellm.proxyPass =
+        "http://${cfg.host}:${toString cfg.port}";
+
       # Ensure litellm user is created
       codgician.users.${serviceName}.enable = true;
 
@@ -332,7 +319,12 @@ in
     (lib.mkIf (cfg.enable && cfg.backend == "nixpkgs") {
       services.litellm = {
         enable = true;
-        inherit (cfg) host port stateDir;
+        inherit (cfg)
+          host
+          port
+          stateDir
+          package
+          ;
         environmentFile = config.codgician.secrets.templates."litellm-env".path;
         inherit environment settings;
       };
@@ -350,16 +342,16 @@ in
 
     # Container backend
     (lib.mkIf (cfg.enable && cfg.backend == "container") {
+      codgician.users.${serviceName}.home = containerHome;
+      users.users.${user} = {
+        autoSubUidGidRange = true;
+        linger = true;
+      };
+
       sops.templates."litellm-env" = {
         owner = user;
         inherit group;
         mode = "0400";
-      };
-
-      codgician.users.${user}.home = containerHome;
-      users.users.${user} = {
-        autoSubUidGidRange = true;
-        linger = true;
       };
 
       systemd.tmpfiles.rules = [
@@ -385,7 +377,7 @@ in
 
       virtualisation.oci-containers.containers.${serviceName} = {
         autoStart = true;
-        image = cfg.image;
+        inherit (cfg) image;
         podman.user = user;
         pull = "newer";
         capabilities.ALL = false;
@@ -405,9 +397,9 @@ in
           "--userns=keep-id:uid=65532,gid=65532"
           "--security-opt=no-new-privileges"
         ];
-        cmd = with cfg; [
-          "--port=${builtins.toString port}"
-          "--host=${host}"
+        cmd = [
+          "--port=${toString cfg.port}"
+          "--host=${cfg.host}"
           "--config"
           "/config.yaml"
         ];
@@ -419,7 +411,7 @@ in
       };
     })
 
-    # Configure PostgreSQL for LiteLLM Admin UI
+    # PostgreSQL backs the Admin UI
     (lib.mkIf (cfg.enable && cfg.adminUi.enable) {
       codgician.services.postgresql.enable = true;
       services.postgresql = {
@@ -433,37 +425,32 @@ in
       };
     })
 
-    # Reverse proxy profile
     {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-        extraVhostConfig.locations =
-          let
-            inherit (cfg.reverseProxy) favicon;
-            inherit (lib.codgician) mkNginxLocationForStaticFile;
-            convertImage = lib.codgician.convertImage pkgs;
-            faviconIco = convertImage favicon {
-              args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
-              outName = "favicon.ico";
-            };
-          in
-          {
-            # Align nginx timeouts with LiteLLM's request_timeout (plus margin).
-            "/".passthru.extraConfig = ''
-              # Allow OpenAI's documented 512 MB vision request payloads.
-              client_max_body_size 512M;
-              proxy_connect_timeout ${builtins.toString reverseProxyTimeout}s;
-              proxy_send_timeout ${builtins.toString reverseProxyTimeout}s;
-              proxy_read_timeout ${builtins.toString reverseProxyTimeout}s;
-            '';
-          }
-          // (lib.optionalAttrs (favicon != null) {
-            "= /favicon.png".passthru = mkNginxLocationForStaticFile favicon;
-            "= /swagger/favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
-            "= /swagger/favicon.png".passthru = mkNginxLocationForStaticFile favicon;
-            "= /ui/favicon.ico".passthru = mkNginxLocationForStaticFile faviconIco;
-          });
-      };
+      codgician.services.nginx.reverseProxies.litellm.domains = [ domain ];
+      codgician.services.nginx.reverseProxies.litellm.locations =
+        let
+          inherit (lib.codgician) mkNginxLocationForStaticFile;
+          faviconIco = lib.codgician.convertImage pkgs favicon {
+            args = "-background transparent -define icon:auto-resize=16,24,32,48,64,72,96,128,256";
+            outName = "favicon.ico";
+          };
+        in
+        {
+          # Align nginx timeouts with LiteLLM's request_timeout (plus margin).
+          "/".extraConfig = ''
+            # Allow OpenAI's documented 512 MB vision request payloads.
+            client_max_body_size 512M;
+            proxy_connect_timeout ${builtins.toString reverseProxyTimeout}s;
+            proxy_send_timeout ${builtins.toString reverseProxyTimeout}s;
+            proxy_read_timeout ${builtins.toString reverseProxyTimeout}s;
+          '';
+        }
+        // lib.optionalAttrs cfg.enable {
+          "= /favicon.png" = mkNginxLocationForStaticFile favicon;
+          "= /swagger/favicon.ico" = mkNginxLocationForStaticFile faviconIco;
+          "= /swagger/favicon.png" = mkNginxLocationForStaticFile favicon;
+          "= /ui/favicon.ico" = mkNginxLocationForStaticFile faviconIco;
+        };
     }
   ];
 }

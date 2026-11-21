@@ -1,171 +1,80 @@
-{ config, pkgs, ... }:
+{ config, lib, ... }:
+let
+  inherit (lib.codgician) zone;
+
+  # Where the hosts behind lumine are reached
+  paimon = "https://192.168.0.22";
+  nahida = "https://192.168.0.23";
+in
 {
-  # Secrets
-  codgician.secrets.files.saw-basic-auth.owner = "nginx";
+  codgician = {
+    secrets.files.saw-basic-auth.owner = "nginx";
 
-  codgician.services = {
-    # Global Anubis configuration
-    anubis = {
+    services.anubis = {
       enable = true;
-      cookieDomain = "codgician.me";
-      defaultDifficulty = 4;
-      defaultOgPassthrough = true;
+      cookieDomain = zone;
     };
 
-    authelia.instances.main = {
-      domain = "auth.codgician.me";
-      reverseProxy = {
-        enable = true;
-        proxyPass = "https://192.168.0.22";
-        anubis.enable = true; # Phase 1: Protected
-      };
-    };
+    services.matrix-tuwunel.elementWeb = true;
 
-    openvscode-server.reverseProxy = {
-      enable = true;
-      domains = [ "leyline.codgician.me" ];
-      proxyPass = "https://192.168.0.23";
-    };
-
-    comfyui.reverseProxy = {
-      enable = false;
-      domains = [ "vanarana.codgician.me" ];
-      proxyPass = "https://192.168.0.22";
-    };
-
-    matrix-tuwunel = {
-      domain = "matrix.codgician.me";
-      reverseProxy = {
-        enable = true;
-        elementWeb = true;
-        proxyPass = "https://192.168.0.22";
-      };
-    };
-
-    docling-serve.reverseProxy = {
-      enable = true;
-      domains = [ "vision.codgician.me" ];
-      proxyPass = "https://192.168.0.22";
-    };
-
-    gitlab = {
-      host = "git.codgician.me";
-      reverseProxy = {
-        enable = true;
-        proxyPass = "https://192.168.0.22";
-        anubis.enable = true;
-      };
-    };
-
-    grafana.reverseProxy = {
-      enable = true;
-      domains = [ "lumenstone.codgician.me" ];
-      proxyPass = "https://192.168.0.22";
-      anubis.enable = true;
-    };
-
-    gns3-server.reverseProxy = {
-      enable = true;
-      domains = [ "miliastra.codgician.me" ];
-      proxyPass = "https://192.168.0.22";
-    };
-
-    jellyfin.reverseProxy = {
-      enable = true;
-      domains = [ "fin.codgician.me" ];
-      proxyPass = "https://192.168.0.22";
-    };
-
-    jupyter.reverseProxy = {
-      enable = true;
-      domains = [ "dragonspine.codgician.me" ];
-      proxyPass = "https://192.168.0.23";
-    };
-
-    open-webui.reverseProxy = {
-      enable = true;
-      domains = [ "akasha.codgician.me" ];
-      proxyPass = "https://192.168.0.22";
-    };
-
-    ovis-relay = {
-      enable = true;
-      reverseProxy = {
-        enable = true;
-        domains = [ "euthymia.codgician.me" ];
-      };
-    };
-
-    nginx = {
+    services.nginx = {
       enable = true;
       openFirewall = true;
+
+      landingPage = {
+        domain = zone;
+        footer = "Our paths will surely cross";
+      };
+
+      # Sites lumine is the public entry of
       reverseProxies = {
-        "bubbles.codgician.me" = {
-          enable = true;
-          https = true;
-          domains = [ "bubbles.codgician.me" ];
-          locations."/".passthru.proxyPass = "http://192.168.0.24:1234";
+        authelia-main = {
+          proxyPass = paimon;
+          anubis.enable = true;
         };
 
-        "hass.codgician.me" = {
-          enable = true;
-          https = true;
-          domains = [ "hass.codgician.me" ];
-          locations."/".passthru.proxyPass = "http://192.168.0.11:8123";
+        bubbles.proxyPass = "http://192.168.0.24:1234";
+
+        # Off while paimon does not run comfyui
+        comfyui.proxyPass = lib.mkIf false paimon;
+
+        dsh-web = {
+          proxyPass = nahida;
+          locations."/".extraConfig = ''
+            access_log off;
+            proxy_buffering off;
+          '';
         };
 
-        "simulanka.codgician.me" = {
-          enable = true;
-          https = true;
-          domains = [ "simulanka.codgician.me" ];
-          locations."/".passthru.proxyPass = "https://192.168.0.21";
+        gitlab = {
+          proxyPass = paimon;
+          anubis.enable = true;
+        };
+        gns3-server.proxyPass = paimon;
+        grafana = {
+          proxyPass = paimon;
+          anubis.enable = true;
         };
 
-        "saw.codgician.me" = {
-          enable = true;
-          authelia = {
-            enable = true;
-            rules = [
-              {
-                groups = [ "saw" ];
-                policy = "two_factor";
-              }
-            ];
-          };
-          https = true;
-          domains = [ "saw.codgician.me" ];
-          locations."/".passthru = {
-            proxyPass = "https://192.168.0.28";
-            extraConfig = ''
-              client_max_body_size 128M;
-              proxy_buffering off;
-              include ${config.codgician.secrets.files.saw-basic-auth.path};
-            '';
-          };
+        hass.proxyPass = "http://192.168.0.11:8123";
+
+        jellyfin.proxyPass = paimon;
+        jupyter.proxyPass = nahida;
+        matrix-tuwunel.proxyPass = paimon;
+        open-webui.proxyPass = paimon;
+        openvscode-server.proxyPass = nahida;
+
+        saw = {
+          proxyPass = "https://192.168.0.28";
+          locations."/".extraConfig = ''
+            client_max_body_size 128M;
+            proxy_buffering off;
+            include ${config.codgician.secrets.files.saw-basic-auth.path};
+          '';
         };
 
-        "codgician.me" = {
-          enable = true;
-          https = true;
-          domains = [
-            "codgician.me"
-            "*.codgician.me"
-          ];
-          # Note: Anubis not enabled for static sites (no backend to protect)
-          locations."/".passthru.root = import ./lumine-web.nix { inherit pkgs; };
-        };
-
-        "moongazer.codgician.me" = {
-          enable = true;
-          domains = [ "moongazer.codgician.me" ];
-          locations."/".passthru = {
-            proxyPass = "https://192.168.0.23";
-            extraConfig = ''
-              access_log off;
-              proxy_buffering off;
-            '';
-          };
-        };
+        # Proxmox VE on paimon's management bridge
+        simulanka.proxyPass = "https://192.168.0.21";
       };
     };
   };

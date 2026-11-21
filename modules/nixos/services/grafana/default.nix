@@ -1,6 +1,5 @@
 {
   config,
-  options,
   lib,
   pkgs,
   ...
@@ -9,23 +8,18 @@ let
   serviceName = "grafana";
   cfg = config.codgician.services.grafana;
   types = lib.types;
+  authelia = config.codgician.services.authelia.instances.main.url;
+  domain = "lumenstone.${lib.codgician.zone}";
+  defaultDataDir = "/var/lib/grafana";
 
-  scheme = if cfg.reverseProxy.https then "https" else "http";
-  url = "${scheme}://${builtins.head cfg.reverseProxy.domains}";
+  url = "https://${domain}";
 
-  # Dashboard derivation that bundles all dashboard JSON files
   dashboardsDir = pkgs.runCommand "grafana-dashboards" { } ''
     mkdir -p $out
     ${lib.concatMapStrings (
       dashboard:
       let
-        dashboardFile =
-          if builtins.isPath dashboard then
-            dashboard
-          else if builtins.isAttrs dashboard && dashboard ? path then
-            dashboard.path
-          else
-            throw "Dashboard must be a path or an attrset with 'path' key";
+        dashboardFile = if builtins.isAttrs dashboard then dashboard.path else dashboard;
       in
       ''
         cp ${dashboardFile} $out/
@@ -37,9 +31,11 @@ in
   options.codgician.services.grafana = {
     enable = lib.mkEnableOption "Grafana";
 
+    package = lib.mkPackageOption pkgs "grafana" { };
+
     dataDir = lib.mkOption {
       type = types.path;
-      default = "/var/lib/grafana";
+      default = defaultDataDir;
       description = "Data directory for Grafana.";
     };
 
@@ -50,6 +46,7 @@ in
         url = lib.mkOption {
           type = types.str;
           default = "http://localhost:${toString config.services.prometheus.port}";
+          defaultText = lib.literalExpression ''"http://localhost:''${toString config.services.prometheus.port}"'';
           description = "URL of the Prometheus server.";
         };
 
@@ -89,18 +86,17 @@ in
         '';
       };
     };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://unix:/run/grafana/grafana.sock";
-    };
   };
 
   config = lib.mkMerge [
+    { codgician.services.nginx.reverseProxies.grafana.domains = [ domain ]; }
+
     (lib.mkIf cfg.enable {
+      codgician.services.nginx.reverseProxies.grafana.proxyPass = "http://unix:/run/grafana/grafana.sock";
+
       services.grafana = {
         enable = true;
+        inherit (cfg) package dataDir;
         settings = {
           database = {
             host = "/run/postgresql";
@@ -111,7 +107,7 @@ in
 
           security = {
             secret_key = "$__file{${config.codgician.secrets.files.grafana-secret-key.path}}";
-            strict_transport_security = cfg.reverseProxy.enable;
+            strict_transport_security = true;
             admin_password = "$__file{${config.codgician.secrets.files.grafana-admin-password.path}}";
           };
 
@@ -138,9 +134,9 @@ in
               "groups"
             ];
             empty_scopes = false;
-            auth_url = "https://auth.codgician.me/api/oidc/authorization";
-            token_url = "https://auth.codgician.me/api/oidc/token";
-            api_url = "https://auth.codgician.me/api/oidc/userinfo";
+            auth_url = "${authelia}/api/oidc/authorization";
+            token_url = "${authelia}/api/oidc/token";
+            api_url = "${authelia}/api/oidc/userinfo";
             login_attribute_path = "preferred_username";
             groups_attribute_path = "groups";
             name_attribute_path = "name";
@@ -161,7 +157,7 @@ in
             enabled = true;
             host = "localhost:25";
             from_name = "Grafana";
-            from_address = "bot@codgician.me";
+            from_address = config.codgician.services.postfix.sender;
           };
 
           users = {
@@ -177,24 +173,21 @@ in
         provision = {
           enable = true;
 
-          # Provision Prometheus datasource
           datasources.settings.datasources = lib.mkIf cfg.provision.prometheus.enable [
             {
               name = "Prometheus";
               type = "prometheus";
               access = "proxy";
-              url = cfg.provision.prometheus.url;
-              isDefault = cfg.provision.prometheus.isDefault;
+              inherit (cfg.provision.prometheus) url isDefault;
               editable = false;
               jsonData = {
-                timeInterval = cfg.provision.prometheus.timeInterval;
+                inherit (cfg.provision.prometheus) timeInterval;
                 httpMethod = "POST";
               };
             }
           ];
 
-          # Provision dashboards
-          dashboards.settings.providers = lib.mkIf (cfg.provision.dashboards != [ ]) [
+          dashboards.settings.providers = [
             {
               name = "default";
               options.path = dashboardsDir;
@@ -221,16 +214,14 @@ in
       };
 
       # Persist data when dataDir is default value
-      codgician.system.impermanence.extraItems =
-        lib.mkIf (cfg.dataDir == options.codgician.services.grafana.dataDir.default)
-          [
-            {
-              type = "directory";
-              path = cfg.dataDir;
-              user = serviceName;
-              group = serviceName;
-            }
-          ];
+      codgician.system.impermanence.extraItems = lib.mkIf (cfg.dataDir == defaultDataDir) [
+        {
+          type = "directory";
+          path = cfg.dataDir;
+          user = serviceName;
+          group = serviceName;
+        }
+      ];
 
       # sops secrets
       codgician.secrets.files =
@@ -244,12 +235,5 @@ in
             owner = serviceName;
           });
     })
-
-    # Reverse proxy profile
-    {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-      };
-    }
   ];
 }

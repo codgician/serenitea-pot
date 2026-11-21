@@ -3,7 +3,6 @@
   config,
   lib,
   pkgs,
-  outputs,
   ...
 }:
 let
@@ -11,31 +10,27 @@ let
   cfg = config.codgician.models;
   modelLib = import ./lib.nix { inherit lib; };
 
-  providerNames = lib.codgician.getFolderNames ./providers;
-  providerDefinitions = builtins.listToAttrs (
-    map (
-      name:
-      lib.nameValuePair name (
-        import (./providers + "/${name}") {
-          inherit
-            config
-            lib
-            modelLib
-            outputs
-            pkgs
-            ;
-        }
-      )
-    ) providerNames
+  # A provider folder gives the type of its model specs, the specs and the
+  # function that turns a checked spec into a registry entry.
+  providers = lib.genAttrs (lib.codgician.getFolderNames ./providers) (
+    name:
+    import ./providers/${name} {
+      inherit
+        config
+        lib
+        modelLib
+        pkgs
+        ;
+    }
   );
 
-  providerConfigs = lib.mapAttrs (_: definition: definition.provider) providerDefinitions;
   registry = lib.mapAttrs (
     _: providerCfg: lib.mapAttrs providerCfg.transformer providerCfg.models
   ) cfg.providers;
-  flatModels = modelLib.flattenRegistry registry;
-  providerAssertions = lib.concatLists (
-    lib.mapAttrsToList (_: definition: definition.assertions or [ ]) providerDefinitions
+  flatModels = lib.concatLists (
+    lib.mapAttrsToList (
+      provider: models: lib.mapAttrsToList (model: attrs: attrs // { inherit provider model; }) models
+    ) registry
   );
 in
 {
@@ -46,7 +41,7 @@ in
         type = modelLib.mkProviderType definition.modelType;
         inherit (definition) description;
       }
-    ) providerDefinitions;
+    ) providers;
 
     all = mkOption {
       type = types.listOf types.attrs;
@@ -65,19 +60,16 @@ in
     };
   };
 
-  config = {
-    assertions = providerAssertions;
-    codgician.models = {
-      providers = providerConfigs;
-      byProvider = registry;
-      all = flatModels;
-      textGenerationModels = builtins.filter (
-        model:
-        builtins.elem model.litellmModelInfo.mode [
-          "chat"
-          "responses"
-        ]
-      ) flatModels;
-    };
+  config.codgician.models = {
+    providers = lib.mapAttrs (_: definition: definition.provider) providers;
+    byProvider = registry;
+    all = flatModels;
+    textGenerationModels = builtins.filter (
+      model:
+      builtins.elem model.litellmModelInfo.mode [
+        "chat"
+        "responses"
+      ]
+    ) flatModels;
   };
 }

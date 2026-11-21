@@ -8,10 +8,12 @@ let
   serviceName = "gitlab";
   cfg = config.codgician.services.gitlab;
   types = lib.types;
+  inherit (config.codgician.services.postfix) sender;
 in
 {
   options.codgician.services.gitlab = {
-    enable = lib.mkEnableOption "GitLab server.";
+    enable = lib.mkEnableOption "GitLab";
+    package = lib.mkPackageOption pkgs "gitlab" { };
 
     statePath = lib.mkOption {
       type = types.str;
@@ -21,6 +23,8 @@ in
 
     host = lib.mkOption {
       type = types.str;
+      default = "git.${lib.codgician.zone}";
+      defaultText = lib.literalExpression ''"git.''${lib.codgician.zone}"'';
       example = "gitlab.example.org";
       description = "Host name of the GitLab server.";
     };
@@ -43,22 +47,18 @@ in
       example = "example.org";
       description = "Host name for GitLab Pages. Set to `null` to disable GitLab Pages.";
     };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultDomains = [ cfg.host ];
-      defaultDomainsText = "[ config.codgician.services.gitlab.host ]";
-      defaultProxyPass = "http://unix:/run/gitlab/gitlab-workhorse.socket";
-    };
   };
 
   config = lib.mkMerge [
-    # GitLab configurations
+    { codgician.services.nginx.reverseProxies.gitlab.domains = [ cfg.host ]; }
+
     (lib.mkIf cfg.enable {
+      codgician.services.nginx.reverseProxies.gitlab.proxyPass =
+        "http://unix:/run/gitlab/gitlab-workhorse.socket";
+
       services.gitlab = {
         enable = true;
-        packages.gitlab = pkgs.gitlab;
+        packages.gitlab = cfg.package;
         inherit (cfg)
           statePath
           host
@@ -89,13 +89,13 @@ in
           authentication = "login";
           address = "127.0.0.1";
           port = 25;
-          domain = "codgician.me";
+          domain = lib.codgician.zone;
         };
 
         extraConfig = {
           gitlab = {
-            email_from = "bot@codgician.me";
-            email_reply_to = "bot@codgician.me";
+            email_from = sender;
+            email_reply_to = sender;
 
             # Disable telemetry
             include_optional_metrics_in_service_ping = false;
@@ -124,7 +124,7 @@ in
                 args = {
                   name = "openid_connect";
                   strategy_class = "OmniAuth::Strategies::OpenIDConnect";
-                  issuer = "https://auth.codgician.me";
+                  issuer = config.codgician.services.authelia.instances.main.url;
                   discovery = true;
                   scope = [
                     "openid"
@@ -176,12 +176,5 @@ in
             mode = "0600";
           });
     })
-
-    # Reverse proxy profile
-    {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-      };
-    }
   ];
 }

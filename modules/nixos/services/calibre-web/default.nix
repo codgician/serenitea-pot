@@ -1,12 +1,18 @@
-{ config, lib, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
-  serviceName = "callibre-web";
   cfg = config.codgician.services.calibre-web;
   types = lib.types;
+  domain = "books.${lib.codgician.zone}";
 in
 {
   options.codgician.services.calibre-web = {
-    enable = lib.mkEnableOption "Calibre Web.";
+    enable = lib.mkEnableOption "Calibre Web";
+    package = lib.mkPackageOption pkgs "calibre-web" { };
 
     ip = lib.mkOption {
       type = types.str;
@@ -31,28 +37,22 @@ in
         Path to Calibre library.
       '';
     };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://${cfg.ip}:${toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.calibre-web; http://$\{ip}:$\{toString port}'';
-    };
   };
 
   config = lib.mkMerge [
-    # Calibre-web settings
+    { codgician.services.nginx.reverseProxies.calibre-web.domains = [ domain ]; }
+
     (lib.mkIf cfg.enable {
       services.calibre-web = {
         enable = true;
+        inherit (cfg) package;
         listen = {
-          port = cfg.port;
-          ip = cfg.ip;
+          inherit (cfg) ip port;
         };
         options = {
           enableKepubify = true;
           enableBookConversion = true;
-          calibreLibrary = cfg.calibreLibrary;
+          inherit (cfg) calibreLibrary;
         };
       };
 
@@ -63,13 +63,9 @@ in
           path = "/var/lib/calibre-web";
         }
       ];
-    })
 
-    # Reverse proxy profile
-    {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-      };
-    }
+      codgician.services.nginx.reverseProxies.calibre-web.proxyPass =
+        "http://${cfg.ip}:${toString cfg.port}";
+    })
   ];
 }

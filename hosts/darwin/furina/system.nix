@@ -1,29 +1,15 @@
 { pkgs, ... }:
 {
-  # My settings
   codgician = {
-    services = {
-      litellm.enable = false; # disable before pyarrow build is fixed
-    };
     system = {
-      brew = {
-        enable = true;
-        taps = [
-          # "playcover/playcover"
-        ];
-        casks = (import ./brew.nix).casks;
-        #masApps = (import ./brew.nix).masApps;
-      };
-      common.enable = true;
+      brew.enable = true;
       common.inChina = true;
     };
-
     users.codgi.enable = true;
   };
 
   system.primaryUser = "codgi";
 
-  # Home manager
   home-manager.users.codgi =
     { pkgs, ... }:
     {
@@ -43,8 +29,8 @@
           enable = true;
           package = pkgs.droid-wrapped;
         };
-        github-copilot-cli.enable = true;
         git.enable = true;
+        github-copilot-cli.enable = true;
         herdr.enable = true;
         mcp.enable = true;
         oh-my-pi.enable = true;

@@ -12,7 +12,7 @@ in
     users = lib.mkOption {
       type = with types; listOf (enum cfg.users);
       default = cfg.users;
-      defaultText = "config.codgician.services.sing-box.users";
+      defaultText = lib.literalExpression "config.codgician.services.sing-box.users";
       description = "List of user names that can access this server.";
     };
 
@@ -47,7 +47,7 @@ in
     services.sing-box.settings.inbounds = [
       {
         type = "shadowsocks";
-        tag = serverCfg.tag;
+        inherit (serverCfg) tag;
         listen = serverCfg.ip;
         listen_port = serverCfg.port;
         method = "2022-blake3-aes-256-gcm";

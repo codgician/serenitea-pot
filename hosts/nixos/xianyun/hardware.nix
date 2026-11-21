@@ -1,14 +1,10 @@
-{
-  config,
-  lib,
-  pkgs,
-  outputs,
-  ...
-}:
+{ pkgs, ... }:
 let
-  inherit (config.networking) hostName;
-  terraformConf = outputs.packages.${pkgs.stdenv.hostPlatform.system}.terraform-config.config;
-  publicIpv6 = terraformConf.resource.cloudflare_dns_record."${hostName}-aaaa".content;
+  # Public addresses; the records in packages/terraform-config repeat them.
+  publicIpv4 = "129.28.44.172";
+  publicIpv6 = "2402:4e00:c000:2300:aa68:cd10:e82c:0";
+  # Tencent's stable DHCP address, mapped 1:1 to the public IPv4 address.
+  privateIpv4 = "10.6.4.16";
 in
 {
   boot = {
@@ -24,11 +20,6 @@ in
 
     kernelPackages = pkgs.linuxPackages_6_18;
     zfs.package = pkgs.zfs_2_4;
-
-    supportedFilesystems = [
-      "vfat"
-      "zfs"
-    ];
 
     # The default /dev/disk/by-id is empty in Tencent CVM
     zfs.devNodes = "/dev/disk/by-path";
@@ -75,6 +66,15 @@ in
     ];
   };
 
+  # The TURN relay binds the addresses of this interface.
+  codgician.services.coturn = {
+    relay-ips = [
+      privateIpv4
+      publicIpv6
+    ];
+    external-ips = [ "${publicIpv4}/${privateIpv4}" ];
+  };
+
   # Override distro in cloud-init
   services.cloud-init = {
     extraPackages = with pkgs; [ zfs ];
@@ -104,6 +104,4 @@ in
       ];
     };
   };
-
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

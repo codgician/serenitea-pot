@@ -11,7 +11,7 @@ let
   cfg = config.codgician.users;
   types = lib.types;
   isLinux = lib.hasSuffix "-linux" system;
-  hmModules = import lib.codgician.hmModulesDir { inherit lib; };
+  hmModules = import ../../../hm-modules { inherit lib; };
 
   # Use list of sub-folder names as list of available users
   dirs = builtins.readDir ./.;
@@ -67,7 +67,6 @@ let
           this option does not set the login password.
         '';
       };
-
     }
     // lib.optionalAttrs isLinux {
       extraGroups = lib.mkOption {
@@ -105,7 +104,6 @@ let
         (import ./${name} { inherit config lib pkgs; })
 
         {
-          # Secrets
           codgician.secrets.files =
             let
               nameOf = lib.codgician.getAgeSecretNameFromPath;
@@ -183,7 +181,7 @@ let
     );
 in
 {
-  options.codgician.users = lib.codgician.concatAttrs (builtins.map mkUserOptions users);
+  options.codgician.users = lib.mergeAttrsList (builtins.map mkUserOptions users);
   config = lib.mkMerge (
     (builtins.map mkUserConfig users)
     ++ [ { home-manager.extraSpecialArgs = { inherit inputs outputs; }; } ]

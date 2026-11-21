@@ -10,10 +10,16 @@ let
   trusted-public-keys = (import flakePath).nixConfig.extra-trusted-public-keys;
 in
 {
+  options.codgician.nix.package = lib.mkPackageOption pkgs "nix" {
+    default = [
+      "nixVersions"
+      "latest"
+    ];
+  };
+
   config = {
     nix = {
-      # Use latest nix
-      package = pkgs.nixVersions.latest;
+      inherit (config.codgician.nix) package;
 
       # Nix garbage collection
       gc = {

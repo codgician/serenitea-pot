@@ -67,10 +67,6 @@
     ];
 
     extraModulePackages = with config.boot.kernelPackages; [ mstflint_access ];
-    supportedFilesystems = [
-      "vfat"
-      "zfs"
-    ];
 
     zfs = {
       extraPools = [
@@ -79,7 +75,6 @@
         "xpool"
       ];
       forceImportAll = true;
-      forceImportRoot = true;
       # requestEncryptionCredentials handled by zfs-unlock module; other pools by zfs-mount preStart
       package = pkgs.zfs_2_4;
     };
@@ -137,9 +132,6 @@
 
   # Load nvidia driver for Xorg and Wayland
   services.xserver.videoDrivers = [ "nvidia" ];
-
-  # CUDA support for nixpkgs
-  nixpkgs.config.cudaSupport = true;
 
   hardware.nvidia = {
     modesetting.enable = true;
@@ -208,9 +200,6 @@
     serviceConfig.Type = "oneshot";
   };
 
-  # Start ollama after configuring GPU
-  # systemd.services.ollama.after = [ "nvidia-gpu-config.service" ];
-
   # Enable use of nvidia card in containers
   hardware.nvidia-container-toolkit.enable = true;
 
@@ -220,15 +209,9 @@
     batteryLow = 20;
   };
 
-  networking.useDHCP = lib.mkDefault true;
-
   hardware = {
     enableRedistributableFirmware = true;
-    cpu.amd = {
-      # sev.enable = true;
-      # sevGuest.enable = true;
-      updateMicrocode = true;
-    };
+    cpu.amd.updateMicrocode = true;
   };
 
   powerManagement = {
@@ -252,6 +235,4 @@
     '';
     serviceConfig.Type = "oneshot";
   };
-
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

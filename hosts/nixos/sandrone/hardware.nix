@@ -14,10 +14,8 @@
         "optee"
         "tpm_ftpm_tee"
       ];
-      kernelModules = [ ];
     };
 
-    supportedFilesystems = [ "vfat" ];
     kernelModules = [
       "amvx" # CIX P1 VPU (Linlon v5276) — V4L2 M2M video accelerator.
       "aipu" # CIX P1 Zhouyi v3 NPU.
@@ -28,13 +26,9 @@
       # Keep the splash on DRM while early/kernel/systemd diagnostics remain
       # available on UART2/AP.
       "plymouth.ignore-serial-consoles"
-      #"ignore_loglevel"
       "rd.systemd.log_target=console"
-      #"rd.systemd.log_level=debug"
       "rd.systemd.show_status=1"
       "systemd.log_target=console"
-      #"systemd.log_level=debug"
-      #"systemd.show_status=1"
       # CIX P1 firmware leaves clocks lacking explicit Linux owners; without
       # this the common clock framework gates them off during bring-up.
       "clk_ignore_unused"
@@ -45,7 +39,6 @@
     ];
     kernelPackages = pkgs.linuxPackages_6_18;
     kernelPatches = import ./kernel { inherit inputs lib; };
-    zfs.package = pkgs.zfs_2_4;
     extraModulePackages = with config.boot.kernelPackages; [
       cix-vpu-driver
       cix-npu-driver
@@ -124,7 +117,7 @@
     v4l-utils
   ];
 
-  # tpm2# TPM
+  # TPM
   security.tpm2 = {
     enable = true;
     pkcs11.enable = true;
@@ -133,8 +126,4 @@
   hardware.enableRedistributableFirmware = true;
 
   fileSystems."/persist".neededForBoot = true;
-
-  networking.useDHCP = lib.mkDefault true;
-
-  nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
 }

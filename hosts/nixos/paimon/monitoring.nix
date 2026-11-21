@@ -84,14 +84,7 @@ in
     wants = [ "nvidia-gpu-config.service" ];
   };
 
-  # Grafana provisioning
-  codgician.services.grafana.provision = {
-    prometheus.enable = true;
-    dashboards = [
-      ../../../modules/nixos/services/grafana/dashboards/nginx.json
-      ../../../modules/nixos/services/grafana/dashboards/rasdaemon.json
-    ];
-  };
+  codgician.services.grafana.provision.prometheus.enable = true;
 
   services.grafana.provision.datasources.settings.datasources = [
     {

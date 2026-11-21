@@ -6,14 +6,15 @@
 }:
 let
   cfg = config.codgician.codgi.vscode;
-  inherit (lib) types;
+  fontFamily = builtins.concatStringsSep ", " (builtins.map (x: "'${x}'") cfg.fontFamily);
 in
 {
   options.codgician.codgi.vscode = {
     enable = lib.mkEnableOption "Visual Studio Code";
+    package = lib.mkPackageOption pkgs "vscode" { };
 
     fontFamily = lib.mkOption {
-      type = with types; listOf str;
+      type = with lib.types; listOf str;
       default = [
         "Cascadia Code NF"
         "Cascadia Code"
@@ -23,13 +24,13 @@ in
     };
 
     fontSize = lib.mkOption {
-      type = types.int;
+      type = lib.types.int;
       default = 14;
       description = "Font size for VSCode editor.";
     };
 
     immutableExtensions = lib.mkOption {
-      type = types.bool;
+      type = lib.types.bool;
       default = true;
       description = "Make extensions immutable.";
     };
@@ -38,6 +39,7 @@ in
   config = lib.mkIf cfg.enable {
     programs.vscode = {
       enable = true;
+      inherit (cfg) package;
       mutableExtensionsDir = !cfg.immutableExtensions;
 
       profiles.default = {
@@ -72,7 +74,7 @@ in
           chat = {
             agent.enabled = true;
             editor = {
-              fontFamily = builtins.concatStringsSep ", " (builtins.map (x: "'${x}'") cfg.fontFamily);
+              inherit fontFamily;
               fontSize = 12; # not using the same size as editor
             };
             edits2.enabled = true;
@@ -83,11 +85,11 @@ in
             };
           };
           editor = {
-            fontFamily = builtins.concatStringsSep ", " (builtins.map (x: "'${x}'") cfg.fontFamily);
+            inherit fontFamily;
             inherit (cfg) fontSize;
           };
           terminal.integrated = {
-            fontFamily = builtins.concatStringsSep ", " (builtins.map (x: "'${x}'") cfg.fontFamily);
+            inherit fontFamily;
             inherit (cfg) fontSize;
           };
           remote.SSH = {

@@ -1,53 +1,34 @@
+{ lib, ... }:
 {
-  config,
-  lib,
-  pkgs,
-  outputs,
-  ...
-}:
-let
-  dnsRecords =
-    outputs.packages.${pkgs.stdenv.hostPlatform.system}.terraform-config.config.resource.cloudflare_dns_record;
-  # Tencent's stable DHCP address, mapped 1:1 to the public IPv4 address.
-  privateIPv4 = "10.6.4.16";
-in
-{
-  # My settings
   codgician = {
     services = {
-      nixos-vscode-server.enable = true;
       coturn = {
         enable = true;
-        domain = "turn.codgician.me";
         openFirewall = true;
         listening-ips = [
           "0.0.0.0"
           "::"
         ];
-        relay-ips = [
-          privateIPv4
-          dnsRecords."${config.networking.hostName}-aaaa".content
-        ];
-        external-ips = [ "${dnsRecords."${config.networking.hostName}-a".content}/${privateIPv4}" ];
       };
 
       nginx = {
         enable = true;
         openFirewall = true;
-        reverseProxies."codgi.cn" = {
-          enable = true;
-          https = true;
-          domains = [
-            "codgi.cn"
-            "*.codgi.cn"
-          ];
-          locations."/".passthru.root = import ./xianyun-web.nix { inherit pkgs; };
+        landingPage = {
+          domain = "codgi.cn";
+          footer = ''
+            Coming Soon...
+            <footer>
+              <a href="https://beian.miit.gov.cn/">蜀ICP备2026006850号</a>
+            </footer>'';
         };
       };
 
+      nixos-vscode-server.enable = true;
+
       sing-box = {
         enable = true;
-        domain = "xianyun.codgician.me";
+        domain = "xianyun.${lib.codgician.zone}";
         users = [
           "codgi"
           "lxm75"
@@ -94,22 +75,19 @@ in
     };
   };
 
-  # Home manager
-  home-manager.users.codgi =
-    { ... }:
-    {
-      codgician.codgi = {
-        dev.nix.enable = true;
-        git.enable = true;
-        oh-my-pi.enable = true;
-        pwsh.enable = true;
-        ssh.enable = true;
-        tmux.enable = true;
-        zsh.enable = true;
-      };
-
-      home.stateVersion = "26.05";
+  home-manager.users.codgi = {
+    codgician.codgi = {
+      dev.nix.enable = true;
+      git.enable = true;
+      oh-my-pi.enable = true;
+      pwsh.enable = true;
+      ssh.enable = true;
+      tmux.enable = true;
+      zsh.enable = true;
     };
+
+    home.stateVersion = "26.05";
+  };
 
   # Customize zfs auto snapshot cadence
   services.zfs.autoSnapshot = {
@@ -130,31 +108,14 @@ in
     zfsSupport = true;
   };
 
-  # Enable zram swap
   zramSwap.enable = true;
 
-  # Use networkd
   networking.useNetworkd = true;
-
-  # Firewall
-  networking.firewall.enable = true;
 
   boot.kernel.sysctl = {
     "net.core.default_qdisc" = "fq_pie";
     "net.ipv4.tcp_congestion_control" = "bbr";
-
-    # Enable forwarding for WireGuard
-    "net.ipv4.conf.all.forwarding" = "1";
-    "net.ipv4.conf.all.proxy_arp" = "1";
-    "net.ipv6.conf.all.forwarding" = "1";
-    "net.ipv6.conf.all.proxy_ndp" = "1";
   };
 
-  # This value determines the NixOS release from which the default
-  # settings for stateful data, like file locations and database versions
-  # on your system were taken. It's perfectly fine and recommended to leave
-  # this value at the release version of the first install of this system.
-  # Before changing this value read the documentation for this option
-  # (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).
-  system.stateVersion = "26.05"; # Did you read the comment?
+  system.stateVersion = "26.05";
 }

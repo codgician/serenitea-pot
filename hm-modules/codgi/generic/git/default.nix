@@ -90,6 +90,8 @@ in
       description = "Name of the default identity to use.";
     };
 
+    package = lib.mkPackageOption pkgs "git" { default = "gitFull"; };
+
     directoryIdentities = lib.mkOption {
       type = lib.types.attrsOf lib.types.str;
       default = { };
@@ -116,7 +118,7 @@ in
     programs.git = {
       enable = true;
       lfs.enable = true;
-      package = pkgs.gitFull;
+      inherit (cfg) package;
 
       # Directory-based identity includes
       includes = directoryIncludes;

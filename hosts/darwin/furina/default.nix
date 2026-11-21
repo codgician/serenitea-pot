@@ -1,9 +1,7 @@
-{ lib, ... }:
-
-lib.codgician.mkDarwinSystem {
-  hostName = builtins.baseNameOf ./.;
+{
   system = "aarch64-darwin";
   modules = [
+    ./brew.nix
     ./system.nix
   ];
 }

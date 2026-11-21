@@ -5,25 +5,29 @@
 }:
 let
   inherit (lib) mkOption types;
-  inherit (modelLib) commonOptions;
   metadata = import ../../../../../packages/terraform-config/celestia/cognitive/akasha/models.nix;
-  azureSubdomain = metadata.account.name;
+in
+{
+  description = "Azure AI models";
   modelType = types.submodule {
-    options = commonOptions // {
+    options = modelLib.commonOptions // {
       provider = mkOption {
         type = types.enum [
           "azure"
           "azure_ai"
         ];
         default = "azure";
+        description = "LiteLLM provider the deployment is called through.";
       };
       baseModel = mkOption {
         type = types.nullOr types.str;
         default = null;
+        description = "Model LiteLLM takes prices and limits from.";
       };
       apiVersion = mkOption {
         type = types.nullOr types.str;
         default = null;
+        description = "Azure API version, where the deployment needs a particular one.";
       };
       realtimeProtocol = mkOption {
         type = types.nullOr (
@@ -33,33 +37,29 @@ let
           ]
         );
         default = null;
+        description = "Protocol of a realtime deployment.";
       };
     };
   };
-in
-{
-  description = "Azure AI models";
-  inherit modelType;
   provider = {
-    transformer = name: spec: {
-      inherit (spec) aliases mode variants;
-      reasoningEfforts = lib.unique (spec.reasoningEfforts ++ builtins.attrNames spec.variants);
-      litellmModelInfo = {
-        inherit (spec) mode;
-      }
-      // lib.optionalAttrs (spec.baseModel != null) { base_model = spec.baseModel; };
-      litellmParams = {
-        model = "${spec.provider}/${if spec.path != null then spec.path else name}";
-        api_base = "https://${azureSubdomain}.services.ai.azure.com";
-        api_key = "os.environ/AZURE_AKASHA_API_KEY";
-      }
-      // lib.optionalAttrs (spec.realtimeProtocol != null) { realtime_protocol = spec.realtimeProtocol; }
-      // lib.optionalAttrs (spec.apiVersion != null) { api_version = spec.apiVersion; };
-      tags = [
-        "azure"
-        "remote"
-      ];
-    };
+    transformer =
+      name: spec:
+      modelLib.mkModel {
+        modelPrefix = spec.provider;
+        apiKeyEnv = "AZURE_AKASHA_API_KEY";
+        tags = [
+          "azure"
+          "remote"
+        ];
+        extraModelInfo = lib.optionalAttrs (spec.baseModel != null) { base_model = spec.baseModel; };
+        extraParams = {
+          api_base = "https://${metadata.account.name}.services.ai.azure.com";
+        }
+        // lib.optionalAttrs (spec.realtimeProtocol != null) {
+          realtime_protocol = spec.realtimeProtocol;
+        }
+        // lib.optionalAttrs (spec.apiVersion != null) { api_version = spec.apiVersion; };
+      } name spec;
     models = lib.mapAttrs (_: deployment: deployment.registry) (
       lib.filterAttrs (_: deployment: deployment ? registry) metadata.deployments
     );

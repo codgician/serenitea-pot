@@ -5,7 +5,7 @@
   resource = {
     cloudflare_zone.codgician-me = {
       account.id = "1a47d32e456a0ce6486a8d63173cee77";
-      name = "codgician.me";
+      name = lib.codgician.zone;
       type = "full";
     };
   };

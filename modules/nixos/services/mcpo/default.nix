@@ -74,6 +74,12 @@ in
   options.codgician.services.mcpo = {
     enable = lib.mkEnableOption "mcpo container";
 
+    image = lib.mkOption {
+      type = types.str;
+      default = "ghcr.io/open-webui/mcpo:latest";
+      description = "Container image for mcpo.";
+    };
+
     port = lib.mkOption {
       type = types.port;
       default = 8010;
@@ -97,67 +103,51 @@ in
       default = defaultDataDir;
       description = "Data directory for mcpo.";
     };
-
-    # Reverse proxy profile for nginx
-    reverseProxy = lib.codgician.mkServiceReverseProxyOptions {
-      inherit serviceName;
-      defaultProxyPass = "http://127.0.0.1:${toString cfg.port}";
-      defaultProxyPassText = ''with config.codgician.services.mcpo; http://127.0.0.1:$\{toString port}'';
-    };
   };
 
-  config = lib.mkMerge [
-    (lib.mkIf cfg.enable {
-      virtualisation.oci-containers.containers.mcpo = {
-        autoStart = true;
-        image = "ghcr.io/open-webui/mcpo:latest";
-        ports = [ "127.0.0.1:${builtins.toString cfg.port}:8000" ];
-        volumes = [
-          "/run/mcpo/config.json:/config.json"
-          "${cfg.dataDir}:/persist"
-        ];
-        extraOptions = [ "--pull=newer" ];
-        cmd = [ "--config=/config.json" ];
-      };
-
-      virtualisation.podman.enable = true;
-
-      # Compose config.json before container starts
-      systemd.services.podman-mcpo = {
-        path = with pkgs; [ curl ];
-        preStart = lib.mkBefore ''
-          ${utils.genJqSecretsReplacementSnippet mcpoConfig "/run/mcpo/config.json"}
-        '';
-        postStart = ''
-          curl --fail \
-            --retry 100 \
-            --retry-delay 5 \
-            --retry-max-time 300 \
-            --retry-all-errors \
-            http://127.0.0.1:${builtins.toString cfg.port}/openapi.json
-        '';
-        serviceConfig.RuntimeDirectory = serviceName;
-      };
-
-      # Ensure data directory exists (for custom paths)
-      systemd.tmpfiles.rules = lib.mkIf (cfg.dataDir != defaultDataDir) [
-        "d ${cfg.dataDir} 0755 root root -"
+  config = lib.mkIf cfg.enable {
+    virtualisation.oci-containers.containers.mcpo = {
+      autoStart = true;
+      inherit (cfg) image;
+      ports = [ "127.0.0.1:${builtins.toString cfg.port}:8000" ];
+      volumes = [
+        "/run/mcpo/config.json:/config.json"
+        "${cfg.dataDir}:/persist"
       ];
+      extraOptions = [ "--pull=newer" ];
+      cmd = [ "--config=/config.json" ];
+    };
 
-      # Persist data directory (only when using default location)
-      codgician.system.impermanence.extraItems = lib.mkIf (cfg.dataDir == defaultDataDir) [
-        {
-          type = "directory";
-          path = cfg.dataDir;
-        }
-      ];
-    })
+    virtualisation.podman.enable = true;
 
-    # Reverse proxy profile
-    {
-      codgician.services.nginx = lib.codgician.mkServiceReverseProxyConfig {
-        inherit serviceName cfg;
-      };
-    }
-  ];
+    # Compose config.json before container starts
+    systemd.services.podman-mcpo = {
+      path = with pkgs; [ curl ];
+      preStart = lib.mkBefore ''
+        ${utils.genJqSecretsReplacementSnippet mcpoConfig "/run/mcpo/config.json"}
+      '';
+      postStart = ''
+        curl --fail \
+          --retry 100 \
+          --retry-delay 5 \
+          --retry-max-time 300 \
+          --retry-all-errors \
+          http://127.0.0.1:${builtins.toString cfg.port}/openapi.json
+      '';
+      serviceConfig.RuntimeDirectory = serviceName;
+    };
+
+    # Ensure data directory exists (for custom paths)
+    systemd.tmpfiles.rules = lib.mkIf (cfg.dataDir != defaultDataDir) [
+      "d ${cfg.dataDir} 0755 root root -"
+    ];
+
+    # Persist data directory (only when using default location)
+    codgician.system.impermanence.extraItems = lib.mkIf (cfg.dataDir == defaultDataDir) [
+      {
+        type = "directory";
+        path = cfg.dataDir;
+      }
+    ];
+  };
 }

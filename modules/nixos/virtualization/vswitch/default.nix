@@ -17,19 +17,13 @@ let
       (builtins.map (intCfg: intCfg.dpdkDevice))
     ];
 
-  # Make assertion for a dpdk device in a vswitch
+  # Make assertions for the dpdk devices of a vswitch
   mkVswitchDpdkDevAssertions =
-    switchCfg:
-    lib.pipe switchCfg.interfaces [
-      (lib.filterAttrs (_: intCfg: intCfg.type == "dpdk" && intCfg.dpdkDevice != null))
-      (lib.mapAttrs (
-        intName: intCfg: {
-          assertion = intCfg.extraDpdkDevArgs == [ ] || intCfg.dpdkDevice != null;
-          message = "dpdkDevice must be specified if extraDpdkDevArgs is not empty for interface ${intName} of switch ${switchCfg.name}.";
-        }
-      ))
-      builtins.attrValues
-    ];
+    switchName: switchCfg:
+    lib.mapAttrsToList (intName: intCfg: {
+      assertion = intCfg.extraDpdkDevArgs == [ ] || intCfg.dpdkDevice != null;
+      message = "dpdkDevice must be specified if extraDpdkDevArgs is not empty for interface ${intName} of switch ${switchName}.";
+    }) switchCfg.interfaces;
 
   # List of dpdk devices
   dpdkDevs = builtins.concatMap getVswitchDpdkDevs (builtins.attrValues cfg.switches);
@@ -40,6 +34,13 @@ in
 {
   options.codgician.virtualization.vswitch = {
     enable = lib.mkEnableOption "Open vSwitch";
+
+    package = lib.mkOption {
+      type = types.package;
+      default = if enableDpdk then pkgs.openvswitch-dpdk else pkgs.openvswitch;
+      defaultText = lib.literalExpression "if any interface has type \"dpdk\" then pkgs.openvswitch-dpdk else pkgs.openvswitch";
+      description = "The Open vSwitch package to use; DPDK interfaces need a build with DPDK.";
+    };
 
     extraGlobalOptions = lib.mkOption {
       type = with types; listOf str;
@@ -87,7 +88,7 @@ in
 
                     extraOptions = lib.mkOption {
                       type = with types; listOf str;
-                      description = "Extra options to pass to `ovctl set Interface`.";
+                      description = "Extra options to pass to `ovs-vsctl set Interface`.";
                       default = [ ];
                       example = [
                         "options:n_rxq=4"
@@ -121,7 +122,7 @@ in
     # Open vSwitch configuration
     virtualisation.vswitch = {
       enable = true;
-      package = with pkgs; if enableDpdk then openvswitch-dpdk else openvswitch;
+      inherit (cfg) package;
       resetOnStart = true;
     };
 
@@ -200,6 +201,6 @@ in
     };
 
     # Assertions
-    assertions = builtins.concatMap mkVswitchDpdkDevAssertions (builtins.attrValues cfg.switches);
+    assertions = lib.concatLists (lib.mapAttrsToList mkVswitchDpdkDevAssertions cfg.switches);
   };
 }

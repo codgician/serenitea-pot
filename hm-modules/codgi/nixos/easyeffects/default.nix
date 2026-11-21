@@ -119,13 +119,7 @@ in
 {
   options.codgician.codgi.easyeffects = {
     enable = lib.mkEnableOption "EasyEffects audio effects daemon";
-
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.easyeffects;
-      defaultText = lib.literalExpression "pkgs.easyeffects";
-      description = "The EasyEffects package to install.";
-    };
+    package = lib.mkPackageOption pkgs "easyeffects" { };
 
     presets = lib.mkOption {
       type = lib.types.attrsOf presetType;

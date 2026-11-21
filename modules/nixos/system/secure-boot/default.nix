@@ -6,29 +6,19 @@
 }:
 let
   cfg = config.codgician.system.secure-boot;
+  pkiBundle = "/var/lib/sbctl";
 in
 {
-  options.codgician.system.secure-boot = {
-    enable = lib.mkEnableOption ''
-      Enable Secure Boot (only systemd-boot is supported).
-    '';
-
-    pkiBundle = lib.mkOption {
-      type = lib.types.path;
-      default = "/var/lib/sbctl";
-      description = ''
-        Path to PKI bundle.
-        This path will not be automatically persisted if set to non-default value with impermanence on.
-      '';
-    };
-  };
+  options.codgician.system.secure-boot.enable = lib.mkEnableOption ''
+    Enable Secure Boot (only systemd-boot is supported).
+  '';
 
   config = lib.mkMerge [
     {
-      # Persist /etc/secureboot, do it regardless of enablement
+      # Persisted regardless of enablement
       codgician.system.impermanence.extraItems = [
         {
-          path = "/var/lib/sbctl";
+          path = pkiBundle;
           type = "directory";
         }
       ];
@@ -42,7 +32,7 @@ in
       boot.loader.systemd-boot.enable = lib.mkForce false;
       boot.lanzaboote = {
         enable = true;
-        pkiBundle = cfg.pkiBundle;
+        inherit pkiBundle;
       };
     })
   ];
