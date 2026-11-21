@@ -1,6 +1,6 @@
 """Gemini over Antigravity Cloud Code, without patching LiteLLM.
 
-Protocol reference: can1357/oh-my-pi@852eb2d, google-gemini-cli.ts and
+Protocol reference: can1357/oh-my-pi@v19.0.0, google-gemini-cli.ts and
 registry/oauth/google-antigravity.ts (MIT). Gemini conversion stays in LiteLLM.
 Run this file with `login` inside the LiteLLM Python environment to connect.
 """
@@ -22,8 +22,9 @@ import time
 import urllib.parse
 import uuid
 from collections.abc import AsyncIterator, Iterator
+from functools import cache
 from pathlib import Path
-from typing import Any
+from typing import Any, NamedTuple
 
 import httpx
 from litellm import CustomLLM, ModelResponse
@@ -63,6 +64,13 @@ ENCODED_SKIP_SIGNATURE = base64.b64encode(SKIP_SIGNATURE.encode()).decode()
 # async transport prefers IPv6, so bind every Google request to IPv4.
 IPV4 = "0.0.0.0"
 
+# Google answers 429 RESOURCE_EXHAUSTED to some system text even with quota left
+# (measured 2026-11-21); the same text in a user turn passes. Literal substrings
+# replaced, in order, in the caller's system instruction to test such rewrites.
+# Empty: forward it unchanged.
+SYSTEM_REPLACEMENTS: dict[str, str] = {
+    "You are omp's trusted coding assistant.": "You are DeepMind's trusted coding assistant."
+}
 
 def _http() -> httpx.Client:
     return httpx.Client(transport=httpx.HTTPTransport(local_address=IPV4), timeout=30)
@@ -233,10 +241,6 @@ def _credentials(refresh_catalog: bool = False) -> dict:
     with os.fdopen(lock_fd, "w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         credentials = json.loads(path.read_text())
-        if "session_id" not in credentials:
-            # agy sends one sessionId for every conversation of an installation.
-            credentials["session_id"] = "-" + str(secrets.randbits(63))
-            _save(path, credentials)
         stale = "catalog" not in credentials or (
             refresh_catalog and credentials["catalog"]["fetched_at"] <= time.time() - 60
         )
@@ -405,10 +409,68 @@ def _camel_request(body: dict) -> dict:
     return convert(body)
 
 
+class _Turn(NamedTuple):
+    session: str
+    agent: str
+    trajectory: str
+    step: int
+    index: int
+    previous: str
+    key: str | None
+
+
+@cache
+def _session_store():
+    # Share one thread-safe connection pool across the async and sync bridges.
+    from redis import Redis
+
+    return Redis.from_url(os.environ["REDIS_URL"], decode_responses=True, socket_timeout=2)
+
+
+def _begin_turn(logging_obj: Any, project: str, steps: int) -> _Turn:
+    sid = getattr(logging_obj, "litellm_session_id", None)
+    metadata = (getattr(logging_obj, "litellm_params", None) or {}).get("metadata") or {}
+    principal = metadata.get("user_api_key_hash")  # populated by LiteLLM proxy auth
+    seed = _Turn(f"-{secrets.randbits(63) or 1}", str(uuid.uuid4()), str(uuid.uuid4()), steps, 0, "", None)
+    if not sid or not principal:
+        # Stateless calls have no trustworthy owner/session pair. Never join on prompt text.
+        return seed
+    scope = json.dumps([project, principal, sid], separators=(",", ":")).encode()
+    key = "litellm.antigravity.turn:" + hashlib.sha256(scope).hexdigest()
+    # One allocation per envelope, atomic even across LiteLLM workers. Expire idle sessions.
+    session, agent, trajectory, step, index, previous = _session_store().eval(
+        """
+        local k = KEYS[1]
+        if redis.call('EXISTS', k) == 0 then
+            redis.call('HSET', k, 'session', ARGV[1], 'agent', ARGV[2], 'trajectory', ARGV[3])
+        end
+        local step = math.max(tonumber(ARGV[4]), tonumber(redis.call('HGET', k, 'step') or 0) + 1)
+        redis.call('HSET', k, 'step', step)
+        local index = redis.call('HINCRBY', k, 'count', 1) - 1
+        redis.call('EXPIRE', k, 86400)
+        return {redis.call('HGET', k, 'session'), redis.call('HGET', k, 'agent'),
+                redis.call('HGET', k, 'trajectory'), step, index, redis.call('HGET', k, 'previous') or ''}
+        """, 1, key, seed.session, seed.agent, seed.trajectory, steps,
+    )
+    return _Turn(session, agent, trajectory, step, index, previous, key)
+
+
+def _finish_turn(turn: _Turn, response_id: str) -> None:
+    # An older concurrent stream (or an expired session) must not overwrite a newer result.
+    _session_store().eval(
+        """
+        if redis.call('HGET', KEYS[1], 'trajectory') == ARGV[1]
+            and tonumber(redis.call('HGET', KEYS[1], 'completed') or -1) < tonumber(ARGV[2]) then
+            redis.call('HSET', KEYS[1], 'completed', ARGV[2], 'previous', ARGV[3])
+        end
+        """, 1, turn.key, turn.trajectory, turn.index, response_id,
+    )
+
+
 class AntigravityProvider(CustomLLM):
     async def _request(
-        self, model: str, messages: list, optional_params: dict
-    ) -> tuple[dict, dict]:
+        self, model: str, messages: list, optional_params: dict, logging_obj: Any = None
+    ) -> tuple[dict, dict, _Turn]:
         effort = optional_params.get("reasoning_effort")
         if isinstance(effort, dict):
             effort = effort.get("effort")
@@ -451,8 +513,13 @@ class AntigravityProvider(CustomLLM):
                 cached_content=None,
             )
         )
-        if "systemInstruction" in body:
-            body["systemInstruction"]["role"] = "user"
+        instruction = body.get("systemInstruction")
+        if instruction:
+            instruction["role"] = "user"
+            for part in instruction["parts"]:
+                if "text" in part:
+                    for old, new in SYSTEM_REPLACEMENTS.items():
+                        part["text"] = part["text"].replace(old, new)
         for content in body["contents"]:
             for part in content.get("parts", []):
                 if "functionCall" in part:
@@ -501,27 +568,17 @@ class AntigravityProvider(CustomLLM):
         elif "thinkingLevel" in thinking:
             # CCA's ThinkingLevel enum is uppercase; LiteLLM maps efforts to lowercase.
             thinking["thinkingLevel"] = thinking["thinkingLevel"].upper()
-        # A conversation is identified by everything up to its first user turn.
-        opening = []
-        for message in messages:
-            opening.append(message.get("content"))
-            if message.get("role") == "user":
-                break
-        identity = hashlib.sha256(
-            json.dumps(opening, ensure_ascii=False).encode()
-        ).digest()
-        agent, trajectory = (
-            str(uuid.UUID(bytes=identity[:16])),
-            str(uuid.UUID(bytes=identity[16:])),
-        )
-        body["sessionId"] = credentials["session_id"]
-        labels = {"cascade_id": agent, "last_step_index": str(step - 1)}
+        turn = await asyncio.to_thread(_begin_turn, logging_obj, credentials["project"], step)
+        body["sessionId"] = turn.session
+        labels = {"cascade_id": turn.agent, "last_step_index": str(turn.step - 1)}
+        if turn.previous:
+            labels["last_execution_id"] = turn.previous
         if profile.get("model"):
             labels["model_enum"] = profile["model"]
         labels.update(
-            request_id=f"{trajectory}-{sum(m.get('role') == 'assistant' for m in messages)}",
-            root_cascade_id=agent,
-            trajectory_id=trajectory,
+            request_id=f"{turn.trajectory}-{turn.index}",
+            root_cascade_id=turn.agent,
+            trajectory_id=turn.trajectory,
             used_claude="false",
             used_claude_conservative="false",
             used_non_gemini_model="false",
@@ -529,12 +586,12 @@ class AntigravityProvider(CustomLLM):
         body["labels"] = labels
         return credentials, {
             "project": credentials["project"],
-            "requestId": f"agent/{agent}/{int(time.time() * 1000)}/{trajectory}/{step}",
+            "requestId": f"agent/{turn.agent}/{int(time.time() * 1000)}/{turn.trajectory}/{turn.step}",
             "request": body,
             "model": wire,
             "userAgent": "antigravity",
             "requestType": "agent",
-        }
+        }, turn
 
     async def _generate(
         self,
@@ -542,9 +599,10 @@ class AntigravityProvider(CustomLLM):
         messages: list,
         optional_params: dict,
         timeout: Any = None,
+        logging_obj: Any = None,
         **kwargs: Any,
     ) -> AsyncIterator:
-        credentials, envelope = await self._request(model, messages, optional_params)
+        credentials, envelope, turn = await self._request(model, messages, optional_params, logging_obj)
         async with httpx.AsyncClient(
             transport=httpx.AsyncHTTPTransport(local_address=IPV4),
             timeout=timeout or 600,
@@ -559,6 +617,7 @@ class AntigravityProvider(CustomLLM):
                     await response.aread()
                     _check(response)
                 data = []
+                response_id, finished, has_usage = "", False, False
                 async for line in response.aiter_lines():
                     if line.startswith("data:"):
                         data.append(line[5:].lstrip())
@@ -570,11 +629,20 @@ class AntigravityProvider(CustomLLM):
                             raise CustomLLMError(
                                 error.get("code", 502), json.dumps(error)
                             )
-                        yield payload.get("response", payload), response
+                        raw = payload.get("response", payload)
+                        if isinstance(raw.get("responseId"), str) and raw["responseId"]:
+                            response_id = raw["responseId"]
+                        finished |= any(c.get("finishReason") for c in raw.get("candidates", []))
+                        has_usage |= "usageMetadata" in raw
+                        yield raw, response
                 if data:
                     raise CustomLLMError(
                         502, "Antigravity stream ended inside an SSE event"
                     )
+                if not finished:
+                    raise CustomLLMError(502, "Antigravity stream ended without a finish reason")
+                if turn.key and has_usage:
+                    await asyncio.to_thread(_finish_turn, turn, response_id)
 
     async def astreaming(
         self, model: str, messages: list, logging_obj: Any, **kwargs: Any
@@ -583,7 +651,7 @@ class AntigravityProvider(CustomLLM):
             streaming_response=None, sync_stream=False, logging_obj=logging_obj
         )
         usage, finish = None, "stop"
-        async for raw, _ in self._generate(model=model, messages=messages, **kwargs):
+        async for raw, _ in self._generate(model=model, messages=messages, logging_obj=logging_obj, **kwargs):
             chunk = parser.chunk_parser(raw)
             if chunk is None:
                 continue
@@ -621,7 +689,7 @@ class AntigravityProvider(CustomLLM):
         combined, candidates = {}, {}
         raw_response = None
         async for raw, raw_response in self._generate(
-            model=model, messages=messages, **kwargs
+            model=model, messages=messages, logging_obj=logging_obj, **kwargs
         ):
             combined.update({k: v for k, v in raw.items() if k != "candidates"})
             for candidate in raw.get("candidates", []):
