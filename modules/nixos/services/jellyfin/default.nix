@@ -5,7 +5,9 @@
   ...
 }:
 let
+  serviceName = "jellyfin";
   cfg = config.codgician.services.jellyfin;
+  types = lib.types;
   domain = "fin.${lib.codgician.zone}";
   defaultDataDir = "/var/lib/jellyfin";
 in
@@ -14,8 +16,26 @@ in
     enable = lib.mkEnableOption "Jellyfin";
     package = lib.mkPackageOption pkgs "jellyfin" { };
 
+    user = lib.mkOption {
+      type = types.str;
+      default = serviceName;
+      description = "User under which jellyfin runs";
+    };
+
+    group = lib.mkOption {
+      type = types.str;
+      default = serviceName;
+      description = "Group under which jellyfin runs";
+    };
+
+    cacheDir = lib.mkOption {
+      type = types.path;
+      default = "/var/cache/jellyfin";
+      description = "Cache directory for jellyfin";
+    };
+
     dataDir = lib.mkOption {
-      type = lib.types.path;
+      type = types.path;
       default = defaultDataDir;
       description = "Data directory for jellyfin";
     };
@@ -28,12 +48,18 @@ in
       services.jellyfin = {
         enable = true;
         openFirewall = true;
-        inherit (cfg) package dataDir;
+        inherit (cfg)
+          package
+          user
+          group
+          cacheDir
+          dataDir
+          ;
       };
 
       # Ensure data directory exists (for custom paths)
       systemd.tmpfiles.rules = lib.mkIf (cfg.dataDir != defaultDataDir) [
-        "d ${cfg.dataDir} 0700 jellyfin jellyfin -"
+        "d ${cfg.dataDir} 0700 ${cfg.user} ${cfg.group} -"
       ];
 
       # Persist default data directory
@@ -41,8 +67,7 @@ in
         {
           type = "directory";
           path = cfg.dataDir;
-          user = "jellyfin";
-          group = "jellyfin";
+          inherit (cfg) user group;
         }
       ];
 
