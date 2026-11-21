@@ -303,7 +303,7 @@ in
       '';
     };
 
-    package = lib.mkPackageOption pkgs "open-webui" { default = "open-webui-akasha"; };
+    package = lib.mkPackageOption pkgs "open-webui" { };
 
     host = lib.mkOption {
       type = types.str;
