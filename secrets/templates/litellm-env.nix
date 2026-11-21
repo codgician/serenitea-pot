@@ -13,7 +13,5 @@
     HOSTED_VLLM_API_KEY=${ref "vllm-api-key"}
     ANTHROPIC_API_KEY=${ref "anthropic-api-key"}
     CLAUDE_CODE_OAUTH_TOKEN=${ref "claude-code-oauth-token"}
-    ANTIGRAVITY_OAUTH_CLIENT_ID=${ref "antigravity-oauth-client-id"}
-    ANTIGRAVITY_OAUTH_CLIENT_SECRET=${ref "antigravity-oauth-client-secret"}
   '';
 }

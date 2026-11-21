@@ -17,18 +17,6 @@ let
       paimon
       wanderer
     ];
-    antigravity-oauth-client-id.hosts = [
-      furina
-      lumine
-      paimon
-      wanderer
-    ];
-    antigravity-oauth-client-secret.hosts = [
-      furina
-      lumine
-      paimon
-      wanderer
-    ];
     anubis-ed25519-private-key-hex.hosts = [ lumine ];
     arm-access-key.key = "ARM_ACCESS_KEY";
     arm-client-secret = {

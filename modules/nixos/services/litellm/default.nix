@@ -132,12 +132,6 @@ let
         ttl = "60";
       };
       callbacks = [ "claude_oauth_hook.proxy_handler_instance" ];
-      custom_provider_map = [
-        {
-          provider = "antigravity";
-          custom_handler = "antigravity_provider.handler";
-        }
-      ];
       drop_params = true;
       modify_params = true;
       request_timeout = requestTimeout;
@@ -162,18 +156,6 @@ let
   hooksPath = if isContainer then "/" else "${hooksDir}";
   tokenDir = if isContainer then "/config" else cfg.stateDir;
 
-  # agy's User-Agent; Blaze embeds the changelist (cl) in the agy binary.
-  antigravityUserAgentEnv =
-    let
-      agy = pkgs.unstable.antigravity-cli;
-    in
-    with pkgs.stdenv.hostPlatform.go;
-    pkgs.runCommand "antigravity-user-agent.env" { } ''
-      cl=$(grep -a -o -E 'changelist [0-9]+ with baseline' ${lib.getExe agy} | head -n 1 | cut -d ' ' -f 2)
-      [[ $cl =~ ^[0-9]+$ ]] || { echo "no changelist in ${lib.getExe agy}" >&2; exit 1; }
-      echo "ANTIGRAVITY_USER_AGENT=antigravity/cli/${agy.version} (aidev_client; os_type=${GOOS}; arch=${GOARCH}; cl=$cl; auth_method=consumer)" > $out
-    '';
-
   # Environment variables
   environment = {
     "PYTHONPATH" = hooksPath;
@@ -190,7 +172,6 @@ let
     "GITHUB_COPILOT_TOKEN_DIR" = "${tokenDir}/github";
     "CHATGPT_TOKEN_DIR" = "${tokenDir}/chatgpt";
     "XAI_OAUTH_TOKEN_DIR" = "${tokenDir}/xai";
-    "ANTIGRAVITY_TOKEN_DIR" = "${tokenDir}/antigravity";
     "REDIS_URL" = "unix://${redisSocketPath}";
   }
   // lib.optionalAttrs cfg.adminUi.enable {
@@ -336,7 +317,6 @@ in
         Group = group;
         # Ensure access to Redis socket
         SupplementaryGroups = [ config.services.redis.servers.${serviceName}.group ];
-        EnvironmentFile = [ antigravityUserAgentEnv ];
       };
     })
 
@@ -386,7 +366,6 @@ in
         volumes = [
           "${(pkgs.formats.yaml { }).generate "config.yaml" settings}:/config.yaml:ro"
           "${hooksDir}/claude_oauth_hook.py:/claude_oauth_hook.py:ro"
-          "${hooksDir}/antigravity_provider.py:/antigravity_provider.py:ro"
           "${cfg.stateDir}:/config"
           "/run/redis-${serviceName}:/run/redis-${serviceName}:ro"
         ]
@@ -404,10 +383,7 @@ in
           "/config.yaml"
         ];
         inherit environment;
-        environmentFiles = [
-          config.codgician.secrets.templates."litellm-env".path
-          antigravityUserAgentEnv
-        ];
+        environmentFiles = [ config.codgician.secrets.templates."litellm-env".path ];
       };
     })
 

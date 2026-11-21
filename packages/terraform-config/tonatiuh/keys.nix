@@ -58,5 +58,21 @@ in
         "visionai.googleapis.com"
       ];
     };
+
+    # Gemini Developer API for LiteLLM (Dendro)
+    dendro-gemini-key = {
+      name = "dendro-gemini";
+      display_name = "Dendro Gemini";
+      inherit depends_on;
+      restrictions.api_targets = mkRestrictions [ "generativelanguage.googleapis.com" ];
+    };
+
+    # Gemini model list for the update-models workflow (GitHub secret GEMINI_API_KEY)
+    model-registry-key = {
+      name = "model-registry";
+      display_name = "Model registry refresh";
+      inherit depends_on;
+      restrictions.api_targets = mkRestrictions [ "generativelanguage.googleapis.com" ];
+    };
   };
 }
