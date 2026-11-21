@@ -12,10 +12,8 @@ let
   cfg = config.codgician.services.litellm;
   authelia = config.codgician.services.authelia.instances.main.url;
   domain = "dendro.${lib.codgician.zone}";
-  port = 5483;
-  stateDir = "/var/lib/${serviceName}";
-  dbName = "litellm";
-  dbHost = "/run/postgresql";
+  types = lib.types;
+  defaultStateDir = "/var/lib/${serviceName}";
   hooksDir = ./hooks;
   favicon =
     (pkgs.fetchurl {
@@ -162,7 +160,7 @@ let
   # Where the hooks and the token directories are, as the server sees them
   isContainer = cfg.backend == "container";
   hooksPath = if isContainer then "/" else "${hooksDir}";
-  tokenDir = if isContainer then "/config" else stateDir;
+  tokenDir = if isContainer then "/config" else cfg.stateDir;
 
   # Environment variables
   environment = {
@@ -184,12 +182,12 @@ let
     "REDIS_URL" = "unix://${redisSocketPath}";
   }
   // lib.optionalAttrs cfg.adminUi.enable {
-    PGHOST = dbHost; # Hack for prisma to connect postgres with unix socket
+    PGHOST = cfg.adminUi.dbHost; # Hack for prisma to connect postgres with unix socket
     # Prisma reads the socket from `?host=`; litellm's psycopg migration lock strips
     # that param, so also encode the socket dir as the URI host for libpq.
     DATABASE_URL = "postgres://${user}@${
-      builtins.replaceStrings [ "/" ] [ "%2F" ] dbHost
-    }/${dbName}?host=${dbHost}";
+      builtins.replaceStrings [ "/" ] [ "%2F" ] cfg.adminUi.dbHost
+    }/${cfg.adminUi.dbName}?host=${cfg.adminUi.dbHost}";
   }
   // lib.optionalAttrs cfg.adminUi.authelia.enable {
     PROXY_BASE_URL = "https://${domain}";
@@ -223,10 +221,46 @@ in
       extraDescription = "Used by the `nixpkgs` backend.";
     };
 
+    host = lib.mkOption {
+      type = types.str;
+      default = "127.0.0.1";
+      description = ''
+        Host for ${serviceName} to listen on.
+      '';
+    };
+
+    port = lib.mkOption {
+      type = types.port;
+      default = 5483;
+      description = ''
+        Port for ${serviceName} to listen on.
+      '';
+    };
+
+    stateDir = lib.mkOption {
+      type = types.path;
+      default = defaultStateDir;
+      description = ''
+        Directory for ${serviceName} to store state data.
+      '';
+    };
+
     adminUi = {
       enable = lib.mkEnableOption "${serviceName} Admin UI";
 
       authelia.enable = lib.mkEnableOption "Authelia";
+
+      dbName = lib.mkOption {
+        type = types.str;
+        default = "litellm";
+        description = "Database name for ${serviceName} Admin UI.";
+      };
+
+      dbHost = lib.mkOption {
+        type = types.str;
+        default = "/run/postgresql";
+        description = "Database host for ${serviceName} Admin UI.";
+      };
     };
 
     image = lib.mkOption {
@@ -238,7 +272,8 @@ in
 
   config = lib.mkMerge [
     (lib.mkIf cfg.enable {
-      codgician.services.nginx.reverseProxies.litellm.proxyPass = "http://127.0.0.1:${toString port}";
+      codgician.services.nginx.reverseProxies.litellm.proxyPass =
+        "http://${cfg.host}:${toString cfg.port}";
 
       # Ensure litellm user is created
       codgician.users.${serviceName}.enable = true;
@@ -253,10 +288,16 @@ in
       # Make Redis runtime directory traversable for container with user namespace
       systemd.services."redis-${serviceName}".serviceConfig.RuntimeDirectoryMode = lib.mkForce "0755";
 
-      codgician.system.impermanence.extraItems = [
+      # Ensure state directory exists (for custom paths)
+      systemd.tmpfiles.rules = lib.mkIf (cfg.stateDir != defaultStateDir) [
+        "d ${cfg.stateDir} 0700 ${user} ${group} -"
+      ];
+
+      # Persist default data directory
+      codgician.system.impermanence.extraItems = lib.mkIf (cfg.stateDir == defaultStateDir) [
         {
           type = "directory";
-          path = stateDir;
+          path = cfg.stateDir;
           inherit user group;
         }
       ];
@@ -266,9 +307,12 @@ in
     (lib.mkIf (cfg.enable && cfg.backend == "nixpkgs") {
       services.litellm = {
         enable = true;
-        host = "127.0.0.1";
-        inherit port stateDir;
-        inherit (cfg) package;
+        inherit (cfg)
+          host
+          port
+          stateDir
+          package
+          ;
         environmentFile = config.codgician.secrets.templates."litellm-env".path;
         inherit environment settings;
       };
@@ -330,10 +374,10 @@ in
           "${(pkgs.formats.yaml { }).generate "config.yaml" settings}:/config.yaml:ro"
           "${hooksDir}/claude_oauth_hook.py:/claude_oauth_hook.py:ro"
           "${hooksDir}/antigravity_provider.py:/antigravity_provider.py:ro"
-          "${stateDir}:/config"
+          "${cfg.stateDir}:/config"
           "/run/redis-${serviceName}:/run/redis-${serviceName}:ro"
         ]
-        ++ lib.optional cfg.adminUi.enable "${dbHost}:${dbHost}:ro";
+        ++ lib.optional cfg.adminUi.enable "${cfg.adminUi.dbHost}:${cfg.adminUi.dbHost}:ro";
         extraOptions = [
           "--net=host"
           # Keep the host identity for state and Unix-socket peer credentials.
@@ -341,8 +385,8 @@ in
           "--security-opt=no-new-privileges"
         ];
         cmd = [
-          "--port=${toString port}"
-          "--host=127.0.0.1"
+          "--port=${toString cfg.port}"
+          "--host=${cfg.host}"
           "--config"
           "/config.yaml"
         ];
@@ -355,7 +399,7 @@ in
     (lib.mkIf (cfg.enable && cfg.adminUi.enable) {
       codgician.services.postgresql.enable = true;
       services.postgresql = {
-        ensureDatabases = [ dbName ];
+        ensureDatabases = [ cfg.adminUi.dbName ];
         ensureUsers = [
           {
             name = "litellm";
