@@ -5,6 +5,7 @@
       fcitx5.enable = true;
       litellm = {
         enable = true;
+        backend = "container";
         adminUi = {
           enable = true;
           authelia.enable = true;

@@ -211,7 +211,7 @@ in
         "nixpkgs"
         "container"
       ];
-      default = "container";
+      default = "nixpkgs";
       description = ''
         Backend to use for deploying ${serviceName}.
       '';
