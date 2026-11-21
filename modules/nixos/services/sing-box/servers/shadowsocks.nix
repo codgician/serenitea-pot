@@ -24,7 +24,7 @@ in
 
     port = lib.mkOption {
       type = types.port;
-      default = 8444;
+      default = 8388;
       description = "Port that this server listens on.";
     };
 

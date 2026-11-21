@@ -40,13 +40,12 @@ in
         "gvisor"
         "mixed"
       ];
-      default = "mixed";
-      description = "Network stack for TUN.";
+      default = "system";
+      description = "Network stack for TUN. 'system' is most performant on Linux with capabilities.";
     };
 
     outbound = lib.mkOption {
-      type = with types; nullOr str;
-      default = null;
+      type = types.str;
       description = "Tag of the outbound to route matched traffic through.";
       example = "outbound-hysteria2";
     };
