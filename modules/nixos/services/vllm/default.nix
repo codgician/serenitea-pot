@@ -59,7 +59,7 @@ let
 
         image = lib.mkOption {
           type = types.nullOr types.str;
-          default = null;
+          default = "vllm/vllm-openai:latest";
           description = ''
             Per-instance image override. Null uses `cfg.image`.
           '';
