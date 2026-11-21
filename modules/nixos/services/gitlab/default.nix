@@ -5,9 +5,10 @@
   ...
 }:
 let
+  serviceName = "gitlab";
   cfg = config.codgician.services.gitlab;
+  types = lib.types;
   inherit (config.codgician.services.postfix) sender;
-  domain = "git.${lib.codgician.zone}";
 in
 {
   options.codgician.services.gitlab = {
@@ -15,16 +16,41 @@ in
     package = lib.mkPackageOption pkgs "gitlab" { };
 
     statePath = lib.mkOption {
-      type = lib.types.str;
+      type = types.str;
       example = "/mnt/gitlab";
       description = "Path to store GitLab state data.";
     };
 
-    pages.enable = lib.mkEnableOption "GitLab Pages";
+    host = lib.mkOption {
+      type = types.str;
+      default = "git.${lib.codgician.zone}";
+      defaultText = lib.literalExpression ''"git.''${lib.codgician.zone}"'';
+      example = "gitlab.example.org";
+      description = "Host name of the GitLab server.";
+    };
+
+    user = lib.mkOption {
+      type = types.str;
+      default = serviceName;
+      description = "User under which GitLab runs.";
+    };
+
+    group = lib.mkOption {
+      type = types.str;
+      default = serviceName;
+      description = "Group under which GitLab runs.";
+    };
+
+    pages.domain = lib.mkOption {
+      type = with types; nullOr str;
+      default = null;
+      example = "example.org";
+      description = "Host name for GitLab Pages. Set to `null` to disable GitLab Pages.";
+    };
   };
 
   config = lib.mkMerge [
-    { codgician.services.nginx.reverseProxies.gitlab.domains = [ domain ]; }
+    { codgician.services.nginx.reverseProxies.gitlab.domains = [ cfg.host ]; }
 
     (lib.mkIf cfg.enable {
       codgician.services.nginx.reverseProxies.gitlab.proxyPass =
@@ -33,8 +59,12 @@ in
       services.gitlab = {
         enable = true;
         packages.gitlab = cfg.package;
-        inherit (cfg) statePath;
-        host = domain;
+        inherit (cfg)
+          statePath
+          host
+          user
+          group
+          ;
         https = true;
         port = 443;
 
@@ -74,8 +104,8 @@ in
           };
 
           pages = {
-            enabled = cfg.pages.enable;
-            host = lib.mkIf cfg.pages.enable "pages.${lib.codgician.zone}";
+            enabled = cfg.pages.domain != null;
+            host = lib.mkIf (cfg.pages.domain != null) cfg.pages.domain;
             port = 443;
             https = true;
             external_https = [ "127.0.0.1:443" ];
@@ -111,7 +141,7 @@ in
                   client_options = {
                     identifier = "gitlab";
                     secret._secret = config.codgician.secrets.files.gitlab-oidc-secret-authelia-main.path;
-                    redirect_uri = "https://${domain}/users/auth/openid_connect/callback";
+                    redirect_uri = "https://${cfg.host}/users/auth/openid_connect/callback";
                   };
                 };
               }
@@ -121,7 +151,7 @@ in
       };
 
       # Add to authorized users of postfix
-      codgician.services.postfix.authorizedUsers = [ "gitlab" ];
+      codgician.services.postfix.authorizedUsers = [ serviceName ];
 
       # PostgreSQL
       codgician.services.postgresql.enable = true;
@@ -141,8 +171,8 @@ in
             "gitlab-oidc-secret-authelia-main"
           ]
           (name: {
-            owner = "gitlab";
-            group = "gitlab";
+            owner = cfg.user;
+            group = cfg.group;
             mode = "0600";
           });
     })
