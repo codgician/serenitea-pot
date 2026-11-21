@@ -25,6 +25,12 @@ in
     package = lib.mkPackageOption pkgs "nats-server" { };
 
     openFirewall = lib.mkEnableOption "opening firewall for the NATS WebSocket listener";
+
+    host = lib.mkOption {
+      type = lib.types.str;
+      default = "127.0.0.1";
+      description = "IP address for the authenticated plaintext WebSocket listener.";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -37,7 +43,7 @@ in
         jetstream = lib.mkForce false;
         host = "127.0.0.1";
         websocket = {
-          host = "0.0.0.0";
+          inherit (cfg) host;
           port = websocketPort;
           # Application payloads remain end-to-end encrypted over plaintext WebSocket.
           no_tls = true;
