@@ -1,16 +1,42 @@
 { lib, modelLib, ... }:
 let
-  # SKU profiles are read from this account's fetchAvailableModels roster.
+  # Efforts mirror this account's fetchAvailableModels groupedModels; the hook
+  # picks the SKU (e.g. gemini-4-neon-xhigh) from the live roster.
   # API-equivalent prices from https://ai.google.dev/gemini-api/docs/pricing.
   # Google doubles Argon/Carbon on 2026-12-01 and 3.8 Flash on 2027-01-01;
   # LiteLLM has no date-based pricing, so update these on those dates.
   definitions = {
-    "gemini-4-argon" = {
-      routes = {
-        low = "gemini-4-argon-low";
-        medium = "gemini-4-argon-medium";
-        high = "gemini-4-argon-high";
+    "gemini-4-neon" = {
+      efforts = [
+        "low"
+        "medium"
+        "high"
+        "xhigh"
+      ];
+      maxOutputTokens = 262144;
+      cost = {
+        input = 3;
+        output = 15;
+        cacheRead = 0.15;
+        cacheWrite = 0;
       };
+    };
+    "gemini-4-hydrogen" = {
+      efforts = [
+        "low"
+        "medium"
+        "high"
+        "xhigh"
+      ];
+      maxOutputTokens = 262144;
+      cost = {
+        input = 1.5;
+        output = 7.5;
+        cacheRead = 0.075;
+        cacheWrite = 0;
+      };
+    };
+    "gemini-4-argon" = {
       maxOutputTokens = 65536;
       cost = {
         input = 2;
@@ -20,11 +46,6 @@ let
       };
     };
     "gemini-4-carbon" = {
-      routes = {
-        low = "gemini-4-carbon-low";
-        medium = "gemini-4-carbon-medium";
-        high = "gemini-4-carbon-high";
-      };
       maxOutputTokens = 262144;
       cost = {
         input = 2;
@@ -34,11 +55,6 @@ let
       };
     };
     "gemini-3.8-flash" = {
-      routes = {
-        low = "gemini-3.8-flash-low";
-        medium = "gemini-3.8-flash-medium";
-        high = "gemini-3.8-flash-high";
-      };
       maxOutputTokens = 65536;
       cost = {
         input = 0.75;
@@ -47,8 +63,14 @@ let
         cacheWrite = 0;
       };
     };
+    # One SKU; LiteLLM maps its effort to a thinking level.
     "gemini-3.1-flash-lite" = {
-      routes = lib.genAttrs [ "minimal" "low" "medium" "high" ] (_: "gemini-3.1-flash-lite");
+      efforts = [
+        "minimal"
+        "low"
+        "medium"
+        "high"
+      ];
       maxOutputTokens = 65535;
       cost = {
         input = 0.25;
@@ -84,17 +106,26 @@ in
           # Explicit prices above still take precedence for spend.
           base_model = "gemini/${name}";
           reasoning_effort_levels = spec.reasoningEfforts;
-          antigravity.routes = definitions.${name}.routes;
         };
       };
     models = lib.mapAttrs (
       _: definition:
-      removeAttrs definition [ "routes" ]
+      let
+        efforts =
+          definition.efforts or [
+            "low"
+            "medium"
+            "high"
+          ];
+      in
+      removeAttrs definition [ "efforts" ]
       // {
         contextWindow = 1048576;
         maxInputTokens = 1048576;
-        reasoningEfforts = builtins.attrNames definition.routes;
-        variants = lib.mapAttrs (reasoningEffort: _: { inherit reasoningEffort; }) definition.routes;
+        reasoningEfforts = efforts;
+        variants = lib.genAttrs efforts (reasoningEffort: {
+          inherit reasoningEffort;
+        });
         supports = [
           "vision"
           "reasoning"

@@ -129,7 +129,37 @@ def _control(client: httpx.Client, method: str, token: str, body: dict) -> dict:
 
 
 def _catalog(client: httpx.Client, token: str, project: str) -> dict:
-    return _control(client, "fetchAvailableModels", token, {"project": project})["models"]
+    result = _control(client, "fetchAvailableModels", token, {"project": project})
+    return {
+        "models": result["models"],
+        # agy selects a family's SKU by effort suffix, e.g. gemini-4-neon-xhigh.
+        "groups": {
+            family: [level["thinkingSuffix"] for level in group["supportedThinkingLevels"]]
+            for family, group in result.get("groupedModels", {}).items()
+        },
+        "default": result.get("defaultAgentModelId", ""),
+        "fetched_at": time.time(),
+    }
+
+
+def _route(catalog: dict, family: str, effort: str | None) -> tuple[str, dict | None]:
+    efforts = catalog["groups"].get(family)
+    if efforts is None:
+        wire = family
+    else:
+        if effort is None:
+            # agy defaults to the account default's effort within its family, else medium.
+            default = catalog["default"]
+            effort = default.removeprefix(f"{family}-") if default.startswith(f"{family}-") else "medium"
+        if effort not in efforts:
+            raise CustomLLMError(
+                400, f"{family} has no {effort!r} effort (available: {', '.join(efforts)})"
+            )
+        wire = f"{family}-{effort}"
+    profile = catalog["models"].get(wire)
+    if not profile or profile.get("disabled") or profile.get("isInternal"):
+        return wire, None
+    return wire, profile
 
 
 def _project(client: httpx.Client, token: str) -> str:
@@ -190,7 +220,7 @@ def _save(path: Path, credentials: dict) -> None:
             os.unlink(name)
 
 
-def _credentials() -> dict:
+def _credentials(refresh_catalog: bool = False) -> dict:
     path = _credential_path()
     if not path.exists():
         raise CustomLLMError(
@@ -207,6 +237,9 @@ def _credentials() -> dict:
             # agy sends one sessionId for every conversation of an installation.
             credentials["session_id"] = "-" + str(secrets.randbits(63))
             _save(path, credentials)
+        stale = "catalog" not in credentials or (
+            refresh_catalog and credentials["catalog"]["fetched_at"] <= time.time() - 60
+        )
         if credentials["expires_at"] <= time.time() + 60:
             result = _refresh_token(credentials["refresh_token"])
             credentials.update(
@@ -216,10 +249,13 @@ def _credentials() -> dict:
             )
             # A catalog outage must not discard a newly rotated refresh token.
             _save(path, credentials)
+            stale = True
+        if stale:
             with _http() as client:
-                credentials["models"] = _catalog(
+                credentials["catalog"] = _catalog(
                     client, credentials["access_token"], credentials["project"]
                 )
+            credentials.pop("models", None)
             _save(path, credentials)
         return credentials
 
@@ -299,7 +335,7 @@ def _finish_login() -> None:
     try:
         with _http() as client:
             project = _project(client, result["access_token"])
-            models = _catalog(client, result["access_token"], project)
+            catalog = _catalog(client, result["access_token"], project)
     except CustomLLMError as error:
         raise CustomLLMError(
             error.status_code,
@@ -311,7 +347,7 @@ def _finish_login() -> None:
         "access_token": result["access_token"],
         "expires_at": pending["expires_at"],
         "project": project,
-        "models": models,
+        "catalog": catalog,
     }
     path = _credential_path()
     lock_fd = os.open(path.parent / ".lock", os.O_CREAT | os.O_RDWR, 0o600)
@@ -319,14 +355,10 @@ def _finish_login() -> None:
         fcntl.flock(lock, fcntl.LOCK_EX)
         _save(path, credentials)
     pending_path.unlink()
-    print(f"Connected; credentials saved to {path}. Available Gemini SKUs:")
-    for name, info in sorted(models.items()):
-        if (
-            name.startswith("gemini-")
-            and not info.get("disabled")
-            and not info.get("isInternal")
-        ):
-            print(f"  {name}")
+    print(f"Connected; credentials saved to {path}. Gemini models and efforts:")
+    for family, efforts in sorted(catalog["groups"].items()):
+        if family.startswith("gemini-"):
+            print(f"  {family}: {', '.join(efforts)}")
 
 
 def _camel_request(body: dict) -> dict:
@@ -375,33 +407,27 @@ def _camel_request(body: dict) -> dict:
 
 class AntigravityProvider(CustomLLM):
     async def _request(
-        self, model: str, messages: list, optional_params: dict, litellm_params: dict
+        self, model: str, messages: list, optional_params: dict
     ) -> tuple[dict, dict]:
-        credentials = await asyncio.to_thread(_credentials)
-        info = (litellm_params.get("model_info") or {}).get("antigravity")
-        if info is None:
-            info = ((litellm_params.get("metadata") or {}).get("model_info") or {}).get(
-                "antigravity"
-            )
-        if not info:
-            raise CustomLLMError(
-                400, "Antigravity deployment is missing model_info.antigravity"
-            )
-        effort = optional_params.get("reasoning_effort", "low")
+        effort = optional_params.get("reasoning_effort")
         if isinstance(effort, dict):
-            effort = effort.get("effort", "low")
-        routes = info["routes"]
-        wire = routes.get(
-            effort,
-            routes.get("high" if effort == "medium" else "low"),
-        )
-        profile = credentials["models"].get(wire)
-        if not profile or profile.get("disabled") or profile.get("isInternal"):
-            raise CustomLLMError(404, f"Antigravity account does not serve {wire}")
+            effort = effort.get("effort")
+        credentials = await asyncio.to_thread(_credentials)
+        wire, profile = _route(credentials["catalog"], model, effort)
+        if profile is None:
+            # Entitlements change between token refreshes; recheck the live roster.
+            credentials = await asyncio.to_thread(_credentials, True)
+            wire, profile = _route(credentials["catalog"], model, effort)
+            if profile is None:
+                raise CustomLLMError(404, f"Antigravity account does not serve {wire}")
+        grouped = model in credentials["catalog"]["groups"]
         params = {
             k: v
             for k, v in optional_params.items()
-            if k not in ("stream", "stream_options") and v is not None
+            if k not in ("stream", "stream_options")
+            and v is not None
+            # Grouped families encode effort in the SKU; LiteLLM rejects xhigh.
+            and not (grouped and k == "reasoning_effort")
         }
         mapped = GoogleAIStudioGeminiConfig().map_openai_params(
             non_default_params=params, optional_params={}, model=model, drop_params=True
@@ -467,17 +493,12 @@ class AntigravityProvider(CustomLLM):
         if profile.get("maxOutputTokens"):
             generation["maxOutputTokens"] = profile["maxOutputTokens"]
         thinking = generation.setdefault("thinkingConfig", {"includeThoughts": True})
-        if len(set(routes.values())) > 1:
-            level = {1: "LOW", 2: "MEDIUM", 3: "HIGH", 100: "XHIGH"}.get(
-                profile.get("thinkingLevel")
-            )
-            if level:
-                thinking.pop("thinkingBudget", None)
-                thinking["thinkingLevel"] = level
-            elif "thinkingBudget" in profile:
-                thinking.pop("thinkingLevel", None)
-                thinking["thinkingBudget"] = profile["thinkingBudget"]
-        if "thinkingLevel" in thinking:
+        if grouped and profile.get("thinkingLevel") is not None:
+            level = profile["thinkingLevel"]
+            thinking.pop("thinkingBudget", None)
+            # agy names LOW/MEDIUM/HIGH and sends other levels (xhigh = 100) as numbers.
+            thinking["thinkingLevel"] = {1: "LOW", 2: "MEDIUM", 3: "HIGH"}.get(level, level)
+        elif "thinkingLevel" in thinking:
             # CCA's ThinkingLevel enum is uppercase; LiteLLM maps efforts to lowercase.
             thinking["thinkingLevel"] = thinking["thinkingLevel"].upper()
         # A conversation is identified by everything up to its first user turn.
@@ -520,13 +541,10 @@ class AntigravityProvider(CustomLLM):
         model: str,
         messages: list,
         optional_params: dict,
-        litellm_params: dict,
         timeout: Any = None,
         **kwargs: Any,
     ) -> AsyncIterator:
-        credentials, envelope = await self._request(
-            model, messages, optional_params, litellm_params
-        )
+        credentials, envelope = await self._request(model, messages, optional_params)
         async with httpx.AsyncClient(
             transport=httpx.AsyncHTTPTransport(local_address=IPV4),
             timeout=timeout or 600,
