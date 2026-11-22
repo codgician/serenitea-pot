@@ -85,6 +85,17 @@ let
             This is only effective when the site has an `authelia` policy.
           '';
         };
+
+        onUpstreamUnauthorized = lib.mkOption {
+          type = types.nullOr types.lines;
+          default = null;
+          example = "rewrite ^ /login last;";
+          description = ''
+            nginx directives answering a 401 from the upstream to a request
+            Authelia admitted. Requests Authelia did not admit still go to its
+            portal. Null leaves the upstream's 401 to the client.
+          '';
+        };
       };
 
       ssl = {
@@ -242,8 +253,13 @@ let
     config.locations."/" = { };
   };
 
+  # Named location answering an upstream 401 for one location.
+  upstreamUnauthorizedLocation =
+    locationName:
+    "@upstream-unauthorized-${builtins.substring 0 8 (builtins.hashString "sha256" locationName)}";
+
   mkLocationConfig =
-    name: vhost: location:
+    name: vhost: locationName: location:
     let
       proxyPass =
         if vhost.anubis.enable then
@@ -288,27 +304,40 @@ let
             allow fc00::/7;
             deny all;
           '')
-          + (lib.optionalString (vhost.authelia && location.authelia.enable) ''
-            auth_request ${autheliaApiPath};
+          + (lib.optionalString (vhost.authelia && location.authelia.enable) (
+            ''
+              auth_request ${autheliaApiPath};
 
-            ## Save the upstream metadata response headers from Authelia to variables.
-            auth_request_set $user $upstream_http_remote_user;
-            auth_request_set $groups $upstream_http_remote_groups;
-            auth_request_set $name $upstream_http_remote_name;
-            auth_request_set $email $upstream_http_remote_email;
+              ## Save the upstream metadata response headers from Authelia to variables.
+              auth_request_set $user $upstream_http_remote_user;
+              auth_request_set $groups $upstream_http_remote_groups;
+              auth_request_set $name $upstream_http_remote_name;
+              auth_request_set $email $upstream_http_remote_email;
 
-            ## Inject the metadata response headers from the variables into the request made to the backend.
-            proxy_set_header Remote-User $user;
-            proxy_set_header Remote-Groups $groups;
-            proxy_set_header Remote-Email $email;
-            proxy_set_header Remote-Name $name;
+              ## Inject the metadata response headers from the variables into the request made to the backend.
+              proxy_set_header Remote-User $user;
+              proxy_set_header Remote-Groups $groups;
+              proxy_set_header Remote-Email $email;
+              proxy_set_header Remote-Name $name;
 
-            ## Set the $redirection_url to the Location header of the response to the Authz endpoint.
-            auth_request_set $redirection_url $upstream_http_location;
+              ## Set the $redirection_url to the Location header of the response to the Authz endpoint.
+              auth_request_set $redirection_url $upstream_http_location;
 
-            ## Handle 401 errors - redirect to Authelia
-            error_page 401 =302 $redirection_url;
-          '');
+            ''
+            + (
+              if location.authelia.onUpstreamUnauthorized == null then
+                ''
+                  ## Handle 401 errors - redirect to Authelia
+                  error_page 401 =302 $redirection_url;
+                ''
+              else
+                ''
+                  ## Authelia's and the upstream's 401 both land here.
+                  proxy_intercept_errors on;
+                  error_page 401 = ${upstreamUnauthorizedLocation locationName};
+                ''
+            )
+          ));
       }
     ];
 
@@ -317,7 +346,7 @@ let
     serverAliases = builtins.tail vhost.domains;
     locations = lib.mkMerge (
       [
-        (builtins.mapAttrs (_: mkLocationConfig name vhost) vhost.locations)
+        (builtins.mapAttrs (mkLocationConfig name vhost) vhost.locations)
         { "/robots.txt".return = ''200 "${lib.replaceStrings [ "\n" ] [ "\\n" ] vhost.robots}"''; }
       ]
       # Anubis static assets - must be proxied to Anubis
@@ -327,6 +356,23 @@ let
           proxyWebsockets = true;
         };
       })
+      # Authelia admitted the request exactly when it named the user.
+      ++
+        lib.mapAttrsToList
+          (locationName: location: {
+            ${upstreamUnauthorizedLocation locationName}.extraConfig = ''
+              if ($user = "") {
+                return 302 $redirection_url;
+              }
+              ${location.authelia.onUpstreamUnauthorized}
+            '';
+          })
+          (
+            lib.filterAttrs (
+              _: location:
+              vhost.authelia && location.authelia.enable && location.authelia.onUpstreamUnauthorized != null
+            ) vhost.locations
+          )
       ++ (lib.optional vhost.authelia {
         "${autheliaApiPath}" = {
           proxyPass = config.codgician.services.authelia.instances.main.url + "/api/authz/auth-request"; # Use auth-request endpoint
