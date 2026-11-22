@@ -570,11 +570,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1795285569,
-        "narHash": "sha256-llkUgxfxLAoPXIEABMAXcblBItvMzsE43B4Z2uu7nUk=",
+        "lastModified": 1795364807,
+        "narHash": "sha256-sx8HN1QDpPJZtwbKqKoKUih/7CRNqC5/1jPZoDrxFpA=",
         "owner": "codgician",
         "repo": "nur-packages",
-        "rev": "080197db254b2834cf7d53a2958eef8b3970dc56",
+        "rev": "4b31d93099cfac8d650da508203f5f268a4ea1b8",
         "type": "github"
       },
       "original": {

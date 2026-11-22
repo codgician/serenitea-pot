@@ -151,6 +151,9 @@
     enable = true;
     targets = [ "0000:81:00.0" ];
     rtx4090dExperimental = true;
+    # NVIDIA loads in stage 2; keeps ~70 MB of firmware out of each initrd so
+    # two kernels fit on the 511 MB ESPs.
+    initrd = false;
   };
 
   # Same kernel and driver, without the experimental pre-driver transaction.
