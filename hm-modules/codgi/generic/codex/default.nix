@@ -44,7 +44,7 @@ in
           env_key = "OPENAI_API_KEY";
           wire_api = "responses";
         };
-        model = "gpt-6-astra";
+        model = "gpt-6.2-astra";
       }
       // lib.optionalAttrs agents.herdr.enable { features.hooks = true; };
     };

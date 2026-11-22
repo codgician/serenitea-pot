@@ -78,5 +78,6 @@
     "blender"
     "gns3"
     "sfm"
+    "motrix"
   ];
 }

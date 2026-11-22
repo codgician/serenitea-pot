@@ -40,7 +40,7 @@ in
       task = "dendro/claude-opus-5.5:medium";
       slow = "dendro/claude-opus-5.5:xhigh";
       plan = "dendro/claude-opus-5.5:xhigh";
-      advisor = "dendro/gpt-6.1-sol:high";
+      advisor = "dendro/gpt-6.2-sol:high";
       vision = "dendro/gpt-6.1-terra:medium";
       designer = "dendro/claude-opus-5.5:high";
       commit = "dendro/gpt-6-luna:low";
