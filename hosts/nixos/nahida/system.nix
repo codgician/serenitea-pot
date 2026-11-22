@@ -1,12 +1,8 @@
 {
-  config,
   lib,
   pkgs,
   ...
 }:
-let
-  dshPort = 3080;
-in
 {
   codgician = {
     services = {
@@ -70,6 +66,11 @@ in
         };
       };
 
+      dsh-web = {
+        enable = true;
+        user = "codgi";
+      };
+
       openvscode-server = {
         enable = true;
         user = "codgi";
@@ -79,17 +80,6 @@ in
       nginx = {
         enable = true;
         openFirewall = true;
-
-        # The dsh Web UI is a Home Manager service; its site is in the nginx module.
-        reverseProxies.dsh-web = {
-          proxyPass = "http://127.0.0.1:${toString dshPort}";
-          locations."/".extraConfig = ''
-            # dsh's initial URL contains a browser login token.
-            access_log off;
-            proxy_cookie_flags ~^dsh-auth- secure;
-            proxy_buffering off;
-          '';
-        };
       };
 
       nixos-vscode-server.enable = true;
@@ -117,13 +107,6 @@ in
       dev = {
         dotnet.enable = true;
         nix.enable = true;
-      };
-      dsh = {
-        enable = true;
-        web = {
-          domain = builtins.head config.codgician.services.nginx.reverseProxies.dsh-web.domains;
-          port = dshPort;
-        };
       };
       git.enable = true;
       github-copilot-cli.enable = true;

@@ -1,4 +1,4 @@
-# Sites no module owns: appliances, Proxmox VE, a Home Manager service.
+# Sites no module owns: appliances, Proxmox VE.
 # Declared here so that every host, and Authelia's, knows what they are.
 { lib, ... }:
 let
@@ -7,12 +7,6 @@ in
 {
   codgician.services.nginx.reverseProxies = {
     bubbles.domains = [ "bubbles.${zone}" ];
-
-    # The dsh Web UI, a Home Manager service on nahida.
-    dsh-web = {
-      domains = [ "moongazer.${zone}" ];
-      authelia.users = [ "codgi" ];
-    };
 
     hass.domains = [ "hass.${zone}" ];
 
