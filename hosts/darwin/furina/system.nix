@@ -14,6 +14,10 @@
     { pkgs, ... }:
     {
       codgician.codgi = {
+        antigravity = {
+          enable = true;
+          cli.enable = true;
+        };
         claude-code.enable = true;
         codex = {
           enable = true;
@@ -68,7 +72,6 @@
             mas
             sshpass
             firefox-bin
-            unstable.antigravity-cli
           ]
           ++ (with pkgs.nur.repos.codgician; [
             nanokvm-usb

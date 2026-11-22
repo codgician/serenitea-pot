@@ -19,7 +19,7 @@ in
       };
     };
 
-    # Agents without an upstream switch (droid) read programs.mcp.servers themselves.
+    # Agents not configured through their Home Manager module (droid, antigravity) read programs.mcp.servers themselves.
     programs.claude-code.enableMcpIntegration = true;
     programs.codex.enableMcpIntegration = true;
     programs.github-copilot-cli.enableMcpIntegration = true;

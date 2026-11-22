@@ -16,16 +16,20 @@ let
   // lib.optionalAttrs codgi.herdr.enable { herdr = codgi.herdr.package.src; };
 in
 rec {
-  enabledPackages = map (name: codgi.${name}.package) (
-    builtins.filter (name: codgi.${name}.enable) [
-      "claude-code"
-      "codex"
-      "droid"
-      "github-copilot-cli"
-      "oh-my-pi"
-      "pi-coding-agent"
-    ]
-  );
+  enabledPackages =
+    map (name: codgi.${name}.package) (
+      builtins.filter (name: codgi.${name}.enable) [
+        "claude-code"
+        "codex"
+        "droid"
+        "github-copilot-cli"
+        "oh-my-pi"
+        "pi-coding-agent"
+      ]
+    )
+    ++ lib.optional (
+      codgi.antigravity.enable && codgi.antigravity.cli.enable
+    ) codgi.antigravity.cli.package;
 
   # The LiteLLM proxy; the key is read at run time and never enters the store.
   # The litellm module names the site; a macOS host cannot read a NixOS module.
