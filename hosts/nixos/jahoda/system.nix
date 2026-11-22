@@ -11,6 +11,11 @@ in
     secrets.files.nats-controller-seed.owner = "codgi";
 
     services = {
+      dsh-web = {
+        enable = true;
+        user = "codgi";
+      };
+
       fcitx5.enable = true;
       nixos-vscode-server.enable = true;
       plasma = {

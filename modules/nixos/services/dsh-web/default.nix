@@ -29,6 +29,26 @@ let
     }
   ];
 
+  webCommand = lib.escapeShellArgs (
+    [
+      (lib.getExe hmCfg.codgician.codgi.dsh.wrappedPackage)
+      "web"
+      "--patch"
+      (toString webPatch)
+      "--host"
+      "127.0.0.1"
+      "--port"
+      (toString cfg.port)
+      "--no-open"
+    ]
+    ++ lib.optionals cfg.reverseProxy.enable [
+      "--public-url"
+      "https://${domain}/"
+      "--trusted-host"
+      domain
+    ]
+  );
+
   start = pkgs.writeShellScript "dsh-web-start" ''
     umask 027
     page=${lib.escapeShellArg launchPage}
@@ -43,23 +63,7 @@ let
         esac
       done
     )
-    exec ${
-      lib.escapeShellArgs [
-        (lib.getExe hmCfg.codgician.codgi.dsh.wrappedPackage)
-        "web"
-        "--patch"
-        (toString webPatch)
-        "--host"
-        "127.0.0.1"
-        "--port"
-        (toString cfg.port)
-        "--no-open"
-        "--public-url"
-        "https://${domain}/"
-        "--trusted-host"
-        domain
-      ]
-    }
+    exec ${webCommand}
   '';
 
   proxyConfig = ''
@@ -84,6 +88,8 @@ in
       default = 3080;
       description = "Loopback port for the dsh Web UI.";
     };
+
+    reverseProxy.enable = lib.mkEnableOption "the authenticated nginx proxy for the dsh Web UI";
   };
 
   config = lib.mkMerge [
@@ -102,8 +108,8 @@ in
         systemd.user.services.${serviceName} = {
           Unit.Description = "DeepSeek Harness Web UI";
           Service = {
-            ExecStart = toString start;
-            ExecStopPost = "${lib.getExe' pkgs.coreutils "rm"} -f ${launchPage}";
+            ExecStart = if cfg.reverseProxy.enable then toString start else webCommand;
+            ExecStopPost = lib.mkIf cfg.reverseProxy.enable "${lib.getExe' pkgs.coreutils "rm"} -f ${launchPage}";
             WorkingDirectory = "%h";
             Restart = "on-failure";
             RestartSec = "5s";
@@ -111,7 +117,9 @@ in
           Install.WantedBy = [ "default.target" ];
         };
       };
+    })
 
+    (lib.mkIf (cfg.enable && cfg.reverseProxy.enable) {
       codgician.services.nginx.reverseProxies.${serviceName} = {
         proxyPass = "http://127.0.0.1:${toString cfg.port}";
         locations = {

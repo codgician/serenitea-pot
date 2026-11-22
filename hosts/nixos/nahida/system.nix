@@ -69,6 +69,7 @@
       dsh-web = {
         enable = true;
         user = "codgi";
+        reverseProxy.enable = true;
       };
 
       openvscode-server = {
