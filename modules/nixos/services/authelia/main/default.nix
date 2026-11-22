@@ -91,6 +91,8 @@ in
 
         settings = {
           theme = "auto";
+          # nixpkgs defaults to debug, which logs every authorized URL with its query.
+          log.level = "info";
           server.address = "unix:///run/${serviceName}/${name}.sock?umask=0117";
           default_2fa_method = "webauthn";
 
