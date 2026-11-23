@@ -134,10 +134,13 @@ let
       callbacks = [ "claude_oauth_hook.proxy_handler_instance" ];
       drop_params = true;
       modify_params = true;
+      # Normalize request names before the router stamps spend metadata.
+      model_alias_map = aliasMap;
       request_timeout = requestTimeout;
       stream = true;
     };
     router_settings = {
+      # Keep aliases discoverable in /v1/models.
       model_group_alias = aliasMap;
       # Anthropic reports exhausted credits as HTTP 400; allow the next order.
       fallback_on_unsupported_params = true;
