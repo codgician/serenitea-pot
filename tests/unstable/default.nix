@@ -62,6 +62,8 @@ let
         set:
         packagesIn set (
           [
+            "hyprland"
+            "hyprlandPlugins.hyprgrass"
             "ollama"
             "litellm"
             "llama-cpp"

@@ -6,7 +6,14 @@
 }:
 let
   cfg = config.codgician.services.hyprland;
-  wallpaper = "${pkgs.hyprland}/share/hypr/wall2.png";
+  tomlFormat = pkgs.formats.toml { };
+  defaultWallpaper = "${pkgs.hyprland}/share/hypr/wall2.png";
+  effectiveWallpaper = if cfg.wallpaper != null then cfg.wallpaper else defaultWallpaper;
+
+  usersWithAvatars = lib.filterAttrs (
+    _: user: user.enable && user.avatar != null
+  ) config.codgician.users;
+
   monitorValueType =
     with lib.types;
     oneOf [
@@ -45,61 +52,75 @@ let
       };
     };
   };
-  # wlr-randr requires an exact refresh rate; selecting by resolution lets the
-  # compositor choose the preferred 4K refresh advertised by the monitor.
-  formatWlrMode = mode: builtins.head (lib.splitString "@" mode);
-  monitorToWlrArgs =
-    monitor:
-    lib.escapeShellArgs (
-      [
-        "--output"
-        monitor.output
-        "--on"
+
+  explicitMonitors = builtins.filter (monitor: monitor.output != "") cfg.monitors;
+  greeterOutputScales = lib.concatMapStringsSep "; " (
+    monitor: "${monitor.output}:${toString monitor.scale}"
+  ) (builtins.filter (monitor: monitor.scale != "auto") explicitMonitors);
+
+  greeterSettings = {
+    session.default = "Hyprland (UWSM)";
+    appearance = {
+      theme_mode = "dark";
+      font_family = "Noto Sans";
+      wallpaper = {
+        path = toString effectiveWallpaper;
+        fill_mode = "crop";
+      };
+    };
+    cursor = {
+      theme = "Adwaita";
+      size = 24;
+      path = "${pkgs.adwaita-icon-theme}/share/icons";
+    };
+    keyboard = {
+      layout = "us";
+      numlock = false;
+    };
+    idle.timeout = 300;
+  }
+  // lib.optionalAttrs (greeterOutputScales != "") {
+    output.scales = greeterOutputScales;
+  };
+
+  # greetd starts sessions with a stripped environment; ensure dbus-run-session
+  # and coreutils are on PATH for noctalia-greeter-session.
+  noctaliaGreeterSession = pkgs.writeShellScript "noctalia-greeter-launch" ''
+    export PATH="${
+      lib.makeBinPath [
+        pkgs.coreutils
+        pkgs.dbus
       ]
-      ++ lib.optionals (monitor.mode != "preferred") [
-        "--mode"
-        (formatWlrMode monitor.mode)
-      ]
-      ++ lib.optionals (monitor.position != "auto") [
-        "--pos"
-        (lib.replaceStrings [ "x" ] [ "," ] monitor.position)
-      ]
-      ++ lib.optionals (monitor.scale != "auto") [
-        "--scale"
-        (toString monitor.scale)
-      ]
-    );
-  greeterMonitorArgs = lib.concatMapStringsSep " " monitorToWlrArgs (
-    builtins.filter (monitor: monitor.output != "") cfg.monitors
-  );
-  regreetApp = pkgs.writeShellScript "regreet-with-layout" ''
-    ${lib.optionalString (
-      greeterMonitorArgs != ""
-    ) "${lib.getExe pkgs.wlr-randr} ${greeterMonitorArgs}"}
-    exec ${lib.getExe config.programs.regreet.package}
+    }:''${PATH:-/run/current-system/sw/bin}"
+    exec ${lib.getExe pkgs.noctalia-greeter}
   '';
-  regreetSession = pkgs.writeShellScript "regreet-session" ''
-    export SESSION_DIRS=${config.services.displayManager.sessionData.desktops}/share/wayland-sessions
-    exec ${pkgs.dbus}/bin/dbus-run-session ${lib.getExe pkgs.cage} ${lib.escapeShellArgs config.programs.regreet.cageArgs} -- ${regreetApp}
-  '';
+
+  # Use -F with an explicit compositor path so UWSM does not depend on
+  # XDG_DATA_DIRS being populated before greetd launches the session.
   hyprlandUwsmSession = pkgs.writeTextFile {
     name = "hyprland-uwsm-session";
-    destination = "/share/wayland-sessions/hyprland-uwsm.desktop";
+    destination = "/share/wayland-sessions/hyprland-uwsm-codgician.desktop";
     text = ''
       [Desktop Entry]
-      Name=Hyprland
+      Name=Hyprland (UWSM)
       Comment=Hyprland compositor managed by UWSM
-      Exec=${lib.getExe pkgs.uwsm} start -F -- /run/current-system/sw/bin/Hyprland
+      Exec=${lib.getExe pkgs.uwsm} start -F -- /run/current-system/sw/bin/start-hyprland
       TryExec=${lib.getExe pkgs.uwsm}
       DesktopNames=Hyprland
       Type=Application
     '';
-    derivationArgs.passthru.providedSessions = [ "hyprland-uwsm" ];
+    derivationArgs.passthru.providedSessions = [ "hyprland-uwsm-codgician" ];
   };
 in
 {
   options.codgician.services.hyprland = {
     enable = lib.mkEnableOption "Hyprland desktop session";
+
+    wallpaper = lib.mkOption {
+      type = lib.types.nullOr lib.types.path;
+      default = null;
+      description = "Wallpaper shared by Noctalia Greeter, desktop, and lock screen.";
+    };
 
     monitors = lib.mkOption {
       type = lib.types.listOf monitorType;
@@ -111,7 +132,7 @@ in
           scale = "auto";
         }
       ];
-      description = "Machine-specific monitor layout shared by ReGreet and Hyprland.";
+      description = "Machine-specific monitor layout shared by Noctalia Greeter and Hyprland.";
     };
   };
 
@@ -129,42 +150,22 @@ in
       };
       noctalia = {
         enable = true;
-        systemd.enable = true;
+        # Home Manager owns the user service so config.toml updates trigger restarts.
+        systemd.enable = false;
         recommendedServices.enable = true;
-      };
-      regreet = {
-        enable = true;
-        font = {
-          name = "Noto Sans";
-          package = pkgs.noto-fonts;
-          size = 14;
-        };
-        settings = {
-          skip_selection = false;
-          background = {
-            path = wallpaper;
-            fit = "Cover";
-          };
-          GTK.application_prefer_dark_theme = true;
-          appearance.greeting_msg = "Welcome back";
-          widget.clock = {
-            format = "%A, %B %-d  %I:%M %p";
-            resolution = "1s";
-          };
-        };
       };
     };
 
     services = {
+      accounts-daemon.enable = true;
+      fwupd.enable = true;
       greetd = {
         enable = true;
-        settings.default_session.command = lib.mkForce "${regreetSession}";
+        settings.default_session.command = lib.mkForce "${noctaliaGreeterSession}";
       };
-      # ReGreet must not offer the unmanaged Hyprland session: the user
-      # services below are attached to the graphical session started by UWSM.
       gvfs.enable = true;
       tumbler.enable = true;
-      displayManager.sessionPackages = lib.mkForce [ hyprlandUwsmSession ];
+      xserver.xkb.layout = "us";
 
       gnome = {
         gcr-ssh-agent.enable = true;
@@ -172,22 +173,60 @@ in
       };
     };
 
-    security = {
-      pam.services = {
-        hyprlock = { };
-        greetd.enableGnomeKeyring = true;
+    environment.sessionVariables = {
+      # Nixpkgs Electron wrappers use this to enable native Wayland and its IME protocol.
+      NIXOS_OZONE_WL = "1";
+      # Use Libadwaita-styled Wayland CSD titlebars for Qt5/Qt6 applications.
+      QT_WAYLAND_DECORATION = "adwaita";
+    };
+
+    # Unify Qt5/Qt6 with Noctalia's dynamic palette via qt5ct/qt6ct (Darkly on Qt6, Breeze on Qt5).
+    qt = {
+      enable = true;
+      platformTheme = "qt5ct";
+    };
+
+    security.pam.services.greetd.enableGnomeKeyring = true;
+
+    # gnome-keyring.portal restricts UseIn=gnome, so route Secret portal requests explicitly under Hyprland.
+    xdg.portal.config.hyprland = {
+      default = [
+        "hyprland"
+        "gtk"
+      ];
+      "org.freedesktop.impl.portal.Secret" = [ "gnome-keyring" ];
+    };
+
+    # Declarative greeter.toml for Noctalia Greeter; mutable sync/UI state lives in sync.toml.
+    systemd.tmpfiles.settings."10-noctalia-greeter" = {
+      "/var/lib/noctalia-greeter".d = {
+        user = "greeter";
+        group = "greeter";
+        mode = "0750";
+      };
+      "/var/lib/noctalia-greeter/greeter.toml"."L+" = {
+        argument = "${tomlFormat.generate "greeter.toml" greeterSettings}";
+        user = "greeter";
+        group = "greeter";
       };
     };
 
-    # ReGreet stores its remembered user and session in this directory. The
-    # upstream NixOS module already creates it through systemd-tmpfiles.
+    # Expose user avatars via AccountsService for Noctalia Greeter.
+    systemd.tmpfiles.rules = [
+      "d /var/lib/AccountsService/icons 0755 root root -"
+    ]
+    ++ lib.mapAttrsToList (
+      name: user: "L+ /var/lib/AccountsService/icons/${name} - - - - ${user.avatar}"
+    ) usersWithAvatars;
+
+    # Persist Noctalia Greeter mutable state (remembered user/session and synced palette).
     codgician.system.impermanence.extraItems = [
       {
-        path = "/var/lib/regreet";
+        path = "/var/lib/noctalia-greeter";
         type = "directory";
         user = "greeter";
         group = "greeter";
-        mode = "0755";
+        mode = "0750";
       }
     ];
 
@@ -198,9 +237,19 @@ in
     ];
 
     environment.systemPackages = with pkgs; [
+      adw-gtk3
+      darkly
+      hyprland-guiutils
       hyprland-qt-support
-      hyprland-qtutils
+      hyprlandUwsmSession
       hyprpwcenter
+      kdePackages.breeze.qt5
+      kdePackages.qqc2-desktop-style
+      noctalia-greeter
+      qadwaitadecorations
+      qadwaitadecorations-qt6
+      vulkan-tools
+      wayland-utils
     ];
   };
 }

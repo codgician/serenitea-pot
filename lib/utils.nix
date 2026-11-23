@@ -165,7 +165,10 @@ rec {
     home-manager:
     [
       home-manager.nixosModules.home-manager
-      (homeManagerDefaults [ inputs.plasma-manager.homeModules.plasma-manager ])
+      (homeManagerDefaults [
+        inputs.plasma-manager.homeModules.plasma-manager
+        inputs.noctalia.homeModules.default
+      ])
       outputs.modules.nixos
     ]
     ++ (with inputs; [

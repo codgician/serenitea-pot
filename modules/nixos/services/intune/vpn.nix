@@ -9,8 +9,10 @@ let
   connectionUuid = "b77a07c7-41b1-4932-b47e-c0d8fdd84c1e";
   plugin = cfg.packages.networkmanager-gpclient;
   singBoxTun = config.codgician.services.sing-box.tun;
+  # Chromium falls back to the basic plaintext store on Hyprland without an explicit backend.
+  edgeArgs = lib.optionalString config.codgician.services.hyprland.enable "--password-store=gnome-libsecret ";
   edge = pkgs.writeShellScript "msftvpn-edge" ''
-    exec ${pkgs.microsoft-edge}/bin/microsoft-edge-stable --profile-directory='Profile 1' "$@"
+    exec ${pkgs.microsoft-edge}/bin/microsoft-edge-stable ${edgeArgs}--profile-directory='Profile 1' "$@"
   '';
   # External gateways offered by the msftvpn-alt portal, in portal order.
   gateways = [

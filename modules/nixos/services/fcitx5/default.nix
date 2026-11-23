@@ -19,6 +19,7 @@ in
       type = "fcitx5";
       fcitx5 = {
         addons = [
+          pkgs.fcitx5-lua
           pkgs.fcitx5-rime
           pkgs.qt6Packages.fcitx5-chinese-addons
           pkgs.fcitx5-mellow-themes
