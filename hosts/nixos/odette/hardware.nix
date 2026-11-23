@@ -84,9 +84,6 @@ in
     zfs.package = pkgs.zfs_unstable;
   };
 
-  # flashrom's PCI ECAM access needs relaxed /dev/mem checks, only for updates.
-  specialisation.firmware-update.configuration.boot.kernelParams = [ "iomem=relaxed" ];
-
   services = {
     # Keep the Bluetooth pen independent of keyd's tablet-mode-disabled keyboard.
     udev.extraHwdb = ''
@@ -205,16 +202,9 @@ in
     rustFp
   ];
 
-  security = {
-    pam.services.kde-fingerprint.text = ''
-      auth    sufficient    ${rustFp}/lib/librust_fp_pam_module.so
-      account sufficient    ${rustFp}/lib/librust_fp_pam_module.so
-    '';
-
-    tpm2 = {
-      enable = true;
-      pkcs11.enable = true;
-    };
+  security.tpm2 = {
+    enable = true;
+    pkcs11.enable = true;
   };
 
   hardware = {

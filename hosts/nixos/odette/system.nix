@@ -11,9 +11,24 @@ in
     services = {
       fcitx5.enable = true;
       nixos-vscode-server.enable = true;
-      plasma = {
+      hyprland = {
         enable = true;
         inherit wallpaper;
+        monitors = [
+          {
+            output = "eDP-1";
+            mode = "2256x1504@60";
+            position = "auto";
+            # 188/120 divides 2256x1504 evenly into 1440x960; 1.5 leaves an unfilled right/bottom strip.
+            scale = 1.566667;
+          }
+          {
+            output = "";
+            mode = "preferred";
+            position = "auto";
+            scale = "auto";
+          }
+        ];
       };
       rasdaemon.enable = true;
       intune = {
@@ -88,15 +103,14 @@ in
         enable = true;
         defaultProfile = "github-copilot";
       };
-      plasma = {
+      hyprland = {
         inherit wallpaper;
-        scale = 1.5;
-        launchers = [
-          "applications:org.kde.dolphin.desktop"
-          "applications:microsoft-edge.desktop"
-          "applications:org.kde.konsole.desktop"
-          "applications:code.desktop"
-          "applications:teams-for-linux.desktop"
+        favoriteApps = [
+          "org.gnome.Nautilus.desktop"
+          "microsoft-edge.desktop"
+          "com.mitchellh.ghostty.desktop"
+          "code.desktop"
+          "teams-for-linux.desktop"
         ];
       };
       pwsh.enable = true;
@@ -120,25 +134,8 @@ in
     };
     xdg.configFile."mimeapps.list".force = true;
 
-    # HP Elite Dragonfly Chromebook's ELAN touchpad. Plasma on Wayland
-    # reads input settings from kcminputrc (via KWin/libinput), not from
-    # `services.libinput.*`, which only applies under Xorg.
-    programs.plasma.input.touchpads = [
-      {
-        name = "ELAN2703:00 04F3:323B Touchpad";
-        vendorId = "04F3";
-        productId = "323B";
-        naturalScroll = true;
-        tapToClick = false;
-      }
-    ];
-
-    # Keep existing lid/idle policies, but use battery-aware sleep in every profile.
-    programs.plasma.powerdevil = {
-      AC.whenSleepingEnter = "standbyThenHibernate";
-      battery.whenSleepingEnter = "standbyThenHibernate";
-      lowBattery.whenSleepingEnter = "standbyThenHibernate";
-    };
+    # Match odette's ELAN haptic touchpad preference (no tap-to-click).
+    wayland.windowManager.hyprland.settings.config.input.touchpad.tap_to_click = lib.mkForce false;
 
     home.stateVersion = "26.05";
     home.packages = with pkgs; [
@@ -179,8 +176,8 @@ in
     theme = "nixos-bgrt";
     themePackages = [ pkgs.nixos-bgrt-plymouth ];
     # Auto-detected DeviceScale defaults to 2 on this 201 DPI panel, but
-    # Plymouth only supports integer scaling (no 1.5 like the Plasma
-    # session), so pin it to 1 to keep boot splash/prompt text a sane size.
+    # Plymouth only supports integer scaling, so pin it to 1 to keep boot
+    # splash/prompt text a sane size.
     extraConfig = ''
       DeviceScale=1
     '';
@@ -200,15 +197,14 @@ in
 
   networking.hostId = "000de77e";
 
-  # Global packages
+  # Chromium falls back to the basic plaintext store on Hyprland without an explicit backend.
   environment.systemPackages = with pkgs; [
-    google-chrome
-    microsoft-edge
+    (google-chrome.override { commandLineArgs = "--password-store=gnome-libsecret"; })
+    (microsoft-edge.override { commandLineArgs = "--password-store=gnome-libsecret"; })
   ];
 
   zramSwap.enable = true;
 
-  # Outside Plasma, logind handles lid and suspend-key requests directly.
   # Leave HibernateDelaySec unset: systemd hibernates on low battery, not a timer.
   services.logind.settings.Login = {
     HandleLidSwitch = "suspend-then-hibernate";
