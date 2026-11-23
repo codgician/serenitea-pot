@@ -22,6 +22,18 @@ let
       fi
     ''
   ) usersWithAvatars;
+  # rime-ice renames upstream default.yaml to rime_ice_suggestion.yaml; expose it
+  # as default.yaml in the shared Rime data dir so rime_ice works out of the box.
+  rimeIceDefault = pkgs.runCommand "rime-ice-default" { } ''
+    mkdir -p $out/share/rime-data
+    cp ${pkgs.rime-ice}/share/rime-data/rime_ice_suggestion.yaml $out/share/rime-data/default.yaml
+  '';
+  ibusRime = pkgs.ibus-engines.rime.override {
+    rimeDataPkgs = [
+      pkgs.rime-ice
+      rimeIceDefault
+    ];
+  };
 in
 {
   options.codgician.services.gnome = {
@@ -36,13 +48,16 @@ in
 
   config = lib.mkIf cfg.enable {
     services = {
-      xserver.enable = true;
+      xserver = {
+        enable = true;
+        xkb.layout = "us";
+      };
+
+      fwupd.enable = true;
+
       displayManager = {
         defaultSession = "gnome";
-
-        gdm = {
-          enable = true;
-        };
+        gdm.enable = true;
 
         autoLogin = lib.mkIf (cfg.autoLoginUser != null) {
           enable = true;
@@ -74,20 +89,51 @@ in
       };
     };
 
-    # Enable dconf
-    programs.dconf.enable = true;
+    programs = {
+      dconf.enable = true;
 
-    # Enable "Open in Terminal" context menu in Nautilus
-    programs.nautilus-open-any-terminal = {
-      enable = true;
-      terminal = "kgx"; # GNOME Console
+      # Open KDE Connect firewall ports for GSConnect without installing the KDE daemon.
+      kdeconnect = {
+        enable = true;
+        package = pkgs.gnomeExtensions.gsconnect;
+      };
+
+      # Enable "Open in Terminal" context menu in Nautilus.
+      nautilus-open-any-terminal = {
+        enable = true;
+        terminal = "kgx";
+      };
     };
 
-    # Enable PAM auto-unlock for gnome-keyring (required for credential storage)
-    security.pam.services.gdm-password.enableGnomeKeyring = true;
+    # Prefer native IBus with Rime-Ice under GNOME unless Fcitx 5 is explicitly enabled.
+    i18n.inputMethod = lib.mkIf (!config.codgician.services.fcitx5.enable) {
+      enable = true;
+      type = "ibus";
+      ibus = {
+        waylandFrontend = true;
+        engines = [
+          ibusRime
+          pkgs.ibus-engines.libpinyin
+        ];
+      };
+    };
 
-    # Configure keymap in X11
-    services.xserver.xkb.layout = "us";
+    environment.sessionVariables = {
+      # Nixpkgs Electron wrappers use this to enable native Wayland and its IME protocol.
+      NIXOS_OZONE_WL = "1";
+      # Use Libadwaita-styled Wayland CSD titlebars for Qt5/Qt6 applications.
+      QT_WAYLAND_DECORATION = "adwaita";
+    };
+
+    # Unify Qt5/Qt6 look and Wayland decorations with GNOME Adwaita.
+    qt = {
+      enable = true;
+      platformTheme = "gnome";
+      style = "adwaita-dark";
+    };
+
+    # Enable PAM auto-unlock for gnome-keyring (required for credential storage).
+    security.pam.services.gdm-password.enableGnomeKeyring = true;
 
     # GNOME and GDM read IconFile from AccountsService. SetIconFile preserves
     # AccountsService's other mutable per-user settings while updating the icon.
@@ -118,15 +164,28 @@ in
     xdg.portal = {
       enable = true;
       extraPortals = with pkgs; [ xdg-desktop-portal-gnome ];
-      wlr.enable = true;
     };
 
-    # Install optional dependencies
+    # Persist GNOME Remote Desktop credentials and TLS certificates.
+    codgician.system.impermanence.extraItems = [
+      {
+        path = "/var/lib/gnome-remote-desktop";
+        type = "directory";
+        user = "gnome-remote-desktop";
+        group = "gnome-remote-desktop";
+        mode = "0700";
+      }
+    ];
+
     environment.systemPackages = with pkgs; [
-      pciutils
-      usbutils
+      clinfo
       mesa-demos
+      pciutils
+      qadwaitadecorations
+      qadwaitadecorations-qt6
+      usbutils
       vulkan-tools
+      wayland-utils
     ];
   };
 }
