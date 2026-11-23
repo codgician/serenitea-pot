@@ -11,9 +11,22 @@ let
   # sorted, which matches upstream's `0001-…`, `0002-…` ordering. Enumerate
   # the original source to avoid import-from-derivation during evaluation.
   patchDir = "${inputs.cix-linux-main}/patches-6.18";
+
+  # Upstream patches whose context no longer matches linux-6.18.y, replaced in
+  # place so later patches still apply on top of them. Drop each entry once
+  # cix-linux-main rebases it.
+  refreshedPatches = {
+    # 6.18.64 appended ALC245_FIXUP_ACER_MICMUTE_LED to the alc269 fixup
+    # enum and table, which the CIX Sky1 fixups anchor on.
+    "00135-DPTSW-26459-sound-hda-rework-cix-ipbloq-based-on-mai.patch" = ./hda-cix-ipbloq-rework.patch;
+    # 6.18.64 backported the removal of `struct cdns_plat_pcie`, which
+    # preceded the `cdns_plat_pcie_of_data` definition this patch moves.
+    "00304-PCI-cadence-Add-support-for-High-Perf-Architecture-H.patch" = ./pci-cadence-hpa.patch;
+  };
+
   cixPatches = map (name: {
     inherit name;
-    patch = "${patchDir}/${name}";
+    patch = refreshedPatches.${name} or "${patchDir}/${name}";
   }) (builtins.filter (lib.hasSuffix ".patch") (lib.codgician.getRegularFileNames patchDir));
 
   localPatches = [
