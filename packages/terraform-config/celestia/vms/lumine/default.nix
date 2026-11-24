@@ -36,6 +36,7 @@ in
           name = "lumine-sda";
           caching = "ReadWrite";
           storage_account_type = "StandardSSD_LRS";
+          disk_size_gb = 72;
         }
       ];
 
