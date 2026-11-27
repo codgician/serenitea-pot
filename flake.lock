@@ -37,11 +37,11 @@
     "cix-linux-main": {
       "flake": false,
       "locked": {
-        "lastModified": 1793954553,
-        "narHash": "sha256-CarbWKypeOnW5GdAfeJBWI0zrYhX9X8J+j1/BxMp+ZI=",
+        "lastModified": 1795679634,
+        "narHash": "sha256-T2XjYV4LafqzTnjhpY/+rKsgjNFdUkJRl3z1DTCSYvM=",
         "owner": "cixtech",
         "repo": "cix-linux-main",
-        "rev": "21ac2e7346a24c47f96e7bec91ca0e869c88c8ef",
+        "rev": "3d5f8237c5a84629efb55c2c103806c00f94f161",
         "type": "github"
       },
       "original": {
@@ -255,11 +255,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1795618997,
-        "narHash": "sha256-d9Osol//t6hqeo1xlspsYMbhTJK507h6t0EmPyF5Db0=",
+        "lastModified": 1795713076,
+        "narHash": "sha256-GUY/RHSSnAJKKI3xk7xrSXrsXFgIOgFrRJOD4uub5J8=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "6a13737c0ed27c7c285f59e3be423ed972aa605f",
+        "rev": "361da94fb55c67094ec47322d2757d6616a0de92",
         "type": "github"
       },
       "original": {
@@ -338,11 +338,11 @@
         "treefmt-nix": "treefmt-nix"
       },
       "locked": {
-        "lastModified": 1795646831,
-        "narHash": "sha256-mflJ5QNbjclR5FP3VhdH7FJApb6Y4e6r7vp6z4jQ34w=",
+        "lastModified": 1795702923,
+        "narHash": "sha256-OvSz3gO7ualG+RziLMyiKecxfkqVlt43YUzAbh/+UwU=",
         "owner": "numtide",
         "repo": "llm-agents.nix",
-        "rev": "9e9dbfefcc517757fe34bc82904e347a5ddbc6c8",
+        "rev": "9e137fb04294426cdd3a8f97d5a6835c9124e13f",
         "type": "github"
       },
       "original": {
@@ -381,11 +381,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1795593260,
-        "narHash": "sha256-GVOIipCTl33b8GMZY8MJHiBcGmyLLpwY+zbs7jjMWFw=",
+        "lastModified": 1795679147,
+        "narHash": "sha256-cfkui25akpB0JXG14uytHgM7OM+QXvtjEpkf8eq5jJ0=",
         "owner": "nix-community",
         "repo": "nix-vscode-extensions",
-        "rev": "93dd69e74a0787e0e7cd17ef20b79204919ccc5b",
+        "rev": "d402f63141df1d9c8504666a162e59d1fc3d6aac",
         "type": "github"
       },
       "original": {
@@ -481,11 +481,11 @@
     },
     "nixpkgs-master": {
       "locked": {
-        "lastModified": 1795653593,
-        "narHash": "sha256-dS2FFCjtTnI55iuzJKNkeHV8Z4A3Rr9uFSNAidrdWgc=",
+        "lastModified": 1795740284,
+        "narHash": "sha256-6PCxI+8QIvI8xWkhJdmbMsa3QnOTuNfxqzjyfqoU3rs=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "2443b1dfdad96f841268a2a7d10e228c73b3021e",
+        "rev": "232f92189d262215143462dd628dfdbaf4d98518",
         "type": "github"
       },
       "original": {
@@ -549,11 +549,11 @@
         "nixpkgs": "nixpkgs_2"
       },
       "locked": {
-        "lastModified": 1795614498,
-        "narHash": "sha256-HgJ/d9CgRfMbjj1yhiLZrtl1danFXH2tXqOdwnQn0gI=",
+        "lastModified": 1795735096,
+        "narHash": "sha256-ib2e733yMWJdVN58/jF+K0fGAZHMTJhcGyGfvu0/4fQ=",
         "owner": "noctalia-dev",
         "repo": "noctalia",
-        "rev": "30254799f51c6bdb06fa21936e36214c93a455b5",
+        "rev": "54958562e9f8a83aaa07eba7c0ff353ba45b1167",
         "type": "github"
       },
       "original": {
@@ -570,11 +570,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1795636182,
-        "narHash": "sha256-af6Vs/fDS24azdupiB0mhWGvBdCwWvhyqPh8hLELpd4=",
+        "lastModified": 1795720515,
+        "narHash": "sha256-spnzRegWqIGqfeYAwxhcnQ9HJ0mnZV9O5b17L8K1deM=",
         "owner": "codgician",
         "repo": "nur-packages",
-        "rev": "6f0c5b81e1dda54bca1759e5ea2c8909e4dda61f",
+        "rev": "983615549194c9f3f14f9ead6dd138512ae13b92",
         "type": "github"
       },
       "original": {
@@ -642,11 +642,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794809929,
-        "narHash": "sha256-2oA1uPtWC8TzV5ln6fbKI+4OdH9/l/sbCO5+srULnio=",
+        "lastModified": 1795717736,
+        "narHash": "sha256-FbK/CZgPBrlXjneVXuU2coM4zd5VwlwcBlvW60P9rto=",
         "owner": "codgician",
         "repo": "proxmox-nixos",
-        "rev": "e6c8ea3025cc0a64ec6fcb146dc27391fd527b08",
+        "rev": "e130523f8dc461088fdd3e936fc57bdd4278b138",
         "type": "github"
       },
       "original": {
