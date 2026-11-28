@@ -7,10 +7,7 @@
 }:
 rec {
   # List of supported systems
-  darwinSystems = [
-    "aarch64-darwin"
-    "x86_64-darwin"
-  ];
+  darwinSystems = [ "aarch64-darwin" ];
   linuxSystems = [
     "aarch64-linux"
     "x86_64-linux"
@@ -33,17 +30,6 @@ rec {
     };
   };
 
-  # nixpkgs dropped x86_64-darwin after 26.05, so there every channel is the
-  # previous release, which is then its own unstable and master.
-  prevChannel = {
-    lib = mkLib inputs.nixpkgs-prev;
-    nixpkgs = inputs.nixpkgs-prev;
-    home-manager = inputs.home-manager-prev;
-    darwin = inputs.darwin-prev;
-  };
-  getChannel =
-    channelName: system: if system == "x86_64-darwin" then prevChannel else channels.${channelName};
-
   # Overlays applied to every package set, including `pkgs.master`
   getCommonOverlays =
     system:
@@ -53,10 +39,8 @@ rec {
     ]
     ++ lib.optional (isLinuxSystem system) inputs.proxmox-nixos.overlays.${system};
 
-  isUnstable = channelName: system: channelName == "unstable" || system == "x86_64-darwin";
-
   masterOverlay = system: final: prev: {
-    master = import (if system == "x86_64-darwin" then inputs.nixpkgs-prev else inputs.nixpkgs-master) {
+    master = import inputs.nixpkgs-master {
       inherit system;
       config = {
         allowUnfree = true;
@@ -104,8 +88,8 @@ rec {
   mkPkgs =
     channelName: system: config:
     let
-      channel = getChannel channelName system;
-      own = isUnstable channelName system;
+      channel = channels.${channelName};
+      own = channelName == "unstable";
       unstable =
         if own then
           null
@@ -204,7 +188,7 @@ rec {
     }:
     let
       channelName = if stable then "stable" else "unstable";
-      channel = getChannel channelName system;
+      channel = channels.${channelName};
     in
     channel.darwin.lib.darwinSystem {
       inherit system;
@@ -239,7 +223,7 @@ rec {
     }:
     let
       channelName = if stable then "stable" else "unstable";
-      channel = getChannel channelName system;
+      channel = channels.${channelName};
     in
     channel.nixpkgs.lib.nixosSystem {
       inherit system;

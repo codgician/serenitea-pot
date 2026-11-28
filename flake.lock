@@ -100,27 +100,6 @@
         "type": "github"
       }
     },
-    "darwin-prev": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs-prev"
-        ]
-      },
-      "locked": {
-        "lastModified": 1792800221,
-        "narHash": "sha256-53jIZEWNh96irEXhsMZFoNhLJgGSU3nYl1i4wFQHAsU=",
-        "owner": "lnl7",
-        "repo": "nix-darwin",
-        "rev": "d31953cf55f9027a56e9be938daf5db8c5655663",
-        "type": "github"
-      },
-      "original": {
-        "owner": "lnl7",
-        "ref": "nix-darwin-26.05",
-        "repo": "nix-darwin",
-        "type": "github"
-      }
-    },
     "darwin-unstable": {
       "inputs": {
         "nixpkgs": [
@@ -263,27 +242,6 @@
       },
       "original": {
         "owner": "nix-community",
-        "repo": "home-manager",
-        "type": "github"
-      }
-    },
-    "home-manager-prev": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs-prev"
-        ]
-      },
-      "locked": {
-        "lastModified": 1795325060,
-        "narHash": "sha256-XYoMPsqRFZ6jOaYI1KAAu8fzqif4tkCX8mhEKrViDXQ=",
-        "owner": "nix-community",
-        "repo": "home-manager",
-        "rev": "6480d7d8533b88c78cc6dcda395ab89cd546e450",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nix-community",
-        "ref": "release-26.05",
         "repo": "home-manager",
         "type": "github"
       }
@@ -716,14 +674,12 @@
       "inputs": {
         "cix-linux-main": "cix-linux-main",
         "darwin": "darwin",
-        "darwin-prev": "darwin-prev",
         "darwin-unstable": "darwin-unstable",
         "disko": "disko",
         "flake-compat": "flake-compat",
         "flake-parts": "flake-parts",
         "flake-utils": "flake-utils",
         "home-manager": "home-manager",
-        "home-manager-prev": "home-manager-prev",
         "home-manager-unstable": "home-manager-unstable",
         "impermanence": "impermanence",
         "lanzaboote": "lanzaboote",

@@ -9,8 +9,6 @@ let
   # instantiate nixpkgs, since nix probes `packages.<system>` to resolve every
   # installable, including `.#nixosConfigurations.<host>`.
   unsupportedSystems = {
-    docs-darwin = [ "x86_64-darwin" ];
-    docs-nixos = [ "x86_64-darwin" ];
     installer-iso = lib.codgician.darwinSystems;
     installer-iso-gui = lib.codgician.darwinSystems;
   };
