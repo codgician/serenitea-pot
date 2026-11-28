@@ -84,10 +84,8 @@
   };
 
   # Logitech
-  hardware.logitech.wireless = {
-    enable = true;
-    enableGraphical = true;
-  };
+  hardware.logitech.wireless.enable = true;
+  programs.solaar.enable = true;
 
   # Global packages
   environment.systemPackages = with pkgs; [

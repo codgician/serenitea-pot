@@ -23,7 +23,7 @@ in
       extraConfig = ''
         IdentityFile ~/.ssh/id_ed25519
       ''
-      + lib.optionalString pkgs.stdenvNoCC.isDarwin ''
+      + lib.optionalString pkgs.stdenvNoCC.hostPlatform.isDarwin ''
         IgnoreUnknown UseKeychain
         UseKeychain yes
       '';
@@ -55,7 +55,7 @@ in
     # activation time, so the native ssh-agent has them without a prompt.
     # First-ever save still happens on first interactive use (or once via
     # `ssh-add --apple-use-keychain ~/.ssh/id_ed25519`). Idempotent.
-    home.activation.sshLoadKeychain = lib.mkIf pkgs.stdenvNoCC.isDarwin (
+    home.activation.sshLoadKeychain = lib.mkIf pkgs.stdenvNoCC.hostPlatform.isDarwin (
       lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         if [ -f "$HOME/.ssh/id_ed25519" ]; then
           run /usr/bin/ssh-add --apple-load-keychain 2>/dev/null || true

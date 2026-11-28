@@ -87,6 +87,26 @@
         ]
       },
       "locked": {
+        "lastModified": 1795747999,
+        "narHash": "sha256-VTPsIOYem/zQCO1QF3cpa4pLg2EoexjX5R1u3fs3L4k=",
+        "owner": "lnl7",
+        "repo": "nix-darwin",
+        "rev": "594c680c429be020d7130cc2b17d43c4760d17c7",
+        "type": "github"
+      },
+      "original": {
+        "owner": "lnl7",
+        "repo": "nix-darwin",
+        "type": "github"
+      }
+    },
+    "darwin-26_05": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs-26_05"
+        ]
+      },
+      "locked": {
         "lastModified": 1792800221,
         "narHash": "sha256-53jIZEWNh96irEXhsMZFoNhLJgGSU3nYl1i4wFQHAsU=",
         "owner": "lnl7",
@@ -231,6 +251,26 @@
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1795827905,
+        "narHash": "sha256-Udjs2j0EkvK+qGXKHRIQwXWRgzNBIl4oXSUktuOzbmQ=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "5f5abf5eb8de62d954232f3797b5bf4505656b91",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "home-manager-26_05": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs-26_05"
         ]
       },
       "locked": {
@@ -418,6 +458,22 @@
       }
     },
     "nixpkgs": {
+      "locked": {
+        "lastModified": 1795763722,
+        "narHash": "sha256-FYbng0lZRzK5tzPkVpIFnlgf3Do85ginlI9wtpoL36E=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "2289992d5d1e9aba2836f694017a31f7e0c26327",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-26.11-small",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-26_05": {
       "locked": {
         "lastModified": 1795502373,
         "narHash": "sha256-CiSQ3/bsP5gXG2SQzOgwhqwl9MkBRhQQqJd3YmpaYL4=",
@@ -635,7 +691,7 @@
         ],
         "nixpkgs-libvncserver": "nixpkgs-libvncserver",
         "nixpkgs-stable": [
-          "nixpkgs"
+          "nixpkgs-26_05"
         ],
         "utils": [
           "flake-utils"
@@ -660,12 +716,14 @@
       "inputs": {
         "cix-linux-main": "cix-linux-main",
         "darwin": "darwin",
+        "darwin-26_05": "darwin-26_05",
         "darwin-unstable": "darwin-unstable",
         "disko": "disko",
         "flake-compat": "flake-compat",
         "flake-parts": "flake-parts",
         "flake-utils": "flake-utils",
         "home-manager": "home-manager",
+        "home-manager-26_05": "home-manager-26_05",
         "home-manager-unstable": "home-manager-unstable",
         "impermanence": "impermanence",
         "lanzaboote": "lanzaboote",
@@ -674,6 +732,7 @@
         "nix-vscode-extensions": "nix-vscode-extensions",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs",
+        "nixpkgs-26_05": "nixpkgs-26_05",
         "nixpkgs-master": "nixpkgs-master",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "nixvirt": "nixvirt",

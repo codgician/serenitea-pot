@@ -33,6 +33,17 @@ rec {
     };
   };
 
+  # nixpkgs dropped x86_64-darwin after 26.05, so there every channel is that
+  # release, which is then its own unstable and master.
+  darwin26_05 = {
+    lib = mkLib inputs.nixpkgs-26_05;
+    nixpkgs = inputs.nixpkgs-26_05;
+    home-manager = inputs.home-manager-26_05;
+    darwin = inputs.darwin-26_05;
+  };
+  getChannel =
+    channelName: system: if system == "x86_64-darwin" then darwin26_05 else channels.${channelName};
+
   # Overlays applied to every package set, including `pkgs.master`
   getCommonOverlays =
     system:
@@ -42,21 +53,21 @@ rec {
     ]
     ++ lib.optional (isLinuxSystem system) inputs.proxmox-nixos.overlays.${system};
 
-  # nixpkgs unstable and master no longer support x86_64-darwin after 26.05,
-  # so there they resolve to the release, which is then its own unstable.
   isUnstable = channelName: system: channelName == "unstable" || system == "x86_64-darwin";
 
   masterOverlay = system: final: prev: {
-    master = import (if system == "x86_64-darwin" then inputs.nixpkgs else inputs.nixpkgs-master) {
-      inherit system;
-      config = {
-        allowUnfree = true;
-        # Inherit CUDA/ROCm config from the package set it is added to
-        cudaSupport = prev.config.cudaSupport or false;
-        rocmSupport = prev.config.rocmSupport or false;
-      };
-      overlays = getCommonOverlays system;
-    };
+    master =
+      import (if system == "x86_64-darwin" then inputs.nixpkgs-26_05 else inputs.nixpkgs-master)
+        {
+          inherit system;
+          config = {
+            allowUnfree = true;
+            # Inherit CUDA/ROCm config from the package set it is added to
+            cudaSupport = prev.config.cudaSupport or false;
+            rocmSupport = prev.config.rocmSupport or false;
+          };
+          overlays = getCommonOverlays system;
+        };
   };
 
   # Overlays take packages from `unstable` only through these, each an overlay
@@ -95,7 +106,7 @@ rec {
   mkPkgs =
     channelName: system: config:
     let
-      channel = channels.${channelName};
+      channel = getChannel channelName system;
       own = isUnstable channelName system;
       unstable =
         if own then
@@ -195,7 +206,7 @@ rec {
     }:
     let
       channelName = if stable then "stable" else "unstable";
-      channel = channels.${channelName};
+      channel = getChannel channelName system;
     in
     channel.darwin.lib.darwinSystem {
       inherit system;
@@ -230,7 +241,7 @@ rec {
     }:
     let
       channelName = if stable then "stable" else "unstable";
-      channel = channels.${channelName};
+      channel = getChannel channelName system;
     in
     channel.nixpkgs.lib.nixosSystem {
       inherit system;

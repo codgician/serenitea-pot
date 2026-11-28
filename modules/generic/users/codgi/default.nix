@@ -7,7 +7,7 @@
 let
   name = builtins.baseNameOf ./.;
   pubKeys = import (lib.codgician.secretsDir + "/pubkeys.nix");
-  inherit (pkgs.stdenvNoCC) isDarwin isLinux;
+  inherit (pkgs.stdenvNoCC.hostPlatform) isDarwin isLinux;
 in
 {
   users.users.codgi = lib.mkMerge [
@@ -22,7 +22,7 @@ in
     }
 
     # Linux-specific configurations
-    (lib.mkIf pkgs.stdenvNoCC.isLinux {
+    (lib.mkIf isLinux {
       isNormalUser = true;
       linger = true;
     })

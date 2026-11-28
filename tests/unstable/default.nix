@@ -76,7 +76,6 @@ let
           ]
           ++ lib.optionals (system == "x86_64-linux") [
             "docling-serve"
-            "bilibili"
             "microsoft-identity-broker"
             "unstable.splayer-next"
           ]

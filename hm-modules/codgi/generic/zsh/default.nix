@@ -19,7 +19,7 @@ in
         plugins = [
           "git"
         ]
-        ++ lib.optionals pkgs.stdenvNoCC.isDarwin [
+        ++ lib.optionals pkgs.stdenvNoCC.hostPlatform.isDarwin [
           "macos"
         ];
         theme = "half-life";
@@ -28,7 +28,7 @@ in
       initContent = ''
         zstyle :omz:plugins:ssh-agent quiet yes
       ''
-      + lib.optionalString pkgs.stdenvNoCC.isDarwin (
+      + lib.optionalString pkgs.stdenvNoCC.hostPlatform.isDarwin (
         lib.optionalString osConfig.homebrew.enable ''
           if [ -f /opt/homebrew/bin/brew ]; then 
             eval "$(/opt/homebrew/bin/brew shellenv)"
