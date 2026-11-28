@@ -33,16 +33,16 @@ rec {
     };
   };
 
-  # nixpkgs dropped x86_64-darwin after 26.05, so there every channel is that
-  # release, which is then its own unstable and master.
-  darwin26_05 = {
-    lib = mkLib inputs.nixpkgs-26_05;
-    nixpkgs = inputs.nixpkgs-26_05;
-    home-manager = inputs.home-manager-26_05;
-    darwin = inputs.darwin-26_05;
+  # nixpkgs dropped x86_64-darwin after 26.05, so there every channel is the
+  # previous release, which is then its own unstable and master.
+  prevChannel = {
+    lib = mkLib inputs.nixpkgs-prev;
+    nixpkgs = inputs.nixpkgs-prev;
+    home-manager = inputs.home-manager-prev;
+    darwin = inputs.darwin-prev;
   };
   getChannel =
-    channelName: system: if system == "x86_64-darwin" then darwin26_05 else channels.${channelName};
+    channelName: system: if system == "x86_64-darwin" then prevChannel else channels.${channelName};
 
   # Overlays applied to every package set, including `pkgs.master`
   getCommonOverlays =
@@ -56,18 +56,16 @@ rec {
   isUnstable = channelName: system: channelName == "unstable" || system == "x86_64-darwin";
 
   masterOverlay = system: final: prev: {
-    master =
-      import (if system == "x86_64-darwin" then inputs.nixpkgs-26_05 else inputs.nixpkgs-master)
-        {
-          inherit system;
-          config = {
-            allowUnfree = true;
-            # Inherit CUDA/ROCm config from the package set it is added to
-            cudaSupport = prev.config.cudaSupport or false;
-            rocmSupport = prev.config.rocmSupport or false;
-          };
-          overlays = getCommonOverlays system;
-        };
+    master = import (if system == "x86_64-darwin" then inputs.nixpkgs-prev else inputs.nixpkgs-master) {
+      inherit system;
+      config = {
+        allowUnfree = true;
+        # Inherit CUDA/ROCm config from the package set it is added to
+        cudaSupport = prev.config.cudaSupport or false;
+        rocmSupport = prev.config.rocmSupport or false;
+      };
+      overlays = getCommonOverlays system;
+    };
   };
 
   # Overlays take packages from `unstable` only through these, each an overlay

@@ -20,8 +20,8 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.11-small";
-    # nixpkgs dropped x86_64-darwin after 26.05; proxmox-nixos still builds against it.
-    nixpkgs-26_05.url = "github:NixOS/nixpkgs/nixos-26.05";
+    # Previous release: nixpkgs dropped x86_64-darwin after it; proxmox-nixos still builds against it.
+    nixpkgs-prev.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-master.url = "github:NixOS/nixpkgs/master";
     llm-agents = {
@@ -42,7 +42,7 @@
     proxmox-nixos = {
       url = "github:codgician/proxmox-nixos/my";
       inputs = {
-        nixpkgs-stable.follows = "nixpkgs-26_05";
+        nixpkgs-stable.follows = "nixpkgs-prev";
         flake-compat.follows = "flake-compat";
         utils.follows = "flake-utils";
       };
@@ -54,9 +54,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    darwin-26_05 = {
+    darwin-prev = {
       url = "github:lnl7/nix-darwin/nix-darwin-26.05";
-      inputs.nixpkgs.follows = "nixpkgs-26_05";
+      inputs.nixpkgs.follows = "nixpkgs-prev";
     };
 
     darwin-unstable = {
@@ -70,9 +70,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    home-manager-26_05 = {
+    home-manager-prev = {
       url = "github:nix-community/home-manager/release-26.05";
-      inputs.nixpkgs.follows = "nixpkgs-26_05";
+      inputs.nixpkgs.follows = "nixpkgs-prev";
     };
 
     home-manager-unstable = {

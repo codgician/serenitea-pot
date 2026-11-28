@@ -100,10 +100,10 @@
         "type": "github"
       }
     },
-    "darwin-26_05": {
+    "darwin-prev": {
       "inputs": {
         "nixpkgs": [
-          "nixpkgs-26_05"
+          "nixpkgs-prev"
         ]
       },
       "locked": {
@@ -267,10 +267,10 @@
         "type": "github"
       }
     },
-    "home-manager-26_05": {
+    "home-manager-prev": {
       "inputs": {
         "nixpkgs": [
-          "nixpkgs-26_05"
+          "nixpkgs-prev"
         ]
       },
       "locked": {
@@ -473,22 +473,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-26_05": {
-      "locked": {
-        "lastModified": 1795502373,
-        "narHash": "sha256-CiSQ3/bsP5gXG2SQzOgwhqwl9MkBRhQQqJd3YmpaYL4=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "5b31ff946309736077f0c4ee23bb85d0a0a1c181",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-26.05",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nixpkgs-lib": {
       "locked": {
         "lastModified": 1793504054,
@@ -547,6 +531,22 @@
       "original": {
         "owner": "NixOS",
         "ref": "master",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-prev": {
+      "locked": {
+        "lastModified": 1795502373,
+        "narHash": "sha256-CiSQ3/bsP5gXG2SQzOgwhqwl9MkBRhQQqJd3YmpaYL4=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "5b31ff946309736077f0c4ee23bb85d0a0a1c181",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-26.05",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -691,7 +691,7 @@
         ],
         "nixpkgs-libvncserver": "nixpkgs-libvncserver",
         "nixpkgs-stable": [
-          "nixpkgs-26_05"
+          "nixpkgs-prev"
         ],
         "utils": [
           "flake-utils"
@@ -716,14 +716,14 @@
       "inputs": {
         "cix-linux-main": "cix-linux-main",
         "darwin": "darwin",
-        "darwin-26_05": "darwin-26_05",
+        "darwin-prev": "darwin-prev",
         "darwin-unstable": "darwin-unstable",
         "disko": "disko",
         "flake-compat": "flake-compat",
         "flake-parts": "flake-parts",
         "flake-utils": "flake-utils",
         "home-manager": "home-manager",
-        "home-manager-26_05": "home-manager-26_05",
+        "home-manager-prev": "home-manager-prev",
         "home-manager-unstable": "home-manager-unstable",
         "impermanence": "impermanence",
         "lanzaboote": "lanzaboote",
@@ -732,8 +732,8 @@
         "nix-vscode-extensions": "nix-vscode-extensions",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs",
-        "nixpkgs-26_05": "nixpkgs-26_05",
         "nixpkgs-master": "nixpkgs-master",
+        "nixpkgs-prev": "nixpkgs-prev",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "nixvirt": "nixvirt",
         "noctalia": "noctalia",
