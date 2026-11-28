@@ -47,11 +47,11 @@
 
   # Mirror the stage-2 journal to UART2/AP. This captures service output that
   # is not emitted through printk while retaining the persistent journal.
-  services.journald.extraConfig = lib.mkAfter ''
-    ForwardToConsole=yes
-    TTYPath=/dev/ttyAMA0
-    MaxLevelConsole=debug
-  '';
+  services.journald.settings.Journal = {
+    ForwardToConsole = true;
+    TTYPath = "/dev/ttyAMA0";
+    MaxLevelConsole = "debug";
+  };
 
   hardware.firmware = [ pkgs.nur.repos.codgician.cix-firmware ];
 

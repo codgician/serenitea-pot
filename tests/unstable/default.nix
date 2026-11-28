@@ -52,8 +52,8 @@ let
     name: host:
     pkgs.writeText name (builtins.unsafeDiscardStringContext host.config.system.build.toplevel.drvPath);
 
-  # Packages overlays take from unstable, in a set that takes them, in an
-  # unstable set and on x86_64-darwin, where the release is its own unstable.
+  # Packages overlays take from unstable, in a set that takes them and in an
+  # unstable set.
   inherit (lib.codgician) packageSets;
   packagesIn = set: map (name: lib.getAttrFromPath (lib.splitString "." name) set);
   takenFromUnstable =
@@ -76,7 +76,6 @@ let
           ]
           ++ lib.optionals (system == "x86_64-linux") [
             "docling-serve"
-            "bilibili"
             "microsoft-identity-broker"
             "unstable.splayer-next"
           ]
@@ -85,13 +84,7 @@ let
       [
         packageSets.stable.${system}.default
         packageSets.unstable.${system}.default
-      ]
-    ++ packagesIn packageSets.stable.x86_64-darwin.default [
-      "ollama"
-      "llama-cpp"
-      "python3Packages.ollama"
-      "vscode"
-    ];
+      ];
   inherit (pkgs.stdenv.hostPlatform) system;
 in
 {

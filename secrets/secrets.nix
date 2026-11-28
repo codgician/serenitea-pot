@@ -49,7 +49,6 @@ let
       lumine
       nahida
       paimon
-      raiden-ei
       xianyun
     ];
     codex-openai-api-key.hosts = [
@@ -61,7 +60,6 @@ let
       nahida
       odette
       paimon
-      raiden-ei
       sandrone
       wanderer
       xianyun
@@ -76,7 +74,6 @@ let
       nahida
       odette
       paimon
-      raiden-ei
       sandrone
       wanderer
       xianyun
@@ -95,7 +92,6 @@ let
       nahida
       odette
       paimon
-      raiden-ei
       sandrone
       wanderer
       xianyun
@@ -116,7 +112,6 @@ let
       lumine
       nahida
       paimon
-      raiden-ei
       xianyun
     ];
     exa-api-key.hosts = [
@@ -128,7 +123,6 @@ let
       nahida
       odette
       paimon
-      raiden-ei
       sandrone
       wanderer
       xianyun
@@ -151,7 +145,6 @@ let
         nahida
         odette
         paimon
-        raiden-ei
         sandrone
         wanderer
         xianyun
@@ -168,7 +161,6 @@ let
       nahida
       odette
       paimon
-      raiden-ei
       sandrone
       wanderer
       xianyun
@@ -224,7 +216,6 @@ let
       nahida
       odette
       paimon
-      raiden-ei
       sandrone
       wanderer
       xianyun
@@ -260,7 +251,6 @@ let
         lumine
         nahida
         paimon
-        raiden-ei
         xianyun
       ];
       expires = "2027-08-10";

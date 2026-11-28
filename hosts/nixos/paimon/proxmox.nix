@@ -90,12 +90,6 @@ in
     ipAddress = "192.168.0.21";
   };
 
-  # proxmox-nixos sets this as a string; 26.05 requires a list.
-  services.openssh.settings.AcceptEnv = lib.mkForce [
-    "LANG"
-    "LC_*"
-  ];
-
   # proxmox-nixos ships a verbatim sysv-generator translation of Debian's LSB
   # script (Type=forking, GuessMainPID=false, KillMode=process, no PIDFile,
   # ExecStop="rrdcached stop"). rrdcached has no start/stop verbs, so

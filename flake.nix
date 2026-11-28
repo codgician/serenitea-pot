@@ -19,7 +19,9 @@
   };
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.11-small";
+    # proxmox-nixos still builds against the previous release.
+    nixpkgs-prev.url = "github:NixOS/nixpkgs/nixos-26.05";
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-master.url = "github:NixOS/nixpkgs/master";
     llm-agents = {
@@ -40,14 +42,15 @@
     proxmox-nixos = {
       url = "github:codgician/proxmox-nixos/my";
       inputs = {
-        nixpkgs-stable.follows = "nixpkgs";
+        nixpkgs-stable.follows = "nixpkgs-prev";
         flake-compat.follows = "flake-compat";
         utils.follows = "flake-utils";
       };
     };
 
+    # No 26.11 release branch yet; master tracks 26.11.
     darwin = {
-      url = "github:lnl7/nix-darwin/nix-darwin-26.05";
+      url = "github:lnl7/nix-darwin";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -56,8 +59,9 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
+    # No 26.11 release branch yet; master tracks 26.11.
     home-manager = {
-      url = "github:nix-community/home-manager/release-26.05";
+      url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 

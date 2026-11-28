@@ -48,7 +48,6 @@ let
         loader.efi.canTouchEfiVariables = true;
         supportedFilesystems = [ "zfs" ];
         zfs.devNodes = "/dev/disk/by-uuid";
-        initrd.systemd.enable = true;
       };
 
       networking.hostId = "deadbeef";
@@ -87,7 +86,6 @@ let
         loader.timeout = 0;
         loader.efi.canTouchEfiVariables = true;
         supportedFilesystems = [ "btrfs" ];
-        initrd.systemd.enable = true;
       };
 
       environment.systemPackages = [

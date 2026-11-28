@@ -8,7 +8,7 @@
 let
   cfg = config.codgician.codgi.git;
   pubKeys = import (lib.codgician.secretsDir + "/pubkeys.nix");
-  isDarwin = pkgs.stdenvNoCC.isDarwin;
+  isDarwin = pkgs.stdenvNoCC.hostPlatform.isDarwin;
   useIntune = osConfig.codgician.services.intune.enable or false;
   credentialManager =
     if useIntune then

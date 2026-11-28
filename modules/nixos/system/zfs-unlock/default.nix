@@ -182,8 +182,6 @@ in
     );
 
     boot.initrd.systemd = {
-      # From 26.11 on the systemd initrd is the only one and the option is gone
-      enable = lib.mkIf (lib.versionOlder config.system.nixos.release "26.11") true;
       tpm2.enable = true;
 
       storePaths = [

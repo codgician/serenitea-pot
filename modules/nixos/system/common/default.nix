@@ -1,5 +1,4 @@
 {
-  options,
   config,
   lib,
   pkgs,
@@ -35,11 +34,6 @@ in
   };
 
   config = lib.mkIf cfg.enable {
-    # Enable systemd in initrd; from 26.11 on it is the only initrd and the option is gone
-    boot.initrd.systemd.enable = lib.mkIf (
-      lib.versionOlder config.system.nixos.release "26.11" && !config.boot.isContainer
-    ) true;
-
     # Use zstd compression for initrd to save ESP space
     boot.initrd.compressor = "zstd";
 
@@ -239,21 +233,10 @@ in
     services.fail2ban.enable = config.networking.firewall.enable;
 
     # Limit journal size
-    services.journald =
-      if options.services.journald ? settings then
-        {
-          settings.Journal = {
-            SystemMaxUse = "1G";
-            SystemMaxFileSize = "32M";
-          };
-        }
-      else
-        {
-          extraConfig = ''
-            SystemMaxUse=1G
-            SystemMaxFileSize=32M
-          '';
-        };
+    services.journald.settings.Journal = {
+      SystemMaxUse = "1G";
+      SystemMaxFileSize = "32M";
+    };
 
     # OpenSSH
     services.openssh = {
@@ -292,7 +275,7 @@ in
 
     security.pam.sshAgentAuth.enable = true;
 
-    # 26.11 will flip this default to `false`; pin the legacy value explicitly.
+    # 26.11 defaults this to `false` for new installs; force-import on every host.
     boot.zfs.forceImportRoot = lib.mkIf config.boot.zfs.enabled (lib.mkDefault true);
 
     # ZFS common configurations

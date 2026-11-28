@@ -119,7 +119,6 @@ jobs:
             accept-flake-config = true
             experimental-features = nix-command flakes
             builders-use-substitutes = true
-            extra-platforms = x86_64-darwin
       - name: Setup Attic cache
         if: github.ref == 'refs/heads/main'
         uses: ryanccn/attic-action@v0

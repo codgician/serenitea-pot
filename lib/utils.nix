@@ -7,10 +7,7 @@
 }:
 rec {
   # List of supported systems
-  darwinSystems = [
-    "aarch64-darwin"
-    "x86_64-darwin"
-  ];
+  darwinSystems = [ "aarch64-darwin" ];
   linuxSystems = [
     "aarch64-linux"
     "x86_64-linux"
@@ -42,12 +39,8 @@ rec {
     ]
     ++ lib.optional (isLinuxSystem system) inputs.proxmox-nixos.overlays.${system};
 
-  # nixpkgs unstable and master no longer support x86_64-darwin after 26.05,
-  # so there they resolve to the release, which is then its own unstable.
-  isUnstable = channelName: system: channelName == "unstable" || system == "x86_64-darwin";
-
   masterOverlay = system: final: prev: {
-    master = import (if system == "x86_64-darwin" then inputs.nixpkgs else inputs.nixpkgs-master) {
+    master = import inputs.nixpkgs-master {
       inherit system;
       config = {
         allowUnfree = true;
@@ -96,7 +89,7 @@ rec {
     channelName: system: config:
     let
       channel = channels.${channelName};
-      own = isUnstable channelName system;
+      own = channelName == "unstable";
       unstable =
         if own then
           null

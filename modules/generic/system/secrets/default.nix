@@ -6,7 +6,7 @@
 }:
 let
   cfg = config.codgician.secrets;
-  inherit (pkgs.stdenvNoCC) isDarwin;
+  inherit (pkgs.stdenvNoCC.hostPlatform) isDarwin;
 
   dataDir = lib.codgician.secretsDir + "/data";
   templateDir = lib.codgician.secretsDir + "/templates";
